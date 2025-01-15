@@ -1,7 +1,9 @@
+import time
 import bpy
 import bpy.utils.previews
 import os
 from pprint import pprint
+from bpy.props import StringProperty, EnumProperty, BoolProperty
 
 tr = bpy.app.translations
 
@@ -11,7 +13,7 @@ bl_info = {
     "author" : "小王", 
     "description" : "",
     "blender" : (3, 0, 0),
-    "version" : (1, 7, 5),
+    "version" : (1, 8, 0),
     "location" : "",
     "warning" : "",
     "doc_url": "", 
@@ -99,7 +101,6 @@ class ATTRLIST_MT_Menu(bpy.types.Menu):
         edit_tree = context.space_data.edit_tree
         return context.area.ui_type in ['GeometryNodeTree', 'ShaderNodeTree'] and edit_tree
 
-
     def draw(self, context):
         layout = self.layout.column_flow(columns=1)
         layout.operator_context = "INVOKE_DEFAULT"
@@ -110,9 +111,9 @@ class ATTRLIST_OT_Add_Node_Change_Name_Type_Hide(bpy.types.Operator):
     bl_label = "属性隐藏选项"
     # bl_description = "快捷键Shift 2 "
     bl_options = {"REGISTER", "UNDO"}
-    attr_name:  bpy.props.StringProperty(name='attr_name', description='', default="", subtype='NONE')
-    attr_type:  bpy.props.StringProperty(name='attr_type', description='', default="", subtype='NONE')
-    bl_description: bpy.props.StringProperty(default="快捷键Shift 2 ", options={"HIDDEN"})
+    attr_name:  StringProperty(name='attr_name', description='', default="", subtype='NONE')
+    attr_type:  StringProperty(name='attr_type', description='', default="", subtype='NONE')
+    bl_description: StringProperty(default="快捷键Shift 2 ", options={"HIDDEN"})
 
     @classmethod
     def description(cls, context, props):
@@ -217,7 +218,7 @@ class ATTRLIST_PT_NPanel(bpy.types.Panel):
             box1.scale_y = 0.9
             box1.prop(scene, "add_settings", emboss=True, icon=arrow_show)
             if scene.add_settings:
-                box1.label(text="已知限制: 无", icon='INFO')
+                box1.label(text="已知限制: 无属性", icon='INFO')
                 split = box1.split(factor=0.5)
                 split.label(text='菜单快捷键 :')
                 split.prop(find_user_keyconfig('唤出菜单快捷键'), 'type', text='', full_event=True)
@@ -259,25 +260,25 @@ class ATTRLIST_PT_NPanel(bpy.types.Panel):
                 split4.label(text="")
                 split41 = split4.split(factor=0.5)
                 split41.prop(scene, 'only_show_used_attr', toggle=True, text='未使用属性')
-                split41.prop(scene, 'hide_attr_of_group',  toggle=True, text='节点组内属性')
+                split41.prop(scene, 'hide_attr_in_group',  toggle=True, text='节点组内属性')
                 
                 box2.label(text='查找节点设置')
                 split5 = box2.split(factor=0.05)
                 split5.label(text="")
                 split51 = split5.split(factor=0.5)
                 split51.prop(scene, 'scroll_find_node', toggle=True, text='适当缩放视图')
-                # split51.prop(scene, 'hide_attr_of_group',  toggle=True, text='节点组内属性')
+                # split51.prop(scene, 'hide_attr_in_group',  toggle=True, text='节点组内属性')
         
         box3 = layout.box()
         sort_attrs_and_draw_menu(box3, context, is_layout_split=True)
         
         box4 = layout.box()
-        box4.operator('node.view_stored_attribute_node', text="测试", icon="HIDE_OFF")
+        box4.operator('node.test', text="测试", icon="PIVOT_CURSOR")
         box4.operator('node.move_view_to_center', text="移动视图成正中", icon="PIVOT_CURSOR")
-        box4.operator('view2d.scroll_up', text="上移", icon="TRIA_UP")
-        box4.operator('view2d.scroll_down', text="下移", icon="TRIA_DOWN")
-        box4.operator('view2d.scroll_left', text="左移", icon="TRIA_LEFT")
-        box4.operator('view2d.scroll_right', text="右移", icon="TRIA_RIGHT")
+        # box4.operator('view2d.scroll_up', text="上移", icon="TRIA_UP")
+        # box4.operator('view2d.scroll_down', text="下移", icon="TRIA_DOWN")
+        # box4.operator('view2d.scroll_left', text="左移", icon="TRIA_LEFT")
+        # box4.operator('view2d.scroll_right', text="右移", icon="TRIA_RIGHT")
 
 def get_tree(context, ui_type):
     if ui_type == 'GeometryNodeTree':
@@ -294,21 +295,18 @@ def is_node_linked(node):
                 return True
     return False
 
-# attrs_dict = {}            # 放在这里的话，只初始化一次，属性越存越多
-def get_tree_attrs_dict(tree, attrs_dict):
+# attrs_dict = {}      # 放在这里的话，只初始化一次，属性越存越多
+def get_tree_attrs_dict(tree, attrs_dict, group_node_name, group_name_parent, stored_group):
     # show_unused=False的话，接下来判断is_node_linked
     context = bpy.context
+    scene = context.scene
+
     nodes = tree.nodes
-    # attrs_dict = {}             # {'Attribute': {'data_type': 'FLOAT_COLOR', 'domain_info': 'CORNER'}, 'Colorxx': {'data_type': 'FLOAT_COLOR', 'domain_info': 'POINT'} }
-    show_unused = not context.scene.only_show_used_attr
+    # attrs_dict = {}  # 放在这里的话，偶尔出问题  {'Attribute': {'data_type': 'FLOAT_COLOR', 'domain_info': 'CORNER'}, 'Colorxx': {'data_type': 'FLOAT_COLOR', 'domain_info': 'POINT'} }
+    show_unused = not scene.only_show_used_attr
     
     for node in nodes:
-        if node.mute:
-            continue
-        is_pass = not context.scene.hide_attr_of_group
-        if node.type == "GROUP" and node.node_tree and is_pass:
-            if show_unused or is_node_linked(node):
-                attrs_dict.update(get_tree_attrs_dict(node.node_tree, attrs_dict))
+        if node.mute:   continue
         if node.bl_idname == 'GeometryNodeStoreNamedAttribute':
             if show_unused or is_node_linked(node):
                 data_type = node.data_type
@@ -320,18 +318,76 @@ def get_tree_attrs_dict(tree, attrs_dict):
                 domain_cn = get_domain_cn[node.domain]               # 还可以这样
 
                 # ! 上个版本1.6，存过没存过的,太麻烦了
+                # print("-" * 60)
+                # print(f"{attr_name = }")
+                # print(f"{tree.name = }")
+                # print(f"{group_name_parent = }")
                 if attr_name not in attrs_dict:                      # 没有存过这个属性名
-                    domain_info_list = [domain_cn]
-                    
-                    attr_info = {"data_type": data_type, "domain_info": domain_info_list, 
-                                 "group_name": tree.name, "node_name": node.name}
+                    attr_info = {"data_type": data_type, "domain_info": [domain_cn], 
+                                 "group_name": [tree.name], "group_name_parent": [group_name_parent], 
+                                 "node_name": [node.name],
+                                 "group_node_name": [group_node_name],
+                                 }
                     attrs_dict[attr_name] = attr_info
                 else:                                                # 已经存过这个属性名
-                    attrs_dict[attr_name]["domain_info"].append(domain_cn)
-
+                    dict_item = attrs_dict[attr_name]
+                    dict_item["domain_info"].append(domain_cn)
+                    dict_item["group_name"].append(tree.name)
+                    dict_item["group_name_parent"].append(group_name_parent)
+                    dict_item["group_node_name"].append(group_node_name)
+                    dict_item["node_name"].append(node.name)
+        is_pass = not scene.hide_attr_in_group
+        if node.type == "GROUP" and node.node_tree and is_pass:         # node.node_tree 以防止丢失数据的节点组
+            group_name = node.node_tree.name
+            if group_name in stored_group:  continue
+            stored_group.append(group_name)
+            # print(group_name in stored_group)
+            # print(f"{group_name = }")
+            # print(f"{stored_group = }")
+            if show_unused or is_node_linked(node):
+                # group_name_parent = "组内"  # 这样的话，nodes for循环时，虽然不是节点组，但是group_name_parent也变了
+                # temp = tree.name
+                temp1 = group_node_name + "/" + node.name
+                temp2 = group_name_parent + "/" + tree.name
+                attrs_dict.update(get_tree_attrs_dict(node.node_tree, attrs_dict, stored_group=stored_group,
+                                                      group_node_name=temp1, group_name_parent=temp2))
     return attrs_dict
 
-def extend_dict_with_evaluated_obj_attrs(attrs_dict, exclude_list, obj):
+def get_all_tree_attrs_list(tree, all_tree_attr_list, stored_group):
+    context = bpy.context
+    scene = context.scene
+
+    nodes = tree.nodes
+    show_unused = not scene.only_show_used_attr
+    
+    for node in nodes:
+        if node.mute:   continue
+        if node.bl_idname == 'GeometryNodeStoreNamedAttribute':
+            if show_unused or is_node_linked(node):
+                attr_name = node.inputs["Name"].default_value
+                if attr_name == "":
+                    continue
+
+                if attr_name not in all_tree_attr_list:                      # 没有存过这个属性名
+                    all_tree_attr_list.append(attr_name)
+                    # print("----每次:", all_tree_attr_list)
+        if node.type == "GROUP" and node.node_tree:
+            group_name = node.node_tree.name
+            if group_name in stored_group:
+                continue
+            stored_group.append(group_name)
+            # print(f"{stored_group = }")
+            print("测试")
+            # print("++组名:", node.node_tree.name)
+            # print("++开始----")
+            if show_unused or is_node_linked(node):
+                # all_tree_attr_list.extend(get_all_tree_attrs_list(node.node_tree, all_tree_attr_list))    # 这样问题很严重,会指数级加项
+                all_tree_attr_list = get_all_tree_attrs_list(node.node_tree, all_tree_attr_list, stored_group)
+            # print("++结束----")
+
+    return all_tree_attr_list
+
+def extend_dict_with_evaluated_obj_attrs(attrs_dict, exclude_list, obj, all_tree_attr_list):
     context = bpy.context
     box = context.evaluated_depsgraph_get()
     obj = obj.evaluated_get(box)
@@ -348,11 +404,11 @@ def extend_dict_with_evaluated_obj_attrs(attrs_dict, exclude_list, obj):
         data_type = attr.data_type
         if data_type in switch_dict:
             data_type = switch_dict[data_type]
-        if attr.name not in attrs_dict:             # 用节点名称接口连了线的属性(第一种方法获取不到)
+        if attr.name not in all_tree_attr_list:             # 用节点名称接口连了线的属性(第一种方法获取不到)
             domain_info = "" + get_domain_cn[attr.domain]
-            attrs_dict[attr.name] = {"data_type": data_type, "domain_info": domain_info, "group_name":"不确定"}
+            attrs_dict[attr.name] = {"data_type": data_type, "domain_info": [domain_info], "group_name":"不确定"}
 
-def extend_dict_with_obj_data_attrs(attrs, scene):
+def extend_dict_with_obj_data_attrs(attrs, scene, all_tree_attr_list):
     a_object = bpy.context.space_data.id
     vertex_groups = a_object.vertex_groups
     uv_layers = a_object.data.uv_layers
@@ -360,7 +416,7 @@ def extend_dict_with_obj_data_attrs(attrs, scene):
     exclude_list = [_.name for _ in vertex_groups] + [
                     _.name for _ in uv_layers] + [
                     _.name for _ in color_attributes]
-    extend_dict_with_evaluated_obj_attrs(attrs, exclude_list, a_object)         # 扩展已有字典
+    extend_dict_with_evaluated_obj_attrs(attrs, exclude_list, a_object, all_tree_attr_list)         # 扩展已有字典
 
     if scene.show_vertex_group:
         for v_g in vertex_groups:
@@ -375,45 +431,66 @@ def extend_dict_with_obj_data_attrs(attrs, scene):
             attrs[color.name] = {'data_type': 'FLOAT_COLOR', 'domain_info': [get_domain_cn[color.domain]], 
                                 "group_name":"物体属性", "info": "颜色属性" }
 
-def custom_sort__dict(attrs, sort_types):
+def custom_sort__dict(attrs, sort_key_list):
     sorted_list = []
-    for value in sort_types:
+    for sort_key in sort_key_list:
         for key in attrs.keys():
-            # if attrs[key] == value:
-            #     sorted_list.append((key, value))
-            if attrs[key]['data_type'] == value:
+            if attrs[key]['data_type'] == sort_key:
                 sorted_list.append((key, attrs[key]))
     attrs = {k: v for k, v in sorted_list}
     return attrs
 
 def sort_attr_dict(attrs, scene):
-    sort_types1 = [ 'BOOLEAN', 'FLOAT', 'INT', 'FLOAT_VECTOR', 'FLOAT_COLOR', 'QUATERNION' ]
-    sort_types2 = [ 'INT', 'BOOLEAN', 'FLOAT', 'FLOAT_VECTOR', 'FLOAT_COLOR', 'QUATERNION' ]
-
+    sort_key_list1 = [ 'BOOLEAN', 'FLOAT', 'INT', 'FLOAT_VECTOR', 'FLOAT_COLOR', 'QUATERNION' ]
+    sort_key_list2 = [ 'INT', 'BOOLEAN', 'FLOAT', 'FLOAT_VECTOR', 'FLOAT_COLOR', 'QUATERNION' ]
+    # 在函数内部创建了一个新的局部变量 attrs，这个变量在函数结束后就会被销毁，不会影响外部的 attrs 变量。
     attrs = {k: attrs[k] for k in sorted(attrs)}        # sorted(dict) = sorted(d1.keys())
 
     if scene.sort_list == '按类型排序1':
-        attrs = custom_sort__dict(attrs, sort_types1)
+        attrs = custom_sort__dict(attrs, sort_key_list1)
     if scene.sort_list == '按类型排序1-反转':
-        sort_types = reversed(sort_types1)
-        attrs = custom_sort__dict(attrs, sort_types)
+        sort_key_list = reversed(sort_key_list1)
+        attrs = custom_sort__dict(attrs, sort_key_list)
     if scene.sort_list == '按类型排序2':
-        attrs = custom_sort__dict(attrs, sort_types2)
+        attrs = custom_sort__dict(attrs, sort_key_list2)
     # todo 完全按字符串排序
     # if scene.sort_list == '完全按字符串排序':
     #     attrs = attrs
+    return attrs
 
 def sort_attrs_and_draw_menu(layout, context, is_layout_split):
+    perf1 = time.perf_counter()
+
     scene = context.scene
-    edit_tree = context.space_data.edit_tree
     ui_type = context.area.ui_type
     tree = get_tree(context, ui_type)
 
     attrs_dict = {}     # {'组内': {'data_type': 'FLOAT', 'domain_info': ['点', '面']},'距离': {'data_type': 'FLOAT', 'domain_info': ['点']}}
-    attrs = get_tree_attrs_dict(tree, attrs_dict)
-    extend_dict_with_obj_data_attrs(attrs, scene)
-    sort_attr_dict(attrs, scene)
-    print("最终" + "*" * 100)
+    attrs = get_tree_attrs_dict(tree, attrs_dict, stored_group=[], 
+                                group_node_name="当前group是顶层节点树", group_name_parent="顶层节点树无父级")
+    time1 = time.perf_counter() - perf1
+    
+    perf2 = time.perf_counter()
+    print("开始" + "-" * 60)
+    
+    all_tree_attr_list = get_all_tree_attrs_list(tree, all_tree_attr_list=[], stored_group=[])
+    # all_tree_attr_list = list(set(all_tree_attr_list))
+    time2 = time.perf_counter() - perf2
+    
+    perf3 = time.perf_counter()
+    print("最终", len(all_tree_attr_list))
+    print(all_tree_attr_list)
+    extend_dict_with_obj_data_attrs(attrs, scene, all_tree_attr_list)
+    
+    time3 = time.perf_counter() - perf3
+    
+    perf4 = time.perf_counter()
+    attrs = sort_attr_dict(attrs, scene)
+
+    print("最终" + "*" * 60)
+    # pprint(attrs)
+    # pprint("all_tree_attr_list: ")
+    # pprint(list(set(all_tree_attr_list)))
     """ # # 一些方便打印
     # print("最终" + "*" * 100)
     # print(context.space_data.id.name)
@@ -424,7 +501,8 @@ def sort_attrs_and_draw_menu(layout, context, is_layout_split):
     # pprint("-+*" * 20)
     # print("排序：")
     # pprint(attrs) """
-
+    
+    edit_tree = context.space_data.edit_tree
     for attr_name, attr_info in attrs.items():
         data_type = attr_info["data_type"]
         ui_type = context.area.ui_type
@@ -436,16 +514,19 @@ def sort_attrs_and_draw_menu(layout, context, is_layout_split):
         domain_list_to_str = " | ".join(sorted(stored_domain_list, key=lambda x: domain_cn_list.index(x)))
 
         button_txt = attr_name + "(" + domain_list_to_str + ")"
-        description = "属性所在域：" + domain_list_to_str + \
-                    "\n此存储命名属性节点使用个数：" + "  " \
-                    "\n此命名属性节点使用个数：" + "  "
-        attr_not_in_group = ( attr_info["group_name"] == edit_tree.name)
+        description = "属性所在域：" + domain_list_to_str
+        # description = "属性所在域：" + domain_list_to_str + \
+        #             "\n此存储命名属性节点使用个数：" + "  " \
+        #             "\n此命名属性节点使用个数：" + "  "
+        group_name = attr_info["group_name"]
+        # can_find_node = ( group_name[0] == edit_tree.name ) and len(group_name)==1    # 只能查找跳转 当前活动树里的属性
+        can_find_node = len(group_name)==1
+        node_name = str(attr_info.get("node_name", "无属性")[0])
         # if len(stored_domain_list) == 1:
-        if attr_info["group_name"] != "物体属性":
-            description += "\n所在节点组：" + attr_info["group_name"]
-        if attr_info["group_name"] == "物体属性":
+        if group_name != "物体属性":
+            description += "\n所在节点组：" + str(group_name)
+        if group_name == "物体属性":
             description += "\n类型：" + attr_info['info']
-                
         if is_layout_split:
             split = layout.split(factor=0.9)
             op = split.operator('sna.add_node_change_name_and_type', text=button_txt,
@@ -453,11 +534,15 @@ def sort_attrs_and_draw_menu(layout, context, is_layout_split):
             op.attr_name = attr_name
             op.attr_type = data_type
             op.bl_description = description
-            if attr_not_in_group: icon = "HIDE_OFF"
-            else:                 icon = "HIDE_ON"
-            op = split.operator('node.view_stored_attribute_node', text="", emboss=attr_not_in_group, icon=icon)
-            # op.node_name = attr_info["node_name"]
-            op.node_name = attr_info.get("node_name", "无")
+            if can_find_node:
+                icon = "HIDE_OFF"
+            else:
+                icon = "HIDE_ON"
+            op = split.operator('node.view_stored_attribute_node', text="", emboss=can_find_node, icon=icon)
+            # op.node_name = attr_info.get("node_name", "无属性")
+            op.node_name = node_name
+            op.group_node_name = str(attr_info.get("group_node_name", "无属性")[0])
+            op.parent_path = str(attr_info.get("group_name_parent", "无属性")[0])
             
         else:
             op = layout.operator('sna.add_node_change_name_and_type', text=button_txt,
@@ -467,6 +552,14 @@ def sort_attrs_and_draw_menu(layout, context, is_layout_split):
             op.bl_description = description
             # print(type(op))     # <class 'bpy.types.NODE_PIE_OT_add_node'>
 
+    time4 = time.perf_counter() - perf4
+    
+    elapsed_time = time.perf_counter() - perf1
+    print(f"获取属性字典耗时:{time1}秒")
+    print(f"获取所有属性名耗时:{time2}秒")
+    print(f"添加评估属性耗时:{time3}秒")
+    # print(f"time4:{time4}秒")
+    print(f"总耗时{elapsed_time}秒")
 class Cloud_Use_Translatation(bpy.types.Operator):
     """轻轻一点，即可切换语言，如有需要可以右键加入收藏夹"""
     bl_idname = "cloud.use_translation"
@@ -479,16 +572,18 @@ class Cloud_Use_Translatation(bpy.types.Operator):
         i.use_translate_tooltips = i.use_translate_interface
         return {'FINISHED'}
 
-class NODE_OT_View_Stored_Attribute_Node(bpy.types.Operator):
-    """跳转到已命名属性节点位置"""
-    bl_idname = "node.view_stored_attribute_node"
-    bl_label = "框选节点"
-    bl_description = "跳转到已命名属性节点位置"
-    node_name :  bpy.props.StringProperty(name='node_name', description='存储属性节点目标', default="", subtype='NONE')
+class NODE_OT_View_Stored_Attribute_Node_in_edit_tree(bpy.types.Operator):
+    """在edit_tree里查找节点"""
+    bl_idname = "node.view_stored_attribute_node_in_edit_tree"
+    bl_label = "在edit_tree里查找节点"
+    bl_description = "在edit_tree里查找节点"
+    node_name :   StringProperty(name='node_name', description='存储属性节点目标', default="", subtype='NONE')
+    
     def execute(self, context):
         bpy.ops.node.select_all(action='DESELECT')
+        # context.space_data.node_tree      # 是根节点树
         nodes = context.space_data.edit_tree.nodes
-        if self.node_name == "无":
+        if self.node_name == "无属性":
             return
         if context.scene.scroll_find_node:
             for i in range(50):
@@ -500,7 +595,89 @@ class NODE_OT_View_Stored_Attribute_Node(bpy.types.Operator):
         nodes.active = tar_node
         bpy.ops.node.view_selected()
 
-        # # bpy.ops.node.select_all(action="SELECT")
+        return {'FINISHED'}
+
+
+class NODE_OT_Test(bpy.types.Operator):
+    """移动视图，使视图中心变成 (0, 0)"""
+    bl_idname = "node.test"
+    bl_label = "节点组退回顶层"
+    bl_description = "节点组退回顶层"
+
+    def execute(self, context):
+        space = context.space_data
+        root_tree_name = space.node_tree.name      # 是根节点树
+        edit_tree_name = space.edit_tree.name      # 是当前节点树
+        tree_path = space.path.to_string.split("/")[1:]     # 只留下节点组的名字，不包括根名
+        print("测试" * 10)
+        for i in range(len(tree_path)):
+            print(f"{i = }")
+            print(f"{root_tree_name = }")
+            print(f"{edit_tree_name = }")
+            bpy.ops.node.tree_path_parent()
+        bpy.ops.view2d.pan(deltax=10, deltay=100)
+        
+        return {'FINISHED'}
+
+def exit_group_to_root():
+    space = bpy.context.space_data
+    tree_path = space.path.to_string.split("/")[1:]     # 只留下节点组的名字，不包括根名
+    for i in range(len(tree_path)):
+        bpy.ops.node.tree_path_parent()
+
+def proper_scroll_view():
+    if bpy.context.scene.scroll_find_node:
+        for i in range(50):
+            bpy.ops.view2d.zoom_out()
+        for i in range(40):
+            bpy.ops.view2d.zoom_in()
+
+class NODE_OT_View_Stored_Attribute_Node(bpy.types.Operator):
+    """跳转到已命名属性节点位置"""
+    bl_idname = "node.view_stored_attribute_node"
+    bl_label = "框选节点"
+    bl_description = "跳转到已命名属性节点位置"
+    node_name :   StringProperty(name='node_name', description='存储属性节点目标', default="", subtype='NONE')
+    group_node_name :  StringProperty(name='group_node_name', description='group_node_name', default="", subtype='NONE')
+    parent_path : StringProperty(name='parent_path', description='parent_path', default="", subtype='NONE')
+    
+    def execute(self, context):
+        exit_group_to_root()
+        proper_scroll_view()
+        # context.space_data.node_tree      # 是根节点树
+        if self.node_name == "无属性":  return
+
+        # print(f"{root_tree_name = }")
+        # print(f"{self.parent_path = }")
+        # self.parent_path          # 顶层节点树无父级/Geometry Nodes/测试组
+        # self.group_node_name      # 当前group是顶层节点树/Group.001/Group.002
+        path_list = self.parent_path.split("/")[1:]
+        name_list = self.group_node_name.split("/")[1:]
+        # print(path_list)
+        # print(name_list)
+        
+        for path, name in zip(path_list, name_list):
+            nodes = bpy.data.node_groups[path].nodes
+            group_node = nodes[name]
+            nodes.active = group_node
+            bpy.ops.node.group_edit(exit=False)
+
+        bpy.ops.node.select_all(action='DESELECT')
+        nodes = context.space_data.edit_tree.nodes
+        tar_node = nodes[self.node_name]
+        tar_node.select = True
+        nodes.active = tar_node
+        
+        # bpy.ops.node.select_all(action='DESELECT')
+        # reroute = nodes.new(type="NodeReroute")
+        # reroute.location = tar_node.location
+        # reroute.location.y += 10
+        # nodes.active = reroute
+        # reroute.select = True
+        bpy.ops.node.view_selected()
+        # nodes.remove(reroute)
+
+        """ # # bpy.ops.node.select_all(action="SELECT")
         # # bpy.ops.node.view_selected()
         # # 50 次就是极限了
         # for i in range(50):
@@ -512,7 +689,7 @@ class NODE_OT_View_Stored_Attribute_Node(bpy.types.Operator):
         #     # bpy.ops.view2d.zoom_border(
         #     #         xmin= 0, xmax= 100,
         #     #         ymin= 0, ymax= 100,
-        #     # )
+        #     # ) """
         return {'FINISHED'}
 
 class NODE_OT_Move_View_To_Center(bpy.types.Operator):
@@ -545,32 +722,32 @@ classes = [
     Cloud_Use_Translatation,
     NODE_OT_View_Stored_Attribute_Node,
     NODE_OT_Move_View_To_Center,
+    NODE_OT_Test,
     
 ]
 def register():
     global _icons
     _icons = bpy.utils.previews.new()
     S = bpy.types.Scene
-    P = bpy.props
     bpy.types.NODE_MT_editor_menus.append(add_to_attr_list_mt_editor_menus)
-    S.hide_option        = P.BoolProperty(name='hide_option',        description='添加时是否隐藏选项',         default=True)
-    S.hide_Exists_socket = P.BoolProperty(name='hide_Exists_socket', description='添加时是否隐藏输出接口存在', default=True)
-    S.hide_Name_socket   = P.BoolProperty(name='hide_Name_socket',   description='添加时是否隐藏输入接口名称', default=False)
-    S.rename_Attr_socket = P.BoolProperty(name='rename_Attr_socket', description='添加时是否命名输出接口属性', default=True)
-    S.hide_Node          = P.BoolProperty(name='hide_Node',          description='添加时是否折叠节点',         default=False)
-    S.rename_Node        = P.BoolProperty(name='rename_Node',        description='添加时是否重命名节点',       default=False)
-    S.show_set_panel     = P.BoolProperty(name='show_set_panel',     description='显示设置',                   default=True)
-    S.scroll_find_node   = P.BoolProperty(name='scroll_find_node',   description='查找节点时适当缩放视图',     default=True)
-    S.only_show_used_attr= P.BoolProperty(name='only_show_used_attr',description='只显示用到的属性,连了线的属性节点',  default=True)
-    S.hide_attr_of_group = P.BoolProperty(name='hide_attr_of_group', description='隐藏节点组里的属性',  default=False)
-    S.add_settings       = P.BoolProperty(name='添加节点选项',      description='',  default=False)
-    S.show_settings      = P.BoolProperty(name='列表显示选项',      description='',  default=True)
-    S.panel_info         = P.StringProperty(name='显示在面板上的描述', description='显示在面板上的描述',  default="aaa")
+    S.hide_option        = BoolProperty(name='hide_option',        description='添加时是否隐藏选项',         default=True)
+    S.hide_Exists_socket = BoolProperty(name='hide_Exists_socket', description='添加时是否隐藏输出接口存在', default=True)
+    S.hide_Name_socket   = BoolProperty(name='hide_Name_socket',   description='添加时是否隐藏输入接口名称', default=False)
+    S.rename_Attr_socket = BoolProperty(name='rename_Attr_socket', description='添加时是否命名输出接口属性', default=True)
+    S.hide_Node          = BoolProperty(name='hide_Node',          description='添加时是否折叠节点',         default=False)
+    S.rename_Node        = BoolProperty(name='rename_Node',        description='添加时是否重命名节点',       default=False)
+    S.show_set_panel     = BoolProperty(name='show_set_panel',     description='显示设置',                   default=True)
+    S.scroll_find_node   = BoolProperty(name='scroll_find_node',   description='查找节点时适当缩放视图',     default=True)
+    S.only_show_used_attr= BoolProperty(name='only_show_used_attr',description='只显示用到的属性,连了线的属性节点',  default=True)
+    S.hide_attr_in_group = BoolProperty(name='hide_attr_in_group', description='隐藏节点组里的属性',  default=False)
+    S.add_settings       = BoolProperty(name='添加节点选项',      description='',  default=False)
+    S.show_settings      = BoolProperty(name='列表显示选项',      description='',  default=True)
+    S.panel_info         = StringProperty(name='显示在面板上的描述', description='显示在面板上的描述',  default="aaa")
     
-    S.show_vertex_group  = P.BoolProperty(name='Show_Vertex_Group',  description='是否在属性列表里显示顶点组',      default=True)
-    S.show_uv_map        = P.BoolProperty(name='Show_UV_Map',        description='是否在属性列表里显示UV贴图',     default=False)
-    S.show_color_attr    = P.BoolProperty(name='Show_Color_Attr',    description='是否在属性列表里显示颜色属性',     default=False)
-    S.sort_list          = P.EnumProperty(name='列表排序方式',        description='属性列表多种排序方式', 
+    S.show_vertex_group  = BoolProperty(name='Show_Vertex_Group',  description='是否在属性列表里显示顶点组',      default=True)
+    S.show_uv_map        = BoolProperty(name='Show_UV_Map',        description='是否在属性列表里显示UV贴图',     default=False)
+    S.show_color_attr    = BoolProperty(name='Show_Color_Attr',    description='是否在属性列表里显示颜色属性',     default=False)
+    S.sort_list          = EnumProperty(name='列表排序方式',        description='属性列表多种排序方式', 
                                                  items=[('按类型排序1', '按类型排序1', '布尔-浮点-整数-矢量-颜色-旋转', 0, 0), 
                                                         ('按类型排序1-反转', '按类型排序1-反转', '旋转-颜色-矢量-整数-浮点-布尔', 0, 1), 
                                                         ('按类型排序2', '按类型排序2', '整数-布尔-浮点-矢量-颜色-旋转', 0, 2), 
@@ -610,7 +787,7 @@ def unregister():
     del S.hide_Node
     del S.rename_Node
     del S.only_show_used_attr
-    del S.hide_attr_of_group
+    del S.hide_attr_in_group
     del S.add_settings
     del S.show_settings
     del S.show_set_panel
