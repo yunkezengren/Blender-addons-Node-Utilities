@@ -1,14 +1,17 @@
-from pprint import pprint
 import bpy
 import bpy.utils.previews
 import os
+from pprint import pprint
+
+tr = bpy.app.translations
+
 
 bl_info = {
     "name" : "小王-几何节点命名属性列表",
     "author" : "小王", 
     "description" : "",
     "blender" : (3, 0, 0),
-    "version" : (1, 5, 0),
+    "version" : (1, 6, 0),
     "location" : "",
     "warning" : "",
     "doc_url": "", 
@@ -21,7 +24,7 @@ bl_info = {
 addon_keymaps = {}
 _icons = None
 
-domain_en = [
+domain_en_list = [
         'POINT',
         'EDGE',
         'FACE',
@@ -30,7 +33,7 @@ domain_en = [
         'INSTANCE',
         'LAYER',
         ]
-domain_cn = [
+domain_cn_list = [
         '点',
         '边',
         '面',
@@ -39,7 +42,7 @@ domain_cn = [
         '实例',
         '层',
         ]
-get_domain_cn = {k: v for k, v in zip(domain_en, domain_cn)}
+get_domain_cn = {k: v for k, v in zip(domain_en_list, domain_cn_list)}
 
 data_types = [
             'BOOLEAN',
@@ -268,7 +271,13 @@ def is_node_linked(node):
                 return True
     return False
 
-def get_attrs_dict(tree, show_unused=True):
+switch_dict = { "BYTE_COLOR": "FLOAT_COLOR",
+                "FLOAT2": "FLOAT_VECTOR"}
+
+# attrs_dict = {}            # 放在这里的话，只初始化一次，属性越存越多
+# stored_domain_dict = {}
+
+def get_tree_attrs_dict0(tree, attrs_dict, stored_domain_dict, show_unused=True):
     # show_unused=False的话，接下来判断is_node_linked
     # print("tree", tree)
     # print("tree.name", tree.name)
@@ -276,34 +285,108 @@ def get_attrs_dict(tree, show_unused=True):
     context = bpy.context
     nodes = tree.nodes
     links = tree.links
-    attrs_dict = {}         # {attr_name_str: data_type_str}
-    # # 第一种
-    data_dict = {   "BYTE_COLOR": "FLOAT_COLOR",
-                    "FLOAT2": "FLOAT_VECTOR"}
+    # attrs_dict = {}     # {'Attribute': {'data_type': 'FLOAT_COLOR', 'domain_info': 'CORNER'}, 'Colorxx': {'data_type': 'FLOAT_COLOR', 'domain_info': 'POINT'} }
+    # stored_domain_dict = {}     # 需要使用全局，函数递归?  return attrs_dict 就不用全局了,md也用全局比较好
+
     for node in nodes:
+        if node.mute:
+            continue
         is_pass = not context.scene.hide_attr_of_group
         if node.type == "GROUP" and node.node_tree and is_pass:
             if show_unused or is_node_linked(node):
-                attrs_dict.update(get_attrs_dict(node.node_tree))
-        if node.bl_idname in ['GeometryNodeInputNamedAttribute', 'GeometryNodeStoreNamedAttribute']:
+                attrs_dict.update(get_tree_attrs_dict(node.node_tree, attrs_dict, stored_domain_dict))
+        if node.bl_idname == 'GeometryNodeStoreNamedAttribute':
             if show_unused or is_node_linked(node):
                 data_type = node.data_type
-                if data_type in data_dict:
-                    data_type = data_dict[data_type]
+                if data_type in switch_dict:
+                    data_type = switch_dict[data_type]
                 n_input = node.inputs["Name"]
                 attr_name = n_input.default_value
-                if attr_name and not n_input.is_linked:   # n_input.links
-                    attrs_dict[attr_name] = data_type
-                if n_input.is_linked:
+                domain_cn = get_domain_cn[node.domain]              # 还可以这样
+                # tr_domain_cn = tr.pgettext_tip(node.domain.capitalize())   # domain是Corner和Curve，翻译为中文，与选项显示不一致 
+                
+                # print("+-"*20)
+                # print(f"{tree.name = }")
+                # print(f"{node.label = }")
+                # print(f"{domain_cn = }")
+                # print(f"{attr_name = }")
+
+                # if attr_name not in attrs_dict and not n_input.is_linked:
+                # ! 存过没存过的,太麻烦了
+                if attr_name not in attrs_dict:                      # 没有存过这个属性名
+                    # print("没有存过这个属性名---" * 1)
+                    domain_info = "" + domain_cn
+                    attr_info = {"data_type": data_type, "domain_info": domain_info}
+                    attrs_dict[attr_name] = attr_info
+                    stored_domain_dict[attr_name] = {domain_cn}
+                    # print(f"{attrs_dict = }")
+                    # print(f"{stored_domain_dict = }")
+                else:                                                # 已经存过这个属性名
+                # if attr_name in attrs_dict:                        # 第一次时会多运行一次到continue然后退出
+                    # print("已经存过这个属性名---" * 1)
+                    if domain_cn in stored_domain_dict[attr_name]:      # 且存过这个域
+                        # print("且存过这个域---" * 1)
+                        continue
+                    # 没存过这个域时：
+                    # # domain_info = attrs_dict[attr_name]["domain_info"] + " | " + domain_cn
+                    # # attrs_dict[attr_name]["domain_info"] = domain_info
+                    attrs_dict[attr_name]["domain_info"] += " | " + domain_cn
+                    stored_domain_dict[attr_name].add(domain_cn)
+                    # print(f"{stored_domain_dict[attr_name] = }")
+                    # ! stored_domain_dict[attr_name] = stored_domain_dict[attr_name].add(domain_cn)   # add 方法没有返回值  stored_domain_dict[attr_name]成了None
+                    # print(f"{attrs_dict = }")
+                    # print(f"{stored_domain_dict = }")
+                """ if n_input.is_linked:       # 用处不大
                     for link in links:
                         to_node = link.to_node; from_node = link.from_node
                         if to_node.name == node.name and from_node.bl_idname == 'FunctionNodeInputString':
-                            attrs_dict[from_node.string] = data_type            # from_node.string获取的字符串输入节点的字符串值
-    # 第二种
+                            attrs_dict[from_node.string] = data_type             """# from_node.string获取的字符串输入节点的字符串值
+    # print(stored_domain_dict)
+    # print(attrs_dict)
+    # print("最终" + "-" * 50)
+    return attrs_dict
+
+def get_tree_attrs_dict(tree, attrs_dict, stored_domain_dict, show_unused=True):
+    # show_unused=False的话，接下来判断is_node_linked
+    context = bpy.context
+    nodes = tree.nodes
+    # attrs_dict = {}     # {'Attribute': {'data_type': 'FLOAT_COLOR', 'domain_info': 'CORNER'}, 'Colorxx': {'data_type': 'FLOAT_COLOR', 'domain_info': 'POINT'} }
+    # stored_domain_dict = {}     # 需要使用全局，函数递归?  return attrs_dict 就不用全局了,md也用全局比较好
+
+    for node in nodes:
+        if node.mute:
+            continue
+        is_pass = not context.scene.hide_attr_of_group
+        if node.type == "GROUP" and node.node_tree and is_pass:
+            if show_unused or is_node_linked(node):
+                attrs_dict.update(get_tree_attrs_dict(node.node_tree, attrs_dict))
+        if node.bl_idname == 'GeometryNodeStoreNamedAttribute':
+            if show_unused or is_node_linked(node):
+                data_type = node.data_type
+                if data_type in switch_dict:
+                    data_type = switch_dict[data_type]
+                n_input = node.inputs["Name"]
+                attr_name = n_input.default_value
+                domain_cn = get_domain_cn[node.domain]               # 还可以这样
+
+                # ! 上个版本，存过没存过的,太麻烦了
+                if attr_name not in attrs_dict:                      # 没有存过这个属性名
+                    domain_info_list = [domain_cn]
+                    attr_info = {"data_type": data_type, "domain_info": domain_info_list}
+                    attrs_dict[attr_name] = attr_info
+                else:                                                # 已经存过这个属性名
+                    attrs_dict[attr_name]["domain_info"].append(domain_cn)
+
+    return attrs_dict
+
+def get_obj_attrs_dict(attrs_dict, exclude_list, obj):
+    context = bpy.context
     box = context.evaluated_depsgraph_get()
-    obj = context.object.evaluated_get(box)
+    # obj = context.object.evaluated_get(box)
+    obj = obj.evaluated_get(box)
     attrs = obj.data.attributes
-    exclude_list = ["position", "sharp_face", "material_index",              # "id",
+    exclude_list = exclude_list + [
+                    "position", "sharp_face", "material_index",              # "id",
                     ".edge_verts", ".corner_vert", ".corner_edge", 
                     ".select_vert", ".select_edge", ".select_poly",
                     ".sculpt_face_set",
@@ -312,24 +395,25 @@ def get_attrs_dict(tree, show_unused=True):
         if attr.name in exclude_list:
             continue
         data_type = attr.data_type
-        if data_type in data_dict:
-            data_type = data_dict[data_type]
-        attrs_dict[attr.name] = data_type
-    
-    return attrs_dict
+        if data_type in switch_dict:
+            data_type = switch_dict[data_type]
+        if attr.name not in attrs_dict:
+            domain_info = "" + get_domain_cn[attr.domain]
+            attrs_dict[attr.name] = {"data_type": data_type, "domain_info": domain_info}
 
 def custom_sort(attrs, sort_types):
     sorted_list = []
     for value in sort_types:
         for key in attrs.keys():
-            if attrs[key] == value:
-                sorted_list.append((key, value))
+            # if attrs[key] == value:
+            #     sorted_list.append((key, value))
+            if attrs[key]['data_type'] == value:
+                sorted_list.append((key, attrs[key]))
     attrs = {k: v for k, v in sorted_list}
     return attrs
 
 def sort_attrs_and_draw_menu(layout, context):
     scene = context.scene
-    a_object = context.active_object
     sort_types1 = [ 'BOOLEAN', 'FLOAT', 'INT', 'FLOAT_VECTOR', 'FLOAT_COLOR', 'QUATERNION' ]
     sort_types2 = [ 'INT', 'BOOLEAN', 'FLOAT', 'FLOAT_VECTOR', 'FLOAT_COLOR', 'QUATERNION' ]
 
@@ -337,63 +421,100 @@ def sort_attrs_and_draw_menu(layout, context):
     
     # tree = context.active_object.modifiers.active.node_group
     
-    # GeometryNodeTree 里 context.space_data.id 是 bpy.data.materials["Material"]
+    # GeometryNodeTree 里 context.space_data.id 是 bpy.data.objects["Mesh"]
     # ShaderNodeTree   里 context.space_data.id 是 bpy.data.materials["Material"]
     ui_type = context.area.ui_type
     if ui_type == 'GeometryNodeTree':
         tree = context.space_data.id.modifiers.active.node_group
     if ui_type == 'ShaderNodeTree':
         tree = context.active_object.modifiers.active.node_group
+    # print(context.space_data.id.name)
     show_unused = not context.scene.only_show_used_attr
-    attrs = get_attrs_dict(tree, show_unused)
-    # from pprint import pprint
-    # pprint("-" * 30)
-    # print(context.space_data.id)
-    # context.area.spaces.active.path[-1].node_tree
-    # context.space_data.edit_tree
-    # pprint(attrs)
-    if scene.show_vertex_group:
-        for v_g in a_object.vertex_groups:
-            attrs[v_g.name] = 'FLOAT'
-    if scene.show_uv_map:
-        for uv in a_object.data.uv_layers:
-            attrs[uv.name] = 'FLOAT_VECTOR'
-    if scene.show_color_attr:
-        for color in a_object.data.color_attributes:
-            attrs[color.name] = 'FLOAT_COLOR'
+    print("开始" + "*" * 100)
+    attrs_dict = {}     # {'Attribute': {'data_type': 'FLOAT_COLOR', 'domain_info': 'CORNER'}, 'Colorxx': {'data_type': 'FLOAT_COLOR', 'domain_info': 'POINT'} }
+    stored_domain_dict = {}    # {attr_name_str: str_set}
+    # attrs = get_tree_attrs_dict(tree, show_unused)
+    attrs = get_tree_attrs_dict0(tree, attrs_dict, stored_domain_dict, show_unused)
+    print("最终" + "*" * 100)
+    a_object = context.space_data.id
+    vertex_groups = a_object.vertex_groups
+    uv_layers = a_object.data.uv_layers
+    color_attributes = a_object.data.color_attributes
+    exclude_list = [_.name for _ in vertex_groups] + [
+                    _.name for _ in uv_layers] + [
+                    _.name for _ in color_attributes]
+    # get_obj_attrs_dict(attrs, exclude_list, a_object)         # 扩展已有字典
 
-    attrs = {k: attrs[k] for k in sorted(attrs)}
-    # if scene.sort_list == '按类型排序1':
-    #     attrs = custom_sort(attrs, sort_types1)
-    # if scene.sort_list == '按类型排序1-反转':
-    #     sort_types = reversed(sort_types1)
-    #     attrs = custom_sort(attrs, sort_types)
-    # if scene.sort_list == '按类型排序2':
-    #     attrs = custom_sort(attrs, sort_types2)
+    if scene.show_vertex_group:
+        for v_g in vertex_groups:
+            attrs[v_g.name] = {'data_type': 'FLOAT', 'domain_info': '点'}
+    if scene.show_uv_map:
+        for uv in uv_layers:
+            attrs[uv.name] = {'data_type': 'FLOAT_VECTOR', 'domain_info': '拐角'}
+    if scene.show_color_attr:
+        for color in color_attributes:
+            attrs[color.name] = {'data_type': 'FLOAT_COLOR', 'domain_info': "" + tr.pgettext_tip(color.domain.capitalize())}
+
+    attrs = {k: attrs[k] for k in sorted(attrs)}        # sorted(dict) = sorted(d1.keys())
+
+    if scene.sort_list == '按类型排序1':
+        attrs = custom_sort(attrs, sort_types1)
+    if scene.sort_list == '按类型排序1-反转':
+        sort_types = reversed(sort_types1)
+        attrs = custom_sort(attrs, sort_types)
+    if scene.sort_list == '按类型排序2':
+        attrs = custom_sort(attrs, sort_types2)
+    # todo 完全按字符串排序
     # if scene.sort_list == '完全按字符串排序':
     #     attrs = attrs
-    for attr_name, attr_type in attrs.items():
+
+    # pprint("-+*" * 20)
+    # print("排序：")
+    # pprint(attrs)
+    for attr_name, attr_info in attrs.items():
+        data_type = attr_info["data_type"]
         ui_type = context.area.ui_type
-        if attr_type not in data_types:
+        # if data_type not in data_types:
+        #     continue
+        if ui_type == 'ShaderNodeTree' and data_type not in shader_date_types:
             continue
-        if ui_type == 'ShaderNodeTree' and attr_type not in shader_date_types:
-            continue
-        op = layout.operator('sna.add_node_change_name_and_type', text=str(attr_name),
-                                    icon_value=(_icons[data_with_png[attr_type]].icon_id ) )
+        attr_info = attr_info['domain_info']
+        # print(f"{ attr_info = }")      # 草 双引号套双引号 不行
+        stored_domain_list = attr_info.split('：')[1].split(" | ")
+        attr_info = " | ".join(sorted(stored_domain_list, key=lambda x: domain_cn_list.index(x)))
+
+        button_txt = attr_name + "(" + attr_info +")"
+        op = layout.operator('sna.add_node_change_name_and_type', text=button_txt,
+                                    icon_value=(_icons[data_with_png[data_type]].icon_id ) )
         op.attr_name = attr_name
-        op.attr_type = attr_type
-        op.bl_description = attr_name
-        
-        # from pprint import pprint
+        op.attr_type = data_type
+        op.bl_description = attr_info + "\n此命名属性节点使用个数：" + "5" + "\n所在节点组：" + "测试"
+
         # print("*-+" * 30)
         # print(type(op))     # <class 'bpy.types.NODE_PIE_OT_add_node'>
         # pprint("dict(op)")
         # pprint(dict(op))
+
+class Cloud_Use_Translatation(bpy.types.Operator):
+    """轻轻一点，即可切换语言，如有需要可以右键加入收藏夹"""
+    bl_idname = "cloud.use_translation"
+    bl_label = "切换语言"
+    bl_description = "切换语言"
+
+    def execute(self, context):
+        i = bpy.context.preferences.view
+        i.use_translate_interface = i.use_translate_interface ^ True
+        i.use_translate_tooltips = i.use_translate_interface
+        return {'FINISHED'}
+
+
+
 classes = [
     ATTRLIST_OT_Add_Node_Change_Name_Type_Hide,
     ATTRLIST_MT_Menu,
     ATTRLIST_PT_NPanel,
     ATTRLIST_AddonPreferences,
+    Cloud_Use_Translatation,
     # ATTRLIST_PT_Add_Settings,
     # ATTRLIST_PT_Show_Settings,
 ]
