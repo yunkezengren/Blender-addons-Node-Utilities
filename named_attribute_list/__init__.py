@@ -7,8 +7,6 @@ from . import translator
 # from pprint import pprint
 
 tr = translator.i18n
-
-# ! 提交到扩展平台时删掉辅助打印
 # todo 添加个重命名属性名: 更改 存储属性和命名属性的 名称接口值
 # todo 重命名属性标签和接口
 #_ todo 快速添加组输入节点 
@@ -672,12 +670,12 @@ classes = [
 def register():
     global _icons
     _icons = bpy.utils.previews.new()
-    S = bpy.types.Scene
     bpy.types.NODE_MT_editor_menus.append(add_to_attr_list_mt_editor_menus)
+    S = bpy.types.Scene
     S.hide_option        = BoolProperty(name='hide_option',        description=tr('添加时是否隐藏选项'),         default=True)
-    S.hide_Exists_socket = BoolProperty(name='hide_Exists_socket', description=tr('添加时是否隐藏输出接口存在'), default=True)
-    S.hide_Name_socket   = BoolProperty(name='hide_Name_socket',   description=tr('添加时是否隐藏输入接口名称'), default=False)
-    S.rename_Attr_socket = BoolProperty(name='rename_Attr_socket', description=tr('添加时是否命名输出接口属性'), default=True)
+    S.hide_Exists_socket = BoolProperty(name='hide_Exists_socket', description=tr('添加时是否隐藏输出存在接口'), default=True)
+    S.hide_Name_socket   = BoolProperty(name='hide_Name_socket',   description=tr('添加时是否隐藏输入名称接口'), default=False)
+    S.rename_Attr_socket = BoolProperty(name='rename_Attr_socket', description=tr('添加时是否命名输出属性接口'), default=True)
     S.hide_Node          = BoolProperty(name='hide_Node',          description=tr('添加时是否折叠节点'),         default=False)
     S.rename_Node        = BoolProperty(name='rename_Node',        description=tr('添加时是否重命名节点为属性名'), default=False)
     S.is_hide_by_pre     = BoolProperty(name='is_hide_by_pre',     description=tr('是否隐藏带有特定前缀的属性'), default=False)
@@ -686,21 +684,19 @@ def register():
     S.show_vertex_group  = BoolProperty(name='Show_Vertex_Group',  description=tr('是否在属性列表里显示顶点组'),   default=True)
     S.show_uv_map        = BoolProperty(name='Show_UV_Map',        description=tr('是否在属性列表里显示UV贴图'),   default=False)
     S.show_color_attr    = BoolProperty(name='Show_Color_Attr',    description=tr('是否在属性列表里显示颜色属性'), default=False)
-    S.only_show_used_attr= BoolProperty(name='only_show_used_attr',description=tr('只显示用到的属性,连了线的属性节点'), default=True)
+    S.only_show_used_attr= BoolProperty(name='only_show_used_attr',description=tr('只显示接口连线的存储属性节点的属性'), default=True)
     S.hide_attr_in_group = BoolProperty(name='hide_attr_in_group', description=tr('隐藏节点组里的属性'), default=False)
     S.add_settings       = BoolProperty(name=tr('添加节点选项'),   description=tr('添加节点选项'),       default=False)
     S.show_settings      = BoolProperty(name=tr('列表显示选项'),   description=tr('列表显示选项'),       default=True)
-    S.show_attr_domain   = BoolProperty(name='show_attr_domain',   description=tr('是否显示属性所在域'), default=False)
-    
+    S.show_attr_domain   = BoolProperty(name='show_attr_domain',   description=tr('是否显示属性所在域'), default=True)
     S.panel_info         = StringProperty(name='panel_info',     description=tr('显示在n面板上的插件当前状态描述'), default="")
     S.rename_prefix      = StringProperty(name='rename_prefix',  description=tr('重命名节点时添加的前缀'), default="")
     S.hide_by_prefix     = StringProperty(name='hide_by_prefix', description=tr('隐藏带有特定前缀的属性,以|分隔多种,例 .|_|-'), default="")
-    
     S.sort_list          = EnumProperty(name='列表排序方式',     description=tr('属性列表多种排序方式'),
-                                                 items=[('按类型排序1',      tr('按类型排序1'),      tr('布尔-浮点-整数-矢量-颜色-旋转-矩阵'), 0, 0), 
-                                                        ('按类型排序1-反转', tr('按类型排序1-反转'), tr('矩阵-旋转-颜色-矢量-整数-浮点-布尔'), 0, 1), 
-                                                        ('按类型排序2',      tr('按类型排序2'),      tr('整数-布尔-浮点-矢量-颜色-旋转-矩阵'), 0, 2), 
-                                                        ('完全按字符串排序', tr('完全按字符串排序'), tr('首字-数字英文中文'), 0, 3)])
+                                                 items=[(tr('按类型排序1'),      tr('按类型排序1'),      tr('布尔-浮点-整数-矢量-颜色-旋转-矩阵'), 0, 0), 
+                                                        (tr('按类型排序1-反转'), tr('按类型排序1-反转'), tr('矩阵-旋转-颜色-矢量-整数-浮点-布尔'), 0, 1), 
+                                                        (tr('按类型排序2'),      tr('按类型排序2'),      tr('整数-布尔-浮点-矢量-颜色-旋转-矩阵'), 0, 2), 
+                                                        (tr('完全按字符串排序'), tr('完全按字符串排序'), tr('首字-数字英文中文'), 0, 3)])
     
     for cla in classes:
         bpy.utils.register_class(cla)
@@ -724,34 +720,34 @@ def register():
 
 def unregister():
     global _icons
-    S = bpy.types.Scene
     bpy.utils.previews.remove(_icons)
     for km, kmi in addon_keymaps.values():
         km.keymap_items.remove(kmi)
     addon_keymaps.clear()
-    
+
+    S = bpy.types.Scene
     del S.hide_option
     del S.hide_Exists_socket
     del S.hide_Name_socket
     del S.rename_Attr_socket
     del S.hide_Node
     del S.rename_Node
+    del S.is_hide_by_pre
+    del S.show_set_panel
+    del S.if_scale_editor
+    del S.show_vertex_group
+    del S.show_uv_map
+    del S.show_color_attr
     del S.only_show_used_attr
     del S.hide_attr_in_group
     del S.add_settings
     del S.show_settings
-    del S.rename_prefix
-    del S.show_set_panel
-    del S.if_scale_editor
+    del S.show_attr_domain
     del S.panel_info
-    del S.show_vertex_group
-    del S.show_uv_map
-    del S.show_color_attr
+    del S.rename_prefix
     del S.hide_by_prefix
     del S.sort_list
     
     bpy.types.NODE_MT_editor_menus.remove(add_to_attr_list_mt_editor_menus)
     for cla in classes:
         bpy.utils.unregister_class(cla)
-
-
