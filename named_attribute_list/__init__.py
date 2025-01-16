@@ -112,7 +112,7 @@ def loop_find_if_instanced(node):
     i = 0
     while links:
         i += 1
-        if i > 20:
+        if i > 5:
             return False
         to_node = links[0].to_node
         if to_node.bl_idname == "GeometryNodeInstanceOnPoints" and links[0].to_socket.name == 'Points':
@@ -688,7 +688,7 @@ def register():
     S.hide_attr_in_group = BoolProperty(name='hide_attr_in_group', description=tr('隐藏节点组里的属性'), default=False)
     S.add_settings       = BoolProperty(name=tr('添加节点选项'),   description=tr('添加节点选项'),       default=False)
     S.show_settings      = BoolProperty(name=tr('列表显示选项'),   description=tr('列表显示选项'),       default=True)
-    S.show_attr_domain   = BoolProperty(name='show_attr_domain',   description=tr('是否显示属性所在域'), default=True)
+    S.show_attr_domain   = BoolProperty(name='show_attr_domain',   description=tr('是否显示属性所在域'), default=False)
     S.panel_info         = StringProperty(name='panel_info',     description=tr('显示在n面板上的插件当前状态描述'), default="")
     S.rename_prefix      = StringProperty(name='rename_prefix',  description=tr('重命名节点时添加的前缀'), default="")
     S.hide_by_prefix     = StringProperty(name='hide_by_prefix', description=tr('隐藏带有特定前缀的属性,以|分隔多种,例 .|_|-'), default="")
