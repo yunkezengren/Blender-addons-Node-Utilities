@@ -347,13 +347,13 @@ def sort_attrs_and_draw_menu(layout, context, is_panel):
                 icon = "HIDE_OFF"
             else:
                 icon = "HIDE_ON"
-            op_find = split.operator('node.view_stored_attribute_node', text="", emboss=can_find_store_node, icon=icon)
-            # op_find.node_name = attr_info.get("node_name", "无属性")
-            op_find.node_name = node_name
-            group_name_list = attr_info.get("group_node_name", "无属性")
-            op_find.group_node_name = str(group_name_list[0])
-            op_find.parent_path = str(attr_info.get("group_name_parent", "无属性")[0])
-
+            if ui_type == 'GeometryNodeTree':
+                op_find = split.operator('node.view_stored_attribute_node', text="", emboss=can_find_store_node, icon=icon)
+                # op_find.node_name = attr_info.get("node_name", "无属性")
+                op_find.node_name = node_name
+                group_name_list = attr_info.get("group_node_name", "无属性")
+                op_find.group_node_name = str(group_name_list[0])
+                op_find.parent_path = str(attr_info.get("group_name_parent", "无属性")[0])
         else:
             op = layout.operator('sna.add_node_change_name_and_type', text=button_txt,
                                     icon_value=(_icons[data_with_png[data_type]].icon_id ) )
