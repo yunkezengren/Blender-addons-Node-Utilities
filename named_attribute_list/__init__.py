@@ -4,27 +4,11 @@ import bpy.utils.previews
 from bpy.types import Operator, Menu, Panel, AddonPreferences
 from bpy.props import StringProperty, EnumProperty, BoolProperty, IntProperty
 from . import translator
-import time
-from pprint import pprint
+# from pprint import pprint
 
 tr = translator.i18n
 
-
-bl_info = {
-    "name" : "小王-几何节点命名属性列表",
-    "author" : "一尘不染", 
-    "description" : "",
-    "blender" : (3, 0, 0),
-    "version" : (2, 2, 0),
-    "location" : "",
-    "warning" : "",
-    "doc_url": "", 
-    "tracker_url": "", 
-    "category" : "Node" 
-}
-
 # ! 提交到扩展平台时删掉辅助打印
-# ! 把小王删掉
 # todo 添加个重命名属性名: 更改 存储属性和命名属性的 名称接口值
 # todo 重命名属性标签和接口
 #_ todo 快速添加组输入节点 
@@ -164,7 +148,6 @@ def get_tree_attrs_dict(tree, attrs_dict, group_node_name, group_name_parent, st
                 continue
             domain_cn = tr(get_domain_cn[node.domain])               # 还可以这样
 
-            # ! 上个版本1.6，存过没存过的,太麻烦了
             # print("-" * 60)
             # print(f"{attr_name = }")
             # print(f"{tree.name = }")
@@ -312,18 +295,6 @@ def sort_attrs_and_draw_menu(layout, context, is_panel):
     extend_dict_with_obj_data_attrs(attrs, scene, all_tree_attr_list)
     attrs = sort_attr_dict(attrs, scene)
 
-    # print("最终" + "*" * 60)
-    # pprint(attrs)
-    """ # # 一些方便打印
-    # print("最终" + "*" * 100)
-    # print(context.space_data.id.name)
-    # print("开始" + "*" * 100)
-    # pprint(attrs_dict)
-    # if scene.show_vertex_group or scene.show_uv_map or scene.show_color_attr:
-    #     pprint(attrs_dict)
-    # pprint("-+*" * 20)
-    # print("排序：")
-    # pprint(attrs) """
     prefix_list = scene.hide_by_prefix.split("|")
     for attr_name, attr_info in attrs.items():
         has_prefix = False
@@ -382,11 +353,7 @@ def sort_attrs_and_draw_menu(layout, context, is_panel):
             group_name_list = attr_info.get("group_node_name", "无属性")
             op_find.group_node_name = str(group_name_list[0])
             op_find.parent_path = str(attr_info.get("group_name_parent", "无属性")[0])
-            # total = len(group_name_list)
-            # op_find.total = total
-            # op_find.current += 1
-            # op_find.bl_description = "该属性存储次数:" + str(total) \
-            #                                     + "\ncurrent:" + str(op_find.current)
+
         else:
             op = layout.operator('sna.add_node_change_name_and_type', text=button_txt,
                                     icon_value=(_icons[data_with_png[data_type]].icon_id ) )
@@ -471,7 +438,7 @@ class ATTRLIST_OT_Add_Node_Change_Name_Type_Hide(Operator):
 
 class ATTRLIST_MT_Menu(Menu):
     bl_idname = "ATTRLIST_MT_Menu"
-    bl_label = tr("小王-命名属性列表菜单")
+    bl_label = tr("命名属性列表菜单")
 
     @classmethod
     def poll(cls, context):
@@ -483,7 +450,7 @@ class ATTRLIST_MT_Menu(Menu):
         sort_attrs_and_draw_menu(self.layout, context, is_panel=False)
 
 class ATTRLIST_PT_NPanel(Panel):
-    bl_label = tr('小王-命名属性列表面板')      # 还作为在快捷键列表里名称
+    bl_label = tr('命名属性列表面板')      # 还作为在快捷键列表里名称
     bl_idname = 'ATTRLIST_PT_NPanel'
     bl_space_type = 'NODE_EDITOR'
     bl_region_type = 'UI'
@@ -524,12 +491,6 @@ class ATTRLIST_PT_NPanel(Panel):
             box1.scale_y = 0.9
             box1.prop(scene, "add_settings", emboss=True, icon=arrow_show)
             if scene.add_settings:
-
-                # split.label(text=tr('菜单快捷键: '))
-                # split.prop(find_user_keyconfig('唤出菜单快捷键'), 'type', text='', full_event=True)
-                # split = box1.split(factor=0.5)
-                # split.label(text=tr('面板快捷键: '))
-                # split.prop(find_user_keyconfig('ATTRLIST_PT_NPanel'), 'type', text='', full_event=True)
 
                 split = box1.split(factor=0.5)
                 split.prop(scene, 'hide_option',        toggle=True, text=tr('隐藏节点选项'))
@@ -586,14 +547,6 @@ class ATTRLIST_PT_NPanel(Panel):
 
         box3 = layout.box()
         sort_attrs_and_draw_menu(box3, context, is_panel=True)
-        
-        # box4 = layout.box()
-        # box4.operator('node.test', text="测试", icon="PIVOT_CURSOR")
-        # box4.operator('node.move_view_to_center', text="view_selected", icon="PIVOT_CURSOR")
-        # box4.operator('view2d.scroll_up', text="上移", icon="TRIA_UP")
-        # box4.operator('view2d.scroll_down', text="下移", icon="TRIA_DOWN")
-        # box4.operator('view2d.scroll_left', text="左移", icon="TRIA_LEFT")
-        # box4.operator('view2d.scroll_right', text="右移", icon="TRIA_RIGHT")
 
 def exit_group_to_root():
     space = bpy.context.space_data
@@ -630,9 +583,6 @@ class NODE_OT_View_Stored_Attribute_Node(Operator):
     node_name :   StringProperty(name='node_name', description='存储属性节点目标', default="无", subtype='NONE')
     parent_path : StringProperty(name='parent_path', description='parent_path', default="", subtype='NONE')
     group_node_name : StringProperty(name='group_node_name', description='group_node_name', default="", subtype='NONE')
-    # bl_description: StringProperty(default="", options={"HIDDEN"})
-    # total :   IntProperty(description='total', default=0)
-    # current : IntProperty(description='current', default=0)
     
     @classmethod
     def description(cls, context, props):
@@ -644,10 +594,6 @@ class NODE_OT_View_Stored_Attribute_Node(Operator):
             return {'FINISHED'}
         exit_group_to_root()
         proper_scroll_view()
-        # self.parent_path          # 顶层节点树无父级/Geometry Nodes/测试组
-        # self.group_node_name      # 当前group是顶层节点树/Group.001/Group.002
-        # print(path_list)
-        # print(name_list)
         print(self.node_name)
 
         path_list = self.parent_path.split("/")[1:]
@@ -675,7 +621,7 @@ class NODE_OT_View_Stored_Attribute_Node(Operator):
 
 class NODE_OT_Add_Named_Attribute(Operator):
     bl_idname = "node.add_named_attribute_node"
-    bl_label = tr("小王-快速添加命名属性节点")
+    bl_label = tr("快速添加命名属性节点")
     bl_description = tr("快速添加选中的活动存储属性节点相应的已命名属性节点")
     bl_options = {"REGISTER", "UNDO"}
 
@@ -714,58 +660,6 @@ class NODE_OT_Add_Named_Attribute(Operator):
         return {"FINISHED"}
 
 
-
-class NODE_OT_Move_View_To_Center(Operator):
-    """移动视图，使视图中心变成 (0, 0)"""
-    bl_idname = "node.move_view_to_center"
-    bl_label = "移动视图成正中"
-    bl_description = "移动视图成正中"
-
-    def execute(self, context):
-        nodes = context.space_data.edit_tree.nodes
-        # bpy.ops.node.select_all(action='DESELECT')
-
-        # math_node = nodes.new(type="ShaderNodeMath")
-        # math_node.select = True
-        # nodes.active = math_node
-        # math_node.location.x = -800
-        
-        # bpy.context.scene.frame_current = 30
-        bpy.ops.node.view_selected()
-        # bpy.context.space_data.view2d.offset = (100, 50)
-        bpy.context.area.spaces.active.scroll = (50, -100)
-        bpy.context.space_data.scroll = (50, -100)
-        return {'FINISHED'}
-
-
-        # areas = [area for area in bpy.context.window.screen.areas if area.type == 'NODE_EDITOR']
-        # with bpy.context.temp_override(
-        #         area=areas[0],
-        #         region=[region for region in areas[0].regions if region.type == 'WINDOW'][0]):
-        #     bpy.ops.node.view_selected()
-
-        # # Find the node group in the material node tree
-        # node = [
-        #     node for node in parent_material.node_tree.nodes
-        #     if node.bl_idname == 'ShaderNodeGroup' and node.node_tree.name == node_group_name
-        # ][0]
-        
-        # # nodes.remove(math_node)
-        # active_node = context.active_node
-        # selected_nodes = context.selected_nodes
-        # nodes = context.space_data.edit_tree.nodes
-        # bpy.ops.node.select_all(action='DESELECT')
-
-        # reroute = nodes.new(type="NodeReroute")
-        # reroute.select = True
-        # bpy.ops.node.view_selected()
-        # nodes.remove(reroute)
-        # nodes.active = active_node
-        # for node in selected_nodes:
-        #     node.select = True
-        # return {'FINISHED'}
-
-
 classes = [
     ATTRLIST_OT_Add_Node_Change_Name_Type_Hide,
     ATTRLIST_MT_Menu,
@@ -773,8 +667,6 @@ classes = [
     ATTRLIST_AddonPreferences,
     NODE_OT_View_Stored_Attribute_Node,
     NODE_OT_Add_Named_Attribute,
-    
-    NODE_OT_Move_View_To_Center,
 ]
 
 def register():

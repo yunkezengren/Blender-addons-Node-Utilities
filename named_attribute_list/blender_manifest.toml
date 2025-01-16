@@ -1,8 +1,8 @@
 schema_version = "1.0.0"
-id = "group_input_helper"
-version = "2.4.0"
-name = "Group input helper(节点组输入助手)"
-tagline = "Qucik add/split/merge Group Input node/socket(快速添加拆分合并移动组输入节点接口)"
+id = "named_attribute_list"
+version = "2.2.0"
+name = "Named Attribute List(命名属性列表)"
+tagline = "Quickly Add Attribute Node in GN and Shader(几何节点和材质里快速添加属性节点)"
 maintainer = "W_Cloud(一尘不染)"
 type = "add-on"
 tags = ["Node", "Geometry Nodes"]
