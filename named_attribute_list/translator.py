@@ -1,83 +1,90 @@
 import bpy
 
 dictionary = {
-    "DEFAULT": {},
     "en_US": {
-        "几何数据": "Geometry",
-        "布尔": "Boolean",
-        "浮点": "Float",
-        "整数": "Integer",
-        "矢量": "Vector",
-        "颜色": "Color",
-        "旋转": "Rotation",
-        "矩阵": "Matrix",
-        "菜单": "Menu",
-        "字符串": "String",
-        "材质": "Material",
-        "物体": "Object",
-        "集合": "Collection",
-        "图像": "Image",
-        "纹理": "Texture",
-        "添加输入输出接口": "Add input/output socket for current node tree",
-        "给活动节点组添加接口": "Add socket for active group node",
-        "w-节点组输入助手-添加拆分合并移动": "Group input helper-Add Split Merge Move",
-        "快速添加组输入节点-拆分合并移动组输入节点-快速添加组输入输出接口": "Qucik add and split merge move Group Input node-Qucik add Group Input Output socket",
-        "偏好设置-标题栏-N面板": "Preferences-Editor Bar-N panel",
-        "组输入": "Group input",
-        "w-组输入拆分": "Group input split",
-        "w-添加组输入输出接口": "Add group input output interface",
-        "显示面板名字": "Show Panel name",
-        "添加组输入菜单里显示接口所属面板名字": "Show Panel name of socket in Group input add menu",
-        "组输入隐藏节口": "Group input hide socket",
-        "添加一个只剩目标接口没被隐藏的组输入节点": "add a  group input node that only exposes the target socket while hiding the others.",
-        "空": "None",
-        "标题栏和N面板显示组输入拆分": "Title bar and N panel display group input split",
-        "添加组输入": "Add group input",
-        "w-添加组输入": "Add group input",
-        "添加组输入-菜单": "Add group input - menu",
-        "添加组输入-面板": "Add group input - panel",
-        "添加组输入输出接口": "Add group input output socket",
-        "添加输入输出接口": "Add input output socket",
-        "输入接口": "Input socket",
-        "输出接口": "Output socket",
-        "组输入合并拆分移动": "Group input merge split move",
-        "w-组输入拆分合并移动": "Group input split merge move",
-        "合并组输入接口": "Merge group input socket",
-        "合并组输入连线": "Merge group input links",
-        "留下未隐藏的接口": "Split group input socket, leave the unhidden socket",
-        "拆分组输入接口": "Split group input socket",
-        "拆分组输入并移动": "Split group input and move",
-        "拆分组输入并移动合并": "Split group input and move merge",
-        "拆分组输入": "Split group input",
-        "合并节点并拆分": "Merge group input and split",
-        "合并组输入连线": "Merge group input links",
-        "拆分组输入连线": "Split group input links",
-        "完全拆分并移动": "Completely split and move",
-        "拆分并移动合并": "Split and move merge",
-        "完全拆分": "Completely split",
-        "拆分组输入接口,只留下连线的接口": "Split group input socket, only leave the linked socket",
-        "拆分组输入接口,留下未隐藏的接口,一连多也拆开": "Split group input socket, leave the unhidden socket, also split the one-to-many connections",
-        "拆分组输入接口,并移动到连向接口的附近,留下未隐藏的接口,一连多也拆开": "Split group input socket, and move to the left of the connected to_socket, leave the unhidden socket, also split the one-to-many connections",
-        "完全拆分组输入接口,并移动到连向的接口(to_socket),并合并连到一个节点上的和距离近的组输入节点": "Completely split group input socket, and move to the connected to_socket, and merge the group input nodes that are connected to one node and close in distance",
-        "先合并选中组输入节点，再完全拆分组输入接口,并移动节点们到连向的接口(to_socket),并合并 连到一个节点上的和距离近的组输入节点": "First merge the selected group input nodes, then completely split the group input socket, move the nodes to the connected to_socket, and merge the group input nodes that are connected to one node and close in distance",
-        "隐藏未使用组输入接口": "hide unliked group input sockets",
-        "同时添加输入接口": "Add input socket simultaneously",
-        "同时添加输出接口": "Add output socket simultaneously",
-        "简化<组输入合并拆分移动>菜单": "Simplify the menu of Split group input",
-        "隐藏所有组输入节点未使用的接口": "Hide unused sockets of all group input nodes",
-        "拆分并移动组输入节点时删除转接点": "Delete reroute when splitting and moving group input nodes",
-        "选中组输入节点,每一个接口拆分成一个节点": "Select group input nodes, split each socket into a separate node",
-        "选中组输入节点,合并接口到一个组输入节点": "Select group input nodes, merge sockets into one group input node",
-        "选中组输入节点,每一个接口/连线拆分成一个节点": "Select group input nodes, split each socket/link into a separate node",
-        "选中组输入节点,隐藏未连线节口后,拆分组输入接口": "Select group input nodes, hide unlinked sockets, then split group input sockets",
-        "选中组输入节点,合并连线到一个组输入节点,隐藏未连线节口": "Select group input nodes, merge links into one group input node, hide unlinked sockets",
-        "选中组输入节点,每一个连线拆分成一个节点,并移动到连向接口(to_socket)的附近": "Select group input nodes, split each link into a separate node, and move to the left of the connected to_socket",
-        "选中组输入节点,每一个连线拆分成一个节点,并移动到连向接口(to_socket)的附近,并合并连到一个节点上的组输入节点": "Select group input nodes, split each link into a separate node, move to the left of the connected to_socket, and merge group input nodes connected to one node",
-        "选中组输入节点,先合并成一个节点,再拆分接口,并移动到连向接口(to_socket)的附近,并合并连到一个节点上的组输入节点": "Select group input nodes, first merge into one node, then split sockets, move to the left of the connected to_socket, and merge group input nodes connected to one node",
+        "点": "Point",
+        "边": "Edge",
+        "面": "Face",
+        "面拐": "Corner",
+        "样条线": "Curve",
+        "实例": "Instance",
+        "层": "Layer",
+        "UV": "UV",
+        "顶点组": "Vertex Group",
+        "UV贴图": "UV Map",
+        "属性": "Attribute",
+        "颜色属性": "Color Attribute",
+        "物体属性": "Object Attribute",
+        "菜单快捷键: ": "Menu Shortcut: ",
+        "面板快捷键: ": "Panel Shortcut: ",
+        "已知限制: ": "Known Limitations: ",
+        "非网格域存储属性节点,名称接口由别的接口连接的话,可能识别不到": "",
+        "存储属性节点后经过了实例化或实现实例,在着色器添加属性,选项不一定正确": "",
+        "隐藏节点选项": "Hide Node Options",
+        "隐藏存在接口": "Hide Existing Interfaces",
+        "隐藏名称接口": "Hide Name Interfaces",
+        "重命名属性接口": "Rename Attribute Interfaces",
+        "折叠节点": "Collapse Nodes",
+        "重命名节点标签": "Rename Node Labels",
+        "前缀": "Prefix",
+        "列表排序方式": "List Sorting Method",
+        "属性列表里是否显示": "Show in Attribute List",
+        "属性列表里是否隐藏": "Hide in Attribute List",
+        "未使用属性": "Unused Attributes",
+        "节点组内属性": "Attributes in Node Groups",
+        "属性列表文本设置": "Attribute List Text Settings",
+        "显示所在域": "Show Domain",
+        "查找节点设置": "Node Search Settings",
+        "适当缩放视图": "Zoom View Appropriately",
+        "添加节点选项": "Add Node Options",
+        "列表显示选项": "List Display Options",
+        "添加已命名属性节点": "Add Named Attribute Node",
+        "添加属性节点": "Add Attribute Node",
+        "框选节点": "Box Select Nodes",
+        "类型: ": "Type: ",
+        "属性所在域: ": "Attribute Domain: ",
+        "所在节点组: ": "in which groups: ",
+        "属性隐藏选项": "Attribute Hiding Options",
+        "小王-命名属性列表菜单": "Named Attribute List Menu",
+        "小王-命名属性列表面板": "Named Attribute List Panel",
+        "小王-几何节点命名属性列表": "Geometry Nodes Named Attribute List",
+        "小王-批量重命名节点和属性节点接口": "Batch Rename Nodes and Attribute Node Interfaces",
+        "该属性所在域,例：面 | 实例": "The domain of this attribute, e.g., Face | Instance",
+        "该属性是否转到了实例域上": "Whether this attribute has been moved to the Instance domain",
+        "存储属性节点目标": "Store Attribute Node Target",
+        "活动物体属性": "Active Object Attributes",
+        "活动物体及节点树属性": "Active Object and Node Tree Attributes",
+        "目标退到顶层": "Target Move to Top Level",
+        "添加时是否隐藏选项": "Hide Options When Adding",
+        "添加时是否隐藏输出接口存在": "Hide Output Sockets When Adding",
+        "添加时是否隐藏输入接口名称": "Hide Input Socket Names When Adding",
+        "添加时是否命名输出接口属性": "Name Output Sockets When Adding",
+        "添加时是否折叠节点": "Collapse Nodes When Adding",
+        "添加时是否重命名节点为属性名": "Rename Nodes to Attribute Names When Adding",
+        "重命名节点时添加的前缀": "Prefix to Add When Renaming Nodes",
+        "隐藏带有特定前缀的属性,以|分隔多种,例 .|-|_": "Hide Attributes with Specific Prefixes, separated by |, e.g., .|-|_",
+        "是否隐藏带有特定前缀的属性": "Hide Attributes with Specific Prefixes",
+        "显示设置": "Display Settings",
+        "查找节点时适当缩放视图": "Zoom View Appropriately When Finding for Nodes",
+        "只显示用到的属性,连了线的属性节点": "Only Show Used Attributes, Connected Attribute Nodes",
+        "隐藏节点组里的属性": "Hide Attributes in Node Groups",
+        "是否显示属性所在域": "Show Attribute Domain",
+        "显示在n面板上的插件当前状态描述": "Plugin Description Shown in N-Panel",
+        "是否在属性列表里显示顶点组": "Show Vertex Groups in Attribute List",
+        "是否在属性列表里显示UV贴图": "Show UV Maps in Attribute List",
+        "是否在属性列表里显示颜色属性": "Show Color Attributes in Attribute List",
+        "属性列表多种排序方式": "Multiple Sorting Methods for Attribute List",
+        "按类型排序1": "Sort by Type 1",
+        "布尔-浮点-整数-矢量-颜色-旋转-矩阵": "Boolean-Float-Integer-Vector-Color-Rotation-Matrix",
+        "按类型排序1-反转": "Sort by Type 1 - Reversed",
+        "矩阵-旋转-颜色-矢量-整数-浮点-布尔": "Matrix-Rotation-Color-Vector-Integer-Float-Boolean",
+        "按类型排序2": "Sort by Type 2",
+        "整数-布尔-浮点-矢量-颜色-旋转-矩阵": "Integer-Boolean-Float-Vector-Color-Rotation-Matrix",
+        "完全按字符串排序": "Sort Completely by String",
+        "首字-数字英文中文": "First Character - Numbers English Chinese",
+        "查找命名属性节点": "Find Stored Named Attribute Node",
+        "跳转到已命名属性节点位置": "Find Stored Named Attribute Node",
     },
-    # "zh_CN": {
-    #     "Add-on Preferences View": "插件偏好设置",
-    # }
 }
 
 
@@ -93,31 +100,3 @@ def i18n(text: str) -> str:
             return dictionary["en_US"][text]
         else:
             return text
-
-
-# # Get the language code when addon start up
-# __language_code__ = bpy.context.preferences.view.language
-
-# dictionary["zh_HANS"] = dictionary["zh_CN"]
-
-
-# def i18n(content: str) -> str:
-#     return i18n_d(content)
-
-# def i18n_l(content: str) -> str:
-#     global __language_code__
-#     if __language_code__ not in dictionary:
-#         # return content
-#         return dictionary["en_US"][content]
-
-#     if content not in dictionary[__language_code__]:
-#         return content
-
-#     return dictionary[__language_code__][content]
-
-
-# # update the preferences language code and do the translation
-# def i18n_d(content: str) -> str:
-#     global __language_code__
-#     __language_code__ = bpy.context.preferences.view.language
-#     return i18n_l(content)

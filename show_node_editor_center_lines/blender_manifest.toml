@@ -1,8 +1,8 @@
 schema_version = "1.0.0"
-id = "group_input_helper"
-version = "2.4.0"
-name = "Group input helper(节点组输入助手)"
-tagline = "Qucik add/split/merge Group Input node/socket(快速添加拆分合并移动组输入节点接口)"
+id = "show_node_editor_center_lines"
+version = "1.3.0"
+name = "node_editor_center_lines(节点界面中心线)"
+tagline = "show_node_editor_center_lines(节点界面中心线)"
 maintainer = "W_Cloud(一尘不染)"
 type = "add-on"
 tags = ["Node", "Geometry Nodes"]
