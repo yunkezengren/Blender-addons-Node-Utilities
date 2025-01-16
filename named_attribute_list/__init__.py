@@ -266,12 +266,12 @@ def sort_attr_dict(attrs, scene):
     # 在函数内部创建了一个新的局部变量 attrs，这个变量在函数结束后就会被销毁，不会影响外部的 attrs 变量。
     attrs = {k: attrs[k] for k in sorted(attrs)}        # sorted(dict) = sorted(d1.keys())
 
-    if scene.sort_list == tr('按类型排序1'):
+    if scene.sort_list == '按类型排序1':
         attrs = custom_sort_dict(attrs, sort_key_list1)
-    if scene.sort_list == tr('按类型排序1-反转'):
+    if scene.sort_list == '按类型排序1-反转':
         sort_key_list = reversed(sort_key_list1)
         attrs = custom_sort_dict(attrs, sort_key_list)
-    if scene.sort_list == tr('按类型排序2'):
+    if scene.sort_list == '按类型排序2':
         attrs = custom_sort_dict(attrs, sort_key_list2)
     # todo 完全按字符串排序
     # if scene.sort_list == '完全按字符串排序':
@@ -675,7 +675,7 @@ def register():
     S.hide_option        = BoolProperty(name='hide_option',        description=tr('添加时是否隐藏选项'),         default=True)
     S.hide_Exists_socket = BoolProperty(name='hide_Exists_socket', description=tr('添加时是否隐藏输出存在接口'), default=True)
     S.hide_Name_socket   = BoolProperty(name='hide_Name_socket',   description=tr('添加时是否隐藏输入名称接口'), default=False)
-    S.rename_Attr_socket = BoolProperty(name='rename_Attr_socket', description=tr('添加时是否命名输出属性接口'), default=True)
+    S.rename_Attr_socket = BoolProperty(name='rename_Attr_socket', description=tr('添加时是否重命名输出属性接口'), default=True)
     S.hide_Node          = BoolProperty(name='hide_Node',          description=tr('添加时是否折叠节点'),         default=False)
     S.rename_Node        = BoolProperty(name='rename_Node',        description=tr('添加时是否重命名节点为属性名'), default=False)
     S.is_hide_by_pre     = BoolProperty(name='is_hide_by_pre',     description=tr('是否隐藏带有特定前缀的属性'), default=False)
@@ -693,10 +693,10 @@ def register():
     S.rename_prefix      = StringProperty(name='rename_prefix',  description=tr('重命名节点时添加的前缀'), default="")
     S.hide_by_prefix     = StringProperty(name='hide_by_prefix', description=tr('隐藏带有特定前缀的属性,以|分隔多种,例 .|_|-'), default="")
     S.sort_list          = EnumProperty(name='列表排序方式',     description=tr('属性列表多种排序方式'),
-                                                 items=[(tr('按类型排序1'),      tr('按类型排序1'),      tr('布尔-浮点-整数-矢量-颜色-旋转-矩阵'), 0, 0), 
-                                                        (tr('按类型排序1-反转'), tr('按类型排序1-反转'), tr('矩阵-旋转-颜色-矢量-整数-浮点-布尔'), 0, 1), 
-                                                        (tr('按类型排序2'),      tr('按类型排序2'),      tr('整数-布尔-浮点-矢量-颜色-旋转-矩阵'), 0, 2), 
-                                                        (tr('完全按字符串排序'), tr('完全按字符串排序'), tr('首字-数字英文中文'), 0, 3)])
+                                                 items=[('按类型排序1',      tr('按类型排序1'),      tr('布尔-浮点-整数-矢量-颜色-旋转-矩阵'), 0, 0), 
+                                                        ('按类型排序1-反转', tr('按类型排序1-反转'), tr('矩阵-旋转-颜色-矢量-整数-浮点-布尔'), 0, 1), 
+                                                        ('按类型排序2',      tr('按类型排序2'),      tr('整数-布尔-浮点-矢量-颜色-旋转-矩阵'), 0, 2), 
+                                                        ('完全按字符串排序', tr('完全按字符串排序'), tr('首字-数字英文中文'), 0, 3)])
     
     for cla in classes:
         bpy.utils.register_class(cla)
