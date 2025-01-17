@@ -32,6 +32,9 @@
 # 小王-显示节点选项优化-根据选项重命名节点-domain
 # 小王-隐藏接口值-节点组
 # TODO 粘贴接口名,只支持那几个特定的
+# TODO 快速数学运算,在偏好设置里加个选项,如果连满了两个接口,是否hide
+# TODO 浮点饼菜单 to 弧度 角度
+# TODO 自动隐藏显示接口后,扩展接口不显示
 
 # !!! Disclaimer: Use the contents of this file at your own risk !!!
 # 100% of the content of this file contains malicious code!!1
@@ -66,12 +69,13 @@ Vec2 = Col4 = Vec
 import platform
 from time import perf_counter, perf_counter_ns
 import copy #Для VLNST.
+from pprint import pprint
 
 dict_classes = {} #Все подряд, которых нужно регистрировать. Через словарь -- для SmartAddToRegAndAddToKmiDefs(), но чтобы сохранял порядок.
-dict_vtClasses = {} #Только инструменты V*T.
+dict_vtClasses = {} #Только инструменты V*T.  #只有V*T工具。
 
-list_classes = []
-list_toolClasses = []
+# list_classes = []
+# list_toolClasses = []
 
 Color_Bar_Width = 0.015     # 小王 饼菜单颜色条宽度
 Cursor_X_Offset = -50       # 小王 这样更舒服，在输入或输出接口方面加强
@@ -2203,7 +2207,7 @@ class VoronoiLinkerTool(VoronoiToolPairSk): #Святая святых. То р�
             dm["ru_RU"] = "Выделять задействованные ноды"
             dm["zh_CN"] = "快速连接后自动选择连接的节点"
 
-SmartAddToRegAndAddToKmiDefs(VoronoiLinkerTool, "###_RIGHTMOUSE") #"##A_RIGHTMOUSE"?
+SmartAddToRegAndAddToKmiDefs(VoronoiLinkerTool, "##A_RIGHTMOUSE") #"##A_RIGHTMOUSE"?
 dict_setKmiCats['grt'].add(VoronoiLinkerTool.bl_idname)
 
 fitVltPiDescr = "High-level ignoring of \"annoying\" sockets during first search. (Currently, only the \"Alpha\" socket of the image nodes)"
@@ -3143,7 +3147,7 @@ class VoronoiAddonPrefs(VoronoiAddonPrefs):
     vmtReroutesCanInAnyType:  bpy.props.BoolProperty(name="Reroutes can be mixed to any type", default=True)
     ##
     vmtPieType:               bpy.props.EnumProperty( name="Pie Type", default='CONTROL', items=( ('CONTROL',"Control",""), ('SPEED',"Speed","") ))
-    vmtPieScale:              bpy.props.FloatProperty(name="Pie scale",                default=1.5, min=1.0, max=2.0, subtype="FACTOR")
+    vmtPieScale:              bpy.props.FloatProperty(name="Pie scale",                default=1.3, min=1.0, max=2.0, subtype="FACTOR")
     vmtPieAlignment:          bpy.props.IntProperty(  name="Alignment between items",  default=1,   min=0,   max=2, description="0 – Flat.\n1 – Rounded docked.\n2 – Gap")
     vmtPieSocketDisplayType:  bpy.props.IntProperty(  name="Display socket type info", default=1,   min=-1,  max=1, description="0 – Disable.\n1 – From above.\n-1 – From below (VMT)")
     vmtPieDisplaySocketColor: bpy.props.IntProperty(  name="Display socket color",     default=-1,  min=-4,  max=4, description="The sign is side of a color. The magnitude is width of a color")
@@ -3606,6 +3610,9 @@ class VoronoiQuickMathTool(VoronoiToolTripleSk):
         with VlTrMapForKey(GetPrefsRnaProp('vqmtIncludeExistingValues').name) as dm:
             dm["ru_RU"] = "Включить существующие значения"
 #            dm["zh_CN"] = ""
+        with VlTrMapForKey(GetPrefsRnaProp('vqmtDisplayIcons').name) as dm:
+            dm["ru_RU"] = "Отображать иконки"
+#            dm[zh_CN] = ""
         #См. перевод vqmtRepickKey в VLT.
         #Переводы vqmtPie такие же, как и в VMT.
 
@@ -3625,13 +3632,14 @@ SmartAddToRegAndAddToKmiDefs(VoronoiQuickMathTool, "S#A_4", {'justPieCall':4}) #
 dict_setKmiCats['grt'].add(VoronoiQuickMathTool.bl_idname)
 
 class VoronoiAddonPrefs(VoronoiAddonPrefs):
+    vqmtDisplayIcons:          bpy.props.BoolProperty(name="Display icons",           default=True)
     vqmtIncludeThirdSk:        bpy.props.BoolProperty(name="Include third socket",    default=True)
     vqmtIncludeQuickPresets:   bpy.props.BoolProperty(name="Include quick presets",   default=True)
     vqmtIncludeExistingValues: bpy.props.BoolProperty(name="Include existing values", default=True)
     vqmtRepickKey: bpy.props.StringProperty(name="Repick Key", default='LEFT_ALT')
     ##
     vqmtPieType:               bpy.props.EnumProperty( name="Pie Type", default='CONTROL', items=( ('CONTROL',"Control",""), ('SPEED',"Speed","") ))
-    vqmtPieScale:              bpy.props.FloatProperty(name="Pie scale",                default=1.5,  min=1.0, max=2.0, subtype="FACTOR")
+    vqmtPieScale:              bpy.props.FloatProperty(name="Pie scale",                default=1.3,  min=1.0, max=2.0, subtype="FACTOR")
     vqmtPieScaleExtra:         bpy.props.FloatProperty(name="Pie scale extra",          default=1.25, min=1.0, max=2.0, subtype="FACTOR")
     vqmtPieAlignment:          bpy.props.IntProperty(  name="Alignment between items",  default=1,    min=0,   max=2, description="0 – Flat.\n1 – Rounded docked.\n2 – Gap")
     vqmtPieSocketDisplayType:  bpy.props.IntProperty(  name="Display socket type info", default=1,    min=-1,  max=1, description="0 – Disable.\n1 – From above.\n-1 – From below (VMT)")
@@ -3897,7 +3905,12 @@ class VqmtPieMath(bpy.types.Menu):
     def draw(self, _context):
         def LyVqmAddOp(where, text, icon='NONE'):
             #Автоматический перевод выключен, ибо оригинальные операции у нода математики тоже не переводятся; по крайней мере для Русского.
-            where.operator(VqmtOpMain.bl_idname, text=text.replace("_"," ").capitalize(), icon=icon, translate=False).operation = text
+            label = text.replace("_"," ").capitalize()
+            if text == "RADIANS":
+                label = "To Randians"
+            if text == "DEGREES":
+                label = "To Degrees"
+            where.operator(VqmtOpMain.bl_idname, text=label, icon=icon, translate=False).operation = text
         soldCanIcons = VqmtData.prefs.vqmtDisplayIcons
         def LyVqmAddItem(where, txt, ico='NONE'):
             ly = where.row(align=VqmtData.pieAlignment==0)
@@ -3961,7 +3974,7 @@ class VqmtPieMath(bpy.types.Menu):
                             ly.operator(VqmtOpMain.bl_idname, text=dv.replace(" ",""), translate=False).operation = dk
                     ##
                     nonlocal colLeft
-                    canExist = (VqmtData.prefs.vqmtIncludeExistingValues)and(VqmtData.list_existingValues)
+                    canExist = (VqmtData.prefs.vqmtIncludeExistingValues)and(VqmtData.dict_existingValues)
                     if canExist:
                         colLeft.ui_units_x *= 2.05
                     rowLeft = colLeft.row()
@@ -4436,7 +4449,7 @@ class VoronoiHiderTool(VoronoiToolAny):
                             # информации об этом тупо нет. Поэтому реализовал это точечно вовне (здесь), а не модификацией самой реализации.
                             LGetVisSide = lambda puts: [sk for sk in puts if sk.enabled and not sk.hide]
                             list_visibleSks = [LGetVisSide(nd.inputs), LGetVisSide(nd.outputs)]
-                            self.firstResult = HideFromNode(prefs, nd, True)
+                            self.firstResult = HideFromNode(prefs, nd, True, False)
                             HideFromNode(prefs, nd, self.firstResult, True) #Заметка: Изменить для нода (для проверки ниже), но не трогать 'self.firstResult'.
                             if list_visibleSks==[LGetVisSide(nd.inputs), LGetVisSide(nd.outputs)]:
                                 self.firstResult = True
@@ -4474,7 +4487,7 @@ class VoronoiHiderTool(VoronoiToolAny):
                 except:
                     pass
             case 'SOCKETVAL':
-                # self.fotagoAny.tar.hide_value = not self.fotagoAny.tar.hide_value         # 插件作者方法
+                # self.fotagoAny.tar.hide_value = not self.fotagoAny.tar.hide_value    # 插件作者方法,他对节点组方法不对,只要撤销就恢复了隐藏的接口值
                 # 小王-隐藏接口值-节点组
                 # # type(self)             <class 'VoronoiLinker.VoronoiHiderTool'>
                 # # type(self.fotagoAny)   <class 'VoronoiLinker.Fotago'>
@@ -4552,8 +4565,8 @@ class VoronoiHiderTool(VoronoiToolAny):
             dm["zh_CN"] = "移动光标时切换节点"
 
 SmartAddToRegAndAddToKmiDefs(VoronoiHiderTool, "S##_E", {'toolMode':'SOCKET'})
-SmartAddToRegAndAddToKmiDefs(VoronoiHiderTool, "##A_E", {'toolMode':'SOCKETVAL'})
-SmartAddToRegAndAddToKmiDefs(VoronoiHiderTool, "#C#_E", {'toolMode':'NODE'})
+SmartAddToRegAndAddToKmiDefs(VoronoiHiderTool, "#CA_E", {'toolMode':'SOCKETVAL'})
+SmartAddToRegAndAddToKmiDefs(VoronoiHiderTool, "SC#_E", {'toolMode':'NODE'})
 dict_setKmiCats['oth'].add(VoronoiHiderTool.bl_idname)
 
 list_itemsProcBoolSocket = [('ALWAYS',"Always","Always"), ('IF_FALSE',"If false","If false"), ('NEVER',"Never","Never"), ('IF_TRUE',"If true","If true")]
@@ -4641,6 +4654,7 @@ def HideFromNode(prefs, ndTarget, lastResult, isCanDo=False): #Изначаль�
                                    (not isMoreNgInputs) ) # и GROUP_INPUT в дереве всего один.
         #Ядро в трёх строчках ниже:
         success = CheckAndDoForIo(ndTarget.inputs, lambda sk: CheckSkZeroDefaultValue(sk)and(LVirtual(sk)) ) #Для входов мейнстримная проверка их значений, и дополнительно виртуальные.
+        a = [True for sk in ndTarget.outputs if (sk.enabled)and(sk.vl_sold_is_final_linked_cou)]
         if any(True for sk in ndTarget.outputs if (sk.enabled)and(sk.vl_sold_is_final_linked_cou)): #Если хотя бы один сокет подсоединён вовне
             success |= CheckAndDoForIo(ndTarget.outputs, lambda sk: LVirtual(sk) ) #Для выводов актуально только проверка виртуальных, если их нодом оказался всадник.
         else:
@@ -5049,15 +5063,15 @@ class VoronoiEnumSelectorTool(VoronoiToolNd):
             dm["zh_CN"] = "暗色风格"
 
 #Изначально хотел 'V_Sca', но слишком далеко тянуться пальцем до V. И вообще, учитывая причину создания этого инструмента, нужно минимизировать сложность вызова.
-SmartAddToRegAndAddToKmiDefs(VoronoiEnumSelectorTool, "###_F", {'isPieChoice':True, 'isSelectNode':3})
-SmartAddToRegAndAddToKmiDefs(VoronoiEnumSelectorTool, "S##_F", {'isInstantActivation':False})
-SmartAddToRegAndAddToKmiDefs(VoronoiEnumSelectorTool, "##A_F", {'isToggleOptions':True})
+SmartAddToRegAndAddToKmiDefs(VoronoiEnumSelectorTool, "#C#_R", {'isPieChoice':True, 'isSelectNode':3})
+SmartAddToRegAndAddToKmiDefs(VoronoiEnumSelectorTool, "#C#_E", {'isInstantActivation':False})
+SmartAddToRegAndAddToKmiDefs(VoronoiEnumSelectorTool, "##A_E", {'isToggleOptions':True})
 dict_setKmiCats['oth'].add(VoronoiEnumSelectorTool.bl_idname)
 
 class VoronoiAddonPrefs(VoronoiAddonPrefs):
     vestIsToggleNodesOnDrag: bpy.props.BoolProperty(name="Toggle nodes on drag", default=True)
     ##
-    vestBoxScale:            bpy.props.FloatProperty(name="Box scale",           default=1.5, min=1.0, max=2.0, subtype="FACTOR")
+    vestBoxScale:            bpy.props.FloatProperty(name="Box scale",           default=1.3, min=1.0, max=2.0, subtype="FACTOR")
     vestDisplayLabels:       bpy.props.BoolProperty(name="Display enum names",   default=True)
     vestDarkStyle:           bpy.props.BoolProperty(name="Dark style",           default=False)
 
@@ -5085,8 +5099,7 @@ class SNA_OT_Change_Node_Domain_And_Name(bpy.types.Operator):
         rename_node_based_option(node)
         return {"FINISHED"}
 
-list_classes += [SNA_OT_Change_Node_Domain_And_Name]
-
+dict_classes[SNA_OT_Change_Node_Domain_And_Name] = True
 
 def VestLyAddEnumSelectorBox(where, lyDomain=None):
     assert VestData.list_enumProps
@@ -5520,8 +5533,12 @@ class Rotation_Converter(VoronoiOpTool):
         Do_Rotation_Converter(context, event.shift, event.alt, self.node_type)
         return {'FINISHED'}
 
-list_classes += [Rotation_Converter, Pie_MT_Converter_To_Rotation, Pie_MT_Converter_Rotation_To, 
-                 Pie_MT_Separate_Matrix, Pie_MT_Combine_Matrix ]   # 麻了麻了 列表+肯定是得列表啊，找了半天错
+dict_classes[Rotation_Converter] = True
+dict_classes[Pie_MT_Converter_To_Rotation] = True
+dict_classes[Pie_MT_Converter_Rotation_To] = True
+dict_classes[Pie_MT_Separate_Matrix] = True
+dict_classes[Pie_MT_Combine_Matrix] = True
+
 
 class VoronoiQuickConstant(VoronoiToolTripleSk):
     bl_idname = 'node.voronoi_quick_constant'
@@ -6106,7 +6123,7 @@ class VoronoiLinksTransferTool(VoronoiToolPairNd): #Todo2v6 кандидат н�
             dm["ru_RU"] = "Переносить по индексам"
             dm["zh_CN"] = "按顺序传输"
 
-SmartAddToRegAndAddToKmiDefs(VoronoiLinksTransferTool, "#C#_T")
+SmartAddToRegAndAddToKmiDefs(VoronoiLinksTransferTool, "S##_T")
 SmartAddToRegAndAddToKmiDefs(VoronoiLinksTransferTool, "SC#_T", {'isByIndexes':True})
 dict_setKmiCats['spc'].add(VoronoiLinksTransferTool.bl_idname)
 
@@ -6812,18 +6829,18 @@ class VoronoiAddonPrefs(VoronoiAddonPrefs):
     dsIsColoredSkArea: bpy.props.BoolProperty(name="Socket area", default=True)
     dsIsColoredNodes:  bpy.props.BoolProperty(name="Nodes",       default=True)
     ##
-    dsSocketAreaAlpha: bpy.props.FloatProperty(name="Socket area alpha", default=0.075, min=0.0, max=1.0, subtype="FACTOR")
+    dsSocketAreaAlpha: bpy.props.FloatProperty(name="Socket area alpha", default=0.4, min=0.0, max=1.0, subtype="FACTOR")
     ##
     dsUniformColor:     bpy.props.FloatVectorProperty(name="Alternative uniform color", default=(1, 0, 0, 0.9), min=0, max=1, size=4, subtype='COLOR') #0.65, 0.65, 0.65, 1.0
     dsUniformNodeColor: bpy.props.FloatVectorProperty(name="Alternative nodes color",   default=(0, 1, 0, 0.9), min=0, max=1, size=4, subtype='COLOR') #1.0, 1.0, 1.0, 0.9
-    dsCursorColor:      bpy.props.FloatVectorProperty(name="Cursor color",              default=(0, 0, 1, 1.0), min=0, max=1, size=4, subtype='COLOR') #1.0, 1.0, 1.0, 1.0
+    dsCursorColor:      bpy.props.FloatVectorProperty(name="Cursor color",              default=(0, 0, 0, 1.0), min=0, max=1, size=4, subtype='COLOR') #1.0, 1.0, 1.0, 1.0
     dsCursorColorAvailability: bpy.props.IntProperty(name="Cursor color availability", default=2, min=0, max=2, description="If a line is drawn to the cursor, color part of it in the cursor color.\n0 – Disable.\n1 – For one line.\n2 – Always")
     ##
-    dsDisplayStyle: bpy.props.EnumProperty(name="Display frame style", default='CLASSIC', items=( ('CLASSIC',"Classic","Classic"), ('SIMPLIFIED',"Simplified","Simplified"), ('ONLY_TEXT',"Only text","Only text") ))
+    dsDisplayStyle: bpy.props.EnumProperty(name="Display frame style", default='ONLY_TEXT', items=( ('CLASSIC',"Classic","Classic"), ('SIMPLIFIED',"Simplified","Simplified"), ('ONLY_TEXT',"Only text","Only text") ))
     dsFontFile:     bpy.props.StringProperty(name="Font file",    default='C:\Windows\Fonts\consola.ttf', subtype='FILE_PATH') #"Пользователи Линукса негодуют".
-    dsLineWidth:    bpy.props.FloatProperty( name="Line Width",   default=1.5, min=0.5, max=8.0, subtype="FACTOR")
+    dsLineWidth:    bpy.props.FloatProperty( name="Line Width",   default=2, min=0.5, max=8.0, subtype="FACTOR")
     dsPointScale:   bpy.props.FloatProperty( name="Point scale",  default=1.0, min=0.0, max=3.0)
-    dsFontSize:     bpy.props.IntProperty(   name="Font size",    default=28,  min=10,  max=48)
+    dsFontSize:     bpy.props.IntProperty(   name="Font size",    default=32,  min=10,  max=48)
     dsMarkerStyle:  bpy.props.IntProperty(   name="Marker Style", default=0,   min=0,   max=2)
     ##
     dsManualAdjustment: bpy.props.FloatProperty(name="Manual adjustment",         default=-0.2, description="The Y-axis offset of text for this font") #https://blender.stackexchange.com/questions/312413/blf-module-how-to-draw-text-in-the-center
@@ -6831,11 +6848,11 @@ class VoronoiAddonPrefs(VoronoiAddonPrefs):
     dsFrameOffset:      bpy.props.IntProperty(  name="Frame size",                default=0,      min=0,     max=24, subtype='FACTOR') #Заметка: Важно, чтобы это был Int.
     dsDistFromCursor:   bpy.props.FloatProperty(name="Text distance from cursor", default=25.0,   min=5.0,   max=50.0)
     ##
-    dsIsAlwaysLine:        bpy.props.BoolProperty(name="Always draw line",      default=False, description="Draw a line to the cursor even from a single selected socket")
+    dsIsAlwaysLine:        bpy.props.BoolProperty(name="Always draw line",      default=True, description="Draw a line to the cursor even from a single selected socket")
     dsIsSlideOnNodes:      bpy.props.BoolProperty(name="Slide on nodes",        default=False)
     dsIsDrawNodeNameLabel: bpy.props.BoolProperty(name="Display text for node", default=True)
     ##
-    dsIsAllowTextShadow: bpy.props.BoolProperty(       name="Enable text shadow", default=True)
+    dsIsAllowTextShadow: bpy.props.BoolProperty(       name="Enable text shadow", default=False)
     dsShadowCol:         bpy.props.FloatVectorProperty(name="Shadow color",       default=(0.0, 0.0, 0.0, 0.5), min=0,   max=1,  size=4, subtype='COLOR')
     dsShadowOffset:      bpy.props.IntVectorProperty(  name="Shadow offset",      default=(2,-2),               min=-20, max=20, size=2)
     dsShadowBlur:        bpy.props.IntProperty(        name="Shadow blur",        default=2,                    min=0,   max=2)
