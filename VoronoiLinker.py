@@ -31,24 +31,17 @@
 # 小王-显示节点选项优化
 # 小王-显示节点选项优化-根据选项重命名节点-domain
 # 小王-隐藏接口值-节点组
-# TODO 粘贴接口名,只支持那几个特定的
-# TODO 快速数学运算,在偏好设置里加个选项,如果连满了两个接口,是否hide
-# TODO 浮点饼菜单 to 弧度 角度
-# TODO 自动隐藏显示接口后,扩展接口不显示
 
-# !!! Disclaimer: Use the contents of this file at your own risk !!!
-# 100% of the content of this file contains malicious code!!1
-
-# !!! Отказ от ответственности: Содержимое этого файла является полностью случайно сгенерированными битами, включая этот дисклеймер тоже.
-# Используйте этот файл на свой страх и риск.
-#P.s. Использование этого файла полностью безопасно, оно продлевает жизнь вашего компьютера, и вообще избавляет от вирусов (но это не точно).
-
-#Этот аддон создавался мной как самопис лично для меня и под меня; который я по доброте душевной, сделал публичным для всех желающих. Ибо результат получился потрясающий. Наслаждайтесь.
-#P.s. Меня напрягают шатанины с лицензиями, так что лучше полюбуйтесь на предупреждения о вредоносном коде (о да он тут есть, иначе накой смысол?).
-
-# todo 隐藏选项功能只对有选项节点绘制
 # todo 补全工具名称提示
 # todo 接口1移到接口2上  FLIP模式，在两个接口绘制名后加上 接口1 接口2
+# _ 粘贴接口名,只支持那几个特定的
+# TODO 快速数学运算,在偏好设置里加个选项,如果连满了两个接口,是否hide
+# _ 浮点饼菜单 to 弧度 角度
+# _ 自动隐藏显示接口后,扩展接口不显示
+# TODO 交换接口 复制粘贴接口名 扩展接口 CTRl Shift A  Alt Shift A
+# TODO 整数运算饼菜单,切换浮点整数矢量运算
+# TODO 旋转 矩阵 饼菜单
+# TODO 没面板的组输入和节点组,插入接口才符合顺序
 
 bl_info = {'name':"Voronoi Linker", 'author':"ugorek", #Так же спасибо "Oxicid" за важную для VL'а помощь.
            'version':(5,0,2), 'blender':(4,0,2), 'created':"2024.03.06", #Ключ 'created' для внутренних нужд.
@@ -310,6 +303,7 @@ with VlTrMapForKey(txt_ColorQuickMode) as dm:
 
 #Заметка для переводчиков: слова ниже в вашем языке уже могут быть переведены.
 #Заметка: Оставить их для поддержки версий без них.
+
 with VlTrMapForKey("Virtual") as dm:
     dm["ru_RU"] = "Виртуальный"
     dm["zh_CN"] = "虚拟"
@@ -457,7 +451,10 @@ dict_typeSkToBlid = {
         'MATERIAL':  'NodeSocketMaterial',
         'TEXTURE':   'NodeSocketTexture',
         'IMAGE':     'NodeSocketImage',
-        'CUSTOM':    'NodeSocketVirtual'}
+        'MATRIX':    'NodeSocketMatrix',
+        'CUSTOM':    'NodeSocketVirtual',
+        }
+
 def SkConvertTypeToBlid(sk):
     return dict_typeSkToBlid.get(sk.type, "Vl_Unknow")
 
@@ -465,17 +462,18 @@ set_utilTypeSkFields = {'VALUE', 'RGBA', 'VECTOR', 'INT', 'BOOLEAN', 'ROTATION',
 
 def IsClassicSk(sk):
     set_classicSocketsBlid = {'NodeSocketShader',  'NodeSocketColor',   'NodeSocketVector','NodeSocketFloat',     'NodeSocketString',  'NodeSocketInt',    'NodeSocketBool',
-                              'NodeSocketRotation','NodeSocketGeometry','NodeSocketObject','NodeSocketCollection','NodeSocketMaterial','NodeSocketTexture','NodeSocketImage'}
+                              'NodeSocketRotation','NodeSocketGeometry','NodeSocketObject','NodeSocketCollection','NodeSocketMaterial','NodeSocketTexture','NodeSocketImage',
+                              'NodeSocketMatrix'}
     if sk.bl_idname=='NodeSocketVirtual':
         return True
     else:
         return SkConvertTypeToBlid(sk) in set_classicSocketsBlid
-
+# 小王-新建接口-用到了
 set_utilEquestrianPortalBlids = {'NodeGroupInput', 'NodeGroupOutput', 
                                  'GeometryNodeSimulationInput', 'GeometryNodeSimulationOutput', 
                                  'GeometryNodeRepeatInput', 'GeometryNodeRepeatOutput',
                                  'GeometryNodeMenuSwitch', 'GeometryNodeBake',
-                                 'GeometryNodeCaptureAttribute',
+                                 'GeometryNodeCaptureAttribute', 'GeometryNodeIndexSwitch'
                                  }
 inline_socket_node_list = [ # 小王-自动隐藏接口优化-inline
                             'GeometryNodeSimulationInput', 'GeometryNodeSimulationOutput', 
@@ -1364,6 +1362,7 @@ class VoronoiToolPairSk(VoronoiToolSk): #2
         self.fotagoSk0 = None
         self.fotagoSk1 = None
 
+
 class VoronoiToolTripleSk(VoronoiToolPairSk): #3
     def ModalTool(self, event, prefs):
         if (self.isStartWithModf)and(not self.canPickThird): #Кто будет всерьёз переключаться на выбор третьего сокета путём нажатия и отжатия к-н. модификатора?.
@@ -1662,13 +1661,23 @@ def ViaVerSkfRemove(tree, isSide, name):
     else:
         (tree.outputs if isSide else tree.inputs).remove(name)
 
+def index_switch_add_input(nodes, index_switch_node):
+    old_active = nodes.active
+    nodes.active = index_switch_node
+    bpy.ops.node.index_switch_item_add()
+    nodes.active = old_active
+    return index_switch_node.inputs[-2]
+
 class Equestrian():
     set_equestrianNodeTypes = {'GROUP', 'GROUP_INPUT', 'GROUP_OUTPUT', 
                                'SIMULATION_INPUT', 'SIMULATION_OUTPUT', 
                                'REPEAT_INPUT', 'REPEAT_OUTPUT',
-                               'MENU_SWITCH', 'BAKE', 'CAPTURE_ATTRIBUTE'               # 小王-更改接口名称
+                               "FOREACH_GEOMETRY_ELEMENT_INPUT", "FOREACH_GEOMETRY_ELEMENT_OUTPUT",
+                               'MENU_SWITCH', 'BAKE', 'CAPTURE_ATTRIBUTE', 'INDEX_SWITCH'               # 小王-更改接口名称
                                }
-    is_simrep = property(lambda a: a.type in ('SIM','REP'))
+    # is_simrep = property(lambda a: a.type in ('SIM','REP'))     # 小王-插入接口
+    has_extend_socket = property(lambda a: a.type in ('SIM','REP', 'MENU', 'CAPTURE', 'BAKE'))
+    is_index_switch = property(lambda a: a.type =='INDEX')      # 编号切换单独判断
     @staticmethod
     def IsSocketDefinitely(ess):
         base = ess.bl_rna
@@ -1683,10 +1692,10 @@ class Equestrian():
     @staticmethod
     def IsSimRepCorrectSk(node, skTar):
         node_interface = {'SIMULATION_INPUT', 'SIMULATION_OUTPUT', 'REPEAT_INPUT', 'REPEAT_OUTPUT', 
-                          'MENU_SWITCH', 'BAKE', 'CAPTURE_ATTRIBUTE'}
+                          'MENU_SWITCH', 'BAKE', 'CAPTURE_ATTRIBUTE', 'INDEX_SWITCH'}       # 'INDEX_SWITCH' 在这里还没用到
         if (skTar.bl_idname=='NodeSocketVirtual')and(node.type in node_interface):
             return False
-        match node.type:            # 让一些接口不被判定
+        match node.type:            # 小王-让一些接口不被判定
             case 'SIMULATION_INPUT':
                 return skTar!=node.outputs[0]
             case 'SIMULATION_OUTPUT'|'REPEAT_INPUT':
@@ -1748,7 +1757,7 @@ class Equestrian():
                     if (skf.item_type=='SOCKET')and(skf.identifier==skTar.identifier):
                         return skf
             # 小王-更改接口名称
-            case 'MENU' | 'BAKE' | 'CAPTURE':
+            case 'MENU' | 'BAKE' | 'CAPTURE' | 'FOREACH_OUT':
                 for skf in self.skfa:
                     if skf.name==skTar.name:
                         return skf
@@ -1757,8 +1766,14 @@ class Equestrian():
         if not self.IsContainsSkf(skfTar):
             raise Exception(f"Equestrian items does not contain `{skfTar}`")
         match self.type:
-            case 'SIM'|'REP':
+            # 小王-插入接口会用到
+            case 'SIM' | 'REP' | 'CAPTURE' | 'BAKE':
                 for sk in (self.node.outputs if isOut else self.node.inputs):
+                    if sk.name==skfTar.name:
+                        return sk
+            case 'MENU' | 'INDEX':
+                # for sk in (self.node.outputs if isOut else self.node.inputs):
+                for sk in self.node.inputs:
                     if sk.name==skfTar.name:
                         return sk
                 raise Exception(f"Not found socket for `{skfTar}`")
@@ -1769,22 +1784,28 @@ class Equestrian():
                     if sk.identifier==skfTar.identifier:
                         return sk
                 raise Exception(f"`Socket for node side not found: {skfTar}`")
+
     def NewSkfFromSk(self, skTar, isFlipSide=False):
         newName = GetSkLabelName(skTar)
         match self.type:
             case 'SIM':
-                if skTar.type not in {'VALUE','INT','BOOLEAN','VECTOR','ROTATION','STRING','RGBA','GEOMETRY'}: #todo1v6 неплохо было бы отреветь где они находятся, а не хардкодить.
+                if skTar.type not in {'VALUE','INT','BOOLEAN','VECTOR','ROTATION', 'MATRIX','STRING','RGBA','GEOMETRY'}: #todo1v6 неплохо было бы отреветь где они находятся, а не хардкодить.
                     raise Exception(f"Socket type is not supported by Simulation: `{skTar.path_from_id()}`")
                 return self.skfa.new(skTar.type, newName)
             # case 'REP':
-            case 'REP' | 'MENU' | 'BAKE' | 'CAPTURE':       # 小王-新建接口
-                # print("gejiji")      # alt shift
+            case 'REP' | 'BAKE' | 'CAPTURE':       # 小王-插入接口
                 # ('FLOAT', 'INT', 'BOOLEAN', 'VECTOR', 'ROTATION', 'MATRIX', 'STRING', 'MENU', 
                 #  'RGBA', 'OBJECT', 'IMAGE', 'GEOMETRY', 'COLLECTION','TEXTURE', 'MATERIAL')
-                if skTar.type not in {'VALUE','INT','BOOLEAN','VECTOR','ROTATION','STRING','RGBA',
-                                      'OBJECT','IMAGE','GEOMETRY','COLLECTION','MATERIAL'}:
+                # 'BAKE' 没必要判断
+                if skTar.type not in {'VALUE','INT','BOOLEAN','VECTOR','ROTATION', 'MATRIX','STRING','RGBA','GEOMETRY',
+                                      'OBJECT','IMAGE','COLLECTION','MATERIAL'}:
                     raise Exception(f"Socket type is not supported by Repeating: `{skTar.path_from_id()}`")
                 return self.skfa.new(skTar.type, newName)
+            case 'MENU' :
+                return self.skfa.new(newName)
+            case 'INDEX' :
+                input_soc = index_switch_add_input(self.tree.nodes, index_switch_node=self.node)
+                return input_soc
             case 'CLASSIC'|'GROUP':
                 skfNew = self.skfa.data.new_socket(newName, socket_type=SkConvertTypeToBlid(skTar), in_out='OUTPUT' if (skTar.is_output^isFlipSide) else 'INPUT')
                 skfNew.hide_value = skTar.hide_value
@@ -1908,6 +1929,9 @@ class Equestrian():
             case 'MENU_SWITCH':
                 self.type = 'MENU'
                 self.skfa = ndEq.enum_items
+            case 'INDEX_SWITCH':
+                self.type = 'INDEX'
+                self.skfa = ndEq
             case 'BAKE':
                 self.type = 'BAKE'
                 self.skfa = ndEq.bake_items
@@ -1915,7 +1939,14 @@ class Equestrian():
                 self.type = 'CAPTURE'
                 self.skfa = ndEq.capture_items
                 # if hasattr(ndEq, "capture_items"):
-
+            # for each zone 的重命名有点麻烦,不过这个目前优先级低
+            # case 'FOREACH_GEOMETRY_ELEMENT_INPUT':
+            #     self.type = 'FOREACH_IN'
+            #     self.skfa = ndEq.input_items
+            case 'FOREACH_GEOMETRY_ELEMENT_OUTPUT':
+                self.type = 'FOREACH_OUT'
+                # self.skfa = ndEq.main_items
+                self.skfa = ndEq.generation_items
             case 'GROUP':
                 self.type = 'GROUP'
                 if not ndEq.node_tree:
@@ -2063,6 +2094,11 @@ def GetNearestSocketsFtg(nd, samplePos, uiScale): #Выдаёт список "б
     list_ftgSksOut.sort(key=lambda a:a.dist)
     return list_ftgSksIn, list_ftgSksOut
 
+def is_unlink_route(node):
+    if node.type == 'REROUTE' and (not (node.inputs[0].links or node.outputs[0].links)):
+        return True       # 转接点没连线
+    return False
+link_same_socket_types = ['SHADER', 'STRING', 'GEOMETRY','OBJECT', 'COLLECTION', 'MATERIAL', 'TEXTURE', 'IMAGE']
 #На самых истоках весь аддон создавался только ради этого инструмента. А то-то вы думаете названия одинаковые.
 #Но потом я подахренел от обузданных возможностей, и меня понесло... понесло на создание мейнстримной троицы. Но этого оказалось мало, и теперь инструментов больше чем 7. Чума!
 #Дублирующие комментарии есть только здесь (и в целом по убыванию). При спорных ситуациях обращаться к VLT для подражания, как к истине в последней инстанции.
@@ -2110,6 +2146,21 @@ class VoronoiLinkerTool(VoronoiToolPairSk): #Святая святых. То р�
                     tgl = (tgl)or(skIn.bl_idname==skOut.bl_idname) #Заметка: Включая аддонские сокеты.
                     #Если аддонские сокеты в классических деревьях -- можно и ко всем классическим, классическим можно ко всем аддонским
                     tgl = (tgl)or(self.isInvokeInClassicTree)and(IsClassicSk(skOut)^IsClassicSk(skIn))
+                    # 小王-限制旋转和矩阵接口
+                    if skOut.type == "MATRIX":
+                        tgl = (skIn.type in ["MATRIX", "ROTATION"])
+                    if skOut.type == "ROTATION":
+                        tgl = (skIn.type in ["ROTATION", "MATRIX", "VECTOR"])
+                    # 小王-只能连到相同类型的接口上
+                    if skOut.type in link_same_socket_types:
+                        tgl = skIn.type==skOut.type
+                    if skIn.type in link_same_socket_types:
+                        tgl = skIn.type==skOut.type
+                    # 没连线的转接点,就都可以连
+                    if is_unlink_route(skOut.node):
+                        tgl = True
+                    if is_unlink_route(skIn.node):      # from_socket 
+                        tgl = True
                     #Заметка: SkBetweenFieldsCheck() проверяет только меж полями, поэтому явная проверка одинаковости `bl_idname`.
                     if tgl:
                         self.fotagoSkIn = ftg
@@ -2284,6 +2335,7 @@ def DoLinkHh(sko, ski, *, isReroutesToAnyType=True, isCanBetweenField=True, isCa
             case 'GeometryNodeMenuSwitch':       typeEq = 4
             case 'GeometryNodeBake':             typeEq = 5
             case 'GeometryNodeCaptureAttribute': typeEq = 6
+            case 'GeometryNodeIndexSwitch':      typeEq = 7
         #Неподдерживаемых всадником типы не обрабатывать:
         can = True
         match typeEq:
@@ -2292,11 +2344,13 @@ def DoLinkHh(sko, ski, *, isReroutesToAnyType=True, isCanBetweenField=True, isCa
             case 3: 
                 can = skTar.type in {'VALUE','INT','BOOLEAN','VECTOR','ROTATION','STRING','RGBA','OBJECT','IMAGE','GEOMETRY','COLLECTION','MATERIAL'}
             case 4: 
-                can = skTar.type in {'VALUE','INT','BOOLEAN','VECTOR','ROTATION','STRING','RGBA','OBJECT','IMAGE','GEOMETRY','COLLECTION','MATERIAL'}
+                can = skTar.type in {'VALUE','INT','BOOLEAN','VECTOR','ROTATION','STRING','RGBA','OBJECT','IMAGE','GEOMETRY','COLLECTION','MATERIAL','TEXTURE'}
             case 5: 
                 can = skTar.type in {'VALUE','INT','BOOLEAN','VECTOR','ROTATION','MATRIX','STRING','RGBA','GEOMETRY'}
             case 6: 
                 can = skTar.type in {'VALUE','INT','BOOLEAN','VECTOR','ROTATION','MATRIX','STRING','RGBA'}
+            case 7: 
+                can = skTar.type in {'VALUE','INT','BOOLEAN','VECTOR','ROTATION','STRING','RGBA','OBJECT','IMAGE','GEOMETRY','COLLECTION','MATERIAL','TEXTURE','MENU'}
         if not can:
             return None
         #Создать интерфейс
@@ -2305,18 +2359,21 @@ def DoLinkHh(sko, ski, *, isReroutesToAnyType=True, isCanBetweenField=True, isCa
                 equr = Equestrian(ski if isSkiVirtual else sko)
                 skf = equr.NewSkfFromSk(skTar)
                 skNew = equr.GetSkFromSkf(skf, isOut=skf.in_out!='OUTPUT') #* звуки страданий *
-            case 2|3:
+            case 2|3:       # [-2]  -1是扩展接口,-2是新添加的接口
                 _skf = (ndEq.state_items if typeEq==2 else ndEq.repeat_items).new({'VALUE':'FLOAT'}.get(skTar.type,skTar.type), GetSkLabelName(skTar))
                 if True: #Перевыбор для SimRep'а тривиален; ибо у них нет панелей, и все новые сокеты появляются снизу.
                     skNew = ski.node.inputs[-2] if isSkiVirtual else sko.node.outputs[-2]
                 else:
                     skNew = Equestrian(ski if isSkiVirtual else sko).GetSkFromSkf(_skf, isOut=isSkoVirtual)
-            case 4:
+            case 4:       # 小王-新建接口-菜单切换
                 _skf = ndEq.enum_items.new(GetSkLabelName(skTar))
                 skNew = ski.node.inputs[-2] if isSkiVirtual else sko.node.outputs[-2]
-            case 5|6:       # 小王-新建接口-捕捉属性 烘焙 菜单切换
+            case 5|6:       # 小王-新建接口-捕捉属性 烘焙
                 _skf = (ndEq.bake_items if typeEq==5 else ndEq.capture_items).new({'VALUE':'FLOAT'}.get(skTar.type,skTar.type), GetSkLabelName(skTar))
                 skNew = ski.node.inputs[-2] if isSkiVirtual else sko.node.outputs[-2]
+            case 7:         # 小王-新建接口-编号切换
+                nodes = ski.node.id_data.nodes  # id_data是group/tree
+                skNew = index_switch_add_input(nodes, ski.node)
 
         #Перевыбрать новый появившийся сокет
         if isSkiVirtual:
@@ -4575,7 +4632,7 @@ class VoronoiAddonPrefs(VoronoiAddonPrefs):
     vhtHideBoolSocket:       bpy.props.EnumProperty(name="Hide boolean sockets",             default='IF_FALSE', items=list_itemsProcBoolSocket)
     vhtHideHiddenBoolSocket: bpy.props.EnumProperty(name="Hide hidden boolean sockets",      default='ALWAYS',   items=list_itemsProcBoolSocket)
     vhtNeverHideGeometry:    bpy.props.EnumProperty(name="Never hide geometry input socket", default='FALSE',    items=( ('FALSE',"False",""), ('ONLY_FIRST',"Only first",""), ('TRUE',"True","") ))
-    vhtIsUnhideVirtual:      bpy.props.BoolProperty(name="Unhide virtual sockets",           default=False)
+    vhtIsUnhideVirtual:      bpy.props.BoolProperty(name="Unhide virtual sockets",           default=True)
     vhtIsToggleNodesOnDrag:  bpy.props.BoolProperty(name="Toggle nodes on drag",             default=True)
 
 with VlTrMapForKey(VoronoiHiderTool.bl_label) as dm:
@@ -5732,7 +5789,7 @@ class VoronoiInterfacerTool(VoronoiToolPairSk):
             case 'CREATE':
                 ftgMain = self.fotagoSkMain
                 if ftgMain:
-                    TemplateDrawSksToolHh(drata, ftgMain, sideMarkHh=-2, tool_name="插到接口之间")
+                    TemplateDrawSksToolHh(drata, ftgMain, sideMarkHh=-2, tool_name="插入接口")
                 ftgNdTar = self.fotagoNdTar
                 if ftgNdTar:
                     TemplateDrawNodeFull(drata, ftgNdTar, tool_name="Interfacer")
@@ -5741,12 +5798,11 @@ class VoronoiInterfacerTool(VoronoiToolPairSk):
                     # print(f"{type(ftgMain) = }")
                     # pprint(ftgMain.__dict__)
                     list_ftgSksIn, list_ftgSksOut = self.ToolGetNearestSockets(ftgNdTar.tar, cur_x_off=0)
+                    # print("-" * 50)
                     # print(f"{type(list_ftgSksIn) = }")
                     # pprint(list_ftgSksIn)
-                    # pprint(list_ftgSksIn.__dict__)
-                    # pprint(list_ftgSksIn[0])
                     # pprint(list_ftgSksIn[0].__dict__)
-                    near_group_in = list_ftgSksIn[0]
+                    near_group_in = list_ftgSksIn[0]        # 接电阻可能没有输入接口:
                     # print(ftgNdTar.pos.y)
 
                     y = ftgNdTar.pos.y
@@ -5756,9 +5812,9 @@ class VoronoiInterfacerTool(VoronoiToolPairSk):
             case 'FLIP':            # 失败
                 # ftgMain = self.fotagoSkMain
                 # if ftgMain:
-                    # TemplateDrawSksToolHh(drata, ftgMain, isFlipSide=True, tool_name="插到接口之间")
+                    # TemplateDrawSksToolHh(drata, ftgMain, isFlipSide=True, tool_name="")
 
-                TemplateDrawSksToolHh(drata, self.fotagoSkMain, self.fotagoSkRosw, tool_name="移动接口", for_flip=True)
+                TemplateDrawSksToolHh(drata, self.fotagoSkMain, self.fotagoSkRosw, tool_name="移动接口")
                 ftgNdTar = self.fotagoNdTar
                 if ftgNdTar:
                     # TemplateDrawNodeFull(drata, ftgNdTar, tool_name="Interfacer")
@@ -5769,14 +5825,6 @@ class VoronoiInterfacerTool(VoronoiToolPairSk):
                     boxHeiBound = Vec((y-20, y+20 ))
                     DrawVlSocketArea(drata, near_group_in.tar, boxHeiBound, Col4(GetSkColSafeTup4(ftgMain.tar)))
                     # DrawVlSocketArea(drata, near_group_in.tar, near_group_in.boxHeiBound, Col4(GetSkColSafeTup4(near_group_in.tar)))
-            # 'FLOAT'
-            # 'INT'
-            # 'FLOAT_VECTOR'
-            # 'FLOAT_COLOR'
-            # 'BOOLEAN'
-            # 'QUATERNION'
-            # 'FLOAT4X4'
-            
             case _:
                 # 小王-模式名匹配
                 name = {'COPY':  "复制接口名",
@@ -5931,7 +5979,9 @@ class VoronoiInterfacerTool(VoronoiToolPairSk):
                 skMain = self.fotagoSkMain.tar
                 skfNew = equr.NewSkfFromSk(skMain, isFlipSide=ndTar.type not in {'GROUP_INPUT', 'GROUP_OUTPUT'})
                 can = True
-                if not equr.is_simrep:
+                # if not equr.has_extend_socket:
+                is_group = equr.node.type in ['GROUP', 'GROUP_INPUT', 'GROUP_OUTPUT']
+                if is_group:
                     for skf in equr.skfa:
                         if skf.item_type=='PANEL': #Нахрен эту головную боль. Шатайтесь с этим сами, а мне уже лень.
                             can = False #|4|.
@@ -5947,17 +5997,52 @@ class VoronoiInterfacerTool(VoronoiToolPairSk):
                             if min>len:
                                 min = len
                                 ftgNearest = ftg
-                    if ftgNearest:
+                    if ftgNearest and (not equr.is_index_switch):
                         skfTo = equr.GetSkfFromSk(ftgNearest.tar)
                         equr.MoveBySkfs(skfNew, skfTo, isSwap=False)
                         if (ftgNdTar.pos.y<ftgNearest.pos.y): #'True' -- далее по списку в группе, а не мироориентация.
-                            if equr.is_simrep:
+                            if equr.has_extend_socket:
                                 equr.MoveBySkfs(equr.GetSkfFromSk(ftgNearest.tar), skfTo, isSwap=None) #Осторожнее с skfTo.
                             else:
                                 equr.MoveBySkfs(skfNew, skfTo, isSwap=None) #Гениально!
-                if equr.is_simrep:
+                    if ftgNearest and equr.is_index_switch:
+                        links = tree.links
+                        tar_input = ftgNearest.tar       # 要插入的位置的接口
+                        inputs = tar_input.node.inputs
+                        if tar_input.name == "Index":
+                            tar_index =  1
+                        else:
+                            is_ = ftgNdTar.pos.y<ftgNearest.pos.y      # 例: 插入1/2之间,离2近时正确,离1近时插到1上了(这时判断为True,插入1/2之间)
+                            tar_index = int(tar_input.name) + 1 + is_  # 接口名 + 1才是在输入接口列表里的序号,因为编号切换第一个接口是编号
+                        max_index = int(skfNew.name) + 1               # 最后一个即新建接口的序号
+                        for i in range(max_index, tar_index-1, -1):
+                            link = inputs[i-1].links
+                            if link:
+                                links.new(link[0].from_socket, inputs[i])  # 建立新连线
+                                links.remove(link[0])                      # 删除旧连线
+                        links.new(skMain, inputs[i])
+
+
+                if equr.has_extend_socket:
+                    # print("from_socket ", skMain.name)
+                    # print("from_socket.node ", skMain.node.name)
+                    # # print("equr.skfa = ", equr.skfa)
+                    # # print("equr.skfa.get(nameSn) = ", equr.skfa.get(nameSn))
+                    # print("")
+                    # # pprint(equr)
+                    # pprint(equr.__dict__)
+                    # # pprint(equr.skfa)
+                    # # pprint(equr.type)
+                    # # pprint(dir(equr))
+
+                    # to_socket = equr.GetSkFromSkf(equr.skfa.get(nameSn), isOut=not skMain.is_output)
+                    # print("to_socket   ", to_socket)
+                    # # print("to_socket   ", to_socket.name)
+                    # # print("to_socket.node   ", to_socket.node.name)
+                    # print("")
+                    # pprint(equr.__dict__)   {'node': "Menu Switch",'skfa': node.enum_items,'tree': , 'type': 'MENU
                     tree.links.new(skMain, equr.GetSkFromSkf(equr.skfa.get(nameSn), isOut=not skMain.is_output))
-                else:
+                if is_group:
                     tree.links.new(skMain, equr.GetSkFromSkf(skfNew, isOut=(skfNew.in_out=='OUTPUT')^(equr.type!='GROUP')))
     def InitTool(self, event, prefs, tree):
         self.fotagoSkMain = None
@@ -6043,7 +6128,7 @@ SmartAddToRegAndAddToKmiDefs(VoronoiInterfacerTool, "S#A_E", {'toolMode':'SOC_TY
 dict_setKmiCats['spc'].add(VoronoiInterfacerTool.bl_idname)
 
 class VoronoiAddonPrefs(VoronoiAddonPrefs):
-    vitPasteToAnySocket: bpy.props.BoolProperty(name="Allow paste to any socket", default=True)
+    vitPasteToAnySocket: bpy.props.BoolProperty(name="Allow paste to any socket", default=False)
 
 with VlTrMapForKey(VoronoiInterfacerTool.bl_label) as dm:
     dm["zh_CN"] = "Voronoi在节点组里快速复制粘贴端口名给节点组输入输出端"
