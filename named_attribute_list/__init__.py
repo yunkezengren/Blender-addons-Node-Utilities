@@ -9,7 +9,7 @@ from . import translator
 tr = translator.i18n
 # todo 添加个重命名属性名: 更改 存储属性和命名属性的 名称接口值
 # todo 重命名属性标签和接口
-#_ todo 快速添加组输入节点 
+# _ todo 快速添加组输入节点
 # todo 属性列表多种排序方式
 
 addon_keymaps = {}

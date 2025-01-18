@@ -44,7 +44,7 @@
 # TODO 没面板的组输入和节点组,插入接口才符合顺序
 
 bl_info = {'name':"Voronoi Linker", 'author':"ugorek", #Так же спасибо "Oxicid" за важную для VL'а помощь.
-           'version':(5,0,2), 'blender':(4,0,2), 'created':"2024.03.06", #Ключ 'created' для внутренних нужд.
+           'version':(5,1,0), 'blender':(4,0,2), 'created':"2024.03.06", #Ключ 'created' для внутренних нужд.
            'info_supported_blvers': "b4.0.2 – b4.0.2", #Тоже внутреннее.
            'description':"Various utilities for nodes connecting, based on distance field.", 'location':"Node Editor", #Раньше была надпись 'Node Editor > Alt + RMB' в честь того, ради чего всё; но теперь VL "повсюду"!
            'warning':"", #Надеюсь не настанет тот момент, когда у VL будет предупреждение. Неработоспособность в Linux'е была очень близко к этому.
@@ -4444,7 +4444,7 @@ class VoronoiSwapperTool(VoronoiToolPairSk):
 
 SmartAddToRegAndAddToKmiDefs(VoronoiSwapperTool, "S##_S", {'toolMode':'SWAP'})
 SmartAddToRegAndAddToKmiDefs(VoronoiSwapperTool, "##A_S", {'toolMode':'ADD'})
-SmartAddToRegAndAddToKmiDefs(VoronoiSwapperTool, "#CA_S", {'toolMode':'TRAN'})
+SmartAddToRegAndAddToKmiDefs(VoronoiSwapperTool, "S#A_S", {'toolMode':'TRAN'})
 dict_setKmiCats['oth'].add(VoronoiSwapperTool.bl_idname)
 
 with VlTrMapForKey(VoronoiSwapperTool.bl_label) as dm:
@@ -6208,8 +6208,8 @@ class VoronoiLinksTransferTool(VoronoiToolPairNd): #Todo2v6 кандидат н�
             dm["ru_RU"] = "Переносить по индексам"
             dm["zh_CN"] = "按顺序传输"
 
-SmartAddToRegAndAddToKmiDefs(VoronoiLinksTransferTool, "S##_T")
-SmartAddToRegAndAddToKmiDefs(VoronoiLinksTransferTool, "SC#_T", {'isByIndexes':True})
+SmartAddToRegAndAddToKmiDefs(VoronoiLinksTransferTool, "SC#_T")
+SmartAddToRegAndAddToKmiDefs(VoronoiLinksTransferTool, "S##_T", {'isByIndexes':True})
 dict_setKmiCats['spc'].add(VoronoiLinksTransferTool.bl_idname)
 
 with VlTrMapForKey(VoronoiLinksTransferTool.bl_label) as dm:
