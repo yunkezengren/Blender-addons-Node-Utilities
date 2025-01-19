@@ -13,7 +13,7 @@ bl_info = {
     "author" : "一尘不染",
     "description" : "",
     "blender" : (3, 0, 0),
-    "version" : (2, 3, 0),
+    "version" : (2, 4, 0),
     "location" : "",
     "warning" : "",
     "doc_url": "",
