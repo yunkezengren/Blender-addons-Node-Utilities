@@ -1,7 +1,7 @@
 import os
 import bpy
 import bpy.utils.previews
-from bpy.types import Operator, Menu, Panel, AddonPreferences, PropertyGroup
+from bpy.types import Operator, Menu, Panel, AddonPreferences
 from bpy.props import StringProperty, EnumProperty, BoolProperty
 from . import translator
 # from pprint import pprint
@@ -13,7 +13,7 @@ bl_info = {
     "author" : "一尘不染",
     "description" : "",
     "blender" : (3, 0, 0),
-    "version" : (2, 2, 1),
+    "version" : (2, 3, 0),
     "location" : "",
     "warning" : "",
     "doc_url": "",
@@ -81,7 +81,8 @@ def add_to_attr_list_mt_editor_menus(self, context):
         layout = self.layout
         layout.menu('ATTRLIST_MT_Menu', text=tr('属性'))
 
-class NamedAttrListProps(PropertyGroup):
+class ATTRLIST_AddonPreferences(AddonPreferences):
+    bl_idname = __package__
     hide_option        : BoolProperty(name='hide_option',        description=tr('添加时是否隐藏选项'),         default=True)
     hide_Exists_socket : BoolProperty(name='hide_Exists_socket', description=tr('添加时是否隐藏输出存在接口'), default=True)
     hide_Name_socket   : BoolProperty(name='hide_Name_socket',   description=tr('添加时是否隐藏输入名称接口'), default=False)
@@ -107,9 +108,6 @@ class NamedAttrListProps(PropertyGroup):
                                                 ('按类型排序1-反转', tr('按类型排序1-反转'), tr('矩阵-旋转-颜色-矢量-整数-浮点-布尔'), 0, 1),
                                                 ('按类型排序2',      tr('按类型排序2'),      tr('整数-布尔-浮点-矢量-颜色-旋转-矩阵'), 0, 2),
                                                 ('完全按字符串排序', tr('完全按字符串排序'), tr('首字-数字英文中文'), 0, 3)])
-
-class ATTRLIST_AddonPreferences(AddonPreferences):
-    bl_idname = __package__
 
     def draw(self, context):
         layout = self.layout
@@ -175,7 +173,7 @@ def loop_find_if_instanced(node):
 def get_tree_attrs_dict(tree, attrs_dict, group_node_name, group_name_parent, stored_group):
     # show_unused=False的话，接下来判断is_node_linked
     context = bpy.context
-    nal = context.window_manager.named_attr_list
+    nal = context.preferences.addons[__package__].preferences
 
     nodes = tree.nodes
     # attrs_dict = {}  # 放在这里的话，偶尔出问题  {'Attribute': {'data_type': 'FLOAT_COLOR', 'domain_info': 'CORNER'}, 'Colorxx': {'data_type': 'FLOAT_COLOR', 'domain_info': 'POINT'} }
@@ -227,8 +225,7 @@ def get_tree_attrs_dict(tree, attrs_dict, group_node_name, group_name_parent, st
     return attrs_dict
 
 def get_all_tree_attrs_list(tree, all_tree_attr_list, stored_group):
-    context = bpy.context
-    nal = context.window_manager.named_attr_list
+    nal = bpy.preferences.addons[__package__].preferences
     nodes = tree.nodes
     show_unused = not nal.only_show_used_attr
 
@@ -253,8 +250,7 @@ def get_all_tree_attrs_list(tree, all_tree_attr_list, stored_group):
     return all_tree_attr_list
 
 def extend_dict_with_evaluated_obj_attrs(attrs_dict, exclude_list, obj, all_tree_attr_list):
-    context = bpy.context
-    box = context.evaluated_depsgraph_get()
+    box = bpy.context.evaluated_depsgraph_get()
     obj = obj.evaluated_get(box)
     attrs = obj.data.attributes
     exclude_list = exclude_list + [
@@ -327,7 +323,7 @@ def sort_attr_dict(attrs, scene):
 
 def sort_attrs_and_draw_menu(layout, context, is_panel):
     '''is_panel = True 时，在面板里额外绘制一些东西'''
-    nal = context.window_manager.named_attr_list
+    nal = context.preferences.addons[__package__].preferences
 
     ui_type = context.area.ui_type
     # tree = get_tree(context, ui_type)
@@ -458,7 +454,7 @@ class ATTRLIST_OT_Add_Node_Change_Name_Type_Hide(Operator):
 
     def execute(self, context):
         data_type = self.attr_type
-        nal = context.window_manager.named_attr_list
+        nal = context.preferences.addons[__package__].preferences
         ui_type = context.area.ui_type
         if ui_type == 'GeometryNodeTree':
             nal.panel_info = tr("添加已命名属性节点")
@@ -551,7 +547,7 @@ class ATTRLIST_PT_NPanel(Panel):
         return has_attr(context)
 
     def draw(self, context):
-        nal = context.window_manager.named_attr_list
+        nal = context.preferences.addons[__package__].preferences
         layout = self.layout
         a_node = context.active_node
         if a_node:
@@ -638,6 +634,14 @@ class ATTRLIST_PT_NPanel(Panel):
         box3 = layout.box()
         sort_attrs_and_draw_menu(box3, context, is_panel=True)
 
+        # box4 = layout.box()
+        # box4.operator('node.test', text="测试", icon="PIVOT_CURSOR")
+        # box4.operator('node.move_view_to_center', text="view_selected", icon="PIVOT_CURSOR")
+        # box4.operator('view2d.scroll_up', text="上移", icon="TRIA_UP")
+        # box4.operator('view2d.scroll_down', text="下移", icon="TRIA_DOWN")
+        # box4.operator('view2d.scroll_left', text="左移", icon="TRIA_LEFT")
+        # box4.operator('view2d.scroll_right', text="右移", icon="TRIA_RIGHT")
+
 def exit_group_to_root():
     space = bpy.context.space_data
     tree_path = space.path.to_string.split("/")[1:]     # 只留下节点组的名字，不包括根名
@@ -646,7 +650,7 @@ def exit_group_to_root():
         # bpy.ops.node.tree_path_parent()
 
 def proper_scroll_view():
-    if bpy.context.window_manager.named_attr_list.if_scale_editor:
+    if bpy.context.preferences.addons[__package__].preferences.if_scale_editor:
         for i in range(50):
             bpy.ops.view2d.zoom_out()
         for i in range(40):
@@ -732,7 +736,7 @@ class NODE_OT_Add_Named_Attribute(Operator):
         return context.area.ui_type == 'GeometryNodeTree'
 
     def execute(self, context):
-        nal = context.window_manager.named_attr_list
+        nal = context.preferences.addons[__package__].preferences
         active_node = context.active_node
         if active_node and active_node.bl_idname == 'GeometryNodeStoreNamedAttribute':
             attr_name = active_node.inputs["Name"].default_value
@@ -761,7 +765,6 @@ class NODE_OT_Add_Named_Attribute(Operator):
         return {"FINISHED"}
 
 classes = [
-    NamedAttrListProps,
     ATTRLIST_OT_Add_Node_Change_Name_Type_Hide,
     ATTRLIST_MT_Menu,
     ATTRLIST_PT_NPanel,
@@ -777,7 +780,6 @@ def register():
 
     for cla in classes:
         bpy.utils.register_class(cla)
-    bpy.types.WindowManager.named_attr_list = bpy.props.PointerProperty(type=NamedAttrListProps)
 
     for png in png_list:
         _icons.load(png, os.path.join(os.path.dirname(__file__), 'icons', png), "IMAGE")
@@ -807,4 +809,3 @@ def unregister():
     bpy.types.NODE_MT_editor_menus.remove(add_to_attr_list_mt_editor_menus)
     for cla in classes:
         bpy.utils.unregister_class(cla)
-    del bpy.types.WindowManager.named_attr_list
