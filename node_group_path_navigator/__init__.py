@@ -4,7 +4,7 @@ from bpy.props import StringProperty, BoolProperty
 from bpy.types import Operator, Panel, AddonPreferences
 
 bl_info = {
-    "name" : "小王-节点组路径导航",
+    "name" : "W_Cloud-小王-节点组路径导航",
     "author" : "一尘不染", 
     "description" : "",
     "blender" : (3, 0, 0),

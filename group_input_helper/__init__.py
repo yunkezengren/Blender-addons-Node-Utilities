@@ -4,7 +4,7 @@ from pprint import pprint
 trans = translator.i18n
 
 bl_info = {
-    "name" : "w-节点组输入助手(Group input helper)-添加拆分合并移动(Add Split Merge Move)",
+    "name" : "W_Cloud-节点组输入助手(Group input helper)-添加拆分合并移动(Add Split Merge Move)",
     "author" : "一尘不染",
     "description" : "快速添加组输入节点-拆分合并移动组输入节点-快速添加组输入输出接口(Qucik add and split merge move Group Input node-Qucik add Group Input Output socket)",
     "blender" : (3, 0, 0),
