@@ -24,6 +24,7 @@ from mathutils import Vector
 import os
 
 # _ 拆分后删除转接口
+# Todo 组输入移动后找个好位置
 # Todo 顶层材质不显示着色器
 # Todo 着色器接口排在最上面
 # Todo 看心情添加版本控制
@@ -180,11 +181,11 @@ class GroupInputHelperAddonPreferences(AddonPreferences):
         split4 = layout.split(factor=0.65)
         split4.label(text=trans('显示面板名字'))
         split4.prop(self, 'show_panel_name', text='')
-        
+
         split5 = layout.split(factor=0.65)
         split5.label(text=trans('简化<组输入合并拆分移动>菜单'))
         split5.prop(self, 'simplify_menu', text='')
-        
+
         split6 = layout.split(factor=0.65)
         split6.label(text=trans('拆分并移动组输入节点时删除转接点'))
         split6.prop(self, 'is_del_reroute', text='')
@@ -260,7 +261,7 @@ def get_icon_add_new_socket(layout, context):
                 op = layout.operator('w.add_new_group_item', text=name, icon_value=(_icons[input_png].icon_id ) )
                 op.socket_type = socket_type
         if tree_type == "GeometryNodeTree" and socket_name != "着色器":
-        # if group_type == "GeometryNodeGroup" or tree_type == "GeometryNodeTree":
+            # if group_type == "GeometryNodeGroup" or tree_type == "GeometryNodeTree":
             op = layout.operator('w.add_new_group_item', text=name, icon_value=(_icons[input_png].icon_id ) )
             op.socket_type = socket_type
 
@@ -445,7 +446,7 @@ def merge_group_input_linked(selected_nodes, active_node, loc_at_max_y=False):
             list_group_loc_y.append(abs_loc(node).y)
     list_group_loc_y.sort()
     y_max = list_group_loc_y[-1]
-    if len(list_group) == 1: 
+    if len(list_group) == 1:
         return None
     condition = active_node and active_node.bl_idname == "NodeGroupInput" and active_node.select
     if condition:
@@ -530,7 +531,7 @@ class NODE_OT_Split_Group_Input_Socket(Operator):
                 i = -1
                 for out_soc in node.outputs:
                     if not out_soc.hide and out_soc.enabled and out_soc.bl_idname != "NodeSocketVirtual":
-                    # if out_soc.is_linked:
+                        # if out_soc.is_linked:
                         i += 1
                         group_node = nodes.new('NodeGroupInput')
                         group_node.location = abs_loc(node)
@@ -627,7 +628,7 @@ class NODE_OT_Split_All_And_Move(Operator):
                                 # group_node.location.y = node.location.y - 80 * i
                                 group_id = {socket.identifier: socket for socket in group_node.outputs}
                                 spec_in_socket = group_id[out_soc.identifier]
-                                
+
                                 links.new(spec_in_socket, link.to_socket)
                                 to_node = spec_in_socket.links[0].to_node
                                 to_socket = spec_in_socket.links[0].to_socket
@@ -683,7 +684,7 @@ def split_all_and_merge_move(context, is_pre_merge=False):
                     link_count = len(out_soc.links)
                     # soc_links = out_soc.links if out_soc.links else range(1)
                     if out_soc.links:
-                        soc_links = out_soc.links 
+                        soc_links = out_soc.links
                     else:
                         continue
                     for link in soc_links:
@@ -943,7 +944,7 @@ def register():
     kmi = km.keymap_items.new('wm.call_menu', 'ONE', 'PRESS', ctrl=False, alt=False, shift=True, repeat=False)
     kmi.properties.name = 'NODE_MT_Merge_Split_Move_Group_Input'
     addon_keymaps['key_Merge_Split_Move_Group_Input'] = (km, kmi)
-    
+
 
 def unregister():
     global _icons
