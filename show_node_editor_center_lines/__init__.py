@@ -1,5 +1,5 @@
 bl_info = {
-    "name" : "W_Cloud-小王-节点界面中心线",
+    "name" : "小王-节点界面中心线",
     "author" : "小王", 
     "description" : "节点编辑器叠加层和标题栏-视图-移动节点到中心",
     "blender" : (3, 0, 0),

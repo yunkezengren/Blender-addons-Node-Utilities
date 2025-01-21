@@ -9,7 +9,7 @@ from . import translator
 tr = translator.i18n
 
 bl_info = {
-    "name" : "W_Cloud-小王-几何节点命名属性列表",
+    "name" : "小王-几何节点命名属性列表",
     "author" : "一尘不染",
     "description" : "",
     "blender" : (3, 0, 0),

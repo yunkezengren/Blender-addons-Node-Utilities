@@ -1,5 +1,5 @@
 bl_info = {
-    "name" : "W_Cloud-小王-几何节点耗时",
+    "name" : "小王-几何节点耗时",
     "author" : "一尘不染", 
     "blender" : (3, 0, 0),
     "version" : (1, 3, 0),
