@@ -9,7 +9,7 @@ from . import translator
 tr = translator.i18n
 
 bl_info = {
-    "name" : "几何节点命名属性列表",
+    "name" : "小王-几何节点命名属性列表",
     "author" : "一尘不染",
     "description" : "",
     "blender" : (3, 0, 0),
@@ -21,6 +21,7 @@ bl_info = {
     "category" : "Node"
 }
 
+# ! 把小王删掉 - 提交到扩展平台时删掉辅助打印
 # todo 添加个重命名属性名: 更改 存储属性和命名属性的 名称接口值
 # todo 重命名属性标签和接口
 #_ todo 快速添加组输入节点
@@ -521,7 +522,7 @@ def has_attr(context):
 
 class ATTRLIST_MT_Menu(Menu):
     bl_idname = "ATTRLIST_MT_Menu"
-    bl_label = tr("命名属性列表菜单")
+    bl_label = tr("小王-命名属性列表菜单")
 
     @classmethod
     def poll(cls, context):
@@ -532,7 +533,7 @@ class ATTRLIST_MT_Menu(Menu):
         sort_attrs_and_draw_menu(self.layout, context, is_panel=False)
 
 class ATTRLIST_PT_NPanel(Panel):
-    bl_label = tr('命名属性列表面板')      # 还作为在快捷键列表里名称
+    bl_label = tr('小王-命名属性列表面板')      # 还作为在快捷键列表里名称
     bl_idname = 'ATTRLIST_PT_NPanel'
     bl_space_type = 'NODE_EDITOR'
     bl_region_type = 'UI'
@@ -726,7 +727,7 @@ class NODE_OT_View_Stored_Attribute_Node(Operator):
 
 class NODE_OT_Add_Named_Attribute(Operator):
     bl_idname = "node.add_named_attribute_node"
-    bl_label = tr("快速添加命名属性节点")
+    bl_label = tr("小王-快速添加命名属性节点")
     bl_description = tr("快速添加选中的活动存储属性节点相应的已命名属性节点")
     bl_options = {"REGISTER", "UNDO"}
 
