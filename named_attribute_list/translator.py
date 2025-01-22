@@ -80,7 +80,7 @@ dictionary = {
         "是否隐藏带有特定前缀的属性": "Hide Attributes with Specific Prefixes",
         "显示设置": "Display Settings",
         "查找节点时适当缩放视图": "Zoom View Appropriately When Finding for Node",
-        "只显示接口连线的存储属性节点的属性": "Only Show Name Socket Linked Attribute Node",
+        "只显示输出接口连线的存储属性节点或节点组内的属性": "Only Show Attributes of output Socket Linked Attribute Node or Group",
         "隐藏节点组里的属性": "Hide Attributes in Node Groups",
         "是否显示属性所在域": "Show Attribute Domain",
         "显示在n面板上的插件当前状态描述": "Plugin Description Shown in N-Panel",
