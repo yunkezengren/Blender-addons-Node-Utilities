@@ -71,101 +71,95 @@ class NodePoll:
             return True
         return False
 
-class NODE_OT_align_left(Operator, NodePoll):
+class BaseAlignOp(Operator):
+    bl_options = {'REGISTER', 'UNDO'}
+
+    @classmethod
+    def poll(cls, context):
+        tree = context.space_data.edit_tree
+        if tree and context.selected_nodes:
+            return True
+        return False
+    
+    def align_nodes(self, nodes):
+        raise NotImplementedError("Subclasses must implement this method")
+
+    def execute(self, context):
+        node_parent_dict = {}
+        frame_node_list = []
+        select_nodes = context.selected_nodes
+        detach_parent_frame(node_parent_dict, frame_node_list)
+        self.align_nodes(select_nodes)
+        restore_parent_frame(select_nodes, node_parent_dict, frame_node_list)
+        return {"FINISHED"}
+
+    def show_popup(self, message):
+        def draw_popup(self, context):
+            self.layout.label(text=message, icon="NONE")
+        bpy.context.window_manager.popup_menu(draw_popup, title="信息", icon="INFO")
+
+class NODE_OT_align_left(BaseAlignOp):
     bl_idname = "node.align_left"
     bl_label = "Align Left Side Selection Nodes"
     bl_description = "Align the left side of all selected nodes"
 
-    def execute(self, context):
-        node_parent_dict = {}
-        frame_node_list = []
-        select_nodes = context.selected_nodes
-        detach_parent_frame(node_parent_dict, frame_node_list)
-        x_min = get_x_min(select_nodes)
-        for node in select_nodes:
+    def align_nodes(self, nodes):
+        # self.report({"INFO"}, "普通信息")
+        self.show_popup("测试弹窗普通信息")
+        x_min = get_x_min(nodes)
+        for node in nodes:
             node.location.x = x_min
-        restore_parent_frame(select_nodes, node_parent_dict, frame_node_list)
-        return {"FINISHED"}
 
-class NODE_OT_align_right(Operator, NodePoll):
+class NODE_OT_align_right(BaseAlignOp):
     bl_idname = "node.align_right"
     bl_label = "Align Right Side Selection Nodes"
     bl_description = "Align the right side of all selected nodes"
 
-    def execute(self, context):
-        node_parent_dict = {}
-        frame_node_list = []
-        detach_parent_frame(node_parent_dict, frame_node_list)
-        select_nodes = context.selected_nodes
-        x_max = get_x_max(select_nodes)
-        for node in select_nodes:
+    def align_nodes(self, nodes):
+        x_max = get_x_max(nodes)
+        for node in nodes:
             node.location.x = x_max - node.width
-        restore_parent_frame(select_nodes, node_parent_dict, frame_node_list)
-        return {"FINISHED"}
 
-class NODE_OT_align_top(Operator, NodePoll):
+class NODE_OT_align_top(BaseAlignOp):
     bl_idname = "node.align_top"
     bl_label = "Align Top Side Selection Nodes"
     bl_description = "Align the top of all selected nodes"
 
-    def execute(self, context):
-        node_parent_dict = {}
-        frame_node_list = []
-        detach_parent_frame(node_parent_dict, frame_node_list)
-        select_nodes = context.selected_nodes
-        y_max = get_y_max(select_nodes)
-        for node in select_nodes:
+    def align_nodes(self, nodes):
+        y_max = get_y_max(nodes)
+        for node in nodes:
             node.location.y = y_max
-        restore_parent_frame(select_nodes, node_parent_dict, frame_node_list)
-        return {"FINISHED"}
 
-class NODE_OT_align_bottom(Operator, NodePoll):
+class NODE_OT_align_bottom(BaseAlignOp):
     bl_idname = "node.align_bottom"
     bl_label = "Align Bottom Side Selection Nodes"
     bl_description = "Align the bottom of all selected nodes"
 
-    def execute(self, context):
-        node_parent_dict = {}
-        frame_node_list = []
-        detach_parent_frame(node_parent_dict, frame_node_list)
-        select_nodes = context.selected_nodes
-        y_min = get_y_min(select_nodes)
-        for node in select_nodes:
-            node.location.y = y_min + node.dimensions.y
-        restore_parent_frame(select_nodes, node_parent_dict, frame_node_list)
-        return {"FINISHED"}
+    def align_nodes(self, nodes):
+        y_min = get_y_min(nodes)
+        for node in nodes:
+            node.location.y = y_min + node.dimensions.y / ui_scale()
 
-class NODE_OT_align_heightcenter(Operator, NodePoll):
+class NODE_OT_align_heightcenter(BaseAlignOp):
     bl_idname = "node.align_height_center"
     bl_label = "Align Height Center Side Selection Nodes"
     bl_description = "Align the height center of all selected nodes"
 
-    def execute(self, context):
-        node_parent_dict = {}
-        frame_node_list = []
-        detach_parent_frame(node_parent_dict, frame_node_list)
-        select_nodes = context.selected_nodes
-        y_center = sort_location(select_nodes)["y_center"]
-        for node in select_nodes:
+    def align_nodes(self, nodes):
+        y_center = get_y_center(nodes)
+        for node in nodes:
             node.location.y = y_center + node.dimensions.y / 2
-        restore_parent_frame(select_nodes, node_parent_dict, frame_node_list)
-        return {"FINISHED"}
 
-class NODE_OT_align_widthcenter(Operator, NodePoll):
+class NODE_OT_align_widthcenter(BaseAlignOp):
     bl_idname = "node.align_width_center"
     bl_label = "Align Width Center Side Selection Nodes"
     bl_description = "Align the width center of all selected nodes"
 
-    def execute(self, context):
-        node_parent_dict = {}
-        frame_node_list = []
-        detach_parent_frame(node_parent_dict, frame_node_list)
-        select_nodes = context.selected_nodes
-        x_center = sort_location(select_nodes)["x_center"]
-        for node in select_nodes:
-            node.location.x = x_center - node.width / 2
-        restore_parent_frame(select_nodes, node_parent_dict, frame_node_list)
-        return {"FINISHED"}
+    def align_nodes(self, nodes):
+        x_center = get_x_center(nodes)
+        for node in nodes:
+            node.location.x = x_center - node.dimensions.x / 2
+
 
 class NODE_OT_distribute_horizontal(Operator, NodePoll):
     bl_idname = "node.distribute_horizontal"
