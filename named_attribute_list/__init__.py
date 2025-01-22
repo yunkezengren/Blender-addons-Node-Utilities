@@ -4,16 +4,16 @@ import bpy.utils.previews
 from bpy.types import Operator, Menu, Panel, AddonPreferences
 from bpy.props import StringProperty, EnumProperty, BoolProperty
 from . import translator
-# from pprint import pprint
+from pprint import pprint
 
 tr = translator.i18n
 
 bl_info = {
-    "name" : "几何节点命名属性列表",
+    "name" : "小王-几何节点命名属性列表",
     "author" : "一尘不染",
     "description" : "",
     "blender" : (3, 0, 0),
-    "version" : (2, 5, 1),
+    "version" : (2, 5, 3),
     "location" : "",
     "warning" : "",
     "doc_url": "",
@@ -21,6 +21,8 @@ bl_info = {
     "category" : "Node"
 }
 
+# ! 把小王- 删掉提交到扩展平台时删掉辅助打印
+# todo 隐藏未使用属性效果不好,不要把顶点组 uv也隐藏啊
 # todo 添加个重命名属性名: 更改 存储属性和命名属性的 名称接口值
 # todo 重命名属性标签和接口
 #_ todo 快速添加组输入节点
@@ -95,7 +97,7 @@ class ATTRLIST_AddonPreferences(AddonPreferences):
     show_vertex_group  : BoolProperty(name='Show_Vertex_Group',  description=tr('是否在属性列表里显示顶点组'),   default=True)
     show_uv_map        : BoolProperty(name='Show_UV_Map',        description=tr('是否在属性列表里显示UV贴图'),   default=False)
     show_color_attr    : BoolProperty(name='Show_Color_Attr',    description=tr('是否在属性列表里显示颜色属性'), default=False)
-    only_show_used_attr: BoolProperty(name='only_show_used_attr',description=tr('只显示接口连线的存储属性节点的属性'), default=True)
+    hide_unused_attr   : BoolProperty(name='hide_unused_attr',   description=tr('只显示输出接口连线的存储属性节点或节点组内的属性'), default=True)
     hide_attr_in_group : BoolProperty(name='hide_attr_in_group', description=tr('隐藏节点组里的属性'), default=False)
     add_settings       : BoolProperty(name=tr('添加节点选项'),   description=tr('添加节点选项'),       default=False)
     show_settings      : BoolProperty(name=tr('列表显示选项'),   description=tr('列表显示选项'),       default=True)
@@ -156,7 +158,7 @@ def is_node_linked(node):
 def loop_find_if_instanced(node):
     links = node.outputs[0].links
     i = 0
-    while links:
+    while links:    # 这里links可能是空,就直接跳出循环了,最后补个 return False
         i += 1
         if i > 5:
             return False
@@ -168,6 +170,7 @@ def loop_find_if_instanced(node):
                 links = to_node.outputs[0].links
             else:
                 return False
+    return False
 
 # attrs_dict = {}      # 放在这里的话，只初始化一次，属性越存越多
 def get_tree_attrs_dict(tree, attrs_dict, group_node_name, group_name_parent, stored_group):
@@ -177,7 +180,7 @@ def get_tree_attrs_dict(tree, attrs_dict, group_node_name, group_name_parent, st
 
     nodes = tree.nodes
     # attrs_dict = {}  # 放在这里的话，偶尔出问题  {'Attribute': {'data_type': 'FLOAT_COLOR', 'domain_info': 'CORNER'}, 'Colorxx': {'data_type': 'FLOAT_COLOR', 'domain_info': 'POINT'} }
-    show_unused = not prefs.only_show_used_attr
+    show_unused = not prefs.hide_unused_attr
 
     for node in nodes:
         if node.mute: continue
@@ -224,10 +227,11 @@ def get_tree_attrs_dict(tree, attrs_dict, group_node_name, group_name_parent, st
                                                       group_node_name=temp1, group_name_parent=temp2))
     return attrs_dict
 
+# 遍历节点得到的属性名称列表,省的被evaluated_obj_attrs里的同名,重存覆盖
 def get_all_tree_attrs_list(tree, all_tree_attr_list, stored_group):
     prefs = bpy.context.preferences.addons[__package__].preferences
     nodes = tree.nodes
-    show_unused = not prefs.only_show_used_attr
+    show_unused = not prefs.hide_unused_attr
 
     for node in nodes:
         if node.mute:   continue
@@ -321,10 +325,9 @@ def sort_attr_dict(attrs, scene):
     #     attrs = attrs
     return attrs
 
-def sort_attrs_and_draw_menu(layout, context, is_panel):
+def draw_attr_menu(layout, context, is_panel):
     '''is_panel = True 时，在面板里额外绘制一些东西'''
     prefs = context.preferences.addons[__package__].preferences
-
     ui_type = context.area.ui_type
     # tree = get_tree(context, ui_type)
     tree = active_modifier_is_gn(context, ui_type)
@@ -332,18 +335,15 @@ def sort_attrs_and_draw_menu(layout, context, is_panel):
         attrs_dict = {}     # {'组内': {'data_type': 'FLOAT', 'domain_info': ['点', '面']},'距离': {'data_type': 'FLOAT', 'domain_info': ['点']}}
         attrs = get_tree_attrs_dict(tree, attrs_dict, stored_group=[],
                                     group_node_name="当前group是顶层节点树", group_name_parent="顶层节点树无父级")
-
         all_tree_attr_list = get_all_tree_attrs_list(tree, all_tree_attr_list=[], stored_group=[])
     else:
         attrs = {}
         all_tree_attr_list = []
     extend_dict_with_obj_data_attrs(attrs, prefs, all_tree_attr_list)
     attrs = sort_attr_dict(attrs, prefs)
-
     # print("最终" + "*" * 60)
     # pprint(attrs)
     """ # # 一些方便打印
-    # print("最终" + "*" * 100)
     # print(context.space_data.id.name)
     # print("开始" + "*" * 100)
     # pprint(attrs_dict)
@@ -521,7 +521,7 @@ def has_attr(context):
 
 class ATTRLIST_MT_Menu(Menu):
     bl_idname = "ATTRLIST_MT_Menu"
-    bl_label = tr("命名属性列表菜单")
+    bl_label = tr("小王-命名属性列表菜单")
 
     @classmethod
     def poll(cls, context):
@@ -529,10 +529,10 @@ class ATTRLIST_MT_Menu(Menu):
         return has_attr(context)
 
     def draw(self, context):
-        sort_attrs_and_draw_menu(self.layout, context, is_panel=False)
+        draw_attr_menu(self.layout, context, is_panel=False)
 
 class ATTRLIST_PT_NPanel(Panel):
-    bl_label = tr('命名属性列表面板')      # 还作为在快捷键列表里名称
+    bl_label = tr('小王-命名属性列表面板')      # 还作为在快捷键列表里名称
     bl_idname = 'ATTRLIST_PT_NPanel'
     bl_space_type = 'NODE_EDITOR'
     bl_region_type = 'UI'
@@ -613,7 +613,7 @@ class ATTRLIST_PT_NPanel(Panel):
                 split4 = box2.split(factor=0.05)
                 split4.label(text="")
                 split41 = split4.split(factor=0.5)
-                split41.prop(prefs, 'only_show_used_attr', toggle=True, text=tr('未使用属性'))
+                split41.prop(prefs, 'hide_unused_attr',    toggle=True, text=tr('未使用属性'))
                 split41.prop(prefs, 'hide_attr_in_group',  toggle=True, text=tr('节点组内属性'))
 
                 split4 = box2.split(factor=0.05)
@@ -632,7 +632,7 @@ class ATTRLIST_PT_NPanel(Panel):
                 split6.prop(prefs, 'if_scale_editor', toggle=True, text=tr('适当缩放视图'))
 
         box3 = layout.box()
-        sort_attrs_and_draw_menu(box3, context, is_panel=True)
+        draw_attr_menu(box3, context, is_panel=True)
 
         # box4 = layout.box()
         # box4.operator('node.test', text="测试", icon="PIVOT_CURSOR")
@@ -726,7 +726,7 @@ class NODE_OT_View_Stored_Attribute_Node(Operator):
 
 class NODE_OT_Add_Named_Attribute(Operator):
     bl_idname = "node.add_named_attribute_node"
-    bl_label = tr("快速添加命名属性节点")
+    bl_label = tr("小王-快速添加命名属性节点")
     bl_description = tr("快速添加选中的活动存储属性节点相应的已命名属性节点")
     bl_options = {"REGISTER", "UNDO"}
 
