@@ -9,11 +9,11 @@ from . import translator
 tr = translator.i18n
 
 bl_info = {
-    "name" : "小王-几何节点命名属性列表",
+    "name" : "几何节点命名属性列表",
     "author" : "一尘不染",
     "description" : "",
     "blender" : (3, 0, 0),
-    "version" : (2, 4, 0),
+    "version" : (2, 5, 1),
     "location" : "",
     "warning" : "",
     "doc_url": "",
@@ -21,7 +21,6 @@ bl_info = {
     "category" : "Node"
 }
 
-# ! 把小王删掉 - 提交到扩展平台时删掉辅助打印
 # todo 添加个重命名属性名: 更改 存储属性和命名属性的 名称接口值
 # todo 重命名属性标签和接口
 #_ todo 快速添加组输入节点
@@ -101,10 +100,10 @@ class ATTRLIST_AddonPreferences(AddonPreferences):
     add_settings       : BoolProperty(name=tr('添加节点选项'),   description=tr('添加节点选项'),       default=False)
     show_settings      : BoolProperty(name=tr('列表显示选项'),   description=tr('列表显示选项'),       default=True)
     show_attr_domain   : BoolProperty(name='show_attr_domain',   description=tr('是否显示属性所在域'), default=True)
-    panel_info         : StringProperty(name='panel_info',     description=tr('显示在n面板上的插件当前状态描述'), default="")
-    rename_prefix      : StringProperty(name='rename_prefix',  description=tr('重命名节点时添加的前缀'), default="")
-    hide_by_prefix     : StringProperty(name='hide_by_prefix', description=tr('隐藏带有特定前缀的属性,以|分隔多种,例 .|_|-'), default="")
-    sort_list          : EnumProperty(name='列表排序方式',     description=tr('属性列表多种排序方式'),
+    panel_info         : StringProperty(name='panel_info',    description=tr('显示在n面板上的插件当前状态描述'), default="")
+    rename_prefix      : StringProperty(name='rename_prefix', description=tr('重命名节点时添加的前缀'), default="")
+    hide_prefix        : StringProperty(name='hide_prefix',   description=tr('隐藏带有特定前缀的属性,以|分隔多种,例 .|_|-'), default=".")
+    sort_list          : EnumProperty(name='列表排序方式',    description=tr('属性列表多种排序方式'),
                                         items=[ ('按类型排序1',      tr('按类型排序1'),      tr('布尔-浮点-整数-矢量-颜色-旋转-矩阵'), 0, 0),
                                                 ('按类型排序1-反转', tr('按类型排序1-反转'), tr('矩阵-旋转-颜色-矢量-整数-浮点-布尔'), 0, 1),
                                                 ('按类型排序2',      tr('按类型排序2'),      tr('整数-布尔-浮点-矢量-颜色-旋转-矩阵'), 0, 2),
@@ -113,6 +112,7 @@ class ATTRLIST_AddonPreferences(AddonPreferences):
     def draw(self, context):
         layout = self.layout
         split = layout.split(factor=0.5)
+
         split.label(text=tr('命名属性菜单快捷键: '))
         split.prop(find_user_keyconfig('唤出菜单快捷键'), 'type', text='', full_event=True)
 
@@ -140,7 +140,7 @@ def active_modifier_is_gn(context, ui_type):
     if ui_type == 'ShaderNodeTree':
         obj = context.active_object
     active = obj.modifiers.active
-    if active == 'NODES':
+    if active.type == 'NODES':
         return active.node_group
     else:
         return False
@@ -173,11 +173,11 @@ def loop_find_if_instanced(node):
 def get_tree_attrs_dict(tree, attrs_dict, group_node_name, group_name_parent, stored_group):
     # show_unused=False的话，接下来判断is_node_linked
     context = bpy.context
-    nal = context.preferences.addons[__package__].preferences
+    prefs = context.preferences.addons[__package__].preferences
 
     nodes = tree.nodes
     # attrs_dict = {}  # 放在这里的话，偶尔出问题  {'Attribute': {'data_type': 'FLOAT_COLOR', 'domain_info': 'CORNER'}, 'Colorxx': {'data_type': 'FLOAT_COLOR', 'domain_info': 'POINT'} }
-    show_unused = not nal.only_show_used_attr
+    show_unused = not prefs.only_show_used_attr
 
     for node in nodes:
         if node.mute: continue
@@ -211,7 +211,7 @@ def get_tree_attrs_dict(tree, attrs_dict, group_node_name, group_name_parent, st
                 dict_item["group_name_parent"].append(group_name_parent)
                 dict_item["group_node_name"].append(group_node_name)
                 dict_item["node_name"].append(node.name)
-        is_pass = not nal.hide_attr_in_group
+        is_pass = not prefs.hide_attr_in_group
         if node.type == "GROUP" and node.node_tree and is_pass:         # node.node_tree 以防止丢失数据的节点组
             group_name = node.node_tree.name
             if group_name in stored_group:  continue
@@ -225,9 +225,9 @@ def get_tree_attrs_dict(tree, attrs_dict, group_node_name, group_name_parent, st
     return attrs_dict
 
 def get_all_tree_attrs_list(tree, all_tree_attr_list, stored_group):
-    nal = bpy.preferences.addons[__package__].preferences
+    prefs = bpy.context.preferences.addons[__package__].preferences
     nodes = tree.nodes
-    show_unused = not nal.only_show_used_attr
+    show_unused = not prefs.only_show_used_attr
 
     for node in nodes:
         if node.mute:   continue
@@ -323,7 +323,7 @@ def sort_attr_dict(attrs, scene):
 
 def sort_attrs_and_draw_menu(layout, context, is_panel):
     '''is_panel = True 时，在面板里额外绘制一些东西'''
-    nal = context.preferences.addons[__package__].preferences
+    prefs = context.preferences.addons[__package__].preferences
 
     ui_type = context.area.ui_type
     # tree = get_tree(context, ui_type)
@@ -337,8 +337,8 @@ def sort_attrs_and_draw_menu(layout, context, is_panel):
     else:
         attrs = {}
         all_tree_attr_list = []
-    extend_dict_with_obj_data_attrs(attrs, nal, all_tree_attr_list)
-    attrs = sort_attr_dict(attrs, nal)
+    extend_dict_with_obj_data_attrs(attrs, prefs, all_tree_attr_list)
+    attrs = sort_attr_dict(attrs, prefs)
 
     # print("最终" + "*" * 60)
     # pprint(attrs)
@@ -352,10 +352,10 @@ def sort_attrs_and_draw_menu(layout, context, is_panel):
     # pprint("-+*" * 20)
     # print("排序：")
     # pprint(attrs) """
-    prefix_list = nal.hide_by_prefix.split("|")
+    prefix_list = prefs.hide_prefix.split("|")
     for attr_name, attr_info in attrs.items():
         has_prefix = False
-        if nal.is_hide_by_pre:
+        if prefs.is_hide_by_pre and prefs.hide_prefix:
             for prefix in prefix_list:
                 if attr_name.startswith(prefix):
                     has_prefix = True
@@ -371,7 +371,7 @@ def sort_attrs_and_draw_menu(layout, context, is_panel):
         stored_domain_list = list(set(attr_info['domain_info']))
 
         domain_list_to_str = " | ".join(sorted(stored_domain_list, key=lambda x: get_domain_list().index(x)))
-        button_txt = attr_name + "(" + domain_list_to_str + ")" if nal.show_attr_domain else attr_name
+        button_txt = attr_name + "(" + domain_list_to_str + ")" if prefs.show_attr_domain else attr_name
         if_instanced = attr_info.get("if_instanced", False)
         if ui_type == 'ShaderNodeTree' and if_instanced:
             button_txt = button_txt[:-1] + " ->实例)"
@@ -454,27 +454,27 @@ class ATTRLIST_OT_Add_Node_Change_Name_Type_Hide(Operator):
 
     def execute(self, context):
         data_type = self.attr_type
-        nal = context.preferences.addons[__package__].preferences
+        prefs = context.preferences.addons[__package__].preferences
         ui_type = context.area.ui_type
         if ui_type == 'GeometryNodeTree':
-            nal.panel_info = tr("添加已命名属性节点")
+            prefs.panel_info = tr("添加已命名属性节点")
             bpy.ops.node.add_node('INVOKE_REGION_WIN', use_transform=True, type='GeometryNodeInputNamedAttribute')
             attr_node = context.active_node
             attr_node.data_type = data_type
             attr_node.inputs["Name"].default_value = self.attr_name
-            attr_node.inputs["Name"].hide = nal.hide_Name_socket
-            attr_node.show_options = not nal.hide_option
-            if nal.rename_Attr_socket:
+            attr_node.inputs["Name"].hide = prefs.hide_Name_socket
+            attr_node.show_options = not prefs.hide_option
+            if prefs.rename_Attr_socket:
                 if bpy.data.version >= (4, 1, 0):
                     attr_node.outputs["Attribute"].name = self.attr_name        # socket的identifier也是Attribute  socket[identifier] 优先
                 else:
                     for socket in attr_node.outputs:        # 因为之前版本,已命名属性节点有多个Attribute输出接口
                         if socket.enabled and not socket.hide and socket.name=="Attribute":
                             socket.name = self.attr_name
-            attr_node.outputs["Exists"].hide = nal.hide_Exists_socket
+            attr_node.outputs["Exists"].hide = prefs.hide_Exists_socket
 
         if ui_type == 'ShaderNodeTree':
-            nal.panel_info = tr("添加属性节点")
+            prefs.panel_info = tr("添加属性节点")
             bpy.ops.node.add_node('INVOKE_REGION_WIN', use_transform=True, type=self.shader_node_type)
             # [ 'BOOLEAN', 'FLOAT', 'INT', 'FLOAT_VECTOR', 'FLOAT_COLOR']
             attr_node = context.active_node
@@ -490,7 +490,7 @@ class ATTRLIST_OT_Add_Node_Change_Name_Type_Hide(Operator):
                                 }
                 for i, out_soc in enumerate(attr_node.outputs):
                     order = socket_order[data_type]
-                    if i == order and nal.rename_Attr_socket:
+                    if i == order and prefs.rename_Attr_socket:
                         out_soc.name = self.attr_name
                     if i != order:
                         out_soc.hide = True
@@ -498,11 +498,11 @@ class ATTRLIST_OT_Add_Node_Change_Name_Type_Hide(Operator):
                 attr_node.layer_name = self.attr_name
             if self.shader_node_type == "ShaderNodeUVMap":
                 attr_node.uv_map = self.attr_name
-            attr_node.show_options = not nal.hide_Name_socket
-        if nal.rename_Node:
+            attr_node.show_options = not prefs.hide_Name_socket
+        if prefs.rename_Node:
             # attr_node.label = "属性:" + self.attr_name
-            attr_node.label = nal.rename_prefix + self.attr_name
-        attr_node.hide = nal.hide_Node
+            attr_node.label = prefs.rename_prefix + self.attr_name
+        attr_node.hide = prefs.hide_Node
         return {"FINISHED"}
 
     def invoke(self, context, event):
@@ -521,7 +521,7 @@ def has_attr(context):
 
 class ATTRLIST_MT_Menu(Menu):
     bl_idname = "ATTRLIST_MT_Menu"
-    bl_label = tr("小王-命名属性列表菜单")
+    bl_label = tr("命名属性列表菜单")
 
     @classmethod
     def poll(cls, context):
@@ -532,7 +532,7 @@ class ATTRLIST_MT_Menu(Menu):
         sort_attrs_and_draw_menu(self.layout, context, is_panel=False)
 
 class ATTRLIST_PT_NPanel(Panel):
-    bl_label = tr('小王-命名属性列表面板')      # 还作为在快捷键列表里名称
+    bl_label = tr('命名属性列表面板')      # 还作为在快捷键列表里名称
     bl_idname = 'ATTRLIST_PT_NPanel'
     bl_space_type = 'NODE_EDITOR'
     bl_region_type = 'UI'
@@ -547,7 +547,7 @@ class ATTRLIST_PT_NPanel(Panel):
         return has_attr(context)
 
     def draw(self, context):
-        nal = context.preferences.addons[__package__].preferences
+        prefs = context.preferences.addons[__package__].preferences
         layout = self.layout
         a_node = context.active_node
         if a_node:
@@ -563,14 +563,14 @@ class ATTRLIST_PT_NPanel(Panel):
             icon='MATERIAL_DATA'
         split = layout.split(factor=0.9)
         split.label(text=info, icon=icon)
-        split.prop(nal, 'show_set_panel', toggle=True, text='', icon="PREFERENCES")
+        split.prop(prefs, 'show_set_panel', toggle=True, text='', icon="PREFERENCES")
 
-        if nal.show_set_panel:
-            arrow_show = "TRIA_RIGHT" if not nal.add_settings else "TRIA_DOWN"
+        if prefs.show_set_panel:
+            arrow_show = "TRIA_RIGHT" if not prefs.add_settings else "TRIA_DOWN"
             box1 = layout.box()
             box1.scale_y = 0.9
-            box1.prop(nal, "add_settings", emboss=True, icon=arrow_show)
-            if nal.add_settings:
+            box1.prop(prefs, "add_settings", emboss=True, icon=arrow_show)
+            if prefs.add_settings:
 
                 # split.label(text=tr('菜单快捷键: '))
                 # split.prop(find_user_keyconfig('唤出菜单快捷键'), 'type', text='', full_event=True)
@@ -579,57 +579,57 @@ class ATTRLIST_PT_NPanel(Panel):
                 # split.prop(find_user_keyconfig('ATTRLIST_PT_NPanel'), 'type', text='', full_event=True)
 
                 split = box1.split(factor=0.5)
-                split.prop(nal, 'hide_option',        toggle=True, text=tr('隐藏节点选项'))
-                split.prop(nal, 'hide_Exists_socket', toggle=True, text=tr('隐藏存在接口'))
+                split.prop(prefs, 'hide_option',        toggle=True, text=tr('隐藏节点选项'))
+                split.prop(prefs, 'hide_Exists_socket', toggle=True, text=tr('隐藏存在接口'))
                 split = box1.split(factor=0.5)
-                split.prop(nal, 'hide_Name_socket',   toggle=True, text=tr('隐藏名称接口'))
-                split.prop(nal, 'rename_Attr_socket', toggle=True, text=tr('重命名属性接口'))
+                split.prop(prefs, 'hide_Name_socket',   toggle=True, text=tr('隐藏名称接口'))
+                split.prop(prefs, 'rename_Attr_socket', toggle=True, text=tr('重命名属性接口'))
                 split = box1.split(factor=0.5)
-                split.prop(nal, 'hide_Node',          toggle=True, text=tr('折叠节点'))
-                split.prop(nal, 'rename_Node',        toggle=True, text=tr('重命名节点标签'))
+                split.prop(prefs, 'hide_Node',          toggle=True, text=tr('折叠节点'))
+                split.prop(prefs, 'rename_Node',        toggle=True, text=tr('重命名节点标签'))
                 split = box1.split(factor=0.5)
                 split.label(text=tr('重命名添加前缀: '))
-                split.prop(nal, 'rename_prefix', text="")
+                split.prop(prefs, 'rename_prefix', text="")
 
-            arrow_add = "TRIA_RIGHT" if not nal.show_settings else "TRIA_DOWN"
+            arrow_add = "TRIA_RIGHT" if not prefs.show_settings else "TRIA_DOWN"
             box2 = layout.box()
             box2.scale_y = 0.9
-            box2.prop(nal, "show_settings", emboss=True, icon=arrow_add)
-            if nal.show_settings:
+            box2.prop(prefs, "show_settings", emboss=True, icon=arrow_add)
+            if prefs.show_settings:
                 split2 = box2.split(factor=0.4)
                 split2.label(text=tr('列表排序方式'))
-                split2.prop(nal, 'sort_list', text='')
+                split2.prop(prefs, 'sort_list', text='')
 
                 box2.label(text=tr('属性列表里是否显示'))
                 split3 = box2.split(factor=0.05)        # 使得文本左顶格，按钮前稍微缩进
                 split3.label(text="")
                 split31 = split3.split(factor=0.35)
-                split31.prop(nal, 'show_vertex_group', toggle=True, text=tr('顶点组'))
+                split31.prop(prefs, 'show_vertex_group', toggle=True, text=tr('顶点组'))
                 split32 = split31.split(factor=0.4)
-                split32.prop(nal, 'show_uv_map',       toggle=True, text=tr('UV'))
-                split32.prop(nal, 'show_color_attr',   toggle=True, text=tr('颜色属性'))
+                split32.prop(prefs, 'show_uv_map',       toggle=True, text=tr('UV'))
+                split32.prop(prefs, 'show_color_attr',   toggle=True, text=tr('颜色属性'))
 
                 box2.label(text=tr('属性列表里是否隐藏'))
                 split4 = box2.split(factor=0.05)
                 split4.label(text="")
                 split41 = split4.split(factor=0.5)
-                split41.prop(nal, 'only_show_used_attr', toggle=True, text=tr('未使用属性'))
-                split41.prop(nal, 'hide_attr_in_group',  toggle=True, text=tr('节点组内属性'))
+                split41.prop(prefs, 'only_show_used_attr', toggle=True, text=tr('未使用属性'))
+                split41.prop(prefs, 'hide_attr_in_group',  toggle=True, text=tr('节点组内属性'))
 
                 split4 = box2.split(factor=0.05)
                 split4.label(text="")
                 split41 = split4.split(factor=0.5)
-                split41.prop(nal, 'is_hide_by_pre', toggle=True, text=tr('隐藏前缀'))
-                if nal.is_hide_by_pre:
-                    split41.prop(nal, 'hide_by_prefix', text='')
+                split41.prop(prefs, 'is_hide_by_pre', toggle=True, text=tr('隐藏前缀'))
+                if prefs.is_hide_by_pre:
+                    split41.prop(prefs, 'hide_prefix', text='')
 
                 split5 = box2.split(factor=0.5)
                 split5.label(text=tr('属性列表文本设置'))
-                split5.prop(nal, 'show_attr_domain', toggle=True, text=tr('显示所在域'))
+                split5.prop(prefs, 'show_attr_domain', toggle=True, text=tr('显示所在域'))
 
                 split6 = box2.split(factor=0.5)
                 split6.label(text=tr('查找节点设置'))
-                split6.prop(nal, 'if_scale_editor', toggle=True, text=tr('适当缩放视图'))
+                split6.prop(prefs, 'if_scale_editor', toggle=True, text=tr('适当缩放视图'))
 
         box3 = layout.box()
         sort_attrs_and_draw_menu(box3, context, is_panel=True)
@@ -726,7 +726,7 @@ class NODE_OT_View_Stored_Attribute_Node(Operator):
 
 class NODE_OT_Add_Named_Attribute(Operator):
     bl_idname = "node.add_named_attribute_node"
-    bl_label = tr("小王-快速添加命名属性节点")
+    bl_label = tr("快速添加命名属性节点")
     bl_description = tr("快速添加选中的活动存储属性节点相应的已命名属性节点")
     bl_options = {"REGISTER", "UNDO"}
 
@@ -736,7 +736,7 @@ class NODE_OT_Add_Named_Attribute(Operator):
         return context.area.ui_type == 'GeometryNodeTree'
 
     def execute(self, context):
-        nal = context.preferences.addons[__package__].preferences
+        prefs = context.preferences.addons[__package__].preferences
         active_node = context.active_node
         if active_node and active_node.bl_idname == 'GeometryNodeStoreNamedAttribute':
             attr_name = active_node.inputs["Name"].default_value
@@ -747,19 +747,19 @@ class NODE_OT_Add_Named_Attribute(Operator):
             attr_node = context.active_node
             attr_node.data_type = data_type
             attr_node.inputs["Name"].default_value = attr_name
-            attr_node.inputs["Name"].hide = nal.hide_Name_socket
-            attr_node.show_options = not nal.hide_option
-            attr_node.hide = nal.hide_Node
-            if nal.rename_Node:
-                attr_node.label = nal.rename_prefix + self.attr_name
-            if nal.rename_Attr_socket:
+            attr_node.inputs["Name"].hide = prefs.hide_Name_socket
+            attr_node.show_options = not prefs.hide_option
+            attr_node.hide = prefs.hide_Node
+            if prefs.rename_Node:
+                attr_node.label = prefs.rename_prefix + self.attr_name
+            if prefs.rename_Attr_socket:
                 if bpy.data.version >= (4, 1, 0):
                     attr_node.outputs["Attribute"].name = attr_name        # socket的identifier也是Attribute  socket[identifier] 优先
                 else:
                     for socket in attr_node.outputs:        # 因为之前版本,已命名属性节点有多个Attribute输出接口
                         if socket.enabled and not socket.hide and socket.name=="Attribute":
                             socket.name = attr_name
-            attr_node.outputs["Exists"].hide = nal.hide_Exists_socket
+            attr_node.outputs["Exists"].hide = prefs.hide_Exists_socket
         else:
             bpy.ops.node.add_node('INVOKE_DEFAULT', use_transform=True, type='GeometryNodeInputNamedAttribute')
         return {"FINISHED"}
