@@ -1,8 +1,8 @@
 import os
 import bpy
 from bpy.props import FloatProperty, PointerProperty
-from . snap_op import *
-from . align_op import *
+from .op_align import *
+from .op_xxx import *
 
 bl_info = {
     "name" : "小王-Node Align",
@@ -55,7 +55,7 @@ def find_user_keyconfig(key):
     print(f"Couldn't find keymap item for {key}, using addon keymap instead. This won't be saved across sessions!")
     return kmi
 
-class NodeAlignAddonPrefs(bpy.types.AddonPreferences):
+class Node_Align_AddonPrefs(bpy.types.AddonPreferences):
     bl_idname = __package__
 
     def draw(self, context):
@@ -81,9 +81,9 @@ class ALIGN_MT_align_pie(bpy.types.Menu):
         pie.operator("node.align_right",  text="右对齐", icon_value=_icons[images[1]].icon_id)
         pie.operator("node.align_bottom", text="底对齐", icon_value=_icons[images[2]].icon_id)
         pie.operator("node.align_top",    text="顶对齐", icon_value=_icons[images[3]].icon_id)
-        pie.operator("node.align_height_center",   text="对齐高度", icon_value=_icons[images[4]].icon_id)
+        pie.operator("node.align_height_center",   text="对齐高度",     icon_value=_icons[images[4]].icon_id)
         pie.operator("node.distribute_vertical",   text="垂直等距分布", icon_value=_icons[images[5]].icon_id)
-        pie.operator("node.align_width_center",    text="对齐宽度", icon_value=_icons[images[6]].icon_id)
+        pie.operator("node.align_width_center",    text="对齐宽度",     icon_value=_icons[images[6]].icon_id)
         pie.operator("node.distribute_horizontal", text="水平等距分布", icon_value=_icons[images[7]].icon_id)
 
 class ALIGN_MT_xxx_pie(bpy.types.Menu):
@@ -105,7 +105,7 @@ class ALIGN_MT_xxx_pie(bpy.types.Menu):
 
 
 classes = [
-    NodeAlignAddonPrefs,
+    Node_Align_AddonPrefs,
     ALIGN_MT_xxx_pie,
     ALIGN_MT_align_pie,
     AlignDependentNodes,
