@@ -355,9 +355,9 @@ def sort_attrs_and_draw_menu(layout, context, is_panel):
     prefix_list = prefs.hide_prefix.split("|")
     for attr_name, attr_info in attrs.items():
         has_prefix = False
-        if prefs.is_hide_by_pre and prefs.hide_prefix:
+        if prefs.is_hide_by_pre:
             for prefix in prefix_list:
-                if attr_name.startswith(prefix):
+                if prefix and attr_name.startswith(prefix):
                     has_prefix = True
                     break
         if has_prefix:
