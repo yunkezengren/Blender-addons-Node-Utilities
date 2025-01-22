@@ -4,6 +4,13 @@ from bpy.props import FloatProperty, PointerProperty
 from .op_align import *
 from .op_xxx import *
 
+# TODO 对齐Frame
+# TODO 选中Frame对齐时别报错
+# TODO 学下怎么为某一个操作单独设置快捷键
+# TODO 学下如何弹出提示
+# TODO 栅格对齐,选中一列时,别报错等距分布
+# TODO 把我的 Alt+1 加上 Shift+x Shift+y
+
 bl_info = {
     "name" : "小王-Node Align",
     "author" : "一尘不染",
@@ -17,14 +24,6 @@ bl_info = {
 addon_keymaps = {}
 _icons = None
 # 按顺序可以换成自定义图片图标
-# images = [ '左对齐-蓝色',
-#            '右对齐-蓝色',
-#            '下对齐-蓝色',
-#            '上对齐-蓝色',
-#            '上下居中对齐-蓝色',
-#            '垂直等距分布-蓝黑',
-#            '左右居中对齐-蓝色',
-#            '水平等距分布-蓝黑',]
 images = [ '左对齐-蓝双色',
            '右对齐-蓝双色',
            '下对齐-蓝双色',

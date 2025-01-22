@@ -6,33 +6,8 @@ from pprint import pprint
 # from mathutils import Vector
 # from builtins import len as length
 
-class NodePoll:
-    @classmethod
-    def poll(cls, context):
-        tree = context.space_data.edit_tree
-
-        if tree and context.selected_nodes:
-            return True
-        return False
-""" # 排序
-def sort_location():
-    for i in bpy.context.selected_nodes:
-        print(i.location)
-locations = []
-for node in selectedNodes:
-    locations.append(node.location)
-locations.sort(key=lambda loc: loc.x)
-x_min = locations[0].x
-x_max = locations[-1].x
- 
-locations.sort(key=lambda loc: loc.y)
-y_min = locations[0].y
-y_max = locations[-1].y
-print(f"X方向的最小值是 {x_min}")
-print(f"X方向的最大值是 {x_max}")
-print(f"Y方向的最小值是 {y_min}")
-print(f"Y方向的最大值是 {y_max}") 
-"""
+def ui_scale():
+    return bpy.context.preferences.system.dpi / 72      # 类似于prefs.view.ui_scale, 但是不同的显示器不一样吗
 
 def sort_location(nodes):
     locations = []
@@ -55,102 +30,141 @@ def sort_location(nodes):
     loc_min_max["y_center"] = (loc_min_max["y_min"] + loc_min_max["y_max"]) / 2
     return loc_min_max
 
-def detach_parent_frame(node_parent, frame_nodes):
-    before_selectedNodes = bpy.context.selected_nodes
-    for node in before_selectedNodes:
-        node_parent[node.name] = node.parent
+def get_x_min(nodes):
+    return min(node.location.x for node in nodes)
+def get_x_max(nodes):
+    return max(node.location.x + node.width for node in nodes)
+def get_y_min(nodes):
+    return min(node.location.y - node.dimensions.y for node in nodes)
+def get_y_max(nodes):
+    return max(node.location.y for node in nodes)
+def get_x_center(nodes):
+    x_min = get_x_min(nodes)
+    x_max = get_x_max(nodes)
+    return (x_min + x_max) / 2
+def get_y_center(nodes):
+    y_min = get_y_min(nodes)
+    y_max = get_y_max(nodes)
+    return (y_min + y_max) / 2
+
+def detach_parent_frame(node_parent_dict, frame_node_list):
+    before_select_nodes = bpy.context.selected_nodes
+    for node in before_select_nodes:
+        node_parent_dict[node.name] = node.parent
         if node.bl_idname == "NodeFrame":
-            frame_nodes.append(node)
+            frame_node_list.append(node)
             node.select = False
     bpy.ops.node.detach('INVOKE_DEFAULT')
-    return node_parent, frame_nodes
+    return node_parent_dict, frame_node_list
 
-def restore_parent_frame(nodes, node_parent, frame_nodes):
+def restore_parent_frame(nodes, node_parent_dict, frame_node_list):
     for node in nodes:
-        node.parent = node_parent[node.name]
-    for node in frame_nodes:
+        node.parent = node_parent_dict[node.name]
+    for node in frame_node_list:
         node.select = True
 
-class NODE_OT_align_bottom(Operator, NodePoll):
-    bl_idname = "node.align_bottom"
-    bl_label = "Snap Bottom Side Selection Nodes"
-    bl_description = "Snaps the bottom of all selected nodes"
+class NodePoll:
+    @classmethod
+    def poll(cls, context):
+        tree = context.space_data.edit_tree
+        if tree and context.selected_nodes:
+            return True
+        return False
+
+class NODE_OT_align_left(Operator, NodePoll):
+    bl_idname = "node.align_left"
+    bl_label = "Align Left Side Selection Nodes"
+    bl_description = "Align the left side of all selected nodes"
 
     def execute(self, context):
-        try:
-            node_parent = dict()
-            frame_nodes = []
-            detach_parent_frame(node_parent, frame_nodes)
-            
-            selectedNodes = context.selected_nodes
-            y_min = sort_location(selectedNodes)["y_min"]
-            for node in selectedNodes:
-                node.location.y = y_min + node.dimensions.y
-            
-            restore_parent_frame(selectedNodes, node_parent, frame_nodes)
-        except:
-            pass
-        return {"FINISHED"}
-
-class NODE_OT_align_top(Operator, NodePoll):
-    bl_idname = "node.align_top"
-    bl_label = "Snap Top Side Selection Nodes"
-    bl_description = "Snaps the top of all selected nodes"
-
-    def execute(self, context):
-        node_parent = dict()
-        frame_nodes = []
-        detach_parent_frame(node_parent, frame_nodes)
-        
-        selectedNodes = context.selected_nodes
-        y_max = sort_location(selectedNodes)["y_max"]
-        for node in selectedNodes:
-            node.location.y = y_max
-
-        restore_parent_frame(selectedNodes, node_parent, frame_nodes)
-        
+        node_parent_dict = {}
+        frame_node_list = []
+        select_nodes = context.selected_nodes
+        detach_parent_frame(node_parent_dict, frame_node_list)
+        x_min = get_x_min(select_nodes)
+        for node in select_nodes:
+            node.location.x = x_min
+        restore_parent_frame(select_nodes, node_parent_dict, frame_node_list)
         return {"FINISHED"}
 
 class NODE_OT_align_right(Operator, NodePoll):
     bl_idname = "node.align_right"
-    bl_label = "Snap Right Side Selection Nodes"
-    bl_description = "Snaps the right side of all selected nodes"
+    bl_label = "Align Right Side Selection Nodes"
+    bl_description = "Align the right side of all selected nodes"
 
     def execute(self, context):
-        # TODO 为什么 try
-        try:
-            node_parent = dict()
-            frame_nodes = []
-            detach_parent_frame(node_parent, frame_nodes)
-            
-            selectedNodes = context.selected_nodes
-            x_max = sort_location(selectedNodes)["x_max"]
-            for node in selectedNodes:
-                node.location.x = x_max - node.width
-            
-            restore_parent_frame(selectedNodes, node_parent, frame_nodes)
-        except:
-            pass
-
+        node_parent_dict = {}
+        frame_node_list = []
+        detach_parent_frame(node_parent_dict, frame_node_list)
+        select_nodes = context.selected_nodes
+        x_max = get_x_max(select_nodes)
+        for node in select_nodes:
+            node.location.x = x_max - node.width
+        restore_parent_frame(select_nodes, node_parent_dict, frame_node_list)
         return {"FINISHED"}
 
-class NODE_OT_align_left(Operator, NodePoll):
-    bl_idname = "node.align_left"
-    bl_label = "Snap Left Side Selection Nodes"
-    bl_description = "Snaps the left side of all selected nodes"
+class NODE_OT_align_top(Operator, NodePoll):
+    bl_idname = "node.align_top"
+    bl_label = "Align Top Side Selection Nodes"
+    bl_description = "Align the top of all selected nodes"
 
     def execute(self, context):
-        node_parent = dict()
-        frame_nodes = []
-        detach_parent_frame(node_parent, frame_nodes)
+        node_parent_dict = {}
+        frame_node_list = []
+        detach_parent_frame(node_parent_dict, frame_node_list)
+        select_nodes = context.selected_nodes
+        y_max = get_y_max(select_nodes)
+        for node in select_nodes:
+            node.location.y = y_max
+        restore_parent_frame(select_nodes, node_parent_dict, frame_node_list)
+        return {"FINISHED"}
 
-        selectedNodes = context.selected_nodes
-        x_min = sort_location(selectedNodes)["x_min"]
-        for node in selectedNodes:
-            node.location.x = x_min
+class NODE_OT_align_bottom(Operator, NodePoll):
+    bl_idname = "node.align_bottom"
+    bl_label = "Align Bottom Side Selection Nodes"
+    bl_description = "Align the bottom of all selected nodes"
 
-        restore_parent_frame(selectedNodes, node_parent, frame_nodes)
-        
+    def execute(self, context):
+        node_parent_dict = {}
+        frame_node_list = []
+        detach_parent_frame(node_parent_dict, frame_node_list)
+        select_nodes = context.selected_nodes
+        y_min = get_y_min(select_nodes)
+        for node in select_nodes:
+            node.location.y = y_min + node.dimensions.y
+        restore_parent_frame(select_nodes, node_parent_dict, frame_node_list)
+        return {"FINISHED"}
+
+class NODE_OT_align_heightcenter(Operator, NodePoll):
+    bl_idname = "node.align_height_center"
+    bl_label = "Align Height Center Side Selection Nodes"
+    bl_description = "Align the height center of all selected nodes"
+
+    def execute(self, context):
+        node_parent_dict = {}
+        frame_node_list = []
+        detach_parent_frame(node_parent_dict, frame_node_list)
+        select_nodes = context.selected_nodes
+        y_center = sort_location(select_nodes)["y_center"]
+        for node in select_nodes:
+            node.location.y = y_center + node.dimensions.y / 2
+        restore_parent_frame(select_nodes, node_parent_dict, frame_node_list)
+        return {"FINISHED"}
+
+class NODE_OT_align_widthcenter(Operator, NodePoll):
+    bl_idname = "node.align_width_center"
+    bl_label = "Align Width Center Side Selection Nodes"
+    bl_description = "Align the width center of all selected nodes"
+
+    def execute(self, context):
+        node_parent_dict = {}
+        frame_node_list = []
+        detach_parent_frame(node_parent_dict, frame_node_list)
+        select_nodes = context.selected_nodes
+        x_center = sort_location(select_nodes)["x_center"]
+        for node in select_nodes:
+            node.location.x = x_center - node.width / 2
+        restore_parent_frame(select_nodes, node_parent_dict, frame_node_list)
         return {"FINISHED"}
 
 class NODE_OT_distribute_horizontal(Operator, NodePoll):
@@ -158,14 +172,14 @@ class NODE_OT_distribute_horizontal(Operator, NodePoll):
     bl_label = "Selection Nodes - distribute_horizontal"
     bl_description = "水平等距分布"
     def execute(self, context):
-        node_parent = dict()
-        frame_nodes = []
-        detach_parent_frame(node_parent, frame_nodes)
-        
-        selectedNodes = context.selected_nodes
+        node_parent_dict = {}
+        frame_node_list = []
+        detach_parent_frame(node_parent_dict, frame_node_list)
+
+        select_nodes = context.selected_nodes
         node_infos = []
         num = 0 ; sum_width = 0
-        for node in selectedNodes:
+        for node in select_nodes:
             # if node.bl_idname != "NodeFrame":
             if node.parent is None:
                 num += 1 ; sum_width += node.width
@@ -185,8 +199,8 @@ class NODE_OT_distribute_horizontal(Operator, NodePoll):
         for node_info in node_infos:
             node_info[2].location.x = x_min + interval * i + sum_width
             i += 1; sum_width += node_info[3]
-        
-        restore_parent_frame(selectedNodes, node_parent, frame_nodes)
+
+        restore_parent_frame(select_nodes, node_parent_dict, frame_node_list)
 
         return {"FINISHED"}
 
@@ -196,14 +210,14 @@ class NODE_OT_distribute_vertical(Operator, NodePoll):
     bl_description = "垂直等距分布"
 
     def execute(self, context):
-        node_parent = dict()
-        frame_nodes = []
-        detach_parent_frame(node_parent, frame_nodes)
-        
-        selectedNodes = context.selected_nodes
+        node_parent_dict = {}
+        frame_node_list = []
+        detach_parent_frame(node_parent_dict, frame_node_list)
+
+        select_nodes = context.selected_nodes
         node_infos = []
         num = 0 ; sum_height = 0
-        for node in selectedNodes:
+        for node in select_nodes:
             # if node.bl_idname != "NodeFrame":
             if node.parent is None:
                 num += 1 ; sum_height += node.dimensions.y
@@ -225,47 +239,9 @@ class NODE_OT_distribute_vertical(Operator, NodePoll):
         for node_info in node_infos:
             node_info[2].location.y = y_max - interval * i - sort_sum_height
             i += 1; sort_sum_height += node_info[3]
-            
-        restore_parent_frame(selectedNodes, node_parent, frame_nodes)
-        
-        return {"FINISHED"}
 
-class NODE_OT_align_heightcenter(Operator, NodePoll):
-    bl_idname = "node.align_height_center"
-    bl_label = "Snap Height Center Side Selection Nodes"
-    bl_description = "Snaps the height center of all selected nodes"
+        restore_parent_frame(select_nodes, node_parent_dict, frame_node_list)
 
-    def execute(self, context):
-        node_parent = dict()
-        frame_nodes = []
-        detach_parent_frame(node_parent, frame_nodes)
-
-        selectedNodes = context.selected_nodes
-        y_center = sort_location(selectedNodes)["y_center"]
-        for node in selectedNodes:
-            node.location.y = y_center + node.dimensions.y / 2
-                
-        restore_parent_frame(selectedNodes, node_parent, frame_nodes)
-        
-        return {"FINISHED"}
-
-class NODE_OT_align_widthcenter(Operator, NodePoll):
-    bl_idname = "node.align_width_center"
-    bl_label = "Snap Width Center Side Selection Nodes"
-    bl_description = "Snaps the width center of all selected nodes"
-
-    def execute(self, context):
-        node_parent = dict()
-        frame_nodes = []
-        detach_parent_frame(node_parent, frame_nodes)
-        
-        selectedNodes = context.selected_nodes
-        x_center = sort_location(selectedNodes)["x_center"]
-        for node in selectedNodes:
-            node.location.x = x_center - node.width / 2
-                
-        restore_parent_frame(selectedNodes, node_parent, frame_nodes)
-        
         return {"FINISHED"}
 
 class NODE_OT_distribute_grid_relative(Operator, NodePoll):
@@ -275,13 +251,13 @@ class NODE_OT_distribute_grid_relative(Operator, NodePoll):
     def execute(self, context):
         print("开始..............................................................................................")
 
-        node_parent = dict()
-        frame_nodes = []
-        detach_parent_frame(node_parent, frame_nodes)
-        
-        selectedNodes = context.selected_nodes
+        node_parent_dict = {}
+        frame_node_list = []
+        detach_parent_frame(node_parent_dict, frame_node_list)
+
+        select_nodes = context.selected_nodes
         node_infos = []
-        for node in selectedNodes:
+        for node in select_nodes:
             node_infos.append((node.location.x, node))
         node_infos.sort(key=lambda x: x[0])
         x_min = node_infos[0][0]
@@ -290,7 +266,7 @@ class NODE_OT_distribute_grid_relative(Operator, NodePoll):
         print("x_min:", x_min)
         print("x_max:", x_max)
         print("num:", num)
-        
+
         # 把节点以y位置间隔大于140划分为列并垂直等距分布
         vertical_nodes = []
         for i in range(1, num + 1):
@@ -305,7 +281,7 @@ class NODE_OT_distribute_grid_relative(Operator, NodePoll):
                 if node.location.x < x_min + 140:
                     node.location.x = x_min
                     # node.location.x = x_min - ((node.width- 140) / 2)
-                    
+
                     remove_list.append(node_info)
             print("remove_list:", [i[1].name for i in remove_list])
             for node in remove_list:
@@ -333,7 +309,7 @@ class NODE_OT_distribute_grid_relative(Operator, NodePoll):
                 node_info[2].location.y = y_max - interval * i - sort_sum_height
                 i += 1; sort_sum_height += node_info[3]
             vertical_nodes.append(vertical_node)
-            
+
         # print("水平等距对齐,把每列当成一个节点........................")
         # 水平等距对齐,把每列当成一个节点........................
         num = 0 ; sum_width = 0; avera_width = 0
@@ -356,7 +332,7 @@ class NODE_OT_distribute_grid_relative(Operator, NodePoll):
             print("max_width:", max_width)
             print("sum_width:", sum_width)
         node_location = []
-        for node in selectedNodes:
+        for node in select_nodes:
             node_location.append(node.location.x)
         node_location = list(set(node_location))
         node_location.sort()
@@ -377,9 +353,9 @@ class NODE_OT_distribute_grid_relative(Operator, NodePoll):
                     align = (max_widths[i] -node_info[2].width) / 2    # 每列别的节点和宽度最大的节点(它不移动)对齐宽度补偿偏移
                     node_info[2].location.x = x_min + interval * i + sum_widths[i-1] + align
             i += 1
-        
-        restore_parent_frame(selectedNodes, node_parent, frame_nodes)
-        
+
+        restore_parent_frame(select_nodes, node_parent_dict, frame_node_list)
+
         print("结束..............................................................................................")
         return {"FINISHED"}
 
@@ -390,13 +366,13 @@ class NODE_OT_distribute_grid_absolute(Operator, NodePoll):
     def execute(self, context):
         print("开始..............................................................................................")
 
-        node_parent = dict()
-        frame_nodes = []
-        detach_parent_frame(node_parent, frame_nodes)
-        
-        selectedNodes = context.selected_nodes
+        node_parent_dict = {}
+        frame_node_list = []
+        detach_parent_frame(node_parent_dict, frame_node_list)
+
+        select_nodes = context.selected_nodes
         node_infos = []
-        for node in selectedNodes:
+        for node in select_nodes:
             node_infos.append((node.location.x, node))
         node_infos.sort(key=lambda x: x[0])
         x_min = node_infos[0][0]
@@ -406,13 +382,13 @@ class NODE_OT_distribute_grid_absolute(Operator, NodePoll):
         print("x_max:", x_max)
         print("num:", num)
         node_location_y = []        # 和上面列表和一块还要改下面的，懒得改了，新建一个
-        for node in selectedNodes:
+        for node in select_nodes:
             node_location_y.append((node.location.y, node.location.y - node.dimensions.y))
         node_location_y.sort(key=lambda x: x[0])
         y_max = node_location_y[-1][0]
         node_location_y.sort(key=lambda x: x[1])
         y_min = node_location_y[0][1]
-        
+
         # 把节点以y位置间隔大于140划分为列并垂直等距分布
         vertical_nodes = []
         for i in range(1, num + 1):
@@ -453,7 +429,7 @@ class NODE_OT_distribute_grid_absolute(Operator, NodePoll):
                 node_info[2].location.y = y_max - interval * i - sort_sum_height
                 i += 1; sort_sum_height += node_info[3]
             vertical_nodes.append(vertical_node)
-            
+
         # print("水平等距对齐,把每列当成一个节点........................")
         # 水平等距对齐,把每列当成一个节点........................
         num = 0 ; sum_width = 0; avera_width = 0
@@ -476,7 +452,7 @@ class NODE_OT_distribute_grid_absolute(Operator, NodePoll):
             print("max_width:", max_width)
             print("sum_width:", sum_width)
         node_location = []
-        for node in selectedNodes:
+        for node in select_nodes:
             node_location.append(node.location.x)
         node_location = list(set(node_location))
         node_location.sort()
@@ -498,7 +474,7 @@ class NODE_OT_distribute_grid_absolute(Operator, NodePoll):
                     node_info[2].location.x = x_min + interval * i + sum_widths[i-1] + align
             i += 1
 
-        restore_parent_frame(selectedNodes, node_parent, frame_nodes)
+        restore_parent_frame(select_nodes, node_parent_dict, frame_node_list)
         print("结束..............................................................................................")
         return {"FINISHED"}
 
@@ -506,17 +482,14 @@ class NODE_OT_distribute_grid_absolute(Operator, NodePoll):
 def get_abs_local(node):
     return node.location + get_abs_local(node.parent) if node.parent else node.location
 
-def UiScale():
-    return bpy.context.preferences.system.dpi / 72
-
-def Vector( *args): 
-    return mathutils.Vector((args)) 
+def Vector( *args):
+    return mathutils.Vector((args))
 
 def TranslateIface(txt):
     return bpy.app.translations.pgettext_iface(txt)
 
-def linear_interpolation(x, 
-              xp=[  0.5,   0.8,  1,   1.1,  1.15,   1.2,  1.3,   1.4,  1.5,      2,   2.5,  3,   3.5,    4], 
+def linear_interpolation(x,
+              xp=[  0.5,   0.8,  1,   1.1,  1.15,   1.2,  1.3,   1.4,  1.5,      2,   2.5,  3,   3.5,    4],
               fp=[24.01, 21.48, 22, 21.87, 21.95, 21.77, 20.9, 20.86, 20.66, 20.45, 20.37, 21, 20.83, 21.24]):
     for i in range(len(xp) - 1):
         if xp[i] <= x <= xp[i + 1]:
@@ -529,14 +502,13 @@ def linear_interpolation(x,
     return None
 
 def GetSocketLocation(nd, in_out):    # in -1 out 1
-    def SkIsLinkedVisible(sk): 
+    def SkIsLinkedVisible(sk):
         if not sk.is_linked:
             return True
         return (sk.links) and (sk.links[0].is_muted)
-    list_result = []
     dict_result = {}
     ndLoc = get_abs_local(nd)
-    ndDim = mathutils.Vector(nd.dimensions / UiScale())
+    ndDim = mathutils.Vector(nd.dimensions / ui_scale())
     if in_out == 1:
         skLocCarriage = Vector(ndLoc.x + ndDim.x, ndLoc.y - 35)
     else:
@@ -552,7 +524,7 @@ def GetSocketLocation(nd, in_out):    # in -1 out 1
             if sk.is_linked:
                 dict_result[sk] = {"pos": goalPos, "name": TranslateIface(sk.label if sk.label else sk.name)}
             ui_scale = bpy.context.preferences.view.ui_scale
-            skLocCarriage.y -= linear_interpolation(ui_scale) * in_out     # 缩放 1 -> 22  1.1 -> 21.88 
+            skLocCarriage.y -= linear_interpolation(ui_scale) * in_out     # 缩放 1 -> 22  1.1 -> 21.88
     return dict_result
 
 class NODE_OT_straight_link(Operator, NodePoll):
