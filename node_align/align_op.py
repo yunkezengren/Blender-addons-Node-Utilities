@@ -1,25 +1,15 @@
 import bpy
 from mathutils import Vector
-from . preferences import getAlignPieMenuSettings
 
 class NodeOperator:
     @classmethod
     def poll(cls, context):
         tree = context.space_data.node_tree
-        if tree is None: return False
-        if tree.nodes.active is None: return False
+        if tree is None: 
+            return False
+        if tree.nodes.active is None: 
+            return False
         return True
-
-class AlignDependentNodes(bpy.types.Operator, NodeOperator):
-    bl_idname = "node.align_dependent_nodes"
-    bl_label = "Align Dependent Nodes"
-    bl_description = "Aligns all dependent nodes w.r.t active node to its right side"
-
-    def execute(self, context):
-        offset = getAlignPieMenuSettings().offsetHorizontal
-        activeNode = context.active_node
-        alignDependent(offset, getNodesWhenFollowingBranchedLinks(activeNode, followOutputs = True))
-        return {"FINISHED"}
 
 def alignDependent(offset, nodes):
     activeNode = nodes[0]
@@ -36,13 +26,24 @@ def alignDependent(offset, nodes):
                     node.location = location + Vector((lastNode.width + offset, 0))
             lastNode = node
 
+class AlignDependentNodes(bpy.types.Operator, NodeOperator):
+    bl_idname = "node.align_dependent_nodes"
+    bl_label = "Align Dependent Nodes"
+    bl_description = "Aligns all dependent nodes w.r.t active node to its right side"
+
+    def execute(self, context):
+        offset = 40
+        activeNode = context.active_node
+        alignDependent(offset, getNodesWhenFollowingBranchedLinks(activeNode, followOutputs = True))
+        return {"FINISHED"}
+
 class AlignDependenciesNodes(bpy.types.Operator, NodeOperator):
     bl_idname = "node.align_dependencies"
     bl_label = "Align Dependencies"
     bl_description = "Aligns all dependencies nodes w.r.t active node to its left side"
 
     def execute(self, context):
-        offset = getAlignPieMenuSettings().offsetHorizontal
+        offset = 40
         activeNode = context.active_node
         alignDependencies(offset, getNodesWhenFollowingBranchedLinks(activeNode, followInputs = True))
         return {"FINISHED"}
@@ -68,7 +69,7 @@ class StakeUpSelectionNodes(bpy.types.Operator, NodeOperator):
     bl_description = "Stacks up all selected nodes w.r.t active node"
 
     def execute(self, context):
-        offset = getAlignPieMenuSettings().offsetVertical
+        offset = 20
         activeNode = context.active_node
         selectedNodes = context.selected_nodes
         if activeNode not in selectedNodes: return {"FINISHED"}
@@ -94,7 +95,7 @@ class StakeDownSelectionNodes(bpy.types.Operator, NodeOperator):
     bl_description = "Stacks down all selected nodes w.r.t active node"
 
     def execute(self, context):
-        offset = getAlignPieMenuSettings().offsetVertical
+        offset = 20
         activeNode = context.active_node
         selectedNodes = context.selected_nodes
         if activeNode not in selectedNodes: return {"FINISHED"}
@@ -137,7 +138,7 @@ class AlignRightSideSelectionNodes(bpy.types.Operator, NodeOperator):
     bl_description = "Aligns only the side of all selected nodes w.r.t active node to its right side"
 
     def execute(self, context):
-        offset = getAlignPieMenuSettings().offsetHorizontal
+        offset = 40
         activeNode = context.active_node
         selectedNodes = context.selected_nodes
         if activeNode not in selectedNodes: return {"FINISHED"}
@@ -160,7 +161,7 @@ class AlignLeftSideSelectionNodes(bpy.types.Operator, NodeOperator):
     bl_description = "Aligns only the side of all selected nodes w.r.t active node to its left side"
 
     def execute(self, context):
-        offset = getAlignPieMenuSettings().offsetHorizontal
+        offset = 40
         activeNode = context.active_node
         selectedNodes = context.selected_nodes
         if activeNode not in selectedNodes: return {"FINISHED"}

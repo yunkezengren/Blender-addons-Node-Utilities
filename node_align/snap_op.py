@@ -1,25 +1,29 @@
 import bpy
+from bpy.types import Operator
 from math import ceil
 import mathutils
 from pprint import pprint
 # from mathutils import Vector
 # from builtins import len as length
 
-# bpy.context.space_data.node_tree
+# bpy.context.space_data.edit_tree
 # bpy.context.screen
-class NodeOperator:
+class NodePoll:
     @classmethod
     def poll(cls, context):
-        tree = context.space_data.node_tree
-        if tree is None: return False
-        # if tree.nodes.active is None: return False
-        a = 0
-        for node in tree.nodes:
-            if node.select is True: 
-                a = a + 1
-        if a == 0:
-            return False
-        return True
+        tree = context.space_data.edit_tree
+        # if tree is None: return False
+        # # if tree.nodes.active is None: return False
+        # a = 0
+        # for node in tree.nodes:
+        #     if node.select is True: 
+        #         a = a + 1
+        # if a == 0:
+        #     return False
+        # return True
+        if tree and context.selected_nodes:
+            return True
+        return False
 """ # 排序
 def sort_location():
     for i in bpy.context.selected_nodes:
@@ -40,10 +44,10 @@ print(f"Y方向的最小值是 {y_min}")
 print(f"Y方向的最大值是 {y_max}") 
 """
 
-def sort_location(selectedNodes):
+def sort_location(nodes):
     locations = []
     loc_min_max = {}
-    for node in selectedNodes:
+    for node in nodes:
         left = node.location.x
         right = node.location.x + node.width
         top = node.location.y
@@ -71,14 +75,14 @@ def detach_parent_frame(node_parent, frame_node):
     bpy.ops.node.detach('INVOKE_DEFAULT')
     return node_parent, frame_node
 
-def join_parent_frame(selectedNodes, node_parent, frame_node):
-    for node in selectedNodes:
+def restore_parent_frame(nodes, node_parent, frame_node):
+    for node in nodes:
         node.parent = node_parent[node.name]
     for node in frame_node:
         node.select = True
 
-class SnapBottomSideSelectionNodes(bpy.types.Operator, NodeOperator):
-    bl_idname = "node.snap_bottom_side_selection_nodes"
+class NODE_OT_align_bottom(Operator, NodePoll):
+    bl_idname = "node.align_bottom"
     bl_label = "Snap Bottom Side Selection Nodes"
     bl_description = "Snaps the bottom of all selected nodes"
 
@@ -86,39 +90,39 @@ class SnapBottomSideSelectionNodes(bpy.types.Operator, NodeOperator):
         try:
             node_parent = dict()
             frame_node = []
-            detach_parent_frame(node_parent, frame_node)       # 三行换九行
+            detach_parent_frame(node_parent, frame_node)
             
             selectedNodes = context.selected_nodes
             y_min = sort_location(selectedNodes)["y_min"]
             for node in selectedNodes:
                 node.location.y = y_min + node.dimensions.y
             
-            join_parent_frame(selectedNodes, node_parent, frame_node)             # 一行换四行
+            restore_parent_frame(selectedNodes, node_parent, frame_node)
         except:
             pass
         return {"FINISHED"}
 
-class SnapTopSideSelectionNodes(bpy.types.Operator, NodeOperator):
-    bl_idname = "node.snap_top_side_selection_nodes"
+class NODE_OT_align_top(Operator, NodePoll):
+    bl_idname = "node.align_top"
     bl_label = "Snap Top Side Selection Nodes"
     bl_description = "Snaps the top of all selected nodes"
 
     def execute(self, context):
         node_parent = dict()
         frame_node = []
-        detach_parent_frame(node_parent, frame_node)       # 三行换九行
+        detach_parent_frame(node_parent, frame_node)
         
         selectedNodes = context.selected_nodes
         y_max = sort_location(selectedNodes)["y_max"]
         for node in selectedNodes:
             node.location.y = y_max
 
-        join_parent_frame(selectedNodes, node_parent, frame_node)             # 一行换四行
+        restore_parent_frame(selectedNodes, node_parent, frame_node)
         
         return {"FINISHED"}
 
-class SnapRightSideSelectionNodes(bpy.types.Operator, NodeOperator):
-    bl_idname = "node.snap_right_side_selection_nodes"
+class NODE_OT_align_right(Operator, NodePoll):
+    bl_idname = "node.align_right"
     bl_label = "Snap Right Side Selection Nodes"
     bl_description = "Snaps the right side of all selected nodes"
 
@@ -126,46 +130,46 @@ class SnapRightSideSelectionNodes(bpy.types.Operator, NodeOperator):
         try:
             node_parent = dict()
             frame_node = []
-            detach_parent_frame(node_parent, frame_node)       # 三行换九行
+            detach_parent_frame(node_parent, frame_node)
             
             selectedNodes = context.selected_nodes
             x_max = sort_location(selectedNodes)["x_max"]
             for node in selectedNodes:
                 node.location.x = x_max - node.width
             
-            join_parent_frame(selectedNodes, node_parent, frame_node)             # 一行换四行
+            restore_parent_frame(selectedNodes, node_parent, frame_node)
         except:
             pass
 
         return {"FINISHED"}
 
-class SnapLeftSideSelectionNodes(bpy.types.Operator, NodeOperator):
-    bl_idname = "node.snap_left_side_selection_nodes"
+class NODE_OT_align_left(Operator, NodePoll):
+    bl_idname = "node.align_left"
     bl_label = "Snap Left Side Selection Nodes"
     bl_description = "Snaps the left side of all selected nodes"
 
     def execute(self, context):
         node_parent = dict()
         frame_node = []
-        detach_parent_frame(node_parent, frame_node)       # 三行换九行
+        detach_parent_frame(node_parent, frame_node)
 
         selectedNodes = context.selected_nodes
         x_min = sort_location(selectedNodes)["x_min"]
         for node in selectedNodes:
             node.location.x = x_min
 
-        join_parent_frame(selectedNodes, node_parent, frame_node)             # 一行换四行
+        restore_parent_frame(selectedNodes, node_parent, frame_node)
         
         return {"FINISHED"}
 
-class Distribute_Horizontal(bpy.types.Operator, NodeOperator):
+class NODE_OT_distribute_horizontal(Operator, NodePoll):
     bl_idname = "node.distribute_horizontal"
     bl_label = "Selection Nodes - distribute_horizontal"
     bl_description = "水平等距分布"
     def execute(self, context):
         node_parent = dict()
         frame_node = []
-        detach_parent_frame(node_parent, frame_node)       # 三行换九行
+        detach_parent_frame(node_parent, frame_node)
         
         selectedNodes = context.selected_nodes
         node_infos = []
@@ -191,11 +195,11 @@ class Distribute_Horizontal(bpy.types.Operator, NodeOperator):
             node_info[2].location.x = x_min + interval * i + sum_width
             i += 1; sum_width += node_info[3]
         
-        join_parent_frame(selectedNodes, node_parent, frame_node)             # 一行换四行
+        restore_parent_frame(selectedNodes, node_parent, frame_node)
 
         return {"FINISHED"}
 
-class Distribute_Vertical(bpy.types.Operator, NodeOperator):
+class NODE_OT_distribute_vertical(Operator, NodePoll):
     bl_idname = "node.distribute_vertical"
     bl_label = "Selection Nodes - distribute_vertical"
     bl_description = "垂直等距分布"
@@ -203,7 +207,7 @@ class Distribute_Vertical(bpy.types.Operator, NodeOperator):
     def execute(self, context):
         node_parent = dict()
         frame_node = []
-        detach_parent_frame(node_parent, frame_node)       # 三行换九行
+        detach_parent_frame(node_parent, frame_node)
         
         selectedNodes = context.selected_nodes
         node_infos = []
@@ -231,11 +235,11 @@ class Distribute_Vertical(bpy.types.Operator, NodeOperator):
             node_info[2].location.y = y_max - interval * i - sort_sum_height
             i += 1; sort_sum_height += node_info[3]
             
-        join_parent_frame(selectedNodes, node_parent, frame_node)             # 一行换四行
+        restore_parent_frame(selectedNodes, node_parent, frame_node)
         
         return {"FINISHED"}
 
-class Distribute_Grid_Relative(bpy.types.Operator, NodeOperator):
+class NODE_OT_distribute_grid_relative(Operator, NodePoll):
     bl_idname = "node.distribute_grid_relative"
     bl_label = "Selection Nodes - distribute_grid_relative"
     bl_description = "网格分布-单独列垂直等距分布居中对齐,各列水平等距分布,每列各自最大最小高度"
@@ -244,7 +248,7 @@ class Distribute_Grid_Relative(bpy.types.Operator, NodeOperator):
 
         node_parent = dict()
         frame_node = []
-        detach_parent_frame(node_parent, frame_node)       # 三行换九行
+        detach_parent_frame(node_parent, frame_node)
         
         selectedNodes = context.selected_nodes
         node_infos = []
@@ -345,12 +349,12 @@ class Distribute_Grid_Relative(bpy.types.Operator, NodeOperator):
                     node_info[2].location.x = x_min + interval * i + sum_widths[i-1] + align
             i += 1
         
-        join_parent_frame(selectedNodes, node_parent, frame_node)             # 一行换四行
+        restore_parent_frame(selectedNodes, node_parent, frame_node)
         
         print("结束..............................................................................................")
         return {"FINISHED"}
 
-class Distribute_Grid_Absolute(bpy.types.Operator, NodeOperator):
+class NODE_OT_distribute_grid_absolute(Operator, NodePoll):
     bl_idname = "node.distribute_grid_absolute"
     bl_label = "Selection Nodes - distribute_grid_absolute"
     bl_description = "网格分布-单独列垂直等距分布居中对齐,各列水平等距分布,每列最大最小高度一样"
@@ -359,7 +363,7 @@ class Distribute_Grid_Absolute(bpy.types.Operator, NodeOperator):
 
         node_parent = dict()
         frame_node = []
-        detach_parent_frame(node_parent, frame_node)       # 三行换九行
+        detach_parent_frame(node_parent, frame_node)
         
         selectedNodes = context.selected_nodes
         node_infos = []
@@ -465,52 +469,51 @@ class Distribute_Grid_Absolute(bpy.types.Operator, NodeOperator):
                     node_info[2].location.x = x_min + interval * i + sum_widths[i-1] + align
             i += 1
 
-        join_parent_frame(selectedNodes, node_parent, frame_node)             # 一行换四行
+        restore_parent_frame(selectedNodes, node_parent, frame_node)
         print("结束..............................................................................................")
         return {"FINISHED"}
 
-class SnapHeightCenterSideSelectionNodes(bpy.types.Operator, NodeOperator):
-    bl_idname = "node.snap_height_center_selection_nodes"
+class NODE_OT_align_heightcenter(Operator, NodePoll):
+    bl_idname = "node.align_height_center"
     bl_label = "Snap Height Center Side Selection Nodes"
     bl_description = "Snaps the height center of all selected nodes"
 
     def execute(self, context):
         node_parent = dict()
         frame_node = []
-        detach_parent_frame(node_parent, frame_node)       # 三行换九行
+        detach_parent_frame(node_parent, frame_node)
 
         selectedNodes = context.selected_nodes
         y_center = sort_location(selectedNodes)["y_center"]
         for node in selectedNodes:
             node.location.y = y_center + node.dimensions.y / 2
                 
-        join_parent_frame(selectedNodes, node_parent, frame_node)             # 一行换四行
+        restore_parent_frame(selectedNodes, node_parent, frame_node)
         
         return {"FINISHED"}
 
-class SnapWidthCenterSideSelectionNodes(bpy.types.Operator, NodeOperator):
-    bl_idname = "node.snap_width_center_selection_nodes"
+class NODE_OT_align_widthcenter(Operator, NodePoll):
+    bl_idname = "node.align_width_center"
     bl_label = "Snap Width Center Side Selection Nodes"
     bl_description = "Snaps the width center of all selected nodes"
 
     def execute(self, context):
         node_parent = dict()
         frame_node = []
-        detach_parent_frame(node_parent, frame_node)       # 三行换九行
+        detach_parent_frame(node_parent, frame_node)
         
         selectedNodes = context.selected_nodes
         x_center = sort_location(selectedNodes)["x_center"]
         for node in selectedNodes:
             node.location.x = x_center - node.width / 2
                 
-        join_parent_frame(selectedNodes, node_parent, frame_node)             # 一行换四行
+        restore_parent_frame(selectedNodes, node_parent, frame_node)
         
         return {"FINISHED"}
 
 
-
-def RecrGetNodeFinalLoc(nd):
-    return nd.location + RecrGetNodeFinalLoc(nd.parent) if nd.parent else nd.location
+def get_abs_local(node):
+    return node.location + get_abs_local(node.parent) if node.parent else node.location
 def UiScale():
     return bpy.context.preferences.system.dpi / 72
 def Vector( *args): 
@@ -538,7 +541,7 @@ def GetSocketLocation(nd, in_out):    # in -1 out 1
         return (sk.links) and (sk.links[0].is_muted)
     list_result = []
     dict_result = {}
-    ndLoc = RecrGetNodeFinalLoc(nd)
+    ndLoc = get_abs_local(nd)
     ndDim = mathutils.Vector(nd.dimensions / UiScale())
     if in_out == 1:
         skLocCarriage = Vector(ndLoc.x + ndDim.x, ndLoc.y - 35)
@@ -558,7 +561,7 @@ def GetSocketLocation(nd, in_out):    # in -1 out 1
             skLocCarriage.y -= lin_inter(ui_scale) * in_out     # 缩放 1 -> 22  1.1 -> 21.88 
     return dict_result
 
-class Straight_Link(bpy.types.Operator, NodeOperator):
+class NODE_OT_straight_link(Operator, NodePoll):
     bl_idname = "node.straight_link"
     bl_label = "straight_link"
     bl_description = "拉直节点输入输出之间连线-需要选中活动节点"

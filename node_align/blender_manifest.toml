@@ -1,11 +1,11 @@
 schema_version = "1.0.0"
-id = "group_input_helper"
-version = "2.4.0"
-name = "Group input helper(节点组输入助手)"
+id = "node_align"
+version = "2.0.0"
+name = "Node Align(节点对齐)"
 tagline = "Qucik add/split/merge Group Input node/socket(快速添加拆分合并移动组输入节点接口)"
 maintainer = "W_Cloud(一尘不染)"
 type = "add-on"
-tags = ["Node", "Geometry Nodes"]
+tags = ["Node", "Geometry Nodes", "Material"]
 blender_version_min = "4.2.0"
 license = ["SPDX:GPL-3.0-or-later"]
 website = "https://space.bilibili.com/1109241880"

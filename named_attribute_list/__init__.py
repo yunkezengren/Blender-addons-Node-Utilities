@@ -113,7 +113,6 @@ class ATTRLIST_AddonPreferences(AddonPreferences):
     def draw(self, context):
         layout = self.layout
         split = layout.split(factor=0.5)
-
         split.label(text=tr('命名属性菜单快捷键: '))
         split.prop(find_user_keyconfig('唤出菜单快捷键'), 'type', text='', full_event=True)
 
