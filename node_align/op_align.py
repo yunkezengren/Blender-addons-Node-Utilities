@@ -6,6 +6,8 @@ from pprint import pprint
 # from mathutils import Vector
 import time
 
+# TODO 自定义分布后节点间距
+# TODO 自定义栅格分布判断列的间距(或者根据节点密度/数量自动判断)
 # for i in range(400):      # 节点树节点个数 400个时      1600个时
 #     node.location.x -= 1            # 耗时 0.135465s    0.748193s
 #     list.append(node.location.x)    # 耗时 0.000102s    0.000216s
@@ -150,7 +152,7 @@ class NODE_OT_align_widthcenter(BaseAlignOp):
         for node in nodes:
             node.location.x = x_center - node.width / 2
 
-def distribute_node_evenly(nodes, is_horizontal=False, is_vertical=False):
+def evenly_distribute_node(nodes, is_horizontal=False, is_vertical=False, min_p=None, max_p=None):
     node_infos = []
     node_num = 0; total_size = 0
     for node in nodes:
@@ -160,7 +162,7 @@ def distribute_node_evenly(nodes, is_horizontal=False, is_vertical=False):
                 pos_start = node.location.x
                 pos_end = node.location.x + size
             if is_vertical:
-                size = node.dimensions.y
+                size = node.dimensions.y / ui_scale()
                 pos_start = node.location.y
                 pos_end = node.location.y - size
             node_num += 1
@@ -179,6 +181,9 @@ def distribute_node_evenly(nodes, is_horizontal=False, is_vertical=False):
         min_pos = node_infos[0][1]
         node_infos.sort(key=lambda x: x[0], reverse=True)
         max_pos = node_infos[0][0]
+    if not(min_p is None):
+        min_pos = min_p
+        max_pos = max_p
     interval = (max_pos - min_pos - total_size) / (node_num - 1)
 
     sum_size = 0
@@ -190,13 +195,66 @@ def distribute_node_evenly(nodes, is_horizontal=False, is_vertical=False):
         sum_size += node_info[3]
     return node_infos
 
+def grid_distribute_node(nodes, min_pos=None, max_pos=None):
+    node_infos = []
+    for node in nodes:
+        node_infos.append((node.location.x, node))
+    node_infos.sort(key=lambda x: x[0])
+    x_min = node_infos[0][0]        # 
+    x_max = node_infos[-1][0]
+    max_col_num = ceil((x_max - x_min) / 140)   # max_col_num 是最大的列数
+
+    # 把节点以x位置间隔大于140划分为列,每列左对齐,并垂直等距分布
+    vertical_node_l_l = []
+    for _ in range(max_col_num + 1):       # 只有一列的话,那就应该对齐宽度
+        # print("\n开始 " + "="*40)
+        if len(node_infos) == 0:           # node_infos每次循环都会删除一些,max_col_num 是不一定达到的最大列数
+            break
+        rest_x_min = node_infos[0][0]      # 剩下的节点里的x_min
+        require_align_nodes = []
+        for node_info in node_infos:
+            node = node_info[1]
+            if node.location.x < rest_x_min + 140:   # 先左对齐
+                node.location.x = rest_x_min                                        # ! 耗时的操作
+                # node.location.x = rest_x_min - ((node.width - 140) / 2)       # 不知道什么用
+                require_align_nodes.append(node_info[1])
+        node_infos = node_infos[len(require_align_nodes):]
+
+        node_list = evenly_distribute_node(require_align_nodes, is_vertical=True, min_p=min_pos, max_p=max_pos)   # ! 耗时的操作
+        vertical_node_l_l.append(node_list)
+    # pprint(vertical_node_l_l)
+
+    # print("把每列当成一个节点,水平等距分布........................")
+    col_num = 0 ; sum_width = 0                        # sum_width 是当前列到第一列的列节点最大宽度相加
+    col_max_width_l = []
+    sum_width_l = []     # sum_width_l 是每一列到第一列的列节点最大宽度相加
+    for vertical_node_l in vertical_node_l_l:
+        col_num += 1; col_sum_width = 0
+        temp_width_l = []
+        for node_info in vertical_node_l:
+            col_sum_width += node_info[2].width
+            temp_width_l.append(node_info[2].width)
+        col_max_width = max(temp_width_l)
+        col_max_width_l.append(col_max_width)
+        sum_width += col_max_width
+        sum_width_l.append(sum_width)
+
+    # 每列再对齐宽度
+    x_max = max(info[2].location.x+info[2].width for info in vertical_node_l_l[-1])    # 垂直等距分布过的,里面存的是y相关,最后(右)一列
+    interval = (x_max - x_min - sum_width) / (col_num - 1) if col_num > 1 else 0
+    for i, vertical_node_l in enumerate(vertical_node_l_l):
+        for node_info in vertical_node_l:
+            node = node_info[2]
+            align = (col_max_width_l[i] -node.width) / 2 + sum_width_l[i-1]*(i!=0)
+            node.location.x = x_min + interval*i + align                            # ! 耗时的操作
+
 class NODE_OT_distribute_horizontal(BaseAlignOp):
     bl_idname = "node.distribute_horizontal"
     bl_label = "Distribute Nodes Horizontally"
     bl_description = "水平等距分布"
 
     def align_nodes(self, nodes):
-        distribute_node_evenly(nodes, is_horizontal=True)
+        evenly_distribute_node(nodes, is_horizontal=True)
 
 class NODE_OT_distribute_vertical(BaseAlignOp):
     bl_idname = "node.distribute_vertical"
@@ -204,7 +262,7 @@ class NODE_OT_distribute_vertical(BaseAlignOp):
     bl_description = "垂直等距分布"
 
     def align_nodes(self, nodes):
-        distribute_node_evenly(nodes, is_vertical=True)
+        evenly_distribute_node(nodes, is_vertical=True)
 
 class NODE_OT_distribute_grid_relative(BaseAlignOp):
     bl_idname = "node.distribute_grid_relative"
@@ -212,62 +270,7 @@ class NODE_OT_distribute_grid_relative(BaseAlignOp):
     bl_description = "网格分布-单独列垂直等距分布居中对齐,各列水平等距分布,每列各自最大最小高度"
 
     def align_nodes(self, nodes):
-        # print("开始 " + "="*60)
-        node_infos = []
-        for node in nodes:
-            node_infos.append((node.location.x, node))
-        node_infos.sort(key=lambda x: x[0])
-        x_min = node_infos[0][0]        # 
-        x_max = node_infos[-1][0]
-        max_col_num = ceil((x_max - x_min) / 140)   # max_col_num 是最大的列数
-
-        # 把节点以x位置间隔大于140划分为列,每列左对齐,并垂直等距分布
-        s_time = time.perf_counter()
-        vertical_node_l_l = []
-        for _ in range(max_col_num + 1):       # 只有一列的话,那就应该对齐宽度
-            # print("\n开始 " + "="*40)
-            if len(node_infos) == 0:           # node_infos每次循环都会删除一些,max_col_num 是不一定达到的最大列数
-                break
-            rest_x_min = node_infos[0][0]      # 剩下的节点里的x_min
-            require_align_nodes = []
-            for node_info in node_infos:
-                node = node_info[1]
-                if node.location.x < rest_x_min + 140:   # 先左对齐
-                    node.location.x = rest_x_min                                        # ! 耗时的操作
-                    # node.location.x = rest_x_min - ((node.width - 140) / 2)       # 不知道什么用
-                    require_align_nodes.append(node_info[1])
-            node_infos = node_infos[len(require_align_nodes):]
-            node_list = distribute_node_evenly(require_align_nodes, is_vertical=True)   # ! 耗时的操作
-            vertical_node_l_l.append(node_list)
-        # pprint(vertical_node_l_l)
-        
-        print("对齐操作耗时1: ", f"{time.perf_counter() - s_time:.6f}s")
-
-        # print("把每列当成一个节点,水平等距分布........................")
-        col_num = 0 ; sum_width = 0                        # sum_width 是当前列到第一列的列节点最大宽度相加
-        col_max_width_l = []
-        sum_width_l = []     # sum_width_l 是每一列到第一列的列节点最大宽度相加
-        for vertical_node_l in vertical_node_l_l:
-            col_num += 1; col_sum_width = 0
-            temp_width_l = []
-            for node_info in vertical_node_l:
-                col_sum_width += node_info[2].width
-                temp_width_l.append(node_info[2].width)
-            col_max_width = max(temp_width_l)
-            col_max_width_l.append(col_max_width)
-            sum_width += col_max_width
-            sum_width_l.append(sum_width)
-        
-        s_time = time.perf_counter()
-        # 每列再对齐宽度
-        x_max = max(info[2].location.x+info[2].width for info in vertical_node_l_l[-1])    # 垂直等距分布过的,里面存的是y相关,最后(右)一列
-        interval = (x_max - x_min - sum_width) / (col_num - 1) if col_num > 1 else 0
-        for i, vertical_node_l in enumerate(vertical_node_l_l):
-            for node_info in vertical_node_l:
-                node = node_info[2]
-                align = (col_max_width_l[i] -node.width) / 2 + sum_width_l[i-1]*(i!=0)
-                node.location.x = x_min + interval*i + align                            # ! 耗时的操作
-        print("对齐操作耗时3: ", f"{time.perf_counter() - s_time:.6f}s")
+        grid_distribute_node(nodes)
 
 class NODE_OT_distribute_grid_absolute(BaseAlignOp):
     bl_idname = "node.distribute_grid_absolute"
@@ -275,110 +278,9 @@ class NODE_OT_distribute_grid_absolute(BaseAlignOp):
     bl_description = "网格分布-单独列垂直等距分布居中对齐,各列水平等距分布,每列最大最小高度一样"
 
     def align_nodes(self, nodes):
-        # print("开始 " + "="*60)
-        node_infos = []
-        for node in nodes:
-            node_infos.append((node.location.x, node))
-        node_infos.sort(key=lambda x: x[0])
-        x_min = node_infos[0][0]
-        x_max = node_infos[-1][0]
-        num = ceil((x_max - x_min) / 140)
-        # print("x_min:", x_min)
-        # print("x_max:", x_max)
-        # print("num:", num)
-        loc_y_list = []        # 和上面列表和一块还要改下面的，懒得改了，新建一个
-        for node in nodes:
-            loc_y_list.append((node.location.y, node.location.y - node.dimensions.y))
-        loc_y_list.sort(key=lambda x: x[0])
-        y_max = loc_y_list[-1][0]
-        loc_y_list.sort(key=lambda x: x[1])
-        y_min = loc_y_list[0][1]
-
-        # 把节点以y位置间隔大于140划分为列并垂直等距分布
-        vertical_node_l_l = []
-        for i in range(1, num + 1):
-            # print("node_info:", [[i[1].name, i[1].location.x] for i in node_infos])
-            if len(node_infos) == 0:
-                break
-            x_min = node_infos[0][0]
-            # print("x_min:", x_min)
-            remove_list = []
-            for node_info in node_infos:
-                node = node_info[1]
-                if node.location.x < x_min + 140:
-                    node.location.x = x_min
-                    # node.location.x = x_min - ((node.width- 140) / 2)
-                    remove_list.append(node_info)
-            # print("remove_list:", [i[1].name for i in remove_list])
-            for node in remove_list:
-                node_infos.remove(node)
-            # 垂直等距对齐,每列对齐一次
-            vertical_node_l = []
-            num = 0 ; sum_height = 0; sum_width = 0
-            for node_info in remove_list:
-                node = node_info[1]
-                num += 1 ; sum_height += node.dimensions.y; sum_width += node.width
-                vertical_node_l.append([node.location.y, node.location.y - node.dimensions.y, node, node.dimensions.y])
-            avera_width = sum_width / num
-            vertical_node_l[-1].append(avera_width)
-            vertical_node_l.sort(key=lambda x: x[1])
-            # y_min = vertical_node_l[0][1]
-            vertical_node_l.sort(key=lambda x: x[0], reverse=True)
-            # y_max = vertical_node_l[0][0]
-            if num == 1:
-                interval =1
-            else:
-                interval = (y_max - y_min - sum_height) / (num - 1)
-            i = 0; sort_sum_height = 0
-            for node_info in vertical_node_l:
-                node_info[2].location.y = y_max - interval * i - sort_sum_height
-                i += 1; sort_sum_height += node_info[3]
-            vertical_node_l_l.append(vertical_node_l)
-
-        # print("水平等距对齐,把每列当成一个节点........................")
-        # 水平等距对齐,把每列当成一个节点........................
-        num = 0 ; sum_width = 0; avera_width = 0
-        col_max_width_l = []
-        avera_widths = []; sum_widths = []
-        for vertical_node_l in vertical_node_l_l:
-            num += 1; width = 0; n = 0
-            temp_width = []
-            for node_info in vertical_node_l:
-                n += 1
-                width += node_info[2].width
-                temp_width.append(node_info[2].width)
-            temp_width.sort()
-            max_width = temp_width[-1]
-            avera_widths.append(width / n)
-            col_max_width_l.append(max_width)
-            # sum_width += avera_width
-            sum_width += max_width
-            sum_widths.append(sum_width)
-            # print("max_width:", max_width)
-            # print("sum_width:", sum_width)
-        loc_list = []
-        for node in nodes:
-            loc_list.append(node.location.x)
-        loc_list = list(set(loc_list))
-        loc_list.sort()
-        x_min = loc_list[0]
-        x_max = loc_list[-1] + col_max_width_l[-1]
-        if num == 1:
-            interval =1
-        else:
-            interval = (x_max - x_min - sum_width) / (num - 1)
-
-        i = 0
-        for vertical_node_l in vertical_node_l_l:
-            # print("sum_widths[i]:", sum_widths[i])
-            for node_info in vertical_node_l:
-                if i == 0:
-                    node_info[2].location.x = x_min + interval * i
-                else:
-                    align = (col_max_width_l[i] -node_info[2].width) / 2    # 每列别的节点和宽度最大的节点(它不移动)对齐宽度补偿偏移
-                    node_info[2].location.x = x_min + interval * i + sum_widths[i-1] + align
-            i += 1
-        # print("结束 " + "="*60)
+        y_min = get_y_min(nodes)
+        y_max = get_y_max(nodes)
+        grid_distribute_node(nodes, min_pos=y_min, max_pos=y_max)
 
 def get_abs_local(node):
     return node.location + get_abs_local(node.parent) if node.parent else node.location
