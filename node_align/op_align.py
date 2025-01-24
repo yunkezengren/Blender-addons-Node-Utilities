@@ -4,38 +4,22 @@ from math import ceil
 import mathutils
 from pprint import pprint
 # from mathutils import Vector
-# from builtins import len as length
+import time
+
+# for i in range(400):      # 节点树节点个数 400个时      1600个时
+#     node.location.x -= 1            # 耗时 0.135465s    0.748193s
+#     list.append(node.location.x)    # 耗时 0.000102s    0.000216s
+# 400个节点  相对栅格分布: 0.3754s
 
 def ui_scale():
-    return bpy.context.preferences.system.dpi / 72      # 类似于prefs.view.ui_scale, 但是不同的显示器不一样吗
-
-def sort_location(nodes):
-    locations = []
-    loc_min_max = {}
-    for node in nodes:
-        left = node.location.x
-        right = node.location.x + node.width
-        top = node.location.y
-        bottom = node.location.y - node.dimensions.y
-        locations.append([left, right, top, bottom])
-    locations.sort(key=lambda x: x[0])
-    loc_min_max["x_min"] = locations[0][0]
-    locations.sort(key=lambda x: x[1])
-    loc_min_max["x_max"] = locations[-1][1]
-    locations.sort(key=lambda x: x[2])
-    loc_min_max["y_max"] = locations[-1][2]
-    locations.sort(key=lambda x: x[3])
-    loc_min_max["y_min"] = locations[0][3]
-    loc_min_max["x_center"] = (loc_min_max["x_min"] + loc_min_max["x_max"]) / 2
-    loc_min_max["y_center"] = (loc_min_max["y_min"] + loc_min_max["y_max"]) / 2
-    return loc_min_max
+    return bpy.context.preferences.system.dpi / 72      # 类似于prefs.view.ui_scale, 但是不同的显示器dpi不一样吗
 
 def get_x_min(nodes):
     return min(node.location.x for node in nodes)
 def get_x_max(nodes):
     return max(node.location.x + node.width for node in nodes)
 def get_y_min(nodes):
-    return min(node.location.y - node.dimensions.y for node in nodes)
+    return min(node.location.y - node.dimensions.y / ui_scale() for node in nodes)
 def get_y_max(nodes):
     return max(node.location.y for node in nodes)
 def get_x_center(nodes):
@@ -77,20 +61,26 @@ class BaseAlignOp(Operator):
     @classmethod
     def poll(cls, context):
         tree = context.space_data.edit_tree
-        if tree and context.selected_nodes:
+        i = 0
+        for node in context.selected_nodes:
+            if node.bl_idname != "NodeFrame":
+                i += 1
+        if tree and i > 1:
             return True
         return False
-    
+
     def align_nodes(self, nodes):
         raise NotImplementedError("Subclasses must implement this method")
 
     def execute(self, context):
         node_parent_dict = {}
         frame_node_list = []
+        detach_parent_frame(node_parent_dict, frame_node_list)      # 这里还会取消选择Frame
         select_nodes = context.selected_nodes
-        detach_parent_frame(node_parent_dict, frame_node_list)
+        s_time = time.perf_counter()
         self.align_nodes(select_nodes)
-        restore_parent_frame(select_nodes, node_parent_dict, frame_node_list)
+        print("对齐总耗时: ", f"{time.perf_counter() - s_time:.6f}s\n")
+        restore_parent_frame(select_nodes, node_parent_dict, frame_node_list)   # 这里还会选回来
         return {"FINISHED"}
 
     def show_popup(self, message):
@@ -158,239 +148,160 @@ class NODE_OT_align_widthcenter(BaseAlignOp):
     def align_nodes(self, nodes):
         x_center = get_x_center(nodes)
         for node in nodes:
-            node.location.x = x_center - node.dimensions.x / 2
+            node.location.x = x_center - node.width / 2
 
+def distribute_node_evenly(nodes, is_horizontal=False, is_vertical=False):
+    node_infos = []
+    node_num = 0; total_size = 0
+    for node in nodes:
+        if node.parent is None:
+            if is_horizontal:
+                size = node.width
+                pos_start = node.location.x
+                pos_end = node.location.x + size
+            if is_vertical:
+                size = node.dimensions.y
+                pos_start = node.location.y
+                pos_end = node.location.y - size
+            node_num += 1
+            total_size += size
+            node_infos.append((pos_start, pos_end, node, size))
 
-class NODE_OT_distribute_horizontal(Operator, NodePoll):
-    bl_idname = "node.distribute_horizontal"
-    bl_label = "Selection Nodes - distribute_horizontal"
-    bl_description = "水平等距分布"
-    def execute(self, context):
-        node_parent_dict = {}
-        frame_node_list = []
-        detach_parent_frame(node_parent_dict, frame_node_list)
-
-        select_nodes = context.selected_nodes
-        node_infos = []
-        num = 0 ; sum_width = 0
-        for node in select_nodes:
-            # if node.bl_idname != "NodeFrame":
-            if node.parent is None:
-                num += 1 ; sum_width += node.width
-                node_infos.append((node.location.x, node.location.x + node.width, node, node.width))
-
+    if node_num <= 1:
+        return node_infos
+    if is_horizontal:
         node_infos.sort(key=lambda x: x[1])
-        x_max = node_infos[-1][1]
-
+        max_pos = node_infos[-1][1]
         node_infos.sort(key=lambda x: x[0])
-        x_min = node_infos[0][0]
-        if num == 1:
-            interval =1
-        else:
-            interval = (x_max - x_min - sum_width) / (num - 1)
+        min_pos = node_infos[0][0]
+    if is_vertical:
+        node_infos.sort(key=lambda x: x[1])
+        min_pos = node_infos[0][1]
+        node_infos.sort(key=lambda x: x[0], reverse=True)
+        max_pos = node_infos[0][0]
+    interval = (max_pos - min_pos - total_size) / (node_num - 1)
 
-        i = 0; sum_width = 0
-        for node_info in node_infos:
-            node_info[2].location.x = x_min + interval * i + sum_width
-            i += 1; sum_width += node_info[3]
+    sum_size = 0
+    for i, node_info in enumerate(node_infos):
+        if is_horizontal:
+            node_info[2].location.x = min_pos + interval * i + sum_size
+        if is_vertical:
+            node_info[2].location.y = max_pos - interval * i - sum_size
+        sum_size += node_info[3]
+    return node_infos
 
-        restore_parent_frame(select_nodes, node_parent_dict, frame_node_list)
+class NODE_OT_distribute_horizontal(BaseAlignOp):
+    bl_idname = "node.distribute_horizontal"
+    bl_label = "Distribute Nodes Horizontally"
+    bl_description = "水平等距分布"
 
-        return {"FINISHED"}
+    def align_nodes(self, nodes):
+        distribute_node_evenly(nodes, is_horizontal=True)
 
-class NODE_OT_distribute_vertical(Operator, NodePoll):
+class NODE_OT_distribute_vertical(BaseAlignOp):
     bl_idname = "node.distribute_vertical"
-    bl_label = "Selection Nodes - distribute_vertical"
+    bl_label = "Distribute Nodes Vertically"
     bl_description = "垂直等距分布"
 
-    def execute(self, context):
-        node_parent_dict = {}
-        frame_node_list = []
-        detach_parent_frame(node_parent_dict, frame_node_list)
+    def align_nodes(self, nodes):
+        distribute_node_evenly(nodes, is_vertical=True)
 
-        select_nodes = context.selected_nodes
-        node_infos = []
-        num = 0 ; sum_height = 0
-        for node in select_nodes:
-            # if node.bl_idname != "NodeFrame":
-            if node.parent is None:
-                num += 1 ; sum_height += node.dimensions.y
-                print(node.name, node.dimensions.y)
-                node_infos.append((node.location.y, node.location.y - node.dimensions.y, node, node.dimensions.y))
-
-        node_infos.sort(key=lambda x: x[1])
-        y_min = node_infos[0][1]
-
-        node_infos.sort(key=lambda x: x[0], reverse=True)
-        y_max = node_infos[0][0]
-        print(y_min, y_max)
-        if num == 1:
-            interval =1
-        else:
-            interval = (y_max - y_min - sum_height) / (num - 1)
-
-        i = 0; sort_sum_height = 0
-        for node_info in node_infos:
-            node_info[2].location.y = y_max - interval * i - sort_sum_height
-            i += 1; sort_sum_height += node_info[3]
-
-        restore_parent_frame(select_nodes, node_parent_dict, frame_node_list)
-
-        return {"FINISHED"}
-
-class NODE_OT_distribute_grid_relative(Operator, NodePoll):
+class NODE_OT_distribute_grid_relative(BaseAlignOp):
     bl_idname = "node.distribute_grid_relative"
     bl_label = "Selection Nodes - distribute_grid_relative"
     bl_description = "网格分布-单独列垂直等距分布居中对齐,各列水平等距分布,每列各自最大最小高度"
-    def execute(self, context):
-        print("开始..............................................................................................")
 
-        node_parent_dict = {}
-        frame_node_list = []
-        detach_parent_frame(node_parent_dict, frame_node_list)
-
-        select_nodes = context.selected_nodes
+    def align_nodes(self, nodes):
+        # print("开始 " + "="*60)
         node_infos = []
-        for node in select_nodes:
+        for node in nodes:
             node_infos.append((node.location.x, node))
         node_infos.sort(key=lambda x: x[0])
-        x_min = node_infos[0][0]
+        x_min = node_infos[0][0]        # 
         x_max = node_infos[-1][0]
-        num = ceil((x_max - x_min) / 140)
-        print("x_min:", x_min)
-        print("x_max:", x_max)
-        print("num:", num)
+        max_col_num = ceil((x_max - x_min) / 140)   # max_col_num 是最大的列数
 
-        # 把节点以y位置间隔大于140划分为列并垂直等距分布
-        vertical_nodes = []
-        for i in range(1, num + 1):
-            print("node_info:", [[i[1].name, i[1].location.x] for i in node_infos])
-            if len(node_infos) == 0:
+        # 把节点以x位置间隔大于140划分为列,每列左对齐,并垂直等距分布
+        s_time = time.perf_counter()
+        vertical_node_l_l = []
+        for _ in range(max_col_num + 1):       # 只有一列的话,那就应该对齐宽度
+            # print("\n开始 " + "="*40)
+            if len(node_infos) == 0:           # node_infos每次循环都会删除一些,max_col_num 是不一定达到的最大列数
                 break
-            x_min = node_infos[0][0]
-            print("x_min:", x_min)
-            remove_list = []
+            rest_x_min = node_infos[0][0]      # 剩下的节点里的x_min
+            require_align_nodes = []
             for node_info in node_infos:
                 node = node_info[1]
-                if node.location.x < x_min + 140:
-                    node.location.x = x_min
-                    # node.location.x = x_min - ((node.width- 140) / 2)
+                if node.location.x < rest_x_min + 140:   # 先左对齐
+                    node.location.x = rest_x_min                                        # ! 耗时的操作
+                    # node.location.x = rest_x_min - ((node.width - 140) / 2)       # 不知道什么用
+                    require_align_nodes.append(node_info[1])
+            node_infos = node_infos[len(require_align_nodes):]
+            node_list = distribute_node_evenly(require_align_nodes, is_vertical=True)   # ! 耗时的操作
+            vertical_node_l_l.append(node_list)
+        # pprint(vertical_node_l_l)
+        
+        print("对齐操作耗时1: ", f"{time.perf_counter() - s_time:.6f}s")
 
-                    remove_list.append(node_info)
-            print("remove_list:", [i[1].name for i in remove_list])
-            for node in remove_list:
-                node_infos.remove(node)
+        # print("把每列当成一个节点,水平等距分布........................")
+        col_num = 0 ; sum_width = 0                        # sum_width 是当前列到第一列的列节点最大宽度相加
+        col_max_width_l = []
+        sum_width_l = []     # sum_width_l 是每一列到第一列的列节点最大宽度相加
+        for vertical_node_l in vertical_node_l_l:
+            col_num += 1; col_sum_width = 0
+            temp_width_l = []
+            for node_info in vertical_node_l:
+                col_sum_width += node_info[2].width
+                temp_width_l.append(node_info[2].width)
+            col_max_width = max(temp_width_l)
+            col_max_width_l.append(col_max_width)
+            sum_width += col_max_width
+            sum_width_l.append(sum_width)
+        
+        s_time = time.perf_counter()
+        # 每列再对齐宽度
+        x_max = max(info[2].location.x+info[2].width for info in vertical_node_l_l[-1])    # 垂直等距分布过的,里面存的是y相关,最后(右)一列
+        interval = (x_max - x_min - sum_width) / (col_num - 1) if col_num > 1 else 0
+        for i, vertical_node_l in enumerate(vertical_node_l_l):
+            for node_info in vertical_node_l:
+                node = node_info[2]
+                align = (col_max_width_l[i] -node.width) / 2 + sum_width_l[i-1]*(i!=0)
+                node.location.x = x_min + interval*i + align                            # ! 耗时的操作
+        print("对齐操作耗时3: ", f"{time.perf_counter() - s_time:.6f}s")
 
-            # 垂直等距对齐,每列对齐一次
-            vertical_node = []
-            num = 0 ; sum_height = 0; sum_width = 0
-            for node_info in remove_list:
-                node = node_info[1]
-                num += 1 ; sum_height += node.dimensions.y; sum_width += node.width
-                vertical_node.append([node.location.y, node.location.y - node.dimensions.y, node, node.dimensions.y])
-            # avera_width = sum_width / num
-            # vertical_node[-1].append(avera_width)
-            vertical_node.sort(key=lambda x: x[1])
-            y_min = vertical_node[0][1]
-            vertical_node.sort(key=lambda x: x[0], reverse=True)
-            y_max = vertical_node[0][0]
-            if num == 1:
-                interval =1
-            else:
-                interval = (y_max - y_min - sum_height) / (num - 1)
-            i = 0; sort_sum_height = 0
-            for node_info in vertical_node:
-                node_info[2].location.y = y_max - interval * i - sort_sum_height
-                i += 1; sort_sum_height += node_info[3]
-            vertical_nodes.append(vertical_node)
-
-        # print("水平等距对齐,把每列当成一个节点........................")
-        # 水平等距对齐,把每列当成一个节点........................
-        num = 0 ; sum_width = 0; avera_width = 0
-        max_widths = []
-        avera_widths = []; sum_widths = []
-        for vertical_node in vertical_nodes:
-            num += 1; width = 0; n = 0
-            temp_width = []
-            for node_info in vertical_node:
-                n += 1
-                width += node_info[2].width
-                temp_width.append(node_info[2].width)
-            temp_width.sort()
-            max_width = temp_width[-1]
-            avera_widths.append(width / n)
-            max_widths.append(max_width)
-            # sum_width += avera_width
-            sum_width += max_width
-            sum_widths.append(sum_width)
-            print("max_width:", max_width)
-            print("sum_width:", sum_width)
-        node_location = []
-        for node in select_nodes:
-            node_location.append(node.location.x)
-        node_location = list(set(node_location))
-        node_location.sort()
-        x_min = node_location[0]
-        x_max = node_location[-1] + max_widths[-1]
-        if num == 1:
-            interval =1
-        else:
-            interval = (x_max - x_min - sum_width) / (num - 1)
-
-        i = 0
-        for vertical_node in vertical_nodes:
-            print("sum_widths[i]:", sum_widths[i])
-            for node_info in vertical_node:
-                if i == 0:
-                    node_info[2].location.x = x_min + interval * i
-                else:
-                    align = (max_widths[i] -node_info[2].width) / 2    # 每列别的节点和宽度最大的节点(它不移动)对齐宽度补偿偏移
-                    node_info[2].location.x = x_min + interval * i + sum_widths[i-1] + align
-            i += 1
-
-        restore_parent_frame(select_nodes, node_parent_dict, frame_node_list)
-
-        print("结束..............................................................................................")
-        return {"FINISHED"}
-
-class NODE_OT_distribute_grid_absolute(Operator, NodePoll):
+class NODE_OT_distribute_grid_absolute(BaseAlignOp):
     bl_idname = "node.distribute_grid_absolute"
     bl_label = "Selection Nodes - distribute_grid_absolute"
     bl_description = "网格分布-单独列垂直等距分布居中对齐,各列水平等距分布,每列最大最小高度一样"
-    def execute(self, context):
-        print("开始..............................................................................................")
 
-        node_parent_dict = {}
-        frame_node_list = []
-        detach_parent_frame(node_parent_dict, frame_node_list)
-
-        select_nodes = context.selected_nodes
+    def align_nodes(self, nodes):
+        # print("开始 " + "="*60)
         node_infos = []
-        for node in select_nodes:
+        for node in nodes:
             node_infos.append((node.location.x, node))
         node_infos.sort(key=lambda x: x[0])
         x_min = node_infos[0][0]
         x_max = node_infos[-1][0]
         num = ceil((x_max - x_min) / 140)
-        print("x_min:", x_min)
-        print("x_max:", x_max)
-        print("num:", num)
-        node_location_y = []        # 和上面列表和一块还要改下面的，懒得改了，新建一个
-        for node in select_nodes:
-            node_location_y.append((node.location.y, node.location.y - node.dimensions.y))
-        node_location_y.sort(key=lambda x: x[0])
-        y_max = node_location_y[-1][0]
-        node_location_y.sort(key=lambda x: x[1])
-        y_min = node_location_y[0][1]
+        # print("x_min:", x_min)
+        # print("x_max:", x_max)
+        # print("num:", num)
+        loc_y_list = []        # 和上面列表和一块还要改下面的，懒得改了，新建一个
+        for node in nodes:
+            loc_y_list.append((node.location.y, node.location.y - node.dimensions.y))
+        loc_y_list.sort(key=lambda x: x[0])
+        y_max = loc_y_list[-1][0]
+        loc_y_list.sort(key=lambda x: x[1])
+        y_min = loc_y_list[0][1]
 
         # 把节点以y位置间隔大于140划分为列并垂直等距分布
-        vertical_nodes = []
+        vertical_node_l_l = []
         for i in range(1, num + 1):
-            print("node_info:", [[i[1].name, i[1].location.x] for i in node_infos])
+            # print("node_info:", [[i[1].name, i[1].location.x] for i in node_infos])
             if len(node_infos) == 0:
                 break
             x_min = node_infos[0][0]
-            print("x_min:", x_min)
+            # print("x_min:", x_min)
             remove_list = []
             for node_info in node_infos:
                 node = node_info[1]
@@ -398,85 +309,81 @@ class NODE_OT_distribute_grid_absolute(Operator, NodePoll):
                     node.location.x = x_min
                     # node.location.x = x_min - ((node.width- 140) / 2)
                     remove_list.append(node_info)
-            print("remove_list:", [i[1].name for i in remove_list])
+            # print("remove_list:", [i[1].name for i in remove_list])
             for node in remove_list:
                 node_infos.remove(node)
             # 垂直等距对齐,每列对齐一次
-            vertical_node = []
+            vertical_node_l = []
             num = 0 ; sum_height = 0; sum_width = 0
             for node_info in remove_list:
                 node = node_info[1]
                 num += 1 ; sum_height += node.dimensions.y; sum_width += node.width
-                vertical_node.append([node.location.y, node.location.y - node.dimensions.y, node, node.dimensions.y])
+                vertical_node_l.append([node.location.y, node.location.y - node.dimensions.y, node, node.dimensions.y])
             avera_width = sum_width / num
-            vertical_node[-1].append(avera_width)
-            vertical_node.sort(key=lambda x: x[1])
-            # y_min = vertical_node[0][1]
-            vertical_node.sort(key=lambda x: x[0], reverse=True)
-            # y_max = vertical_node[0][0]
+            vertical_node_l[-1].append(avera_width)
+            vertical_node_l.sort(key=lambda x: x[1])
+            # y_min = vertical_node_l[0][1]
+            vertical_node_l.sort(key=lambda x: x[0], reverse=True)
+            # y_max = vertical_node_l[0][0]
             if num == 1:
                 interval =1
             else:
                 interval = (y_max - y_min - sum_height) / (num - 1)
             i = 0; sort_sum_height = 0
-            for node_info in vertical_node:
+            for node_info in vertical_node_l:
                 node_info[2].location.y = y_max - interval * i - sort_sum_height
                 i += 1; sort_sum_height += node_info[3]
-            vertical_nodes.append(vertical_node)
+            vertical_node_l_l.append(vertical_node_l)
 
         # print("水平等距对齐,把每列当成一个节点........................")
         # 水平等距对齐,把每列当成一个节点........................
         num = 0 ; sum_width = 0; avera_width = 0
-        max_widths = []
+        col_max_width_l = []
         avera_widths = []; sum_widths = []
-        for vertical_node in vertical_nodes:
+        for vertical_node_l in vertical_node_l_l:
             num += 1; width = 0; n = 0
             temp_width = []
-            for node_info in vertical_node:
+            for node_info in vertical_node_l:
                 n += 1
                 width += node_info[2].width
                 temp_width.append(node_info[2].width)
             temp_width.sort()
             max_width = temp_width[-1]
             avera_widths.append(width / n)
-            max_widths.append(max_width)
+            col_max_width_l.append(max_width)
             # sum_width += avera_width
             sum_width += max_width
             sum_widths.append(sum_width)
-            print("max_width:", max_width)
-            print("sum_width:", sum_width)
-        node_location = []
-        for node in select_nodes:
-            node_location.append(node.location.x)
-        node_location = list(set(node_location))
-        node_location.sort()
-        x_min = node_location[0]
-        x_max = node_location[-1] + max_widths[-1]
+            # print("max_width:", max_width)
+            # print("sum_width:", sum_width)
+        loc_list = []
+        for node in nodes:
+            loc_list.append(node.location.x)
+        loc_list = list(set(loc_list))
+        loc_list.sort()
+        x_min = loc_list[0]
+        x_max = loc_list[-1] + col_max_width_l[-1]
         if num == 1:
             interval =1
         else:
             interval = (x_max - x_min - sum_width) / (num - 1)
 
         i = 0
-        for vertical_node in vertical_nodes:
-            print("sum_widths[i]:", sum_widths[i])
-            for node_info in vertical_node:
+        for vertical_node_l in vertical_node_l_l:
+            # print("sum_widths[i]:", sum_widths[i])
+            for node_info in vertical_node_l:
                 if i == 0:
                     node_info[2].location.x = x_min + interval * i
                 else:
-                    align = (max_widths[i] -node_info[2].width) / 2    # 每列别的节点和宽度最大的节点(它不移动)对齐宽度补偿偏移
+                    align = (col_max_width_l[i] -node_info[2].width) / 2    # 每列别的节点和宽度最大的节点(它不移动)对齐宽度补偿偏移
                     node_info[2].location.x = x_min + interval * i + sum_widths[i-1] + align
             i += 1
-
-        restore_parent_frame(select_nodes, node_parent_dict, frame_node_list)
-        print("结束..............................................................................................")
-        return {"FINISHED"}
-
+        # print("结束 " + "="*60)
 
 def get_abs_local(node):
     return node.location + get_abs_local(node.parent) if node.parent else node.location
 
-def Vector( *args):
+def Vector(*args):
     return mathutils.Vector((args))
 
 def TranslateIface(txt):
@@ -517,8 +424,7 @@ def GetSocketLocation(nd, in_out):    # in -1 out 1
             goalPos = skLocCarriage.copy()
             if sk.is_linked:
                 dict_result[sk] = {"pos": goalPos, "name": TranslateIface(sk.label if sk.label else sk.name)}
-            ui_scale = bpy.context.preferences.view.ui_scale
-            skLocCarriage.y -= linear_interpolation(ui_scale) * in_out     # 缩放 1 -> 22  1.1 -> 21.88
+            skLocCarriage.y -= linear_interpolation(ui_scale()) * in_out     # 缩放 1 -> 22  1.1 -> 21.88
     return dict_result
 
 class NODE_OT_straight_link(Operator, NodePoll):
@@ -562,3 +468,4 @@ class NODE_OT_straight_link(Operator, NodePoll):
                             temp_to_nodes.append(to_node)
             to_nodes = temp_to_nodes
         return {"FINISHED"}
+
