@@ -1,6 +1,6 @@
 import os
 import bpy
-from bpy.props import FloatProperty, PointerProperty
+from bpy.props import BoolProperty, IntProperty, PointerProperty
 from .op_align import *
 from .op_xxx import *
 
@@ -24,19 +24,22 @@ bl_info = {
 addon_keymaps = {}
 _icons = None
 # 按顺序可以换成自定义图片图标
-images = [ '左对齐-蓝双色',
-           '右对齐-蓝双色',
-           '下对齐-蓝双色',
-           '上对齐-蓝双色',
-           '上下居中对齐-蓝双色',
-           '垂直等距分布-蓝双色',
-           '左右居中对齐-蓝双色',
-           '水平等距分布-蓝双色',
-           '网格-绿方块',
-           '网格-蓝方块',
-           '网格-蓝线框',
-           '直线-橙色虚线',
-           ]
+images = [
+    '左对齐-蓝双色',
+    '右对齐-蓝双色',
+    '下对齐-蓝双色',
+    '上对齐-蓝双色',
+    '上下居中对齐-蓝双色',
+    '垂直等距分布-蓝双色',
+    '左右居中对齐-蓝双色',
+    '水平等距分布-蓝双色',
+    '网格-绿方块',
+    '网格-蓝方块',
+    '网格-蓝线框',
+    '直线-橙色虚线',
+    '水平等距分布-蓝黑',
+    '垂直等距分布-蓝黑',
+]
 images = [image + ".png" for image in images]
 
 def find_user_keyconfig(key):
@@ -56,6 +59,10 @@ def find_user_keyconfig(key):
 
 class Node_Align_AddonPrefs(bpy.types.AddonPreferences):
     bl_idname = __package__
+    is_custom_interval: BoolProperty(name="", default=False, description="")
+    interval_x:   IntProperty(name="", default=40,  description="")
+    interval_y:   IntProperty(name="", default=40,  description="")
+    column_width: IntProperty(name="", default=140, description="")
 
     def draw(self, context):
         layout = self.layout
@@ -68,6 +75,22 @@ class Node_Align_AddonPrefs(bpy.types.AddonPreferences):
         split.label(text="饼菜单2")
         split.prop(find_user_keyconfig('ALIGN_MT_align_pie'), 'type', text='', full_event=True)
 
+        split = layout.split(factor=0.65)
+        split.label(text="column_width")
+        split.prop(self, 'column_width', text='')
+
+        split = layout.split(factor=0.65)
+        split.label(text="is_custom_interval")
+        split.prop(self, 'is_custom_interval', text='')
+
+        split = layout.split(factor=0.65)
+        split.label(text="interval_x")
+        split.prop(self, 'interval_x', text='')
+
+        split = layout.split(factor=0.65)
+        split.label(text="interval_y")
+        split.prop(self, 'interval_y', text='')
+
 class ALIGN_MT_align_pie(bpy.types.Menu):
     bl_idname = "ALIGN_MT_align_pie"
     bl_label = "节点对齐"
@@ -76,10 +99,10 @@ class ALIGN_MT_align_pie(bpy.types.Menu):
         layout = self.layout
         pie = layout.menu_pie()
         # 左 右 底 顶 左上 右上 左下 右下
-        pie.operator("node.align_left",   text="左对齐", icon_value=_icons[images[0]].icon_id)
-        pie.operator("node.align_right",  text="右对齐", icon_value=_icons[images[1]].icon_id)
-        pie.operator("node.align_bottom", text="底对齐", icon_value=_icons[images[2]].icon_id)
-        pie.operator("node.align_top",    text="顶对齐", icon_value=_icons[images[3]].icon_id)
+        pie.operator("node.align_left",            text="左对齐",       icon_value=_icons[images[0]].icon_id)
+        pie.operator("node.align_right",           text="右对齐",       icon_value=_icons[images[1]].icon_id)
+        pie.operator("node.align_bottom",          text="底对齐",       icon_value=_icons[images[2]].icon_id)
+        pie.operator("node.align_top",             text="顶对齐",       icon_value=_icons[images[3]].icon_id)
         pie.operator("node.align_height_center",   text="对齐高度",     icon_value=_icons[images[4]].icon_id)
         pie.operator("node.distribute_vertical",   text="垂直等距分布", icon_value=_icons[images[5]].icon_id)
         pie.operator("node.align_width_center",    text="对齐宽度",     icon_value=_icons[images[6]].icon_id)
@@ -92,14 +115,13 @@ class ALIGN_MT_xxx_pie(bpy.types.Menu):
     def draw(self, context):
         pie = self.layout.menu_pie()
         # 左 右 底 顶 左上 右上 左下 右下
-        pie.operator("node.align_dependencies", text="左相连向上等距对齐", icon="ANCHOR_RIGHT")
-        pie.operator("node.align_dependent_nodes", text="右相连向上等距对齐", icon="ANCHOR_LEFT")
-        pie.operator("node.stake_down_selection_nodes", text="向下等距对齐", icon="ANCHOR_TOP")
-        pie.operator("node.straight_link", text="拉直连线", icon_value=_icons[images[11]].icon_id)
-        # pie.operator("node.stake_up_selection_nodes",       text = "向上等距对齐",    icon = "ANCHOR_BOTTOM")
-        pie.operator("node.align_left_side_selection_nodes", text="向左水平分布", icon="TRIA_LEFT_BAR")
+        pie.operator("node.align_dependencies",             text="左相连向上等距对齐", icon="ANCHOR_RIGHT")
+        pie.operator("node.distribute_horizontal_vertical", text="水平垂直等距", icon_value=_icons[images[10]].icon_id)
+        pie.operator("node.stake_down_selection_nodes",     text="向下等距对齐", icon="ANCHOR_TOP")
+        pie.operator("node.straight_link",                  text="拉直连线",     icon_value=_icons[images[11]].icon_id)
+        pie.operator("node.align_height_horizontal",  text="等距对齐高度", icon_value=_icons[images[13]].icon_id)
         pie.operator("node.distribute_grid_relative", text="相对网格分布", icon_value=_icons[images[8]].icon_id)
-        pie.operator("node.align_right_side_selection_nodes", text="向右水平分布", icon="TRIA_RIGHT_BAR")
+        pie.operator("node.align_width_vertical",     text="等距对齐宽度", icon_value=_icons[images[12]].icon_id)
         pie.operator("node.distribute_grid_absolute", text="绝对网格分布", icon_value=_icons[images[9]].icon_id)
 
 
@@ -114,7 +136,7 @@ classes = [
     # AlignTopSelectionNodes,
     AlignRightSideSelectionNodes,
     AlignLeftSideSelectionNodes,
-    
+
     NODE_OT_align_bottom,
     NODE_OT_align_top,
     NODE_OT_align_right,
@@ -123,6 +145,9 @@ classes = [
     NODE_OT_align_widthcenter,
     NODE_OT_distribute_horizontal,
     NODE_OT_distribute_vertical,
+    NODE_OT_align_width_vertical,
+    NODE_OT_align_height_horizontal,
+    NODE_OT_distribute_horizontal_vertical,
     NODE_OT_distribute_grid_relative,
     NODE_OT_distribute_grid_absolute,
     NODE_OT_straight_link,

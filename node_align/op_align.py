@@ -7,7 +7,11 @@ from pprint import pprint
 import time
 
 # TODO 自定义分布后节点间距
+# TODO 根据左上角和右下角画格子,节点落在最近的的格子里
 # TODO 自定义栅格分布判断列的间距(或者根据节点密度/数量自动判断)
+# TODO 偏好设置自定义饼菜单
+# TODO 对齐宽度+垂直等距 对齐高度+水平等距 左对齐 顶对齐+等距
+# TODO 等距分布时,如果x位置相同,y低的在右边
 # for i in range(400):      # 节点树节点个数 400个时      1600个时
 #     node.location.x -= 1            # 耗时 0.135465s    0.748193s
 #     list.append(node.location.x)    # 耗时 0.000102s    0.000216s
@@ -15,7 +19,8 @@ import time
 
 def ui_scale():
     return bpy.context.preferences.system.dpi / 72      # 类似于prefs.view.ui_scale, 但是不同的显示器dpi不一样吗
-
+def pref():
+    return bpy.context.preferences.addons[__package__].preferences
 def get_x_min(nodes):
     return min(node.location.x for node in nodes)
 def get_x_max(nodes):
@@ -132,15 +137,23 @@ class NODE_OT_align_bottom(BaseAlignOp):
         for node in nodes:
             node.location.y = y_min + node.dimensions.y / ui_scale()
 
+def align_height(nodes):
+    y_center = get_y_center(nodes)
+    for node in nodes:
+        node.location.y = y_center + node.dimensions.y / 2 / ui_scale()
+
+def align_width(nodes):
+    x_center = get_x_center(nodes)
+    for node in nodes:
+        node.location.x = x_center - node.width / 2
+
 class NODE_OT_align_heightcenter(BaseAlignOp):
     bl_idname = "node.align_height_center"
     bl_label = "Align Height Center Side Selection Nodes"
     bl_description = "Align the height center of all selected nodes"
 
     def align_nodes(self, nodes):
-        y_center = get_y_center(nodes)
-        for node in nodes:
-            node.location.y = y_center + node.dimensions.y / 2
+        align_height(nodes)
 
 class NODE_OT_align_widthcenter(BaseAlignOp):
     bl_idname = "node.align_width_center"
@@ -148,9 +161,7 @@ class NODE_OT_align_widthcenter(BaseAlignOp):
     bl_description = "Align the width center of all selected nodes"
 
     def align_nodes(self, nodes):
-        x_center = get_x_center(nodes)
-        for node in nodes:
-            node.location.x = x_center - node.width / 2
+        align_width(nodes)
 
 def evenly_distribute_node(nodes, is_horizontal=False, is_vertical=False, min_p=None, max_p=None):
     node_infos = []
@@ -168,41 +179,89 @@ def evenly_distribute_node(nodes, is_horizontal=False, is_vertical=False, min_p=
             node_num += 1
             total_size += size
             node_infos.append((pos_start, pos_end, node, size))
-
-    if node_num <= 1:
-        return node_infos
+    # if node_num <= 1:   # 提前return的话,每列只有一个节点时,绝对栅格没顶对齐
+    #     return node_infos
     if is_horizontal:
         node_infos.sort(key=lambda x: x[1])
         max_pos = node_infos[-1][1]
-        node_infos.sort(key=lambda x: x[0])
+        # node_infos.sort(key=lambda x: x[0])
+        node_infos.sort(key=lambda x: (x[0], -x[2].location.y))
         min_pos = node_infos[0][0]
     if is_vertical:
         node_infos.sort(key=lambda x: x[1])
         min_pos = node_infos[0][1]
-        node_infos.sort(key=lambda x: x[0], reverse=True)
+        # node_infos.sort(key=lambda x: x[0], reverse=True)
+        node_infos.sort(key=lambda x: (-x[0], x[2].location.x))
         max_pos = node_infos[0][0]
     if not(min_p is None):
         min_pos = min_p
         max_pos = max_p
-    interval = (max_pos - min_pos - total_size) / (node_num - 1)
+    interval = (max_pos - min_pos - total_size) / (node_num - 1) if node_num > 1 else 0  # 修复:绝对栅格分布无法在每列只有一个节点时,顶对齐
 
     sum_size = 0
     for i, node_info in enumerate(node_infos):
         if is_horizontal:
+            interval = pref().interval_x if pref().is_custom_interval else interval
             node_info[2].location.x = min_pos + interval * i + sum_size
         if is_vertical:
+            interval = pref().interval_y if pref().is_custom_interval else interval
             node_info[2].location.y = max_pos - interval * i - sum_size
         sum_size += node_info[3]
     return node_infos
 
-def grid_distribute_node(nodes, min_pos=None, max_pos=None):
+class NODE_OT_distribute_horizontal(BaseAlignOp):
+    bl_idname = "node.distribute_horizontal"
+    bl_label = "Distribute Nodes Horizontally"
+    bl_description = "水平等距分布"
+
+    def align_nodes(self, nodes):
+        evenly_distribute_node(nodes, is_horizontal=True)
+
+class NODE_OT_distribute_vertical(BaseAlignOp):
+    bl_idname = "node.distribute_vertical"
+    bl_label = "Distribute Nodes Vertically"
+    bl_description = "垂直等距分布"
+
+    def align_nodes(self, nodes):
+        evenly_distribute_node(nodes, is_vertical=True)
+
+class NODE_OT_align_width_vertical(BaseAlignOp):
+    bl_idname = "node.align_width_vertical"
+    bl_label = "align Nodes Width Vertically"
+    bl_description = "对齐高度+垂直等距分布"
+
+    def align_nodes(self, nodes):
+        align_width(nodes)
+        evenly_distribute_node(nodes, is_vertical=True)
+
+class NODE_OT_align_height_horizontal(BaseAlignOp):
+    bl_idname = "node.align_height_horizontal"
+    bl_label = "align Nodes Height Horizontally"
+    bl_description = "对齐宽度+水平等距分布"
+
+    def align_nodes(self, nodes):
+        align_height(nodes)
+        evenly_distribute_node(nodes, is_horizontal=True)
+
+class NODE_OT_distribute_horizontal_vertical(BaseAlignOp):
+    bl_idname = "node.distribute_horizontal_vertical"
+    bl_label = "Distribute Nodes Horizontally and Vertically"
+    bl_description = "水平垂直等距分布"
+
+    def align_nodes(self, nodes):
+        # 对性能影响不太大吧,就不改函数内部,同时支持水平垂直对齐了
+        evenly_distribute_node(nodes, is_horizontal=True)
+        evenly_distribute_node(nodes, is_vertical=True)
+
+def grid_distribute_node(nodes, min_pos=None, max_pos=None, is_snap_grid=False):
     node_infos = []
     for node in nodes:
         node_infos.append((node.location.x, node))
     node_infos.sort(key=lambda x: x[0])
     x_min = node_infos[0][0]        # 
     x_max = node_infos[-1][0]
-    max_col_num = ceil((x_max - x_min) / 140)   # max_col_num 是最大的列数
+    # max_col_num = ceil((x_max - x_min) / 140)   # max_col_num 是最大的列数
+    max_col_num = ceil((x_max - x_min) / pref().column_width)   # max_col_num 是最大的列数
 
     # 把节点以x位置间隔大于140划分为列,每列左对齐,并垂直等距分布
     vertical_node_l_l = []
@@ -214,13 +273,17 @@ def grid_distribute_node(nodes, min_pos=None, max_pos=None):
         require_align_nodes = []
         for node_info in node_infos:
             node = node_info[1]
-            if node.location.x < rest_x_min + 140:   # 先左对齐
+            if node.location.x < rest_x_min + pref().column_width:   # 先左对齐
                 node.location.x = rest_x_min                                        # ! 耗时的操作
                 # node.location.x = rest_x_min - ((node.width - 140) / 2)       # 不知道什么用
                 require_align_nodes.append(node_info[1])
         node_infos = node_infos[len(require_align_nodes):]
-
-        node_list = evenly_distribute_node(require_align_nodes, is_vertical=True, min_p=min_pos, max_p=max_pos)   # ! 耗时的操作
+        # TODO 根据左上角和右下角画格子,节点落在最近的的格子里,这里不用等距,改成y吸附
+        if is_snap_grid:        # 突然发现不仅仅是吸附那么简单
+            ...
+        else:
+            # 由于每列的等距有自定义间距,导致绝对不够绝对
+            node_list = evenly_distribute_node(require_align_nodes, is_vertical=True, min_p=min_pos, max_p=max_pos)   # ! 耗时的操作
         vertical_node_l_l.append(node_list)
     # pprint(vertical_node_l_l)
 
@@ -239,30 +302,15 @@ def grid_distribute_node(nodes, min_pos=None, max_pos=None):
         sum_width += col_max_width
         sum_width_l.append(sum_width)
 
-    # 每列再对齐宽度
+    # 每列 水平等距分布 + 对齐宽度
     x_max = max(info[2].location.x+info[2].width for info in vertical_node_l_l[-1])    # 垂直等距分布过的,里面存的是y相关,最后(右)一列
     interval = (x_max - x_min - sum_width) / (col_num - 1) if col_num > 1 else 0
     for i, vertical_node_l in enumerate(vertical_node_l_l):
         for node_info in vertical_node_l:
             node = node_info[2]
+            interval = pref().interval_x if pref().is_custom_interval else interval
             align = (col_max_width_l[i] -node.width) / 2 + sum_width_l[i-1]*(i!=0)
             node.location.x = x_min + interval*i + align                            # ! 耗时的操作
-
-class NODE_OT_distribute_horizontal(BaseAlignOp):
-    bl_idname = "node.distribute_horizontal"
-    bl_label = "Distribute Nodes Horizontally"
-    bl_description = "水平等距分布"
-
-    def align_nodes(self, nodes):
-        evenly_distribute_node(nodes, is_horizontal=True)
-
-class NODE_OT_distribute_vertical(BaseAlignOp):
-    bl_idname = "node.distribute_vertical"
-    bl_label = "Distribute Nodes Vertically"
-    bl_description = "垂直等距分布"
-
-    def align_nodes(self, nodes):
-        evenly_distribute_node(nodes, is_vertical=True)
 
 class NODE_OT_distribute_grid_relative(BaseAlignOp):
     bl_idname = "node.distribute_grid_relative"
@@ -271,6 +319,15 @@ class NODE_OT_distribute_grid_relative(BaseAlignOp):
 
     def align_nodes(self, nodes):
         grid_distribute_node(nodes)
+
+# 不知道怎么实现了
+class NODE_OT_distribute_grid_snap(BaseAlignOp):
+    bl_idname = "node.distribute_grid_snap"
+    bl_label = ""
+    bl_description = ""
+
+    def align_nodes(self, nodes):
+        grid_distribute_node(nodes, is_snap_grid=True)
 
 class NODE_OT_distribute_grid_absolute(BaseAlignOp):
     bl_idname = "node.distribute_grid_absolute"
@@ -281,6 +338,7 @@ class NODE_OT_distribute_grid_absolute(BaseAlignOp):
         y_min = get_y_min(nodes)
         y_max = get_y_max(nodes)
         grid_distribute_node(nodes, min_pos=y_min, max_pos=y_max)
+
 
 def get_abs_local(node):
     return node.location + get_abs_local(node.parent) if node.parent else node.location
