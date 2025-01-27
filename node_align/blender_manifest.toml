@@ -1,8 +1,8 @@
 schema_version = "1.0.0"
 id = "node_align"
-version = "2.0.0"
+version = "3.0.0"
 name = "Node Align(节点对齐)"
-tagline = "Qucik add/split/merge Group Input node/socket(快速添加拆分合并移动组输入节点接口)"
+tagline = "Shift+Q|Ctrl+Q Pie menu-Align Nodes in Multiple Ways(多种方式对齐节点)"
 maintainer = "W_Cloud(一尘不染)"
 type = "add-on"
 tags = ["Node", "Geometry Nodes", "Material"]

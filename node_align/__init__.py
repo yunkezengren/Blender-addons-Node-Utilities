@@ -3,37 +3,18 @@ import bpy
 from bpy.props import BoolProperty, IntProperty
 from bpy.types import AddonPreferences, Menu
 from .op_align import *
-# from .op_align import (
-#     pref,
-#     NODE_OT_align_bottom,
-#     NODE_OT_align_top,
-#     NODE_OT_align_right,
-#     NODE_OT_align_left,
-#     NODE_OT_align_heightcenter,
-#     NODE_OT_align_widthcenter,
-#     NODE_OT_distribute_horizontal,
-#     NODE_OT_distribute_vertical,
-#     NODE_OT_align_width_vertical,
-#     NODE_OT_align_height_horizontal,
-#     NODE_OT_distribute_horizontal_vertical,
-#     NODE_OT_distribute_row_column,
-#     NODE_OT_distribute_grid_relative,
-#     NODE_OT_distribute_grid_absolute,
-#     NODE_OT_align_link,
-# )
-
+from .translator import i18n as tr
 # TODO 对齐Frame
-# TODO 选中Frame对齐时别报错
-# TODO 学下怎么为某一个操作单独设置快捷键
-# TODO 学下如何弹出提示
 # TODO 把我的 Alt+1 加上 Shift+x Shift+y
+# TODO 根据左上角和右下角画格子,节点落在最近的的格子里
+# TODO 自定义栅格分布判断列的间距(或者根据节点密度/数量自动判断)
 
 bl_info = {
     "name" : "小王-Node Align",
     "author" : "一尘不染",
     "description" : "align node  Shift Q | Ctrl Q",
     "blender" : (2, 83, 0),
-    "version" : (2, 0, 0),
+    "version" : (3, 0, 0),
     "location": "Nodes Editor",
     "category": "Node"
 }
@@ -76,63 +57,62 @@ def find_user_keyconfig(key):
 
 class Node_Align_AddonPrefs(AddonPreferences):
     bl_idname = __package__
-    is_custom_space: BoolProperty(name="", default=False, description="")   # space 比 interval 短
-    space_x:   IntProperty(name="", default=40,  description="")
-    space_y:   IntProperty(name="", default=40,  description="")
-    column_width: IntProperty(name="", default=140, description="")
+    is_custom_space: BoolProperty(name="is_custom_space", default=False, description=tr("是否为等距及栅格分布启用自定义间距"))
+    space_x  : IntProperty(name="space_x",   default=40,  description=tr("等距及栅格分布时的节点x方向间距"))
+    space_y  : IntProperty(name="space_y",   default=40,  description=tr("等距及栅格分布时的节点y方向间距"))
+    col_width: IntProperty(name="col_width", default=140, description=tr("栅格分布时判断是否在一列的宽度"))
 
     def draw(self, context):
         layout = self.layout
         layout = self.layout
         split = layout.split(factor=0.5)
-        split.label(text="饼菜单1")
+        split.label(text=tr("普通对齐饼菜单"))
         split.prop(find_user_keyconfig('ALIGN_MT_align_pie'), 'type', text='', full_event=True)
 
         split = layout.split(factor=0.5)
-        split.label(text="饼菜单2")
+        split.label(text=tr("高级对齐饼菜单"))
         split.prop(find_user_keyconfig('ALIGN_MT_align_pie_pro'), 'type', text='', full_event=True)
 
-        split = layout.split(factor=0.65)
-        split.label(text="column_width")
-        split.prop(self, 'column_width', text='')
+        split = layout.split(factor=0.75)
+        split.label(text=tr("栅格分布时判断是否在一列的宽度"))
+        split.prop(self, 'col_width', text='')
 
-        split = layout.split(factor=0.65)
-        split.label(text="is_custom_space")
+        split = layout.split(factor=0.75)
+        split.label(text=tr("等距及栅格分布启用自定义间距"))
         split.prop(self, 'is_custom_space', text='')
 
-        split = layout.split(factor=0.65)
-        split.label(text="space_x")
+        split = layout.split(factor=0.75)
+        split.label(text=tr("等距及栅格分布时的节点x方向间距"))
         split.prop(self, 'space_x', text='')
 
-        split = layout.split(factor=0.65)
-        split.label(text="space_y")
+        split = layout.split(factor=0.75)
+        split.label(text=tr("等距及栅格分布时的节点y方向间距"))
         split.prop(self, 'space_y', text='')
 
 def draw_align_menu(layout):
-    layout.operator("node.align_left",            text="左对齐",       icon_value=_icons[images[0]].icon_id)
-    layout.operator("node.align_right",           text="右对齐",       icon_value=_icons[images[1]].icon_id)
-    layout.operator("node.align_bottom",          text="底对齐",       icon_value=_icons[images[2]].icon_id)
-    layout.operator("node.align_top",             text="顶对齐",       icon_value=_icons[images[3]].icon_id)
-    layout.operator("node.align_height_center",   text="对齐高度",     icon_value=_icons[images[4]].icon_id)
-    layout.operator("node.distribute_vertical",   text="垂直等距分布", icon_value=_icons[images[5]].icon_id)
-    layout.operator("node.align_width_center",    text="对齐宽度",     icon_value=_icons[images[6]].icon_id)
-    layout.operator("node.distribute_horizontal", text="水平等距分布", icon_value=_icons[images[7]].icon_id)
+    layout.operator("node.align_left",            text=tr("左对齐"),       icon_value=_icons[images[0]].icon_id)
+    layout.operator("node.align_right",           text=tr("右对齐"),       icon_value=_icons[images[1]].icon_id)
+    layout.operator("node.align_bottom",          text=tr("底对齐"),       icon_value=_icons[images[2]].icon_id)
+    layout.operator("node.align_top",             text=tr("顶对齐"),       icon_value=_icons[images[3]].icon_id)
+    layout.operator("node.align_height_center",   text=tr("对齐高度"),     icon_value=_icons[images[4]].icon_id)
+    layout.operator("node.distribute_vertical",   text=tr("垂直等距分布"), icon_value=_icons[images[5]].icon_id)
+    layout.operator("node.align_width_center",    text=tr("对齐宽度"),     icon_value=_icons[images[6]].icon_id)
+    layout.operator("node.distribute_horizontal", text=tr("水平等距分布"), icon_value=_icons[images[7]].icon_id)
 
 def draw_align_menu_pro(layout):
     # pie里默认出现顺序 左 右 底 顶 左上 右上 左下 右下
-    layout.prop(pref(), 'is_custom_space', text='自定义间距')
-    layout.operator("node.distribute_horizontal_vertical", text="水平垂直等距", icon_value=_icons[images[10]].icon_id)
-    # layout.operator("node.distribute_column", text="行列", icon_value=_icons[images[10]].icon_id)
-    layout.operator("node.distribute_row_column",        text="行列", icon_value=_icons[images[10]].icon_id)
-    layout.operator("node.align_link",               text="拉直连线",     icon_value=_icons[images[11]].icon_id)
-    layout.operator("node.align_height_horizontal",  text="等距对齐高度", icon_value=_icons[images[13]].icon_id)
-    layout.operator("node.distribute_grid_relative", text="相对网格分布", icon_value=_icons[images[8]].icon_id)
-    layout.operator("node.align_width_vertical",     text="等距对齐宽度", icon_value=_icons[images[12]].icon_id)
-    layout.operator("node.distribute_grid_absolute", text="绝对网格分布", icon_value=_icons[images[9]].icon_id)
+    layout.prop(pref(), "is_custom_space",                 text=tr("自定义分布间距"))
+    layout.operator("node.distribute_horizontal_vertical", text=tr("水平垂直等距"), icon_value=_icons[images[10]].icon_id)
+    layout.operator("node.distribute_row_column",    text=tr("改变行列数"), icon_value=_icons[images[10]].icon_id)
+    layout.operator("node.align_link",               text=tr("拉直连线"),     icon_value=_icons[images[11]].icon_id)
+    layout.operator("node.align_height_horizontal",  text=tr("等距对齐高度"), icon_value=_icons[images[13]].icon_id)
+    layout.operator("node.distribute_grid_relative", text=tr("相对网格分布"), icon_value=_icons[images[8]].icon_id)
+    layout.operator("node.align_width_vertical",     text=tr("等距对齐宽度"), icon_value=_icons[images[12]].icon_id)
+    layout.operator("node.distribute_grid_absolute", text=tr("绝对网格分布"), icon_value=_icons[images[9]].icon_id)
 
 class ALIGN_MT_align_pie(Menu):
     bl_idname = "ALIGN_MT_align_pie"
-    bl_label = "节点对齐"
+    bl_label = tr("节点对齐")
 
     def draw(self, context):
         pie = self.layout.menu_pie()     # 默认出现顺序 左 右 底 顶 左上 右上 左下 右下
@@ -140,7 +120,7 @@ class ALIGN_MT_align_pie(Menu):
 
 class ALIGN_MT_align_pie_pro(Menu):
     bl_idname = "ALIGN_MT_align_pie_pro"
-    bl_label = "节点分布"
+    bl_label = tr("节点分布")
 
     def draw(self, context):
         pie = self.layout.menu_pie()     # 默认出现顺序 左 右 底 顶 左上 右上 左下 右下
@@ -148,7 +128,7 @@ class ALIGN_MT_align_pie_pro(Menu):
 
 class NODE_MT_align(Menu):
     bl_idname = "NODE_MT_align"
-    bl_label = ""
+    bl_label = "右键菜单-对齐"
 
     @classmethod
     def poll(cls, context):
@@ -162,7 +142,7 @@ class NODE_MT_align(Menu):
 
 def add_align_op_to_node_mt_context_menu(self, context):
     layout = self.layout
-    layout.menu('NODE_MT_align', text='对齐', icon_value=_icons[images[9]].icon_id)
+    layout.menu('NODE_MT_align', text="对齐节点", icon_value=_icons[images[9]].icon_id)
 
 classes = [
     Node_Align_AddonPrefs,

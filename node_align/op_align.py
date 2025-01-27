@@ -2,16 +2,10 @@ import bpy
 from bpy.types import Operator
 from bpy.props import EnumProperty, IntProperty
 from math import ceil
-import mathutils
+from mathutils import Vector
+from .translator import i18n as tr
 from pprint import pprint
-# from mathutils import Vector
 
-# _ 自定义分布后节点间距
-# _ 等距分布时,如果x位置相同,y低的在右边
-# _ 对齐宽度+垂直等距 对齐高度+水平等距
-# _ 偏好设置自定义快捷键
-# TODO 根据左上角和右下角画格子,节点落在最近的的格子里
-# TODO 自定义栅格分布判断列的间距(或者根据节点密度/数量自动判断)
 # for i in range(400):      # 节点树节点个数 400个时      1600个时
 #     node.location.x -= 1            # 耗时 0.135465s    0.748193s
 #     list.append(node.location.x)    # 耗时 0.000102s    0.000216s
@@ -59,10 +53,6 @@ class BaseAlignOp(Operator):
 
     @classmethod
     def poll(cls, context):
-        # i = 0
-        # for node in context.selected_nodes:
-        #     if node.bl_idname != "NodeFrame":
-        #         i += 1
         i = sum(node.bl_idname != "NodeFrame" for node in context.selected_nodes)
         return context.space_data.edit_tree and i > 1
 
@@ -80,15 +70,15 @@ class BaseAlignOp(Operator):
         restore_parent_frame(select_nodes, node_parent_dict, frame_node_list)   # 这里还会选回来
         return {"FINISHED"}
 
-    def show_popup(self, message):
-        def draw_popup(self, context):
-            self.layout.label(text=message, icon="NONE")
-        bpy.context.window_manager.popup_menu(draw_popup, title="信息", icon="INFO")
+    # def show_popup(self, message):
+    #     def draw_popup(self, context):
+    #         self.layout.label(text=message, icon="NONE")
+    #     bpy.context.window_manager.popup_menu(draw_popup, title="信息", icon="INFO")
 
 class NODE_OT_align_left(BaseAlignOp):
     bl_idname = "node.align_left"
-    bl_label = "Align Left Side Selection Nodes"
-    bl_description = "Align the left side of all selected nodes"
+    bl_label = tr("对齐节点到最左侧")
+    bl_description = tr("对齐选中点到最左侧")
 
     def align_nodes(self, nodes):
         # self.report({"INFO"}, "普通信息")
@@ -99,8 +89,8 @@ class NODE_OT_align_left(BaseAlignOp):
 
 class NODE_OT_align_right(BaseAlignOp):
     bl_idname = "node.align_right"
-    bl_label = "Align Right Side Selection Nodes"
-    bl_description = "Align the right side of all selected nodes"
+    bl_label = tr("对齐节点到最右侧")
+    bl_description = tr("对齐选中点到最右侧")
 
     def align_nodes(self, nodes):
         x_max = get_x_max(nodes)
@@ -109,8 +99,8 @@ class NODE_OT_align_right(BaseAlignOp):
 
 class NODE_OT_align_top(BaseAlignOp):
     bl_idname = "node.align_top"
-    bl_label = "Align Top Side Selection Nodes"
-    bl_description = "Align the top of all selected nodes"
+    bl_label = tr("对齐节点到顶部")
+    bl_description = tr("对齐选中节点到顶部")
 
     def align_nodes(self, nodes):
         y_max = get_y_max(nodes)
@@ -119,8 +109,8 @@ class NODE_OT_align_top(BaseAlignOp):
 
 class NODE_OT_align_bottom(BaseAlignOp):
     bl_idname = "node.align_bottom"
-    bl_label = "Align Bottom Side Selection Nodes"
-    bl_description = "Align the bottom of all selected nodes"
+    bl_label = tr("对齐节点到底部")
+    bl_description = tr("对齐选中节点到底部")
 
     def align_nodes(self, nodes):
         y_min = get_y_min(nodes)
@@ -139,16 +129,16 @@ def align_width(nodes):
 
 class NODE_OT_align_heightcenter(BaseAlignOp):
     bl_idname = "node.align_height_center"
-    bl_label = "Align Height Center Side Selection Nodes"
-    bl_description = "Align the height center of all selected nodes"
+    bl_label = tr("对齐节点高度")
+    bl_description = tr("对齐选中节点的高度中心,即居中分布")
 
     def align_nodes(self, nodes):
         align_height(nodes)
 
 class NODE_OT_align_widthcenter(BaseAlignOp):
     bl_idname = "node.align_width_center"
-    bl_label = "Align Width Center Side Selection Nodes"
-    bl_description = "Align the width center of all selected nodes"
+    bl_label = tr("对齐节点宽度")
+    bl_description = tr("对齐选中节点的宽度中心,即居中分布")
 
     def align_nodes(self, nodes):
         align_width(nodes)
@@ -206,24 +196,24 @@ def evenly_distribute_node(nodes, is_horizontal=False, is_vertical=False, min_p=
 
 class NODE_OT_distribute_horizontal(BaseAlignOp):
     bl_idname = "node.distribute_horizontal"
-    bl_label = "Distribute Nodes Horizontally"
-    bl_description = "水平等距分布"
+    bl_label = tr("对齐-水平等距分布")
+    bl_description = tr("水平方向节点之间间距一致")
 
     def align_nodes(self, nodes):
         evenly_distribute_node(nodes, is_horizontal=True)
 
 class NODE_OT_distribute_vertical(BaseAlignOp):
     bl_idname = "node.distribute_vertical"
-    bl_label = "Distribute Nodes Vertically"
-    bl_description = "垂直等距分布"
+    bl_label = tr("对齐-垂直等距分布")
+    bl_description = tr("垂直方向节点之间间距一致")
 
     def align_nodes(self, nodes):
         evenly_distribute_node(nodes, is_vertical=True)
 
 class NODE_OT_align_width_vertical(BaseAlignOp):
     bl_idname = "node.align_width_vertical"
-    bl_label = "align Nodes Width Vertically"
-    bl_description = "对齐高度+垂直等距分布"
+    bl_label = tr("等距对齐高度")
+    bl_description = tr("对齐高度+垂直等距分布")
 
     def align_nodes(self, nodes):
         align_width(nodes)
@@ -231,8 +221,8 @@ class NODE_OT_align_width_vertical(BaseAlignOp):
 
 class NODE_OT_align_height_horizontal(BaseAlignOp):
     bl_idname = "node.align_height_horizontal"
-    bl_label = "align Nodes Height Horizontally"
-    bl_description = "对齐宽度+水平等距分布"
+    bl_label = tr("等距对齐宽度")
+    bl_description = tr("对齐宽度+水平等距分布")
 
     def align_nodes(self, nodes):
         align_height(nodes)
@@ -240,8 +230,8 @@ class NODE_OT_align_height_horizontal(BaseAlignOp):
 
 class NODE_OT_distribute_horizontal_vertical(BaseAlignOp):
     bl_idname = "node.distribute_horizontal_vertical"
-    bl_label = "Distribute Nodes Horizontally and Vertically"
-    bl_description = "水平垂直等距分布"
+    bl_label = tr("对齐-水平垂直等距")
+    bl_description = tr("水平+垂直等距分布")
 
     def align_nodes(self, nodes):
         # 对性能影响不太大吧,就不改函数内部,同时支持水平垂直对齐了
@@ -256,7 +246,7 @@ def grid_distribute_node(nodes, min_pos=None, max_pos=None, x_space=None, y_spac
     x_min = node_infos[0][0]        #
     x_max = node_infos[-1][0]
     # max_col_num = ceil((x_max - x_min) / 140)   # max_col_num 是最大的列数
-    max_col_num = ceil((x_max - x_min) / pref().column_width)   # max_col_num 是最大的列数
+    max_col_num = ceil((x_max - x_min) / pref().col_width)   # max_col_num 是最大的列数
 
     # 把节点以x位置间隔大于140划分为列,每列左对齐,并垂直等距分布
     vertical_node_l_l = []
@@ -268,7 +258,7 @@ def grid_distribute_node(nodes, min_pos=None, max_pos=None, x_space=None, y_spac
         require_align_nodes = []
         for node_info in node_infos:
             node = node_info[1]
-            if node.location.x < rest_x_min + pref().column_width:   # 先左对齐
+            if node.location.x < rest_x_min + pref().col_width:   # 先左对齐
                 node.location.x = rest_x_min                                        # ! 耗时的操作
                 # node.location.x = rest_x_min - ((node.width - 140) / 2)       # 不知道什么用
                 require_align_nodes.append(node_info[1])
@@ -308,16 +298,16 @@ def grid_distribute_node(nodes, min_pos=None, max_pos=None, x_space=None, y_spac
 
 class NODE_OT_distribute_grid_relative(BaseAlignOp):
     bl_idname = "node.distribute_grid_relative"
-    bl_label = "Selection Nodes - distribute_grid_relative"
-    bl_description = "网格分布-单独列垂直等距分布居中对齐,各列水平等距分布,每列各自最大最小高度"
+    bl_label = tr("对齐-相对网格分布")
+    bl_description = tr("每一列先垂直等距分布,各列之间水平等距分布,每列对齐宽度居中对齐")
 
     def align_nodes(self, nodes):
         grid_distribute_node(nodes)
 
 class NODE_OT_distribute_grid_absolute(BaseAlignOp):
     bl_idname = "node.distribute_grid_absolute"
-    bl_label = "Selection Nodes - distribute_grid_absolute"
-    bl_description = "网格分布-单独列垂直等距分布居中对齐,各列水平等距分布,每列最大最小高度一样"
+    bl_label = tr("对齐-绝对网格分布")
+    bl_description = tr("每一列先垂直等距分布,各列之间水平等距分布,每列对齐宽度居中对齐,每列最大最小高度一样")
 
     def align_nodes(self, nodes):
         y_min = get_y_min(nodes)
@@ -326,14 +316,14 @@ class NODE_OT_distribute_grid_absolute(BaseAlignOp):
 
 class NODE_OT_distribute_row_column(BaseAlignOp):
     bl_idname = "node.distribute_row_column"
-    bl_label = "Distribute Column"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_label = tr("对齐-改变行列数")
+    bl_description = tr("例:20行20列节点,改成10列就是40行")
 
-    align_mode: EnumProperty(name="对齐方式", description="选择按行或按列对齐", default='ROW', 
-                             items=[('ROW', "按行", "按行对齐节点"), ('COLUMN', "按列", "按列对齐节点")])
-    count     : IntProperty(name="数量",  description="count,0是1", default=5, min=0, max=500)      # 如果等于0,就是一行
-    x_interval: IntProperty(name="水平方向间隔", description="x_interval", default=40, min=0, max=500)
-    y_interval: IntProperty(name="垂直方向间隔", description="y_interval", default=40, min=0, max=500)
+    align_mode: EnumProperty(name=tr("对齐方式"), description=tr("把选中节点改成多少行或列"), default='ROW',
+                             items=[('ROW', tr("行"), tr("更改行数")), ('COLUMN', tr("列"), tr("更改列数"))])
+    count     : IntProperty(name=tr("行或列数"),  description=tr("列模式:count=0是1行;行模式:列模式:count=0是1列"), default=5, min=0, max=500)
+    x_interval: IntProperty(name=tr("x方向间隔"), description=tr("x方向两个节点之间间隔"), default=40, min=0, max=500)
+    y_interval: IntProperty(name=tr("y方向间隔"), description=tr("y方向两个节点之间间隔"), default=40, min=0, max=500)
 
     def invoke(self, context, event):
         return context.window_manager.invoke_props_dialog(self)
@@ -362,12 +352,6 @@ class NODE_OT_distribute_row_column(BaseAlignOp):
 def get_abs_local(node):
     return node.location + get_abs_local(node.parent) if node.parent else node.location
 
-def Vector(*args):
-    return mathutils.Vector((args))
-
-def TranslateIface(txt):
-    return bpy.app.translations.pgettext_iface(txt)
-
 def linear_interpolation(x,
               xp=[  0.5,   0.8,  1,   1.1,  1.15,   1.2,  1.3,   1.4,  1.5,      2,   2.5,  3,   3.5,    4],
               fp=[24.01, 21.48, 22, 21.87, 21.95, 21.77, 20.9, 20.86, 20.66, 20.45, 20.37, 21, 20.83, 21.24]):
@@ -381,35 +365,35 @@ def linear_interpolation(x,
             return y
     return None
 
-def GetSocketLocation(nd, in_out):    # in -1 out 1
+def GetSocketLocation(nd, in_out):    # input -1 output 1
     def SkIsLinkedVisible(sk):
         if not sk.is_linked:
             return True
         return (sk.links) and (sk.links[0].is_muted)
     dict_result = {}
     ndLoc = get_abs_local(nd)
-    ndDim = mathutils.Vector(nd.dimensions / ui_scale())
+    ndDim = Vector(nd.dimensions / ui_scale())
     if in_out == 1:
-        skLocCarriage = Vector(ndLoc.x + ndDim.x, ndLoc.y - 35)
+        skLocCarriage = Vector((ndLoc.x + ndDim.x, ndLoc.y - 35))
     else:
-        skLocCarriage = Vector(ndLoc.x, ndLoc.y - ndDim.y + 15)
+        skLocCarriage = Vector((ndLoc.x, ndLoc.y - ndDim.y + 15))
     for sk in nd.outputs if in_out == 1 else reversed(nd.inputs):
         if (sk.enabled) and (not sk.hide):
-            if (in_out ==  -1) and (sk.type == 'VECTOR') and (SkIsLinkedVisible(sk)) and (not sk.hide_value):
+            if (in_out == -1) and (sk.type == 'VECTOR') and (SkIsLinkedVisible(sk)) and (not sk.hide_value):
                 if str(sk.rna_type).find("VectorDirection") != -1:
                     skLocCarriage.y += 20 * 2
-                elif ( not(nd.type in ('BSDF_PRINCIPLED','SUBSURFACE_SCATTERING')) )or( not(sk.name in ("Subsurface Radius","Radius"))):
+                elif (not (nd.type in ('BSDF_PRINCIPLED', 'SUBSURFACE_SCATTERING'))) or (not (sk.name in ("Subsurface Radius", "Radius"))):
                     skLocCarriage.y += 30 * 2
             goalPos = skLocCarriage.copy()
             if sk.is_linked:
-                dict_result[sk] = {"pos": goalPos, "name": TranslateIface(sk.label if sk.label else sk.name)}
-            skLocCarriage.y -= linear_interpolation(ui_scale()) * in_out     # 缩放 1 -> 22  1.1 -> 21.88
+                dict_result[sk] = {"pos": goalPos}
+            skLocCarriage.y -= linear_interpolation(ui_scale()) * in_out  # 缩放 1 -> 22  1.1 -> 21.88
     return dict_result
 
 class NODE_OT_align_link(Operator):
     bl_idname = "node.align_link"
-    bl_label = "straight_link"
-    bl_description = "拉直节点输入输出之间连线-需要选中活动节点"
+    bl_label = tr("对齐-拉直连线")
+    bl_description = tr("选中节点,以活动节点为中心,拉直输入输出接口之间的连线")
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
@@ -422,7 +406,7 @@ class NODE_OT_align_link(Operator):
         links = tree.links
         a_node = context.active_node
         if a_node is None:
-            self.report({"INFO"}, "需要选中活动节点和要对齐的节点")
+            self.report({"INFO"}, tr("需要选中活动节点和要对齐的节点"))
             return {"CANCELLED"}
         from_nodes = [a_node]
         to_nodes = [a_node]
