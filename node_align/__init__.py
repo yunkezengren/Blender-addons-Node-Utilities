@@ -142,7 +142,7 @@ class NODE_MT_align(Menu):
 
 def add_align_op_to_node_mt_context_menu(self, context):
     layout = self.layout
-    layout.menu('NODE_MT_align', text="对齐节点", icon_value=_icons[images[9]].icon_id)
+    layout.menu('NODE_MT_align', text=tr("节点对齐"), icon_value=_icons[images[9]].icon_id)
 
 classes = [
     Node_Align_AddonPrefs,
