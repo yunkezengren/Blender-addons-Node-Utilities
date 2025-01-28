@@ -14,7 +14,7 @@ bl_info = {
     "author" : "一尘不染",
     "description" : "align node  Shift Q | Ctrl Q",
     "blender" : (2, 83, 0),
-    "version" : (3, 0, 1),
+    "version" : (3, 0, 2),
     "location": "Nodes Editor",
     "category": "Node"
 }
@@ -35,8 +35,8 @@ images = [
     '网格-蓝方块',
     '网格-蓝线框',
     '直线-橙色虚线',
-    '水平等距分布-蓝黑',
-    '垂直等距分布-蓝黑',
+    '水平等距分布-蓝橙',
+    '垂直等距分布-蓝橙',
 ]
 images = [image + ".png" for image in images]
 

@@ -1,6 +1,6 @@
 schema_version = "1.0.0"
 id = "node_align"
-version = "3.0.1"
+version = "3.0.2"
 name = "Node Align(节点对齐)"
 tagline = "Shift+Q|Ctrl+Q Pie menu-Align Nodes in Multiple Ways(多种方式对齐节点)"
 maintainer = "W_Cloud(一尘不染)"
