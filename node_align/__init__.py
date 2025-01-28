@@ -14,7 +14,7 @@ bl_info = {
     "author" : "一尘不染",
     "description" : "align node  Shift Q | Ctrl Q",
     "blender" : (2, 83, 0),
-    "version" : (3, 0, 0),
+    "version" : (3, 0, 1),
     "location": "Nodes Editor",
     "category": "Node"
 }
