@@ -1,11 +1,11 @@
 schema_version = "1.0.0"
 id = "node_align"
-version = "3.0.2"
+version = "3.0.3"
 name = "Node Align(节点对齐)"
 tagline = "Shift+Q|Ctrl+Q Pie menu-Align Nodes in Multiple Ways(多种方式对齐节点)"
 maintainer = "W_Cloud(一尘不染)"
 type = "add-on"
-tags = ["Node", "Geometry Nodes", "Material"]
+tags = ["Node"]
 blender_version_min = "4.2.0"
 license = ["SPDX:GPL-3.0-or-later"]
 website = "https://space.bilibili.com/1109241880"
