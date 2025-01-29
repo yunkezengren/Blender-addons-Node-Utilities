@@ -321,7 +321,7 @@ class NODE_OT_distribute_row_column(BaseAlignOp):
 
     align_mode: EnumProperty(name=tr("对齐方式"), description=tr("把选中节点改成多少行或列"), default='ROW',
                              items=[('ROW', tr("行"), tr("更改行数")), ('COLUMN', tr("列"), tr("更改列数"))])
-    count     : IntProperty(name=tr("行或列数"),  description=tr("列模式:count=0是1行;行模式:列模式:count=0是1列"), default=5, min=0, max=500)
+    count     : IntProperty(name=tr("行或列数"),  description=tr("列模式:count=0是1行;行模式:count=0是1列"), default=5, min=0, max=500)
     x_interval: IntProperty(name=tr("x方向间隔"), description=tr("x方向两个节点之间间隔"), default=40, min=0, max=500)
     y_interval: IntProperty(name=tr("y方向间隔"), description=tr("y方向两个节点之间间隔"), default=40, min=0, max=500)
 
@@ -335,8 +335,9 @@ class NODE_OT_distribute_row_column(BaseAlignOp):
         # for i, node in enumerate(nodes):
         #     node.label = str(int(node.location.x * 100 - node.location.y))
         #     node.label = "号:" + str(i+1)
-        nums = ceil(len(nodes) / self.count) if self.count!=0 else len(nodes)
-        for i in range(self.count):
+        count = self.count if self.count else len(nodes)
+        nums = ceil(len(nodes) / count)
+        for i in range(count):
             node_list = nodes[i*nums : (i+1)*nums]      # 一行或一行节点
             if not node_list: break
             for j, node in enumerate(node_list):

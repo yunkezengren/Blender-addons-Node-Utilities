@@ -70,7 +70,7 @@ dictionary = {
         "对齐选中节点的高度中心,即居中分布" : "Align the height center of selected nodes, i.e., center distribute",
         "对齐选中节点的宽度中心,即居中分布" : "Align the width center of selected nodes, i.e., center distribute",
         "是否为等距及栅格分布启用自定义间距": "Enable custom spacing for evenly and grid distribute",
-        "列模式:count=0是1行;行模式:列模式:count=0是1列"      : "Column mode: count=0 means 1 row; Row mode: count=0 means 1 column",
+        "列模式:count=0是1行;行模式:count=0是1列"      : "Column mode: count=0 means 1 row; Row mode: count=0 means 1 column",
         "选中节点,以活动节点为中心,拉直输入输出接口之间的连线": "Select nodes, use the active node as the center, and straighten the links between input and output sockets",
         "每一列先垂直等距分布,各列之间水平等距分布,每列对齐宽度居中对齐": "First, distribute each column vertically evenly, then distribute columns horizontally evenly, and center-align the width of each column",
         "每一列先垂直等距分布,各列之间水平等距分布,每列对齐宽度居中对齐,每列最大最小高度一样": "First, distribute each column vertically evenly, then distribute columns horizontally evenly, center-align the width of each column, and ensure each column has the same maximum and minimum height",
