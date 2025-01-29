@@ -13,7 +13,7 @@ bl_info = {
     "author" : "一尘不染",
     "description" : "",
     "blender" : (3, 0, 0),
-    "version" : (2, 5, 4),
+    "version" : (2, 5, 5),
     "location" : "",
     "warning" : "",
     "doc_url": "",
@@ -95,8 +95,8 @@ class ATTRLIST_AddonPreferences(AddonPreferences):
     show_set_panel     : BoolProperty(name='show_set_panel',     description=tr('显示设置'),                   default=True)
     if_scale_editor    : BoolProperty(name='if_scale_editor',    description=tr('查找节点时适当缩放视图'),     default=True)
     show_vertex_group  : BoolProperty(name='Show_Vertex_Group',  description=tr('是否在属性列表里显示顶点组'),   default=True)
-    show_uv_map        : BoolProperty(name='Show_UV_Map',        description=tr('是否在属性列表里显示UV贴图'),   default=False)
-    show_color_attr    : BoolProperty(name='Show_Color_Attr',    description=tr('是否在属性列表里显示颜色属性'), default=False)
+    show_uv_map        : BoolProperty(name='Show_UV_Map',        description=tr('是否在属性列表里显示UV贴图'),   default=True)
+    show_color_attr    : BoolProperty(name='Show_Color_Attr',    description=tr('是否在属性列表里显示颜色属性'), default=True)
     hide_unused_attr   : BoolProperty(name='hide_unused_attr',   description=tr('只显示输出接口连线的存储属性节点或节点组内的属性'), default=False)
     hide_attr_in_group : BoolProperty(name='hide_attr_in_group', description=tr('隐藏节点组里的属性'), default=False)
     add_settings       : BoolProperty(name=tr('添加节点选项'),   description=tr('添加节点选项'),       default=False)
