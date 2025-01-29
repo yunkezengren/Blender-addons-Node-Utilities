@@ -13,7 +13,7 @@ bl_info = {
     "author" : "一尘不染",
     "description" : "",
     "blender" : (3, 0, 0),
-    "version" : (2, 5, 3),
+    "version" : (2, 5, 4),
     "location" : "",
     "warning" : "",
     "doc_url": "",
@@ -142,7 +142,7 @@ def active_modifier_is_gn(context, ui_type):
     if ui_type == 'ShaderNodeTree':
         obj = context.active_object
     active = obj.modifiers.active
-    if active.type == 'NODES':
+    if active and active.type == 'NODES':
         return active.node_group
     else:
         return False
