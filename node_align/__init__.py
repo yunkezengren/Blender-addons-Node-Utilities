@@ -1,9 +1,15 @@
+if "bpy" in locals():            # 偏好设置重启插件,只会重新执行__init__.py,所以重新加载需要更新的模块
+    import importlib
+    importlib.reload(op_align)
+    importlib.reload(translator)
+from .op_align import *
+from .translator import i18n as tr
+
 import os
 import bpy
 from bpy.props import BoolProperty, IntProperty
 from bpy.types import AddonPreferences, Menu
-from .op_align import *
-from .translator import i18n as tr
+
 # TODO 对齐Frame
 # TODO 把我的 Alt+1 加上 Shift+x Shift+y
 # TODO 根据左上角和右下角画格子,节点落在最近的的格子里
@@ -58,13 +64,13 @@ def find_user_keyconfig(key):
 class Node_Align_AddonPrefs(AddonPreferences):
     bl_idname = __package__
     is_custom_space: BoolProperty(name="is_custom_space", default=False, description=tr("是否为等距及栅格分布启用自定义间距"))
-    space_x  : IntProperty(name="space_x",   default=40,  description=tr("等距及栅格分布时的节点x方向间距"))
-    space_y  : IntProperty(name="space_y",   default=40,  description=tr("等距及栅格分布时的节点y方向间距"))
+    space_x  : IntProperty(name="space_x",   default=30,  description=tr("等距及栅格分布时的节点x方向间距"))
+    space_y  : IntProperty(name="space_y",   default=25,  description=tr("等距及栅格分布时的节点y方向间距"))
     col_width: IntProperty(name="col_width", default=140, description=tr("栅格分布时判断是否在一列的宽度"))
 
     def draw(self, context):
         layout = self.layout
-        layout = self.layout
+
         split = layout.split(factor=0.5)
         split.label(text=tr("普通对齐饼菜单"))
         split.prop(find_user_keyconfig('ALIGN_MT_align_pie'), 'type', text='', full_event=True)
