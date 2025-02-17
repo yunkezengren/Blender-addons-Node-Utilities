@@ -88,6 +88,7 @@ dictionary = {
         "是否在属性列表里显示UV贴图": "Show UV Maps in Attribute List",
         "是否在属性列表里显示颜色属性": "Show Color Attributes in Attribute List",
         "属性列表多种排序方式": "Multiple Sorting Methods for Attribute List",
+        "使用加速键": "use accelerator key",
         "按类型排序1": "Sort by Type 1",
         "布尔-浮点-整数-矢量-颜色-旋转-矩阵": "Boolean-Float-Integer-Vector-Color-Rotation-Matrix",
         "按类型排序1-反转": "Sort by Type 1 - Reversed",
@@ -98,7 +99,7 @@ dictionary = {
         "首字-数字英文中文": "First Character - Numbers English Chinese",
         "查找命名属性节点": "Find Stored Named Attribute Node",
         "跳转到已命名属性节点位置": "Find Stored Named Attribute Node",
-        "隐藏额外的属性:\n--物体/集合信息节点带的\n--存储属性节点名称接口连了线的\n--活动修改器之上的GN修改器的属性": "Hide extra attributes:\n--object/collection info nodes\n--Store Named Attribute node name socket linked\n--the attrs of the GN modifiers above the active modifier",
+        "隐藏额外的属性:\n--属性编辑器-数据-属性\n--物体/集合信息节点带的(和别的几何数据合并几何才显示顶点组)\n--存储属性节点名称接口连了线的\n--活动修改器之上的GN修改器的属性": "Hide extra attributes:\n--Properties Editor-Data-Attributes\n--object/collection info nodes(only show vertex Groups when join geometry with other geometry)\n--Store Named Attribute node name socket linked\n--the attrs of the GN modifiers above the active modifier",
     },
 }
 
