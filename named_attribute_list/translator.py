@@ -41,7 +41,7 @@ dictionary = {
         "属性列表里是否显示": "Show in Attribute List",
         "属性列表里是否隐藏": "Hide in Attribute List",
         "未使用属性": "Unused Attributes",
-        "节点组内属性": "Attributes in Node Groups",
+        "组内属性": "Attributes in Node Groups",
         "属性列表文本设置": "Attribute List Text Settings",
         "显示所在域": "Show Domain",
         "查找节点设置": "Node Search Settings",
@@ -98,6 +98,7 @@ dictionary = {
         "首字-数字英文中文": "First Character - Numbers English Chinese",
         "查找命名属性节点": "Find Stored Named Attribute Node",
         "跳转到已命名属性节点位置": "Find Stored Named Attribute Node",
+        "隐藏额外的属性:\n--物体/集合信息节点带的\n--存储属性节点名称接口连了线的\n--活动修改器之上的GN修改器的属性": "Hide extra attributes:\n--object/collection info nodes\n--Store Named Attribute node name socket linked\n--the attrs of the GN modifiers above the active modifier",
     },
 }
 

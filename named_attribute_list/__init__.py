@@ -83,22 +83,23 @@ def add_to_attr_list_mt_editor_menus(self, context):
         layout = self.layout
         layout.menu('ATTRLIST_MT_Menu', text=tr('属性'))
 
-class ATTRLIST_AddonPreferences(AddonPreferences):
+class ATTRLIST_AddonPrefs(AddonPreferences):
     bl_idname = __package__
-    hide_option        : BoolProperty(name='hide_option',        description=tr('添加时是否隐藏选项'),         default=True)
-    hide_Exists_socket : BoolProperty(name='hide_Exists_socket', description=tr('添加时是否隐藏输出存在接口'), default=True)
-    hide_Name_socket   : BoolProperty(name='hide_Name_socket',   description=tr('添加时是否隐藏输入名称接口'), default=False)
+    hide_option        : BoolProperty(name='hide_option'       , description=tr('添加时是否隐藏选项'),           default=True)
+    hide_Exists_socket : BoolProperty(name='hide_Exists_socket', description=tr('添加时是否隐藏输出存在接口'),   default=True)
+    hide_Name_socket   : BoolProperty(name='hide_Name_socket'  , description=tr('添加时是否隐藏输入名称接口'),   default=False)
     rename_Attr_socket : BoolProperty(name='rename_Attr_socket', description=tr('添加时是否重命名输出属性接口'), default=True)
-    hide_Node          : BoolProperty(name='hide_Node',          description=tr('添加时是否折叠节点'),         default=False)
-    rename_Node        : BoolProperty(name='rename_Node',        description=tr('添加时是否重命名节点为属性名'), default=False)
-    is_hide_by_pre     : BoolProperty(name='is_hide_by_pre',     description=tr('是否隐藏带有特定前缀的属性'), default=False)
-    show_set_panel     : BoolProperty(name='show_set_panel',     description=tr('显示设置'),                   default=True)
-    if_scale_editor    : BoolProperty(name='if_scale_editor',    description=tr('查找节点时适当缩放视图'),     default=True)
-    show_vertex_group  : BoolProperty(name='Show_Vertex_Group',  description=tr('是否在属性列表里显示顶点组'),   default=True)
+    hide_Node          : BoolProperty(name='hide_Node'         , description=tr('添加时是否折叠节点'),           default=False)
+    rename_Node        : BoolProperty(name='rename_Node'       , description=tr('添加时是否重命名节点为属性名'), default=False)
+    is_hide_by_pre     : BoolProperty(name='is_hide_by_pre'    , description=tr('是否隐藏带有特定前缀的属性'),   default=False)
+    show_set_panel     : BoolProperty(name='show_set_panel'    , description=tr('显示设置'),                     default=True)
+    if_scale_editor    : BoolProperty(name='if_scale_editor'   , description=tr('查找节点时适当缩放视图'),       default=True)
+    show_vertex_group  : BoolProperty(name='Show_Vertex_Group' , description=tr('是否在属性列表里显示顶点组'),   default=True)
     show_uv_map        : BoolProperty(name='Show_UV_Map',        description=tr('是否在属性列表里显示UV贴图'),   default=True)
     show_color_attr    : BoolProperty(name='Show_Color_Attr',    description=tr('是否在属性列表里显示颜色属性'), default=True)
     hide_unused_attr   : BoolProperty(name='hide_unused_attr',   description=tr('只显示输出接口连线的存储属性节点或节点组内的属性'), default=False)
     hide_attr_in_group : BoolProperty(name='hide_attr_in_group', description=tr('隐藏节点组里的属性'), default=False)
+    hide_extra_attr    : BoolProperty(name='extraEvaluatedAttr', description=tr('隐藏额外的属性:\n--物体/集合信息节点带的\n--存储属性节点名称接口连了线的\n--活动修改器之上的GN修改器的属性'), default=False)
     add_settings       : BoolProperty(name=tr('添加节点选项'),   description=tr('添加节点选项'),       default=False)
     show_settings      : BoolProperty(name=tr('列表显示选项'),   description=tr('列表显示选项'),       default=True)
     show_attr_domain   : BoolProperty(name='show_attr_domain',   description=tr('是否显示属性所在域'), default=True)
@@ -190,7 +191,9 @@ def get_tree_attrs_dict(tree, attrs_dict, group_node_name, group_name_parent, st
             data_type = node.data_type
             if data_type in switch_dict:
                 data_type = switch_dict[data_type]
-            attr_name = node.inputs["Name"].default_value
+            name_soc = node.inputs["Name"]
+            if name_soc.is_linked: continue
+            attr_name = name_soc.default_value
             if attr_name == "":
                 continue
             domain_cn = tr(get_domain_cn[node.domain])               # 还可以这样
@@ -228,7 +231,7 @@ def get_tree_attrs_dict(tree, attrs_dict, group_node_name, group_name_parent, st
     return attrs_dict
 
 # 遍历节点得到的属性名称列表,省的被evaluated_obj_attrs里的同名,重存覆盖
-def get_all_tree_attrs_list(tree, all_tree_attr_list, stored_group):
+def get_tree_attrs_list(tree, all_tree_attr_list, stored_group):
     prefs = bpy.context.preferences.addons[__package__].preferences
     nodes = tree.nodes
     show_unused = not prefs.hide_unused_attr
@@ -249,7 +252,7 @@ def get_all_tree_attrs_list(tree, all_tree_attr_list, stored_group):
             stored_group.append(group_name)
             if show_unused or is_node_linked(node):
                 # all_tree_attr_list.extend(get_all_tree_attrs_list(node.node_tree, all_tree_attr_list))    # 这样问题很严重,会指数级加项
-                all_tree_attr_list = get_all_tree_attrs_list(node.node_tree, all_tree_attr_list, stored_group)
+                all_tree_attr_list = get_tree_attrs_list(node.node_tree, all_tree_attr_list, stored_group)
 
     return all_tree_attr_list
 
@@ -273,7 +276,7 @@ def extend_dict_with_evaluated_obj_attrs(attrs_dict, exclude_list, obj, all_tree
             domain_info = "" + tr(get_domain_cn[attr.domain])
             attrs_dict[attr.name] = {"data_type": data_type, "domain_info": [domain_info], "group_name": tr("不确定")}
 
-def extend_dict_with_obj_data_attrs(attrs, scene, all_tree_attr_list):
+def extend_dict_with_obj_data_attrs(attrs, prefs, all_tree_attr_list):
     ui_type = bpy.context.area.ui_type
     if ui_type == 'GeometryNodeTree':
         a_object = bpy.context.space_data.id
@@ -285,18 +288,21 @@ def extend_dict_with_obj_data_attrs(attrs, scene, all_tree_attr_list):
     exclude_list = [_.name for _ in vertex_groups] + [
                     _.name for _ in uv_layers] + [
                     _.name for _ in color_attributes]
-    extend_dict_with_evaluated_obj_attrs(attrs, exclude_list, a_object, all_tree_attr_list)         # 扩展已有字典
-
-    if scene.show_vertex_group:
+    if not prefs.hide_extra_attr:
+        extend_dict_with_evaluated_obj_attrs(attrs, exclude_list, a_object, all_tree_attr_list)         # 扩展已有字典
+    if prefs.show_vertex_group:
         for v_g in vertex_groups:
+            if attrs.get(v_g.name): continue        # 如果节点里又存了顶点组之类的,别覆盖
             attrs[v_g.name] = {'data_type': 'FLOAT', 'domain_info': [tr('点')],
                                 "group_name":tr("物体属性"), "info": tr("顶点组") }
-    if scene.show_uv_map:
+    if prefs.show_uv_map:
         for uv in uv_layers:
+            if attrs.get(uv.name): continue
             attrs[uv.name] = {'data_type': 'FLOAT_VECTOR', 'domain_info': [tr('面拐')],
                                 "group_name":tr("物体属性"), "info": tr("UV贴图") }
-    if scene.show_color_attr:
+    if prefs.show_color_attr:
         for color in color_attributes:
+            if attrs.get(color.name): continue
             attrs[color.name] = {'data_type': 'FLOAT_COLOR', 'domain_info': [tr(get_domain_cn[color.domain])],
                                 "group_name":tr("物体属性"), "info": tr("颜色属性") }
 
@@ -335,7 +341,7 @@ def draw_attr_menu(layout, context, is_panel):
         attrs_dict = {}     # {'组内': {'data_type': 'FLOAT', 'domain_info': ['点', '面']},'距离': {'data_type': 'FLOAT', 'domain_info': ['点']}}
         attrs = get_tree_attrs_dict(tree, attrs_dict, stored_group=[],
                                     group_node_name="当前group是顶层节点树", group_name_parent="顶层节点树无父级")
-        all_tree_attr_list = get_all_tree_attrs_list(tree, all_tree_attr_list=[], stored_group=[])
+        all_tree_attr_list = get_tree_attrs_list(tree, all_tree_attr_list=[], stored_group=[])
     else:
         attrs = {}
         all_tree_attr_list = []
@@ -343,15 +349,7 @@ def draw_attr_menu(layout, context, is_panel):
     attrs = sort_attr_dict(attrs, prefs)
     # print("最终" + "*" * 60)
     # pprint(attrs)
-    """ # # 一些方便打印
-    # print(context.space_data.id.name)
-    # print("开始" + "*" * 100)
-    # pprint(attrs_dict)
-    # if scene.show_vertex_group or scene.show_uv_map or scene.show_color_attr:
-    #     pprint(attrs_dict)
-    # pprint("-+*" * 20)
-    # print("排序：")
-    # pprint(attrs) """
+    # # print(context.space_data.id.name)
     prefix_list = prefs.hide_prefix.split("|")
     for attr_name, attr_info in attrs.items():
         has_prefix = False
@@ -377,6 +375,7 @@ def draw_attr_menu(layout, context, is_panel):
             button_txt = button_txt[:-1] + " ->实例)"
             # button_txt = button_txt[:-1] + f' ->{ tr("实例") })'        #  或者外双引号内单引号
         description = tr("属性所在域: ") + domain_list_to_str
+        # todo 更详细的description
         # description = "属性所在域:" + domain_list_to_str + \
         #             "\n此存储命名属性节点使用个数:" + "  " \
         #             "\n此命名属性节点使用个数:" + "  "
@@ -394,12 +393,6 @@ def draw_attr_menu(layout, context, is_panel):
             split = layout.split(factor=0.9)
             op = split.operator('sna.add_node_change_name_and_type', text=button_txt,
                                     icon_value=(_icons[data_with_png[data_type]].icon_id ) )
-            # op.attr_name = attr_name
-            # op.attr_type = data_type
-            # op.bl_description = description
-            # op.if_instanced = if_instanced
-            # op.domain_str = domain_list_to_str
-
             if can_find_store_node:
                 icon = "HIDE_OFF"
             else:
@@ -436,12 +429,12 @@ class ATTRLIST_OT_Add_Node_Change_Name_Type_Hide(Operator):
     bl_idname = "sna.add_node_change_name_and_type"
     bl_label = "属性隐藏选项"
     bl_options = {"REGISTER", "UNDO"}
-    bl_description: StringProperty(default="快捷键Shift 2 ", options={"HIDDEN"})    # 乐,记不清什么时候的了
-    attr_name:  StringProperty(name='attr_name', description='', default="", subtype='NONE')
-    attr_type:  StringProperty(name='attr_type', description='', default="", subtype='NONE')
-    shader_node_type: StringProperty(name='shader_node_type', description='', default="", subtype='NONE')
-    domain_str    : StringProperty(default="", description='该属性所在域,例：面 | 实例', options={"HIDDEN"})
-    if_instanced : BoolProperty(name='if instanced', description='该属性是否转到了实例域上', default=False)
+    bl_description   : StringProperty(name='btn_info', default="快捷键Shift 2 ", options={"HIDDEN"})    # 乐,记不清什么时候的了
+    attr_name        : StringProperty(name='attr_name', description='', default="", subtype='NONE')
+    attr_type        : StringProperty(name='attr_type', description='', default="", subtype='NONE')
+    domain_str       : StringProperty(name='domain_str', default="", description='该属性所在域,例：面 | 实例', options={"HIDDEN"})
+    shader_node_type : StringProperty(name='shader_node_type', description='', default="", subtype='NONE')
+    if_instanced     : BoolProperty(name='if instanced', description='该属性是否转到了实例域上', default=False)
 
     @classmethod
     def description(cls, context, props):
@@ -604,17 +597,19 @@ class ATTRLIST_PT_NPanel(Panel):
                 split3 = box2.split(factor=0.05)        # 使得文本左顶格，按钮前稍微缩进
                 split3.label(text="")
                 split31 = split3.split(factor=0.35)
-                split31.prop(prefs, 'show_vertex_group', toggle=True, text=tr('顶点组'))
+                split31.prop(prefs, 'show_vertex_group',  toggle=True, text=tr('顶点组'))
                 split32 = split31.split(factor=0.4)
-                split32.prop(prefs, 'show_uv_map',       toggle=True, text=tr('UV'))
-                split32.prop(prefs, 'show_color_attr',   toggle=True, text=tr('颜色属性'))
+                split32.prop(prefs, 'show_uv_map',        toggle=True, text=tr('UV'))
+                split32.prop(prefs, 'show_color_attr',    toggle=True, text=tr('颜色属性'))
 
                 box2.label(text=tr('属性列表里是否隐藏'))
                 split4 = box2.split(factor=0.05)
                 split4.label(text="")
-                split41 = split4.split(factor=0.5)
-                split41.prop(prefs, 'hide_unused_attr',    toggle=True, text=tr('未使用属性'))
-                split41.prop(prefs, 'hide_attr_in_group',  toggle=True, text=tr('节点组内属性'))
+                split41 = split4.split(factor=0.33)
+                split41.prop(prefs, 'hide_extra_attr', toggle=True, text=tr('额外属性'))
+                split42 = split41.split(factor=0.5)
+                split42.prop(prefs, 'hide_unused_attr',   toggle=True, text=tr('未使用属性'))
+                split42.prop(prefs, 'hide_attr_in_group', toggle=True, text=tr('组内属性'))
 
                 split4 = box2.split(factor=0.05)
                 split4.label(text="")
@@ -768,7 +763,7 @@ classes = [
     ATTRLIST_OT_Add_Node_Change_Name_Type_Hide,
     ATTRLIST_MT_Menu,
     ATTRLIST_PT_NPanel,
-    ATTRLIST_AddonPreferences,
+    ATTRLIST_AddonPrefs,
     NODE_OT_View_Stored_Attribute_Node,
     NODE_OT_Add_Named_Attribute,
 ]
