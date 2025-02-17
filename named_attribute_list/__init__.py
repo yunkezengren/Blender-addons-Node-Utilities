@@ -515,7 +515,7 @@ def has_attr(context):
 
 class ATTRLIST_MT_Menu(Menu):
     bl_idname = "ATTRLIST_MT_Menu"
-    bl_label = tr("小王-命名属性列表菜单")
+    bl_label = tr("小王-命名属性菜单")
     bl_options = {'SEARCH_ON_KEY_PRESS'}
     
     @classmethod
@@ -528,7 +528,7 @@ class ATTRLIST_MT_Menu(Menu):
         draw_attr_menu(self.layout, context, is_panel=False)
 
 class ATTRLIST_PT_NPanel(Panel):
-    bl_label = tr('小王-命名属性列表面板')      # 还作为在快捷键列表里名称
+    bl_label = tr('小王-命名属性面板')      # 还作为在快捷键列表里名称
     bl_idname = 'ATTRLIST_PT_NPanel'
     bl_space_type = 'NODE_EDITOR'
     bl_region_type = 'UI'
