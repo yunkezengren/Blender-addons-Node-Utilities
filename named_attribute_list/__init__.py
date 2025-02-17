@@ -288,19 +288,20 @@ def extend_dict_with_obj_data_attrs(attrs, all_tree_attr_list):
     exclude_list = [_.name for _ in vertex_groups] + [
                     _.name for _ in uv_layers] + [
                     _.name for _ in color_attributes]
-    if not pref().hide_extra_attr:
+    prefs = pref()
+    if not prefs.hide_extra_attr:
         extend_dict_with_evaluated_obj_attrs(attrs, exclude_list, a_object, all_tree_attr_list)         # 扩展已有字典
-    if pref().show_vertex_group:
+    if prefs.show_vertex_group:
         for v_g in vertex_groups:
             if attrs.get(v_g.name): continue        # 如果节点里又存了顶点组之类的,别覆盖
             attrs[v_g.name] = {'data_type': 'FLOAT', 'domain_info': [tr('点')],
                                 "group_name":tr("物体属性"), "info": tr("顶点组") }
-    if pref().show_uv_map:
+    if prefs.show_uv_map:
         for uv in uv_layers:
             if attrs.get(uv.name): continue
             attrs[uv.name] = {'data_type': 'FLOAT_VECTOR', 'domain_info': [tr('面拐')],
                                 "group_name":tr("物体属性"), "info": tr("UV贴图") }
-    if pref().show_color_attr:
+    if prefs.show_color_attr:
         for color in color_attributes:
             if attrs.get(color.name): continue
             attrs[color.name] = {'data_type': 'FLOAT_COLOR', 'domain_info': [tr(get_domain_cn[color.domain])],
