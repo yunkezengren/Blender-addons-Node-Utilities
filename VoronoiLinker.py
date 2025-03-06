@@ -44,7 +44,7 @@
 # TODO 没面板的组输入和节点组,插入接口才符合顺序
 
 bl_info = {'name':"Voronoi Linker", 'author':"ugorek", #Так же спасибо "Oxicid" за важную для VL'а помощь.
-           'version':(5,1,1), 'blender':(4,0,2), 'created':"2024.03.06", #Ключ 'created' для внутренних нужд.
+           'version':(5,1,2), 'blender':(4,0,2), 'created':"2024.03.06", #Ключ 'created' для внутренних нужд.
            'info_supported_blvers': "b4.0.2 – b4.0.2", #Тоже внутреннее.
            'description':"Various utilities for nodes connecting, based on distance field.", 'location':"Node Editor", #Раньше была надпись 'Node Editor > Alt + RMB' в честь того, ради чего всё; но теперь VL "повсюду"!
            'warning':"", #Надеюсь не настанет тот момент, когда у VL будет предупреждение. Неработоспособность в Linux'е была очень близко к этому.
@@ -5524,9 +5524,13 @@ def Do_Rotation_Converter(context, isS, isA, node_type):
                 tree.links.new(skIn, sk1)
                 if sk2:
                     tree.links.new(skIn, sk2)
-        
+        value = sk0.default_value
         if aNd.bl_idname == "FunctionNodeEulerToRotation":
-            aNd.inputs[0].default_value = sk0.default_value     # 旋转值传递
+            aNd.inputs[0].default_value = value     # 旋转值传递
+        if aNd.bl_idname == "ShaderNodeCombineXYZ":
+            aNd.inputs[0].default_value = value[0]
+            aNd.inputs[1].default_value = value[1]
+            aNd.inputs[2].default_value = value[2]
         # if isA:
         #     for sk in aNd.inputs:
         #         sk.hide = True
@@ -5571,6 +5575,8 @@ class Pie_MT_Converter_Rotation_To(bpy.types.Menu):
         op.node_type = 'FunctionNodeRotationToAxisAngle'
         op = pie.operator('node.voronoi_mix_rotation', text='Rotation > Quaternion')
         op.node_type = 'FunctionNodeRotationToQuaternion'
+        op = pie.operator('node.voronoi_mix_rotation', text='Rotation > Separate XYZ')
+        op.node_type = 'ShaderNodeSeparateXYZ'
 
 class Pie_MT_Converter_To_Rotation(bpy.types.Menu):
     bl_idname = "Converter_To_Rotation"
@@ -5584,6 +5590,8 @@ class Pie_MT_Converter_To_Rotation(bpy.types.Menu):
         op.node_type = 'FunctionNodeAxisAngleToRotation'
         op = pie.operator('node.voronoi_mix_rotation', text='Quaternion > Rotation')
         op.node_type = 'FunctionNodeQuaternionToRotation'
+        op = pie.operator('node.voronoi_mix_rotation', text='Combine XYZ > Rotation')
+        op.node_type = 'ShaderNodeCombineXYZ'
 
 class Rotation_Converter(VoronoiOpTool):
     bl_idname = 'node.voronoi_mix_rotation'
@@ -5694,7 +5702,8 @@ class VoronoiQuickConstant(VoronoiToolTripleSk):
             if self.fotagoSk2:
                 Rotation_Data.sk2 = self.fotagoSk2.tar
             if skIn0.type == "ROTATION":
-                bpy.ops.wm.call_menu_pie(name="Converter_To_Rotation")
+                if hasattr(skIn0, "default_value"):
+                    bpy.ops.wm.call_menu_pie(name="Converter_To_Rotation")
                 # return {'FINISHED'}       # 想松开按键确认
                 # aNd.width = 200   # md这里不行，运行ops后立马运行下面的了？放在Rotation_Converter里的invoke就行了？ (那里放好这里忘删了找了半天错误)
             if skIn0.type == "MATRIX":
