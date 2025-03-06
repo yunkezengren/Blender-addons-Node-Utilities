@@ -44,7 +44,7 @@
 # TODO 没面板的组输入和节点组,插入接口才符合顺序
 
 bl_info = {'name':"Voronoi Linker", 'author':"ugorek", #Так же спасибо "Oxicid" за важную для VL'а помощь.
-           'version':(5,1,0), 'blender':(4,0,2), 'created':"2024.03.06", #Ключ 'created' для внутренних нужд.
+           'version':(5,1,1), 'blender':(4,0,2), 'created':"2024.03.06", #Ключ 'created' для внутренних нужд.
            'info_supported_blvers': "b4.0.2 – b4.0.2", #Тоже внутреннее.
            'description':"Various utilities for nodes connecting, based on distance field.", 'location':"Node Editor", #Раньше была надпись 'Node Editor > Alt + RMB' в честь того, ради чего всё; но теперь VL "повсюду"!
            'warning':"", #Надеюсь не настанет тот момент, когда у VL будет предупреждение. Неработоспособность в Linux'е была очень близко к этому.
@@ -3454,14 +3454,14 @@ class VoronoiQuickMathTool(VoronoiToolTripleSk):
     bl_label = "Voronoi Quick Math"
     usefulnessForCustomTree = False
     canDrawInAppearance = True
-    quickOprFloat:  bpy.props.StringProperty(name="Float (quick)",  default="") #Они в начале, чтобы в kmi отображалось выровненным.
-    quickOprVector: bpy.props.StringProperty(name="Vector (quick)", default="") #quick вторым, чтобы при нехватке места отображалось первое слово, от чего пришлось заключить в скобки.
-    isCanFromOne:       bpy.props.BoolProperty(name="Can from one socket", default=True)
+    quickOprFloat:         bpy.props.StringProperty(name="Float (quick)",  default="") #Они в начале, чтобы в kmi отображалось выровненным.
+    quickOprVector:        bpy.props.StringProperty(name="Vector (quick)", default="") #quick вторым, чтобы при нехватке места отображалось первое слово, от чего пришлось заключить в скобки.
+    isCanFromOne:          bpy.props.BoolProperty(name="Can from one socket", default=True)
     isRepeatLastOperation: bpy.props.BoolProperty(name="Repeat last operation", default=False, description=fitVqmtRloDescr) #Что ж, квартет qqm теперь вынуждает их постоянно выравнивать.
-    isHideOptions:      bpy.props.BoolProperty(name="Hide node options",   default=False)
-    isPlaceImmediately: bpy.props.BoolProperty(name="Place immediately",   default=False)
-    quickOprBool:   bpy.props.StringProperty(name="Bool (quick)",   default="")
-    quickOprColor:  bpy.props.StringProperty(name="Color (quick)",  default="")
+    isHideOptions:         bpy.props.BoolProperty(name="Hide node options",   default=False)
+    isPlaceImmediately:    bpy.props.BoolProperty(name="Place immediately",   default=False)
+    quickOprBool:          bpy.props.StringProperty(name="Bool (quick)",   default="")
+    quickOprColor:         bpy.props.StringProperty(name="Color (quick)",  default="")
     justPieCall:           bpy.props.IntProperty(name="Just call pie", default=0, min=0, max=4, description="Call pie to add a node, bypassing the sockets selection.\n0 – Disable.\n1 – Float.\n2 – Vector.\n3 – Boolean.\n4 – Color")
     def CallbackDrawTool(self, drata):
         TemplateDrawSksToolHh(drata, self.fotagoSk0, self.fotagoSk1, self.fotagoSk2, tool_name="Quick Math")
@@ -3963,6 +3963,7 @@ class VqmtPieMath(bpy.types.Menu):
         def LyVqmAddOp(where, text, icon='NONE'):
             #Автоматический перевод выключен, ибо оригинальные операции у нода математики тоже не переводятся; по крайней мере для Русского.
             label = text.replace("_"," ").capitalize()
+            # 小王- 快速饼菜单按钮文本
             if text == "RADIANS":
                 label = "To Randians"
             if text == "DEGREES":
@@ -5346,7 +5347,8 @@ dict_vqdtQuickDimensionsMain = {
                               'STRING':   ('GeometryNodeStringToCurves',),   # 小王-Alt D 字符串接口
                               'MATRIX':   ('FunctionNodeSeparateTransform',),   # 小王-Alt D 矩阵接口
                               'ROTATION': ('FunctionNodeRotationToQuaternion',),
-                              'GEOMETRY': ('GeometryNodeSeparateComponents',)}, #Зато одинаковый по смыслу. Воспринимать как мини-рофл.
+                              'GEOMETRY': ('GeometryNodeSeparateGeometry',)}, #Зато одинаковый по смыслу. Воспринимать как мини-рофл.
+                            #   'GEOMETRY': ('GeometryNodeSeparateComponents',)}, #Зато одинаковый по смыслу. Воспринимать как мини-рофл.
         'CompositorNodeTree':{'VECTOR':   ('CompositorNodeSeparateXYZ',),
                               'RGBA':     ('CompositorNodeSeparateColor',),
                               'VALUE':    ('CompositorNodeCombineXYZ','CompositorNodeCombineColor'),
@@ -5457,8 +5459,9 @@ class VoronoiQuickDimensionsTool(VoronoiToolTripleSk):
                     setattr(aNd, li.identifier, getattr(skOut0.node, li.identifier))
             #Соединить:
             skIn = aNd.inputs[0]
+            # 遍历新建节点的输入接口,是否和目标输出接口同名,分离z 连到 合并z
             for ski in aNd.inputs:
-                if skOut0.name==ski.name:
+                if skOut0.name==ski.name and skOut0.type==ski.type:
                     skIn = ski
                     break
             NewLinkHhAndRemember(skOut0, skIn)
