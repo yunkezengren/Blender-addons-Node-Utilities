@@ -4627,6 +4627,51 @@ SmartAddToRegAndAddToKmiDefs(VoronoiHiderTool, "#CA_E", {'toolMode':'SOCKETVAL'}
 SmartAddToRegAndAddToKmiDefs(VoronoiHiderTool, "SC#_E", {'toolMode':'NODE'})
 dict_setKmiCats['oth'].add(VoronoiHiderTool.bl_idname)
 
+class VoronoiCallNodePie(VoronoiToolAny):
+    """ Voronoi 联动 Node Pie """
+    bl_idname = 'node.voronoi_call_node_pie'
+    bl_label = "Voronoi Call Node Pie"
+    # toolMode: bpy.props.EnumProperty(name="Mode", default='SOCKET', items=fitVhtModeItems)
+    isTriggerOnCollapsedNodes: bpy.props.BoolProperty(name="Trigger on collapsed nodes", default=True)
+
+    def CallbackDrawTool(self, drata):
+        self.TemplateDrawAny(drata, self.fotagoAny, cond=False, tool_name="节点饼菜单")
+        # TemplateDrawSksToolHh(drata, self.fotagoSkMain, self.fotagoSkRosw, tool_name="节点饼菜单")
+    def NextAssignmentTool(self, _isFirstActivation, prefs, tree):
+        self.fotagoAny = None
+        for ftgNd in self.ToolGetNearestNodes(cur_x_off=0):
+            nd = ftgNd.tar
+            if (not self.isTriggerOnCollapsedNodes)and(nd.hide):
+                continue
+            self.fotagoAny = ftgNd
+            list_ftgSksIn, list_ftgSksOut = self.ToolGetNearestSockets(nd, cur_x_off=0)
+            self.fotagoAny = MinFromFtgs(list_ftgSksIn[0], list_ftgSksOut[0])
+            CheckUncollapseNodeAndReNext(nd, self, cond=self.fotagoAny) #Для режима сокетов тоже нужно перерисовывать, ибо нод у прицепившегося сокета может быть свёрнут.
+            break
+    def MatterPurposeTool(self, event, prefs, tree):
+        # print(self.fotagoAny)
+        # print(self.fotagoAny.tar)
+        # pprint(self.fotagoAny.__dict__)
+        # print(dict_str)
+        dict_str = str(self.fotagoAny.__dict__)
+        start = dict_str.find("bpy.data")
+        end = dict_str.find("],")
+        path = dict_str[start:end+1]
+        print(path)
+        # bpy.data.materials['Material'].node_tree.nodes["Principled BSDF"].outputs[0]
+        # bpy.data.scenes['Scene'].node_tree.nodes["Render Layers"].outputs[0]
+        # bpy.data.node_groups['Geometry Nodes.002'].nodes["Group Input"].outputs[0]
+        # socket = self.fotagoAny.tar;socket_id = socket.identifier;node = socket.node;group_name = node.id_data.name;in_out = "outputs" if socket.is_output else "inputs"
+        # path = f"bpy.data.node_groups['{group_name}'].nodes['{node.name}'].{in_out}['{socket_id}']"   # 只适合几何节点,材质合成还不一样
+        bpy.ops.node_pie.call_node_pie("INVOKE_DEFAULT", reset_args=False, vor_call=True, socket_path=path)
+
+    def InitTool(self, event, prefs, tree):
+        self.firstResult = None #Получить действие у первого нода "свернуть" или "развернуть", а потом транслировать его на все остальные попавшиеся.
+
+SmartAddToRegAndAddToKmiDefs(VoronoiCallNodePie, "#C#_LEFTMOUSE")
+dict_setKmiCats['oth'].add(VoronoiCallNodePie.bl_idname)
+
+
 list_itemsProcBoolSocket = [('ALWAYS',"Always","Always"), ('IF_FALSE',"If false","If false"), ('NEVER',"Never","Never"), ('IF_TRUE',"If true","If true")]
 
 class VoronoiAddonPrefs(VoronoiAddonPrefs):
@@ -6138,6 +6183,7 @@ SmartAddToRegAndAddToKmiDefs(VoronoiInterfacerTool, "S#A_Z", {'toolMode':'FLIP'}
 # SmartAddToRegAndAddToKmiDefs(VoronoiInterfacerTool, "S#A_Q", {'toolMode':'DELETE'})
 SmartAddToRegAndAddToKmiDefs(VoronoiInterfacerTool, "S#A_E", {'toolMode':'SOC_TY'})
 dict_setKmiCats['spc'].add(VoronoiInterfacerTool.bl_idname)
+
 
 class VoronoiAddonPrefs(VoronoiAddonPrefs):
     vitPasteToAnySocket: bpy.props.BoolProperty(name="Allow paste to any socket", default=False)
