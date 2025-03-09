@@ -13,7 +13,7 @@ bl_info = {
     "author" : "一尘不染",
     "description" : "",
     "blender" : (3, 0, 0),
-    "version" : (2, 5, 5),
+    "version" : (2, 5, 9),
     "location" : "",
     "warning" : "",
     "doc_url": "",
@@ -140,7 +140,7 @@ class ATTRLIST_AddonPrefs(AddonPreferences):
         box1.label(text=limit2)
         box1.label(text=limit3)
 
-def active_modifier_is_gn(context, ui_type):
+def get_active_gn_tree(context, ui_type):
     if ui_type == 'GeometryNodeTree':
         # for pinned node tree
         obj = context.space_data.id
@@ -337,7 +337,7 @@ def draw_attr_menu(layout, context, is_panel):
     '''is_panel = True 时，在面板里额外绘制一些东西'''
     ui_type = context.area.ui_type
     # tree = get_tree(context, ui_type)
-    tree = active_modifier_is_gn(context, ui_type)
+    tree = get_active_gn_tree(context, ui_type)
     if tree:
         attrs_dict = {}     # {'组内': {'data_type': 'FLOAT', 'domain_info': ['点', '面']},'距离': {'data_type': 'FLOAT', 'domain_info': ['点']}}
         attrs = get_tree_attrs_dict(tree, attrs_dict, stored_group=[],
@@ -346,7 +346,8 @@ def draw_attr_menu(layout, context, is_panel):
     else:
         attrs = {}
         all_tree_attr_list = []
-    extend_dict_with_obj_data_attrs(attrs, all_tree_attr_list)
+    if ui_type == 'GeometryNodeTree' and context.space_data.id.type == "MESH":
+        extend_dict_with_obj_data_attrs(attrs, all_tree_attr_list)
     attrs = sort_attr_dict(attrs)
     # print("最终" + "*" * 60)
     # pprint(attrs)
@@ -502,7 +503,7 @@ class ATTRLIST_OT_Add_Node_Change_Name_Type_Hide(Operator):
     def invoke(self, context, event):
         return self.execute(context)
 
-def has_attr(context):
+def exist_node_tree(context):
     ui_type = context.area.ui_type
     edit_tree = context.space_data.edit_tree
     if ui_type == "GeometryNodeTree" and edit_tree:
@@ -521,7 +522,7 @@ class ATTRLIST_MT_Menu(Menu):
     @classmethod
     def poll(cls, context):
         # # ['MESH', 'CURVE', 'SURFACE', 'FONT', 'VOLUME', 'GREASEPENCIL']   能添加几何节点 才 return True
-        return has_attr(context)
+        return exist_node_tree(context)
 
     def draw(self, context):
         self.bl_options = {'SEARCH_ON_KEY_PRESS'} if not pref().use_accelerator_key else set()
@@ -540,7 +541,7 @@ class ATTRLIST_PT_NPanel(Panel):
 
     @classmethod
     def poll(cls, context):
-        return has_attr(context)
+        return exist_node_tree(context)
 
     def draw(self, context):
         layout = self.layout
