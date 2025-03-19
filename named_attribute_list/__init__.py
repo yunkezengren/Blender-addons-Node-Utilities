@@ -255,6 +255,18 @@ def get_tree_attrs_list(tree, all_tree_attr_list, stored_group):
 
     return all_tree_attr_list
 
+# ToDo: 加一个刷新（遍历电子表格获取属性），更新到额外属性里
+# box = bpy.context.evaluated_depsgraph_get()
+# obj = bpy.context.object.evaluated_get(box)
+# attrs = obj.data.attributes
+# attrs
+
+# box = bpy.context.evaluated_depsgraph_get()
+# mesh = bpy.context.object.evaluated_get(box).to_mesh()
+# attrs = mesh.attributes
+# attrs
+
+
 def extend_dict_with_evaluated_obj_attrs(attrs_dict, exclude_list, obj, all_tree_attr_list):
     box = bpy.context.evaluated_depsgraph_get()
     obj = obj.evaluated_get(box)
