@@ -42,7 +42,8 @@
 # TODO 没面板的组输入和节点组,插入接口才符合顺序
 # TODO 快速数学运算,在偏好设置里加个选项,如果连满了两个接口,是否hide
 # TODO 整数运算饼菜单
-# TODO 旋转 矩阵 快速切换饼菜单
+# TODO 旋转 快速切换饼菜单
+# _ TODO 矩阵 快速切换饼菜单
 # TODO 切换浮点整数矢量运算
 
 bl_info = {'name':"Voronoi Linker", 'author':"ugorek", #Так же спасибо "Oxicid" за важную для VL'а помощь.
@@ -554,8 +555,6 @@ def FtgGetTargetOrNone(ftg):
 
 def MinFromFtgs(ftg1, ftg2):
     # print(type(ftg1))   # <class Fotago>
-    # pprint(ftg1.__dict__)
-    # pprint(ftg2.__dict__)
     if (ftg1)or(ftg2): #Если хотя бы один из них существует.
         if not ftg2: #Если одного из них не существует,
             return ftg1
@@ -3305,9 +3304,6 @@ dict_vmtMixerNodesDefs = { #'-1' означают визуальную здес�
         'FunctionNodeTransformPoint':     (1, 0, "Transform Point"),
         'FunctionNodeTransformDirection': (1, 0, "Transform Direction"),
         'FunctionNodeProjectPoint':       (1, 0, "Project Point"),
-        # 'FunctionNodeTransformPoint':     (1, 0, "Transform Point"),
-        # 'FunctionNodeTransformDirection': (1, 0, "Transform Direction"),
-        # 'FunctionNodeProjectPoint':       (1, 0, "Project Point"),
         'FunctionNodeMatrixDeterminant':  (0, 0, "Determinant"),
         }
 with VlTrMapForKey("Switch  ") as dm:
@@ -3428,10 +3424,6 @@ class VmtPieMixer(bpy.types.Menu):
             if VmtData.sk1 and (sk0_type == "MATRIX") != (sk1_type == "MATRIX"):
                 vec_mat_math = True
             mat_mat_math = True if (sk0_type == "MATRIX" and sk1_type == "MATRIX") else False
-            # if VmtData.sk1 and ((sk0_type != "MATRIX" and VmtData.sk1.type == "MATRIX") or (VmtData.sk1.type != "MATRIX" and sk0_type == "MATRIX")):
-            #     vec_mat_math = True
-            # if VmtData.sk1 and (sk0_type == "MATRIX" and VmtData.sk1.type == "MATRIX"):
-                
             match editorBlid:
                 case 'ShaderNodeTree':
                     row2 = LyGetPieCol(0).row(align=VmtData.pieAlignment==0)
@@ -3469,10 +3461,6 @@ class VmtPieMixer(bpy.types.Menu):
                             if vec_mat_math and ti in ["FunctionNodeMatrixMultiply", "FunctionNodeMatrixDeterminant", "FunctionNodeInvertMatrix"]:
                                 continue
                             if mat_mat_math and ti not in ["FunctionNodeMatrixMultiply"]: continue
-                            # 'GeometryNodeSwitch',
-                            # "FunctionNodeMatrixMultiply", "FunctionNodeInvertMatrix", 
-                            # "FunctionNodeTransformPoint", "FunctionNodeTransformDirection", "FunctionNodeProjectPoint",
-                            # "FunctionNodeMatrixDeterminant"
                             LyVmAddItem(col, ti)
                             sco += 1
             if VmtData.pieDisplaySocketTypeInfo:
@@ -4711,6 +4699,7 @@ class VoronoiCallNodePie(VoronoiToolAny):
         # pprint(Fotago_nodes[0].__dict__)
         node_count = 5 if len(Fotago_nodes) >= 5 else len(Fotago_nodes)
         Fotago_sockets = []
+        # 优化了最近接口的获取
         for ftgNd in Fotago_nodes[:node_count]:
             nd = ftgNd.tar
             if (not self.isTriggerOnCollapsedNodes)and(nd.hide):
@@ -4726,19 +4715,7 @@ class VoronoiCallNodePie(VoronoiToolAny):
         self.fotagoAny = near_ftg_soc
         if near_ftg_soc:
             CheckUncollapseNodeAndReNext(near_ftg_soc.tar.node, self, cond=self.fotagoAny) #Для режима сокетов тоже нужно перерисовывать, ибо нод у прицепившегося сокета может быть свёрнут.
-        
-        # for ftgNd in self.ToolGetNearestNodes(cur_x_off=0):
-        #     nd = ftgNd.tar
-        #     if (not self.isTriggerOnCollapsedNodes)and(nd.hide):
-        #         continue
-        #     self.fotagoAny = ftgNd
-        #     list_ftgSksIn, list_ftgSksOut = self.ToolGetNearestSockets(nd, cur_x_off=0)
-        #     # 有的节点只有输入或输出接口
-        #     skIn = list_ftgSksIn[0] if list_ftgSksIn else []        # <class 'VoronoiLinker.Fotago'>
-        #     skOut = list_ftgSksOut[0] if list_ftgSksOut else []
-        #     self.fotagoAny = MinFromFtgs(skIn, skOut)
-        #     CheckUncollapseNodeAndReNext(nd, self, cond=self.fotagoAny) #Для режима сокетов тоже нужно перерисовывать, ибо нод у прицепившегося сокета может быть свёрнут.
-        #     break
+
     def MatterPurposeTool(self, event, prefs, tree):
         # print(self.fotagoAny)
         # print(self.fotagoAny.tar)
