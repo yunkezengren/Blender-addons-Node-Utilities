@@ -31,17 +31,19 @@
 # 小王-显示节点选项优化
 # 小王-显示节点选项优化-根据选项重命名节点-domain
 # 小王-隐藏接口值-节点组
+# 小王-新接口类型的Mix饼菜单
 
-# todo 补全工具名称提示
-# todo 接口1移到接口2上  FLIP模式，在两个接口绘制名后加上 接口1 接口2
+# _ todo 补全工具名称提示
+# _ todo 接口1移到接口2上  FLIP模式，在两个接口绘制名后加上 接口1 接口2
 # _ 粘贴接口名,只支持那几个特定的
-# TODO 快速数学运算,在偏好设置里加个选项,如果连满了两个接口,是否hide
 # _ 浮点饼菜单 to 弧度 角度
 # _ 自动隐藏显示接口后,扩展接口不显示
-# TODO 交换接口 复制粘贴接口名 扩展接口 CTRl Shift A  Alt Shift A
-# TODO 整数运算饼菜单,切换浮点整数矢量运算
-# TODO 旋转 矩阵 饼菜单
+# _ TODO 交换接口 复制粘贴接口名 扩展接口 CTRl Shift A  Alt Shift A
 # TODO 没面板的组输入和节点组,插入接口才符合顺序
+# TODO 快速数学运算,在偏好设置里加个选项,如果连满了两个接口,是否hide
+# TODO 整数运算饼菜单
+# TODO 旋转 矩阵 快速切换饼菜单
+# TODO 切换浮点整数矢量运算
 
 bl_info = {'name':"Voronoi Linker", 'author':"ugorek", #Так же спасибо "Oxicid" за важную для VL'а помощь.
            'version':(5,1,2), 'blender':(4,0,2), 'created':"2024.03.06", #Ключ 'created' для внутренних нужд.
@@ -297,6 +299,10 @@ txt_BooleanQuickMath = "Boolean Quick Math"
 with VlTrMapForKey(txt_BooleanQuickMath) as dm:
     dm["zh_CN"] = "快速布尔运算"
 
+txt_MatrixQuickMath = "Matrix Quick Math"
+with VlTrMapForKey(txt_MatrixQuickMath) as dm:
+    dm["zh_CN"] = "快速矩阵运算"
+
 txt_ColorQuickMode = "Color Quick Mode"
 with VlTrMapForKey(txt_ColorQuickMode) as dm:
     dm["zh_CN"] = "快速颜色运算"
@@ -458,7 +464,7 @@ dict_typeSkToBlid = {
 def SkConvertTypeToBlid(sk):
     return dict_typeSkToBlid.get(sk.type, "Vl_Unknow")
 
-set_utilTypeSkFields = {'VALUE', 'RGBA', 'VECTOR', 'INT', 'BOOLEAN', 'ROTATION', 'STRING', 'MATRIX'}       # 小王-Alt D 支持的接口
+set_utilTypeSkFields = {'VALUE', 'RGBA', 'VECTOR', 'INT', 'BOOLEAN', 'ROTATION', 'STRING', 'MATRIX'}       # 小王-Alt D 等多个操作 支持的接口
 
 def IsClassicSk(sk):
     set_classicSocketsBlid = {'NodeSocketShader',  'NodeSocketColor',   'NodeSocketVector','NodeSocketFloat',     'NodeSocketString',  'NodeSocketInt',    'NodeSocketBool',
@@ -521,7 +527,6 @@ def NewLinkHhAndRemember(sko, ski):
     DoLinkHh(sko, ski) #sko.id_data.links.new(sko, ski)
     VlrtRememberLastSockets(sko, ski)
 
-
 def GetOpKmi(self, event): #Todo00 есть ли концепция или способ правильнее?
     #Оператор может иметь несколько комбинаций вызова, все из которых будут одинаковы по ключу в `keymap_items`, поэтому перебираем всех вручную
     blid = getattr(bpy.types, self.bl_idname).bl_idname
@@ -548,6 +553,9 @@ def FtgGetTargetOrNone(ftg):
     return ftg.tar if ftg else None
 
 def MinFromFtgs(ftg1, ftg2):
+    # print(type(ftg1))   # <class Fotago>
+    # pprint(ftg1.__dict__)
+    # pprint(ftg2.__dict__)
     if (ftg1)or(ftg2): #Если хотя бы один из них существует.
         if not ftg2: #Если одного из них не существует,
             return ftg1
@@ -3124,14 +3132,20 @@ class VoronoiMixerTool(VoronoiToolPairSk):
             return self.fotagoSk1
     def MatterPurposeTool(self, event, prefs, tree):
         VmtData.sk0 = self.fotagoSk0.tar
-        VmtData.sk1 = FtgGetTargetOrNone(self.fotagoSk1)
+        socket1 = FtgGetTargetOrNone(self.fotagoSk1)
+        VmtData.sk1 = socket1
         #Поддержка виртуальных выключена; читается только из первого
-        VmtData.skType = VmtData.sk0.type if VmtData.sk0.bl_idname!='NodeSocketVirtual' else VmtData.sk1.type
+        VmtData.skType = VmtData.sk0.type if VmtData.sk0.bl_idname!='NodeSocketVirtual' else socket1.type
         VmtData.isHideOptions = self.isHideOptions
         VmtData.isPlaceImmediately = self.isPlaceImmediately
-        SetPieData(self, VmtData, prefs, PowerArr4(GetSkColSafeTup4(VmtData.sk0), pw=2.2))
+        _sk = VmtData.sk0
+        if socket1 and socket1.type == "MATRIX":
+            VmtData.skType = "MATRIX"
+            _sk = VmtData.sk1
+        SetPieData(self, VmtData, prefs, PowerArr4(GetSkColSafeTup4(_sk), pw=2.2))
         if not self.isInvokeInClassicTree: #В связи с usefulnessForCustomTree, бесполезная проверка.
             return {'CANCELLED'} #Если место действия не в классических редакторах, то просто выйти. Ибо классические редакторы у всех одинаковые, а аддонских есть бесчисленное множество.
+
         tup_nodes = dict_vmtTupleMixerMain.get(tree.bl_idname, False).get(VmtData.skType, None)
         if tup_nodes:
             if length(tup_nodes)==1: #Если выбор всего один, то пропустить его и сразу переходить к смешиванию.
@@ -3218,6 +3232,7 @@ with VlTrMapForKey(TxtClsBlabToolSett(VoronoiMixerTool)) as dm:
 dict_toolLangSpecifDataPool[VoronoiMixerTool, "ru_RU"] = "Канонический инструмент для частых нужд смешивания.\nСкорее всего 70% уйдёт на использование \"Instance on Points\"."
 
 vmtSep = 'MixerItemsSeparator123'
+# 小王-新接口类型的Mix饼菜单
 dict_vmtTupleMixerMain = { #Порядок важен; самые частые (в этом списке) идут первее (кроме MixRGB).
         'ShaderNodeTree':     {'SHADER':     ('ShaderNodeMixShader','ShaderNodeAddShader'),
                                'VALUE':      ('ShaderNodeMixRGB',  'ShaderNodeMix',                      'ShaderNodeMath'),
@@ -3234,6 +3249,10 @@ dict_vmtTupleMixerMain = { #Порядок важен; самые частые (
                                'INT':        ('GeometryNodeSwitch','ShaderNodeMix','FunctionNodeCompare','ShaderNodeMath'),
                                'BOOLEAN':    ('GeometryNodeSwitch','ShaderNodeMix','FunctionNodeCompare','ShaderNodeMath',                       'FunctionNodeBooleanMath'),
                                'ROTATION':   ('GeometryNodeSwitch','ShaderNodeMix'),
+                               'MATRIX':     ('GeometryNodeSwitch', 
+                                              "FunctionNodeMatrixMultiply", "FunctionNodeInvertMatrix", 
+                                              "FunctionNodeTransformPoint", "FunctionNodeTransformDirection", "FunctionNodeProjectPoint",
+                                              "FunctionNodeMatrixDeterminant",),
                                'OBJECT':     ('GeometryNodeSwitch',),
                                'MATERIAL':   ('GeometryNodeSwitch',),
                                'COLLECTION': ('GeometryNodeSwitch',),
@@ -3280,7 +3299,17 @@ dict_vmtMixerNodesDefs = { #'-1' означают визуальную здес�
         'GeometryNodeInstanceOnPoints':   (0, 2, "Instance on Points "),
         'GeometryNodeCurveToMesh':        (0, 1, "Curve to Mesh "),
         'GeometryNodeMeshBoolean':        (0, 1, "Boolean "),
-        'GeometryNodeGeometryToInstance': (0, 0, "To Instance ")}
+        'GeometryNodeGeometryToInstance': (0, 0, "To Instance "),
+        'FunctionNodeMatrixMultiply':     (0, 1, "Multiply"),
+        'FunctionNodeInvertMatrix':       (0, 0, "Invert"),
+        'FunctionNodeTransformPoint':     (1, 0, "Transform Point"),
+        'FunctionNodeTransformDirection': (1, 0, "Transform Direction"),
+        'FunctionNodeProjectPoint':       (1, 0, "Project Point"),
+        # 'FunctionNodeTransformPoint':     (1, 0, "Transform Point"),
+        # 'FunctionNodeTransformDirection': (1, 0, "Transform Direction"),
+        # 'FunctionNodeProjectPoint':       (1, 0, "Project Point"),
+        'FunctionNodeMatrixDeterminant':  (0, 0, "Determinant"),
+        }
 with VlTrMapForKey("Switch  ") as dm:
     dm["ru_RU"] = "Переключение"
 with VlTrMapForKey("Mix  ") as dm:
@@ -3322,11 +3351,17 @@ def DoMix(tree, isShift, isAlt, type):
                 NewLinkHhAndRemember(VmtData.sk1, list_foundSk[(not tgl)^isShift])
         case _:
             #Такая плотная суета ради мультиинпута -- для него нужно изменить порядок подключения.
-            if (VmtData.sk1)and(aNd.inputs[dict_vmtMixerNodesDefs[aNd.bl_idname][0]].is_multi_input): #`0` здесь в основном из-за того, что в dict_vmtMixerNodesDefs у "нодов-мультиинпутов" всё по нулям.
-                NewLinkHhAndRemember( VmtData.sk1, aNd.inputs[dict_vmtMixerNodesDefs[aNd.bl_idname][1^isShift]] )
-            DoLinkHh( VmtData.sk0, aNd.inputs[dict_vmtMixerNodesDefs[aNd.bl_idname][0^isShift]] ) #Заметка: Это не NewLinkHhAndRemember(), чтобы визуальный второй мультиинпута был последним в VlrtData.
-            if (VmtData.sk1)and(not aNd.inputs[dict_vmtMixerNodesDefs[aNd.bl_idname][0]].is_multi_input):
-                NewLinkHhAndRemember( VmtData.sk1, aNd.inputs[dict_vmtMixerNodesDefs[aNd.bl_idname][1^isShift]] )
+            Mix_item = dict_vmtMixerNodesDefs[aNd.bl_idname]
+            swap_link = 0       # sk0是矩阵,sk1是矢量,不交换(这是默认情况)
+            if VmtData.sk1 and VmtData.sk1.type == "MATRIX" and VmtData.sk0.type != "MATRIX":
+                swap_link = 1
+            soc_in = aNd.inputs[Mix_item[1^isShift^swap_link]]
+            is_multi_in = aNd.inputs[Mix_item[0]].is_multi_input
+            if (VmtData.sk1)and(is_multi_in): #`0` здесь в основном из-за того, что в dict_vmtMixerNodesDefs у "нодов-мультиинпутов" всё по нулям.
+                NewLinkHhAndRemember( VmtData.sk1, soc_in)
+            DoLinkHh( VmtData.sk0, aNd.inputs[Mix_item[0^isShift]^swap_link] ) #Заметка: Это не NewLinkHhAndRemember(), чтобы визуальный второй мультиинпута был последним в VlrtData.
+            if (VmtData.sk1)and(not is_multi_in):
+                NewLinkHhAndRemember( VmtData.sk1, soc_in)
     aNd.show_options = not VmtData.isHideOptions
     #Далее так же, как и в vqmt. У него первично; здесь дублировано для интуитивного соответствия.
     if isAlt:
@@ -3385,6 +3420,18 @@ class VmtPieMixer(bpy.types.Menu):
                 list_cols[inx] = col
                 list_done[inx] = True
                 return col
+            sk0_type = VmtData.sk0.type
+            sk1_type = VmtData.sk1.type if VmtData.sk1 else None
+            vec_mat_math = False    # 有矢量和矩阵输入接口的节点
+            # 连接了两个接口，且一矩阵一不是矩阵
+            # if VmtData.sk1 and ((sk0_type != "MATRIX" and sk1_type == "MATRIX") or (sk0_type == "MATRIX" and sk1_type != "MATRIX")):
+            if VmtData.sk1 and (sk0_type == "MATRIX") != (sk1_type == "MATRIX"):
+                vec_mat_math = True
+            mat_mat_math = True if (sk0_type == "MATRIX" and sk1_type == "MATRIX") else False
+            # if VmtData.sk1 and ((sk0_type != "MATRIX" and VmtData.sk1.type == "MATRIX") or (VmtData.sk1.type != "MATRIX" and sk0_type == "MATRIX")):
+            #     vec_mat_math = True
+            # if VmtData.sk1 and (sk0_type == "MATRIX" and VmtData.sk1.type == "MATRIX"):
+                
             match editorBlid:
                 case 'ShaderNodeTree':
                     row2 = LyGetPieCol(0).row(align=VmtData.pieAlignment==0)
@@ -3399,8 +3446,9 @@ class VmtPieMixer(bpy.types.Menu):
                     row2.enabled = False
                     row3.enabled = False
                     LyVmAddItem(row1, 'GeometryNodeSwitch')
-                    LyVmAddItem(row2, 'ShaderNodeMix')
-                    LyVmAddItem(row3, 'FunctionNodeCompare')
+                    if VmtData.skType != "MATRIX":  # 暂时只是让矩阵接口的混合饼菜单不显示 混合和比较节点
+                        LyVmAddItem(row2, 'ShaderNodeMix')
+                        LyVmAddItem(row3, 'FunctionNodeCompare')
                     # # 小王-混合饼菜单对比较节点的额外支持
                     # row4 = col.row(align=VmtData.pieAlignment==0)
                     # row5 = col.row(align=VmtData.pieAlignment==0)
@@ -3418,6 +3466,13 @@ class VmtPieMixer(bpy.types.Menu):
                             if sco:
                                 col.separator()
                         else:
+                            if vec_mat_math and ti in ["FunctionNodeMatrixMultiply", "FunctionNodeMatrixDeterminant", "FunctionNodeInvertMatrix"]:
+                                continue
+                            if mat_mat_math and ti not in ["FunctionNodeMatrixMultiply"]: continue
+                            # 'GeometryNodeSwitch',
+                            # "FunctionNodeMatrixMultiply", "FunctionNodeInvertMatrix", 
+                            # "FunctionNodeTransformPoint", "FunctionNodeTransformDirection", "FunctionNodeProjectPoint",
+                            # "FunctionNodeMatrixDeterminant"
                             LyVmAddItem(col, ti)
                             sco += 1
             if VmtData.pieDisplaySocketTypeInfo:
@@ -3444,7 +3499,7 @@ class VqmtData(PieRootData):
     isFirstDone = False #https://github.com/ugorek000/VoronoiLinker/issues/20
     dict_existingValues = {}
 
-set_vqmtSkTypeFields = {'VALUE', 'RGBA', 'VECTOR', 'INT', 'BOOLEAN', 'ROTATION'}
+set_vqmtSkTypeFields = {'VALUE', 'RGBA', 'VECTOR', 'INT', 'BOOLEAN', 'ROTATION', 'MATRIX'}
 
 fitVqmtRloDescr = "Bypassing the pie call, activates the last used operation for the selected socket type.\n"+\
                   "Searches for sockets only from an available previous operations that were performed for the socket type.\n"+\
@@ -3488,10 +3543,10 @@ class VoronoiQuickMathTool(VoronoiToolTripleSk):
                                 break
                         else: #Для isQuickQuickMath цепляться только к типам сокетов от явно указанных операций.
                             match ftg.tar.type:
-                                case 'VALUE'|'INT':     isSucessOut = self.quickOprFloat
-                                case 'VECTOR':          isSucessOut = self.quickOprVector
-                                case 'BOOLEAN':         isSucessOut = self.quickOprBool
-                                case 'RGBA'|'ROTATION': isSucessOut = self.quickOprColor
+                                case 'VALUE'|'INT':         isSucessOut = self.quickOprFloat
+                                case 'VECTOR' | "ROTATION": isSucessOut = self.quickOprVector
+                                case 'BOOLEAN':             isSucessOut = self.quickOprBool
+                                case 'RGBA':                isSucessOut = self.quickOprColor
                             if isSucessOut:
                                 self.fotagoSk0 = ftg
                                 break
@@ -3565,7 +3620,8 @@ class VoronoiQuickMathTool(VoronoiToolTripleSk):
         VqmtData.qmTrueSkType = VqmtData.qmSkType #Эта информация нужна для "последней операции".
         match VqmtData.sk0.type:
             case 'INT':      VqmtData.qmSkType = 'VALUE' #И только целочисленный обделён своим нодом математики. Может его добавят когда-нибудь?.
-            case 'ROTATION': VqmtData.qmSkType = 'RGBA' #Больше шансов, что для математика для кватерниона будет первее.
+            case 'ROTATION': VqmtData.qmSkType = 'VECTOR' #Больше шансов, что для математика для кватерниона будет первее.
+            case 'MATRIX':   VqmtData.qmSkType = 'MATRIX' #Больше шансов, что для математика для кватерниона будет первее.
             #case 'ROTATION': return {'FINISHED'} #Однако странно, почему с RGBA линки отмечаются некорректными, ведь оба Arr4... Зачем тогда цвету альфа?
         match tree.bl_idname:
             case 'ShaderNodeTree':     VqmtData.qmSkType = {'BOOLEAN':'VALUE'}.get(VqmtData.qmSkType, VqmtData.qmSkType)
@@ -3580,6 +3636,8 @@ class VoronoiQuickMathTool(VoronoiToolTripleSk):
                 case 'VECTOR':  opr = self.quickOprVector
                 case 'BOOLEAN': opr = self.quickOprBool
                 case 'RGBA':    opr = self.quickOprColor
+                case 'MATRIX':  opr = self.quickOprColor
+            pprint(VqmtData.qmSkType)
             return DoQuickMath(event, tree, opr)
         self.VqmSetPieData(prefs, PowerArr4(GetSkColSafeTup4(VqmtData.sk0), pw=2.2))
         VqmtData.isJustPie = False
@@ -3691,8 +3749,8 @@ dict_setKmiCats['grt'].add(VoronoiQuickMathTool.bl_idname)
 class VoronoiAddonPrefs(VoronoiAddonPrefs):
     vqmtDisplayIcons:          bpy.props.BoolProperty(name="Display icons",           default=True)
     vqmtIncludeThirdSk:        bpy.props.BoolProperty(name="Include third socket",    default=True)
-    vqmtIncludeQuickPresets:   bpy.props.BoolProperty(name="Include quick presets",   default=True)
-    vqmtIncludeExistingValues: bpy.props.BoolProperty(name="Include existing values", default=True)
+    vqmtIncludeQuickPresets:   bpy.props.BoolProperty(name="Include quick presets",   default=False)
+    vqmtIncludeExistingValues: bpy.props.BoolProperty(name="Include existing values", default=False)
     vqmtRepickKey: bpy.props.StringProperty(name="Repick Key", default='LEFT_ALT')
     ##
     vqmtPieType:               bpy.props.EnumProperty( name="Pie Type", default='CONTROL', items=( ('CONTROL',"Control",""), ('SPEED',"Speed","") ))
@@ -4010,6 +4068,7 @@ class VqmtPieMath(bpy.types.Menu):
                     case 'VECTOR':  txt = txt_VectorQuickMath
                     case 'BOOLEAN': txt = txt_BooleanQuickMath
                     case 'RGBA':    txt = txt_ColorQuickMode
+                    case 'MATRIX':  txt = txt_MatrixQuickMath
                 row.label(text=txt)
                 row.alignment = 'CENTER'
             ##
@@ -4123,6 +4182,13 @@ class VqmtPieMath(bpy.types.Menu):
                 LyVqmAddItem(colLeft,'XNOR')
                 LyVqmAddItem(colCenter,'IMPLY')
                 LyVqmAddItem(colCenter,'NIMPLY')
+            def DrawForMatrix():
+                LyVqmAddItem(colRight,'FunctionNodeMatrixMultiply')
+                LyVqmAddItem(colRight,'FunctionNodeInvertMatrix')
+                LyVqmAddItem(colRight,'FunctionNodeMatrixDeterminant')
+                LyVqmAddItem(colLeft,'FunctionNodeTransformPoint')
+                LyVqmAddItem(colLeft,'FunctionNodeTransformDirection')
+                LyVqmAddItem(colLeft,'FunctionNodeProjectPoint')
             def DrawForCol():
                 for li in ('LIGHTEN','DARKEN','SCREEN','DODGE','LINEAR_LIGHT','SOFT_LIGHT','OVERLAY','BURN'):
                     LyVqmAddItem(colRight, li)
@@ -4134,6 +4200,7 @@ class VqmtPieMath(bpy.types.Menu):
                 case 'VALUE'|'VECTOR': DrawForValVec(VqmtData.qmSkType=='VECTOR')
                 case 'BOOLEAN': DrawForBool()
                 case 'RGBA': DrawForCol()
+                case 'MATRIX': DrawForMatrix()
 
 dict_classes[VqmtOpMain] = True
 dict_classes[VqmtPieMath] = True
@@ -4638,16 +4705,40 @@ class VoronoiCallNodePie(VoronoiToolAny):
         self.TemplateDrawAny(drata, self.fotagoAny, cond=False, tool_name="节点饼菜单")
         # TemplateDrawSksToolHh(drata, self.fotagoSkMain, self.fotagoSkRosw, tool_name="节点饼菜单")
     def NextAssignmentTool(self, _isFirstActivation, prefs, tree):
+        # pprint(self.__dict__)
         self.fotagoAny = None
-        for ftgNd in self.ToolGetNearestNodes(cur_x_off=0):
+        Fotago_nodes = self.ToolGetNearestNodes()     # ->list[Fotago] <class Fotago> 这里 .tar 是 Node
+        # pprint(Fotago_nodes[0].__dict__)
+        node_count = 5 if len(Fotago_nodes) >= 5 else len(Fotago_nodes)
+        Fotago_sockets = []
+        for ftgNd in Fotago_nodes[:node_count]:
             nd = ftgNd.tar
             if (not self.isTriggerOnCollapsedNodes)and(nd.hide):
                 continue
             self.fotagoAny = ftgNd
-            list_ftgSksIn, list_ftgSksOut = self.ToolGetNearestSockets(nd, cur_x_off=0)
-            self.fotagoAny = MinFromFtgs(list_ftgSksIn[0], list_ftgSksOut[0])
-            CheckUncollapseNodeAndReNext(nd, self, cond=self.fotagoAny) #Для режима сокетов тоже нужно перерисовывать, ибо нод у прицепившегося сокета может быть свёрнут.
-            break
+            # 这的最近节点的输入输出接口，有时候最近的是输出节口，但是没有离最近的节点的输入接口更近，所以把最近的几个节点接口列表合并
+            l_ftgSksIn, l_ftgSksOut = self.ToolGetNearestSockets(nd)   # ->([], [])  <class Fotago> 这里 .tar 是 Socket
+            Fotago_sockets.extend(l_ftgSksIn)
+            Fotago_sockets.extend(l_ftgSksOut)
+        Fotago_sockets.sort(key=lambda soc: soc.dist)
+        near_ftg_soc = Fotago_sockets[0] if Fotago_sockets else []
+        # pprint(Fotago_sockets[0].__dict__)
+        self.fotagoAny = near_ftg_soc
+        if near_ftg_soc:
+            CheckUncollapseNodeAndReNext(near_ftg_soc.tar.node, self, cond=self.fotagoAny) #Для режима сокетов тоже нужно перерисовывать, ибо нод у прицепившегося сокета может быть свёрнут.
+        
+        # for ftgNd in self.ToolGetNearestNodes(cur_x_off=0):
+        #     nd = ftgNd.tar
+        #     if (not self.isTriggerOnCollapsedNodes)and(nd.hide):
+        #         continue
+        #     self.fotagoAny = ftgNd
+        #     list_ftgSksIn, list_ftgSksOut = self.ToolGetNearestSockets(nd, cur_x_off=0)
+        #     # 有的节点只有输入或输出接口
+        #     skIn = list_ftgSksIn[0] if list_ftgSksIn else []        # <class 'VoronoiLinker.Fotago'>
+        #     skOut = list_ftgSksOut[0] if list_ftgSksOut else []
+        #     self.fotagoAny = MinFromFtgs(skIn, skOut)
+        #     CheckUncollapseNodeAndReNext(nd, self, cond=self.fotagoAny) #Для режима сокетов тоже нужно перерисовывать, ибо нод у прицепившегося сокета может быть свёрнут.
+        #     break
     def MatterPurposeTool(self, event, prefs, tree):
         # print(self.fotagoAny)
         # print(self.fotagoAny.tar)
@@ -4950,6 +5041,7 @@ get_domain_cn = {k: v for k, v in zip(domain_en, domain_ch)}
 get_mesh_domain_cn = {k: v for k, v in zip(mesh_domain_en, mesh_domain_ch)}
 
 def rename_node_based_option(node):
+    """ 节点根据选项重命名 """
     nodes_has_domin = [ "GeometryNodeFieldOnDomain", "GeometryNodeFieldAtIndex",
                         "GeometryNodeSampleIndex", "GeometryNodeSampleNearest",
                         "GeometryNodeStoreNamedAttribute", "GeometryNodeCaptureAttribute",
@@ -4971,9 +5063,8 @@ def rename_node_based_option(node):
                 node.label = domain_cn + ": " + attr_name
             else:
                 node.label = "存储" + domain_cn + "属性"
-
         if node.bl_idname == "GeometryNodeCaptureAttribute":
-            node.label = "传递" + domain_cn + "属性"
+            node.label = "捕捉" + domain_cn + "属性"
         if node.bl_idname == "GeometryNodeSeparateGeometry":
             node.label = "分离" + domain_cn
         if node.bl_idname == "GeometryNodeDeleteGeometry":
@@ -4987,6 +5078,15 @@ def rename_node_based_option(node):
     if node.bl_idname == "GeometryNodeMeshToPoints":
         domain_cn = get_mesh_domain_cn[node.mode]
         node.label = domain_cn + " -> 点"
+    if node.bl_idname == "GeometryNodeResampleCurve":
+        if node.mode == "EVALUATED":
+            node.label = "曲线重采样: 已解算"
+    if node.bl_idname == "ShaderNodeVectorRotate":
+        rot_type = node.rotation_type
+        if "_AXIS" in rot_type:
+            node.label = "矢量旋转: " + rot_type.replace("_AXIS", "轴")
+            if node.invert:
+                node.label += " 反转"
 
 class VoronoiEnumSelectorTool(VoronoiToolNd):
     bl_idname = 'node.voronoi_enum_selector'
@@ -5569,6 +5669,8 @@ def Do_Rotation_Converter(context, isS, isA, node_type):
                 tree.links.new(skIn, sk1)
                 if sk2:
                     tree.links.new(skIn, sk2)
+        if not hasattr(sk0, "default_value"):
+            return
         value = sk0.default_value
         if aNd.bl_idname == "FunctionNodeEulerToRotation":
             aNd.inputs[0].default_value = value     # 旋转值传递
