@@ -296,6 +296,10 @@ txt_VectorQuickMath = "Vector Quick Math"
 with VlTrMapForKey(txt_VectorQuickMath) as dm:
     dm["zh_CN"] = "快速矢量运算"
 
+txt_IntQuickMath = "Integer Quick Math"
+with VlTrMapForKey(txt_IntQuickMath) as dm:
+    dm["zh_CN"] = "快速整数运算"
+
 txt_BooleanQuickMath = "Boolean Quick Math"
 with VlTrMapForKey(txt_BooleanQuickMath) as dm:
     dm["zh_CN"] = "快速布尔运算"
@@ -670,7 +674,7 @@ def OpaqueCol3Tup4(col, *, al=1.0):
     return (col[0], col[1], col[2], al)
 def MaxCol4Tup4(col):
     return (max(col[0], 0), max(col[1], 0), max(col[2], 0), max(col[3], 0))
-def GetSkColorRaw(sk):
+def GetSkColorRaw(sk: bpy.types.NodeSocket):
     if sk.bl_idname=='NodeSocketUndefined':
         return (1.0, 0.2, 0.2, 1.0)
     elif hasattr(sk,'draw_color'):
@@ -3486,9 +3490,11 @@ class VqmtData(PieRootData):
     dict_lastOperation = {}
     isFirstDone = False #https://github.com/ugorek000/VoronoiLinker/issues/20
     dict_existingValues = {}
+    test_bool = False
 
+float_int_color = {"INT": (0.35, 0.55, 0.36, 1), "VALUE": (0.63, 0.63, 0.63, 1)}
+floatIntColorInverse = {"INT": (0.63, 0.63, 0.63, 1), "VALUE": (0.35, 0.55, 0.36, 1)}
 set_vqmtSkTypeFields = {'VALUE', 'RGBA', 'VECTOR', 'INT', 'BOOLEAN', 'ROTATION', 'MATRIX'}
-
 fitVqmtRloDescr = "Bypassing the pie call, activates the last used operation for the selected socket type.\n"+\
                   "Searches for sockets only from an available previous operations that were performed for the socket type.\n"+\
                   "Just a pie call, and the fast fast math is not remembered as the last operations"
@@ -3498,14 +3504,16 @@ class VoronoiQuickMathTool(VoronoiToolTripleSk):
     usefulnessForCustomTree = False
     canDrawInAppearance = True
     quickOprFloat:         bpy.props.StringProperty(name="Float (quick)",  default="") #Они в начале, чтобы в kmi отображалось выровненным.
+    quickOprInt:           bpy.props.StringProperty(name="Int (quick)",  default="") #Они в начале, чтобы в kmi отображалось выровненным.
     quickOprVector:        bpy.props.StringProperty(name="Vector (quick)", default="") #quick вторым, чтобы при нехватке места отображалось первое слово, от чего пришлось заключить в скобки.
     isCanFromOne:          bpy.props.BoolProperty(name="Can from one socket", default=True)
     isRepeatLastOperation: bpy.props.BoolProperty(name="Repeat last operation", default=False, description=fitVqmtRloDescr) #Что ж, квартет qqm теперь вынуждает их постоянно выравнивать.
-    isHideOptions:         bpy.props.BoolProperty(name="Hide node options",   default=False)
+    isHideOptions:         bpy.props.BoolProperty(name="Hide node options",   default=True)
     isPlaceImmediately:    bpy.props.BoolProperty(name="Place immediately",   default=False)
     quickOprBool:          bpy.props.StringProperty(name="Bool (quick)",   default="")
     quickOprColor:         bpy.props.StringProperty(name="Color (quick)",  default="")
-    justPieCall:           bpy.props.IntProperty(name="Just call pie", default=0, min=0, max=4, description="Call pie to add a node, bypassing the sockets selection.\n0 – Disable.\n1 – Float.\n2 – Vector.\n3 – Boolean.\n4 – Color")
+    justPieCall:           bpy.props.IntProperty(name="Just call pie", default=0, min=0, max=5, 
+                                                 description="Call pie to add a node, bypassing the sockets selection.\n0–Disable.\n1–Float.\n2–Vector.\n3–Boolean.\n4–Color.\n5–Int")
     def CallbackDrawTool(self, drata):
         TemplateDrawSksToolHh(drata, self.fotagoSk0, self.fotagoSk1, self.fotagoSk2, tool_name="Quick Math")
     def NextAssignmentTool(self, isFirstActivation, prefs, tree):
@@ -3531,7 +3539,9 @@ class VoronoiQuickMathTool(VoronoiToolTripleSk):
                                 break
                         else: #Для isQuickQuickMath цепляться только к типам сокетов от явно указанных операций.
                             match ftg.tar.type:
-                                case 'VALUE'|'INT':         isSucessOut = self.quickOprFloat
+                                # case 'VALUE'|'INT':         isSucessOut = self.quickOprFloat
+                                case 'VALUE':         isSucessOut = self.quickOprFloat
+                                # case 'INT':           isSucessOut = self.quickOprInt
                                 case 'VECTOR' | "ROTATION": isSucessOut = self.quickOprVector
                                 case 'BOOLEAN':             isSucessOut = self.quickOprBool
                                 case 'RGBA':                isSucessOut = self.quickOprColor
@@ -3606,8 +3616,21 @@ class VoronoiQuickMathTool(VoronoiToolTripleSk):
         VqmtData.sk2 = FtgGetTargetOrNone(self.fotagoSk2)
         VqmtData.qmSkType = VqmtData.sk0.type #Заметка: Наличие только сокетов поля -- забота на уровень выше.
         VqmtData.qmTrueSkType = VqmtData.qmSkType #Эта информация нужна для "последней операции".
+        self.int_default_float = False
         match VqmtData.sk0.type:
-            case 'INT':      VqmtData.qmSkType = 'VALUE' #И только целочисленный обделён своим нодом математики. Может его добавят когда-нибудь?.
+            # case 'INT':      VqmtData.qmSkType = 'VALUE' #И только целочисленный обделён своим нодом математики. Может его добавят когда-нибудь?.
+            case 'INT':
+                # 为的是除了两个接口都是整数，一个接口是整数，默认浮点饼菜单
+                if VqmtData.sk1:
+                    if VqmtData.sk1.type=="INT":
+                        VqmtData.qmSkType = 'INT'
+                    if VqmtData.sk1.type=="VALUE":
+                        VqmtData.qmSkType = 'VALUE'
+                        self.int_default_float = True
+                else:
+                    # VqmtData.qmSkType = 'VALUE'   # 整数接口浮点饼
+                    # self.int_default_float = True
+                    VqmtData.qmSkType = 'INT'
             case 'ROTATION': VqmtData.qmSkType = 'VECTOR' #Больше шансов, что для математика для кватерниона будет первее.
             case 'MATRIX':   VqmtData.qmSkType = 'MATRIX' #Больше шансов, что для математика для кватерниона будет первее.
             #case 'ROTATION': return {'FINISHED'} #Однако странно, почему с RGBA линки отмечаются некорректными, ведь оба Arr4... Зачем тогда цвету альфа?
@@ -3624,10 +3647,15 @@ class VoronoiQuickMathTool(VoronoiToolTripleSk):
                 case 'VECTOR':  opr = self.quickOprVector
                 case 'BOOLEAN': opr = self.quickOprBool
                 case 'RGBA':    opr = self.quickOprColor
-                case 'MATRIX':  opr = self.quickOprColor
-            pprint(VqmtData.qmSkType)
+                # case 'INT':     opr = self.quickOprInt
             return DoQuickMath(event, tree, opr)
+        # print('这里只在绘制连线时调用一次,切换饼菜单不会刷新这里')
+        # self.VqmSetPieData(prefs, PowerArr4(GetSkColSafeTup4(VqmtData.sk0), pw=2.2))
         self.VqmSetPieData(prefs, PowerArr4(GetSkColSafeTup4(VqmtData.sk0), pw=2.2))
+        if self.int_default_float:     # 整数接口浮点饼
+            color = PowerArr4(float_int_color["VALUE"], pw=2.2)
+            pref().vaDecorColSkBack = color
+            pref().vaDecorColSk = color
         VqmtData.isJustPie = False
         VqmtData.canProcHideSks = True
         bpy.ops.node.voronoi_quick_math_main('INVOKE_DEFAULT')
@@ -3645,7 +3673,7 @@ class VoronoiQuickMathTool(VoronoiToolTripleSk):
             VqmtData.sk0 = None #Обнулять для полноты картины и для GetSkCol.
             VqmtData.sk1 = None
             VqmtData.sk2 = None
-            VqmtData.qmSkType = ('VALUE','VECTOR','BOOLEAN','RGBA')[self.justPieCall-1]
+            VqmtData.qmSkType = ('VALUE','VECTOR','BOOLEAN','RGBA', 'INT')[self.justPieCall-1]
             self.VqmSetPieData(prefs, dict_skTypeHandSolderingColor[VqmtData.qmSkType])
             VqmtData.isJustPie = True
             bpy.ops.node.voronoi_quick_math_main('INVOKE_DEFAULT')
@@ -3732,6 +3760,7 @@ SmartAddToRegAndAddToKmiDefs(VoronoiQuickMathTool, "S#A_1", {'justPieCall':1}) #
 SmartAddToRegAndAddToKmiDefs(VoronoiQuickMathTool, "S#A_2", {'justPieCall':2}) # Из-за наличия двух модификаторов приходится держать нажатым,
 SmartAddToRegAndAddToKmiDefs(VoronoiQuickMathTool, "S#A_3", {'justPieCall':3}) # от чего приходится выбирать позицией курсора, а не кликом.
 SmartAddToRegAndAddToKmiDefs(VoronoiQuickMathTool, "S#A_4", {'justPieCall':4}) # Я думал это будет неудобно, а оказалось даже приятно.
+SmartAddToRegAndAddToKmiDefs(VoronoiQuickMathTool, "S#A_5", {'justPieCall':5}) # 整数饼菜单
 dict_setKmiCats['grt'].add(VoronoiQuickMathTool.bl_idname)
 
 class VoronoiAddonPrefs(VoronoiAddonPrefs):
@@ -3815,6 +3844,7 @@ dict_vqmtEditorNodes = {
                     'GeometryNodeTree':   'ShaderNodeVectorMath'},
         ##
         'BOOLEAN': {'GeometryNodeTree':   'FunctionNodeBooleanMath'},
+        'INT':     {'GeometryNodeTree':   'FunctionNodeIntegerMath'},
         ##
         'RGBA':    {'ShaderNodeTree':     'ShaderNodeMix',
                     'GeometryNodeTree':   'ShaderNodeMix',
@@ -3827,6 +3857,11 @@ dict_vqmtDefaultValueOperation = {
                   'POWER':   (2.0, 1/3, 0.0),
                   'SQRT':    (2.0, 2.0, 2.0),
                   'ARCTAN2': (pi, pi, pi)},
+        'INT':   {'ADD':      (0, 1, 0),
+                  'SUBTRACT': (0, 1, 0),
+                  'MODULO':   (0, 2, 0),
+                  'MULTIPLY': (0, 2, 0),
+                },
         'VECTOR': {'MULTIPLY':     ( (1,1,1), (1,1,1), (1,1,1), 1.0 ),
                    'DIVIDE':       ( (1,1,1), (1,1,1), (1,1,1), 1.0 ),
                    'CROSS_PRODUCT':( (0,0,1), (0,0,1), (0,0,1), 1.0 ),
@@ -3850,6 +3885,7 @@ dict_vqmtDefaultValueOperation = {
 dict_vqmtDefaultDefault = { #Можно было оставить без изменений, но всё равно обнуляю. Ради чего был создан VQMT?.
         #Заметка: Основано на типе нода, а не на типе сокета. Повезло, что они одинаковые.
         'VALUE': (0.0, 0.0, 0.0),
+        'INT': (0, 0, 0),
         'VECTOR': ((0,0,0), (0,0,0), (0,0,0), 0.0),
         'BOOLEAN': (False, False),
         'RGBA': ( (.25,.25,.25,1), (.5,.5,.5,1) ) }
@@ -3966,6 +4002,19 @@ class VqmtOpMain(VoronoiOpTool):
         #Заметка: Здесь использование ныне несуществующего ForseSetSelfNonePropToDefault() уже не работает задуманным образом для непрямого вызова оператора.
         tree = context.space_data.edit_tree
         #if not tree: return {'CANCELLED'}
+        if self.operation == "切换浮点/整数菜单":   #  这时候类型只会是下面两种
+            _switch = {"VALUE":"INT", "INT":"VALUE"}
+            VqmtData.qmSkType = _switch[VqmtData.qmSkType]
+            color = PowerArr4(float_int_color[VqmtData.qmSkType], pw=2.2)
+            pref().vaDecorColSkBack = color
+            pref().vaDecorColSk = color
+
+            VqmtData.test_bool = True
+            _x = event.mouse_region_x
+            _y = event.mouse_region_y - 120
+            context.window.cursor_warp(_x, _y)
+            bpy.ops.wm.call_menu_pie(name=VqmtPieMath.bl_idname)
+            return {'RUNNING_MODAL'}
         match VqmtData.depth:
             case 0:
                 if VqmtData.isSpeedPie:
@@ -4006,9 +4055,10 @@ class VqmtPieMath(bpy.types.Menu):
     bl_idname = 'VL_MT_Voronoi_quick_math_pie'
     bl_label = "" #Текст здесь будет отображаться в центре пирога.
     def draw(self, _context):
-        def LyVqmAddOp(where, text, icon='NONE'):
+        def LyVqmAddOp(where, text: str, icon='NONE'):
             #Автоматический перевод выключен, ибо оригинальные операции у нода математики тоже не переводятся; по крайней мере для Русского.
-            label = text.replace("_"," ").capitalize()
+            # label = text.replace("_"," ").capitalize()
+            label = text.replace("_"," ").title()
             # 小王- 快速饼菜单按钮文本
             if text == "RADIANS":
                 label = "To Randians"
@@ -4049,16 +4099,36 @@ class VqmtPieMath(bpy.types.Menu):
                 colLabel = pie.column()
                 box = colLabel.box()
                 row = box.row(align=True)
-                if VqmtData.sk0:
-                    row.template_node_socket(color=GetSkColorRaw(VqmtData.sk0))
+                # TODO 如何对整数接口，浮点饼菜单就浮点的颜色
+                _math_type = VqmtData.qmSkType
+                _sk0 = VqmtData.sk0
+                float_or_int = False
+                if _sk0:
+                    if VqmtData.qmSkType in ["VALUE", "INT"]:
+                        float_or_int = True
+                        print("=="*20)
+                        print(VqmtData.qmSkType)
+                        color = float_int_color[VqmtData.qmSkType]   # 只影响提示的接口颜色
+                    else:
+                        color=GetSkColorRaw(_sk0)       # 原先情况：整数接口浮点饼是整数的颜色
+                    row.template_node_socket(color=color)
                 match VqmtData.qmSkType:
                     case 'VALUE':   txt = txt_FloatQuickMath
+                    case 'INT':     txt = txt_IntQuickMath
                     case 'VECTOR':  txt = txt_VectorQuickMath
                     case 'BOOLEAN': txt = txt_BooleanQuickMath
                     case 'RGBA':    txt = txt_ColorQuickMode
                     case 'MATRIX':  txt = txt_MatrixQuickMath
                 row.label(text=txt)
                 row.alignment = 'CENTER'
+                
+                if float_or_int:
+                    info = "浮点" if _math_type == "INT" else "整数"
+                    box2 = colLabel.box()
+                    row2 = box2.row(align=True)
+                    row2.template_node_socket(color=floatIntColorInverse[_math_type])   # 只影响提示的接口颜色
+                    row2.operator(VqmtOpMain.bl_idname, text="切换"+info).operation = "切换浮点/整数菜单"
+                    box2.scale_y = 1.2
             ##
             def DrawForValVec(isVec):
                 if True:
@@ -4119,7 +4189,7 @@ class VqmtPieMath(bpy.types.Menu):
                 LyVqmAddItem(colRight,'SUBTRACT','REMOVE')
                 ##
                 LyVqmAddItem(colRight,'MULTIPLY','SORTBYEXT')
-                LyVqmAddItem(colRight,'DIVIDE','FIXED_SIZE') #ITALIC  FIXED_SIZE
+                LyVqmAddItem(colRight,'DIVIDE','FIXED_SIZE')   #ITALIC  FIXED_SIZE
                 ##
                 colRight.separator()
                 LyVqmAddItem(colRight, 'MULTIPLY_ADD')
@@ -4184,10 +4254,25 @@ class VqmtPieMath(bpy.types.Menu):
                     LyVqmAddItem(colLeft, li)
                 for li in ('VALUE','SATURATION','HUE','COLOR'):
                     LyVqmAddItem(colCenter, li)
+            def DrawForInt():
+                LyVqmAddItem(colRight,'ADD','ADD')
+                LyVqmAddItem(colRight,'SUBTRACT','REMOVE')
+                LyVqmAddItem(colRight,'MULTIPLY','SORTBYEXT')
+                LyVqmAddItem(colRight,'DIVIDE','FIXED_SIZE')
+                colRight.separator()
+                LyVqmAddItem(colRight, 'MULTIPLY_ADD')
+                LyVqmAddItem(colRight, 'ABSOLUTE')
+                for li in ("POWER", "NEGATE"):
+                    LyVqmAddItem(colRight, li)
+                for li in ("MODULO", "FLOORED_MODULO", "SIGN", "DIVIDE_FLOOR", "DIVIDE_CEIL", "DIVIDE_ROUND", "GCD", "LCM"):
+                    LyVqmAddItem(colLeft, li)
+                for li in ("MINIMUM", "MAXIMUM"):
+                    LyVqmAddItem(colCenter, li)
             match VqmtData.qmSkType:
                 case 'VALUE'|'VECTOR': DrawForValVec(VqmtData.qmSkType=='VECTOR')
                 case 'BOOLEAN': DrawForBool()
                 case 'RGBA': DrawForCol()
+                case 'INT':  DrawForInt()
                 case 'MATRIX': DrawForMatrix()
 
 dict_classes[VqmtOpMain] = True
@@ -7036,6 +7121,9 @@ class VoronoiAddonPrefs(VoronoiAddonPrefs):
     vaDecorLy:        bpy.props.FloatVectorProperty(name="DecorForLayout",   default=(0.01, 0.01, 0.01),   min=0, max=1, size=3, subtype='COLOR')
     vaDecorColSk:     bpy.props.FloatVectorProperty(name="DecorForColSk",    default=(1.0, 1.0, 1.0, 1.0), min=0, max=1, size=4, subtype='COLOR', update=VaUpdateDecorColSk)
     vaDecorColSkBack: bpy.props.FloatVectorProperty(name="vaDecorColSkBack", default=(1.0, 1.0, 1.0, 1.0), min = 0, max=1, size=4, subtype='COLOR')
+
+def pref():
+    return bpy.context.preferences.addons[__name__].preferences
 
 class VoronoiAddonPrefs(VoronoiAddonPrefs):
     dsIsDrawText:   bpy.props.BoolProperty(name="Text",        default=True) #Учитывая VHT и VEST, это уже больше просто для текста в рамке, чем для текста от сокетов.
