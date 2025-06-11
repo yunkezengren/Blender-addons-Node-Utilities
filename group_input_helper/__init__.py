@@ -4,7 +4,7 @@ from pprint import pprint
 trans = translator.i18n
 
 bl_info = {
-    "name" : "w-节点组输入助手(Group input helper)-添加拆分合并移动(Add Split Merge Move)",
+    "name" : "节点组输入助手(Group input helper)-添加拆分合并移动(Add Split Merge Move)",
     "author" : "一尘不染",
     "description" : "快速添加组输入节点-拆分合并移动组输入节点-快速添加组输入输出接口(Qucik add and split merge move Group Input node-Qucik add Group Input Output socket)",
     "blender" : (3, 0, 0),
@@ -19,6 +19,9 @@ bl_info = {
 import bpy
 from bpy.types import Operator, Menu, Panel, AddonPreferences
 
+from typing import List, Dict, Union
+from bpy.types import (NodeTree, NodeTreeInterfaceItem, NodeTreeInterfacePanel, NodeTreeInterfaceSocket, UILayout)
+
 import bpy.utils.previews
 from mathutils import Vector
 import os
@@ -28,7 +31,7 @@ import os
 # Todo 顶层材质不显示着色器
 # Todo 着色器接口排在最上面
 # Todo 看心情添加版本控制
-# Todo 百度网盘更新
+# ____ 百度网盘更新
 # Todo 合并组输入没活动节点时,新节点位置在左上角
 
 addon_keymaps = {}
@@ -155,7 +158,7 @@ def find_user_keyconfig(key):
 class GroupInputHelperAddonPreferences(AddonPreferences):
     # bl_idname = __name__
     bl_idname = __package__
-    show_panel_name: bpy.props.BoolProperty(name='show_panel_name',  description=trans('添加组输入菜单里显示接口所属面板名字'), default=False)
+    show_panel_name: bpy.props.BoolProperty(name='show_panel_name',  description=trans('添加组输入菜单里显示接口所属面板名字'), default=True)
     simplify_menu:   bpy.props.BoolProperty(name='simplify_menu', description=trans('简化<组输入合并拆分移动>菜单'), default=True)
     is_del_reroute:  bpy.props.BoolProperty(name='is_del_reroute', description=trans('拆分并移动组输入节点时删除转接点'), default=True)
     def draw(self, context):
@@ -192,55 +195,100 @@ class GroupInputHelperAddonPreferences(AddonPreferences):
 
 def add_group_input_helper_to_node_mt_editor_menus(self, context):
     layout = self.layout
-    layout.menu('NODE_MT_Add_Group_Input_Hided_Socket', text=trans('组输入'))
+    layout.menu('NODE_MT_Add_Group_Input_Hide_Socket', text=trans('组输入'))
 
-def get_socket_icon(layout):
-    tree = bpy.context.space_data.edit_tree
-    # if bpy.data.version < (4, 0, 0):    # 为啥alpha版version和3.6一样都是(3, 6, 11) 找了好久 app.version正确
-    # if bpy.app.version < (4, 0, 0)
-    if hasattr(tree, "inputs"):
-        try:
-            group_inputs = tree.inputs
-        except:
-            pass
-    if hasattr(tree, "interface"):
-        try:
-            group_inputs = []
-            for item in tree.interface.items_tree:
-                if item.item_type == 'SOCKET' and item.in_out == 'INPUT':
-                    group_inputs.append(item)
-        except:
-            pass
-    for index, group_input in enumerate(group_inputs):
-        if hasattr(group_input, "position"):
-            if group_input.position == 0:
-                layout.separator()
-                prefs = bpy.context.preferences.addons[__package__].preferences
-                if prefs.show_panel_name:
-                    layout.label(text=group_input.parent.name, icon="MENU_PANEL")
-                    layout.separator()
-        socket_id = group_input.bl_socket_idname
-        # 好像只3.6这样,4.0就都一种了
-        if socket_id.startswith("NodeSocketFloat"):
-            socket_id = "NodeSocketFloat"
-        if socket_id.startswith("NodeSocketInt"):
-            socket_id = "NodeSocketInt"
-        if socket_id.startswith("NodeSocketVector"):
-            socket_id = "NodeSocketVector"
-        input_png = inputs_png[socket_id]
-        socket_name = group_input.name
-        if socket_name == "":
-            socket_name = " "
-        op = layout.operator('w.add_group_input_hided_socket', text=socket_name, icon_value=(_icons[input_png].icon_id ) )
-        # op.bl_description = group_input.description    # 不知道为啥不对
-        op.menu_index = index
+def get_socket_idname(socket_id):
+    # 好像只3.6这样,4.0就都一种了
+    if socket_id.startswith("NodeSocketFloat"):
+        socket_id = "NodeSocketFloat"
+    if socket_id.startswith("NodeSocketInt"):
+        socket_id = "NodeSocketInt"
+    if socket_id.startswith("NodeSocketVector"):
+        socket_id = "NodeSocketVector"
+    return socket_id
+
+def count_input_socket_recursive(item: Union[NodeTreeInterfaceItem, NodeTreeInterfacePanel, NodeTreeInterfaceSocket]) -> int:
+    if item.item_type == 'SOCKET' and item.in_out == 'INPUT':
+        return 1
+
+    if item.item_type == 'PANEL':
+        count = 0
+        # 遍历面板的所有子项
+        for child in item.interface_items:
+            count += count_input_socket_recursive(child)
+        return count
+
+    return 0
+
+def count_panel_depth(item: NodeTreeInterfacePanel):
+    depth = 0
+    while (item.parent.index != -1):
+        item = item.parent  # 虽然这里更改了item,但函数外的item没变
+        depth += 1
+    return depth
+
+def draw_none_socket(layout: UILayout):
     layout.separator()
-    op = layout.operator('w.add_group_input_hided_socket', text=trans('空'), icon_value=_icons['空.png'].icon_id)
-    op.menu_index = -1
+    # text=trans('空')
+    op = layout.operator('w.add_group_input_hide_socket', text=" ", icon_value=_icons['空.png'].icon_id)
+    op.index_start = -1
+    op.is_panel = False
 
-def get_icon_add_new_socket(layout, context):
+def draw_add_group_input_hide_socket(layout: UILayout):
+    prefs = bpy.context.preferences.addons[__package__].preferences
+    tree: NodeTree = bpy.context.space_data.edit_tree
+
+    print("*"*50)
+    if bpy.app.version < (4, 0, 0):
+        in_items = tree.inputs
+    if bpy.app.version >= (4, 0, 0):
+        in_items: List[Dict[str, Union[NodeTreeInterfaceSocket, int]]] = []
+        items = tree.interface.items_tree
+        index = 0   # 只算接口的序号
+        for item in items:
+            # i = item
+            # print(f"{i.index:2} {i.position:2} {i.item_type:6} parent.index:{i.parent.index:2} {i.parent.parent==None}")
+            if item.item_type == 'SOCKET' and item.in_out == 'INPUT':
+                in_items.append({"item": item, "index": index, "len": 1})
+                index += 1
+            if item.item_type == 'PANEL':
+                length = count_input_socket_recursive(item)
+                depth = count_panel_depth(item)
+                in_items.append({"item": item, "index": index, "len": length, "depth": depth})
+    # pprint(in_items)
+    panel_count = 0
+    for in_item in in_items:
+        item = in_item["item"]
+        if item.item_type == 'PANEL':
+            if panel_count == 0:    # 如果有面板,就把none放在面板上方
+                draw_none_socket(layout)
+            panel_count += 1
+            layout.separator()
+            if prefs.show_panel_name:
+                panel_name = "> " * in_item["depth"] + item.name
+                op = layout.operator('w.add_group_input_hide_socket', text=panel_name, icon="DOWNARROW_HLT")
+                op.panel_name = item.name
+                op.is_panel = True
+                # TODO 一次添加一个面板中的接口并重命名,给面板的层级在名称上加上-做缩进
+        if item.item_type == 'SOCKET':
+            socket_id = get_socket_idname(item.bl_socket_idname)
+            input_png = inputs_png[socket_id]
+            socket_name = item.name if item.name else " "  # 文本为空时,菜单里按钮不对齐
+            op = layout.operator('w.add_group_input_hide_socket', text=socket_name, icon_value=(_icons[input_png].icon_id ) )
+            in_panel = item.parent.index != -1
+            op.is_panel = in_panel   # 不等于-1的话是面板内的接口
+            if in_panel:
+                op.panel_name = item.parent.name
+        op.index_start = in_item["index"]
+        op.index_end = in_item["index"] + in_item["len"] - 1   # 长度-1才是结束序号
+        des = "\n" + item.description if item.description else ""
+        op.bl_description = "哈哈哈" + des + "\n" + str(in_item)
+    if panel_count == 0:
+        draw_none_socket(layout)
+
+def draw_add_new_socket(layout, context):
     for socket_type, socket_name in get_socket_name.items():
-        input_png = inputs_png[socket_type]
+        in_socket_png = inputs_png[socket_type]
         tree_type = context.space_data.edit_tree.bl_idname
         group_type = None
         a_node = context.active_node
@@ -254,15 +302,15 @@ def get_icon_add_new_socket(layout, context):
         # if tree_type == "ShaderNodeTree" or group_type == "GROUP":            # 这样对于组节点就绘制多次了
         if tree_type == "ShaderNodeTree" or group_type == "ShaderNodeGroup":
             if socket_name in ["着色器", "布尔", "浮点", "整数", "矢量", "颜色"]:
-                op = layout.operator('w.add_new_group_item', text=name, icon_value=(_icons[input_png].icon_id ) )
+                op = layout.operator('w.add_new_group_item', text=name, icon_value=(_icons[in_socket_png].icon_id ) )
                 op.socket_type = socket_type
         if tree_type == "CompositorNodeTree" or group_type == "CompositorNodeGroup":
             if socket_name in ["浮点", "矢量", "颜色"]:
-                op = layout.operator('w.add_new_group_item', text=name, icon_value=(_icons[input_png].icon_id ) )
+                op = layout.operator('w.add_new_group_item', text=name, icon_value=(_icons[in_socket_png].icon_id ) )
                 op.socket_type = socket_type
         if tree_type == "GeometryNodeTree" and socket_name != "着色器":
             # if group_type == "GeometryNodeGroup" or tree_type == "GeometryNodeTree":
-            op = layout.operator('w.add_new_group_item', text=name, icon_value=(_icons[input_png].icon_id ) )
+            op = layout.operator('w.add_new_group_item', text=name, icon_value=(_icons[in_socket_png].icon_id ) )
             op.socket_type = socket_type
 
 def abs_loc(node):
@@ -321,35 +369,35 @@ def get_in_socket_location(tar_node, tar_socket):
         soc_loc_dict[socket] = y
     return Vector((x, soc_loc_dict[tar_socket]))
 
-class NODE_OT_Add_Group_Input_Hided_Socket(Operator):
-    bl_idname = "w.add_group_input_hided_socket"
+class NODE_OT_Add_Group_Input_Hide_Socket(Operator):
+    bl_idname = "w.add_group_input_hide_socket"
     bl_label = trans("组输入隐藏节口")
-    bl_description = trans("添加一个只剩目标接口没被隐藏的组输入节点")
     bl_options = {"REGISTER", "UNDO"}
-    menu_index: bpy.props.IntProperty(name='menu index', description='', default=0, subtype='NONE')
+    bl_description: bpy.props.StringProperty(name='btn_info', default="快捷键Shift 2 ")
+    index_start: bpy.props.IntProperty(name='menu index', description='', default=0)
+    index_end: bpy.props.IntProperty(name='menu index', description='', default=0)
+    panel_name: bpy.props.StringProperty(name='panel_name', description='', default="")
+    is_panel: bpy.props.BoolProperty(name='panel_name', description='', default=False)
 
     @classmethod
-    def poll(cls, context):
-        return not False
+    def description(cls, context, props):
+        if props:
+            return props.bl_description
 
     def execute(self, context):
         bpy.ops.node.add_node('INVOKE_REGION_WIN', use_transform=True, type='NodeGroupInput')
-        # bpy.ops.node.add_node('INVOKE_REGION_WIN', type='NodeGroupInput')
-        a_node = bpy.context.active_node
-        # a_node.location = context.space_data.cursor_location
-        # a_node.location += Vector((-140, 35))
-        # bpy.ops.transform.trans('INVOKE_DEFAULT')
-
-        Variable = self.menu_index
+        node = bpy.context.active_node
+        if self.is_panel:
+            node.label = self.panel_name
+        start = self.index_start
+        end = self.index_end
         index = -1
-        for output in a_node.outputs:
-            if Variable == -1:
-                output.hide = True
-                if output.name == "" and output.type == "CUSTOM":
-                    output.hide = False
+        for output in node.outputs:
+            if start == -1:
+                output.hide = (output.type != "CUSTOM")
             else:
                 index += 1   # +1 要放到上面不能在下面，因为每次循环index+1 在下面一旦满足条件之后就一直continue
-                if index == Variable:
+                if start <= index <= end:    # 当前选中的接口不隐藏
                     continue
                 output.hide = True
 
@@ -790,9 +838,9 @@ class NODE_OT_Split_Group_Input_Linked(Operator):
     def invoke(self, context, event):
         return self.execute(context)
 
-class NODE_MT_Add_Group_Input_Hided_Socket(Menu):
-    bl_idname = "NODE_MT_Add_Group_Input_Hided_Socket"
-    bl_label = trans("w-添加组输入")
+class NODE_MT_Add_Group_Input_Hide_Socket(Menu):
+    bl_idname = "NODE_MT_Add_Group_Input_Hide_Socket"
+    bl_label = trans("添加组输入")
 
     @classmethod
     def poll(cls, context):
@@ -800,13 +848,13 @@ class NODE_MT_Add_Group_Input_Hided_Socket(Menu):
 
     def draw(self, context):
         layout = self.layout
-        get_socket_icon(layout)
+        draw_add_group_input_hide_socket(layout)
 
-class NODE_PT_Add_Group_Input_Hided_Socket(Panel):
+class NODE_PT_Add_Group_Input_Hide_Socket(Panel):
     # bl_category = 'Group'
     bl_category = '节点树'
-    bl_label = trans('w-组输入拆分')
-    bl_idname = 'NODE_PT_Add_Group_Input_Hided_Socket'
+    bl_label = trans('组输入拆分')
+    bl_idname = 'NODE_PT_Add_Group_Input_Hide_Socket'
     bl_space_type = 'NODE_EDITOR'
     bl_region_type = 'UI'
     bl_context = ''
@@ -820,11 +868,11 @@ class NODE_PT_Add_Group_Input_Hided_Socket(Panel):
 
     def draw(self, context):
         layout = self.layout
-        get_socket_icon(layout)
+        draw_add_group_input_hide_socket(layout)
 
 class NODE_PT_Add_New_Group_Item(Panel):
     bl_category = '节点树'
-    bl_label = trans('w-添加组输入输出接口')
+    bl_label = trans('添加组输入输出接口')
     bl_idname = 'NODE_PT_Add_New_Group_Item'
     bl_space_type = 'NODE_EDITOR'
     bl_region_type = 'UI'
@@ -848,11 +896,11 @@ class NODE_PT_Add_New_Group_Item(Panel):
         split = layout.split(factor=0.5, align=True)
         split.prop(context.scene, 'add_input_socket',  text=trans('输入接口'), toggle=True, icon='BACK')
         split.prop(context.scene, 'add_output_socket', text=trans('输出接口'), toggle=True, icon='FORWARD')
-        get_icon_add_new_socket(layout, context)
+        draw_add_new_socket(layout, context)
 
 class NODE_MT_Merge_Split_Move_Group_Input(Menu):
     bl_idname = "NODE_MT_Merge_Split_Move_Group_Input"
-    bl_label = trans("w-组输入拆分合并移动")
+    bl_label = trans("组输入拆分合并移动")
 
     @classmethod
     def poll(cls, context):
@@ -893,9 +941,9 @@ class NODE_MT_Merge_Split_Move_Group_Input(Menu):
             layout.operator('node.hide_group_input_sockets', text=trans('隐藏未使用组输入接口'), icon="DECORATE")
 
 classes = [
-            NODE_OT_Add_Group_Input_Hided_Socket,
-            NODE_MT_Add_Group_Input_Hided_Socket,
-            NODE_PT_Add_Group_Input_Hided_Socket,
+            NODE_OT_Add_Group_Input_Hide_Socket,
+            NODE_MT_Add_Group_Input_Hide_Socket,
+            NODE_PT_Add_Group_Input_Hide_Socket,
             NODE_OT_Add_New_Group_Item,
             NODE_PT_Add_New_Group_Item,
             NODE_OT_Merge_Group_Input_Socket,
@@ -928,11 +976,11 @@ def register():
     km = kc.keymaps.new(name='Node Editor', space_type='NODE_EDITOR')
 
     kmi = km.keymap_items.new('wm.call_menu', 'ONE', 'PRESS', ctrl=False, alt=False, shift=False, repeat=False)
-    kmi.properties.name = 'NODE_MT_Add_Group_Input_Hided_Socket'
+    kmi.properties.name = 'NODE_MT_Add_Group_Input_Hide_Socket'
     addon_keymaps['key_MT_Add_Group_Input'] = (km, kmi)
 
     kmi = km.keymap_items.new('wm.call_panel', 'ONE', 'PRESS', ctrl=True, alt=True, shift=True, repeat=False)
-    kmi.properties.name = 'NODE_PT_Add_Group_Input_Hided_Socket'
+    kmi.properties.name = 'NODE_PT_Add_Group_Input_Hide_Socket'
     kmi.properties.keep_open = True
     addon_keymaps['key_PT_Add_Group_Input'] = (km, kmi)
 
