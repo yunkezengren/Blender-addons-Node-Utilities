@@ -239,7 +239,7 @@ def draw_add_group_input_hide_socket(layout: UILayout):
     prefs = bpy.context.preferences.addons[__package__].preferences
     tree: NodeTree = bpy.context.space_data.edit_tree
 
-    print("*"*50)
+    # print("*"*50)
     if bpy.app.version < (4, 0, 0):
         in_items = tree.inputs
     if bpy.app.version >= (4, 0, 0):
@@ -281,8 +281,7 @@ def draw_add_group_input_hide_socket(layout: UILayout):
                 op.panel_name = item.parent.name
         op.index_start = in_item["index"]
         op.index_end = in_item["index"] + in_item["len"] - 1   # 长度-1才是结束序号
-        des = item.description if item.description else ""
-        op.bl_description = des
+        op.bl_description = item.description
         # op.bl_description = des + "\n" + str(in_item)
     if panel_count == 0:
         draw_none_socket(layout)
