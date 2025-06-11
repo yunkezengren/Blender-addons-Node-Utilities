@@ -74,6 +74,8 @@ dictionary = {
         "选中组输入节点,每一个连线拆分成一个节点,并移动到连向接口(to_socket)的附近": "Select group input nodes, split each link into a separate node, and move to the left of the connected to_socket",
         "选中组输入节点,每一个连线拆分成一个节点,并移动到连向接口(to_socket)的附近,并合并连到一个节点上的组输入节点": "Select group input nodes, split each link into a separate node, move to the left of the connected to_socket, and merge group input nodes connected to one node",
         "选中组输入节点,先合并成一个节点,再拆分接口,并移动到连向接口(to_socket)的附近,并合并连到一个节点上的组输入节点": "Select group input nodes, first merge into one node, then split sockets, move to the left of the connected to_socket, and merge group input nodes connected to one node",
+        "接口描述: ": "Socket description: "
+        "● 默认: 面板内接口根据面板重命名 \n● Ctrl: 不重命名节点 \n● Shift:根据接口重命名": "● Default: Rename node based on the panel name. \n● Ctrl: Do not rename the node. \n● Shift: Rename node based on the socket name."
     },
     # "zh_CN": {
     #     "Add-on Preferences View": "插件偏好设置",
