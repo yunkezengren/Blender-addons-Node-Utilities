@@ -36,6 +36,8 @@ import os
 # ____ 百度网盘更新
 # Todo 合并组输入没活动节点时,新节点位置在左上角
 
+# Todo 合并组输入时适当重命名
+
 addon_keymaps = {}
 _icons = None
 
@@ -296,7 +298,6 @@ class NODE_OT_Add_Group_Input_Hide_Socket(Operator):
     panel_name:     StringProperty(name='panel_name', description='', default="")
     is_panel:       BoolProperty(name='panel_name', description='', default=False)
 
-    # 用于存储事件状态
     use_shift = False
     use_ctrl  = False
     use_alt   = False
@@ -314,7 +315,7 @@ class NODE_OT_Add_Group_Input_Hide_Socket(Operator):
         node = bpy.context.active_node
         if not self.use_ctrl:
             if self.is_panel and not self.use_ctrl:
-                node.label = self.panel_name
+                node.label = iface_(self.panel_name)
         start = self.index_start
         end = self.index_end
         index = -1
@@ -324,7 +325,7 @@ class NODE_OT_Add_Group_Input_Hide_Socket(Operator):
             else:
                 index += 1   # +1 要放到上面不能在下面，因为每次循环index+1 在下面一旦满足条件之后就一直continue
                 if start == index == end and self.use_shift:
-                    node.label = output.name
+                    node.label = iface_(output.name)
                 if start <= index <= end:    # 当前选中的接口不隐藏
                     continue
                 output.hide = True
