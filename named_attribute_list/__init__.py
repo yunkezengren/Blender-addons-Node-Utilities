@@ -1,9 +1,10 @@
 import os
 from pprint import pprint
+from typing import Union
 if "bpy" in locals():   # 偏好设置重启插件(就是先unregister再register),只会重新执行__init__.py,所以重新加载需要更新的模块
     import importlib
-    importlib.reload(translator)
     importlib.reload(my_dict)
+    importlib.reload(translator)
 from .my_dict import Attr_Info, Attr_Dict
 from .translator import i18n as tr
 
@@ -18,7 +19,7 @@ bl_info = {
     "author" : "一尘不染",
     "description" : "",
     "blender" : (3, 0, 0),
-    "version" : (2, 5, 10),
+    "version" : (2, 6, 2),
     "location" : "",
     "warning" : "",
     "doc_url": "",
@@ -28,9 +29,9 @@ bl_info = {
 
 # todo 重命名属性标签和接口
 # todo 添加个重命名属性名: 更改 存储属性和命名属性的 名称接口值
-# todo 属性列表多种排序方式
 # todo 隐藏名称接口里+描述,着色器里反而是隐藏选项
 # todo 查找存储属性节点改进
+# todo 把隐藏前缀改成折叠到子菜单里 包括别的隐藏的
 
 addon_keymaps = {}
 _icons = None
@@ -55,9 +56,9 @@ sub_data_type = {
                 # "FLOAT4X4": "MATRIX"
                 }
 
-common_l = ['FLOAT2', 'FLOAT_VECTOR', 'BYTE_COLOR', 'FLOAT_COLOR', 'QUATERNION', 'FLOAT4X4']
-sort_key_list1 = [ 'BOOLEAN', 'FLOAT', 'INT8', 'INT'] + common_l
-sort_key_list2 = [ 'INT8', 'INT', 'BOOLEAN', 'FLOAT'] + common_l
+common_l = [['FLOAT2', 'FLOAT_VECTOR'], ['BYTE_COLOR', 'FLOAT_COLOR'], 'QUATERNION', 'FLOAT4X4']
+sort_key_l1: list[Union[str, list]] = ['BOOLEAN', 'FLOAT', ['INT8', 'INT']] + common_l
+sort_key_l2: list[Union[str, list]] = [['INT8', 'INT'], 'BOOLEAN', 'FLOAT'] + common_l
 
 def pref():
     return bpy.context.preferences.addons[__package__].preferences
@@ -86,7 +87,7 @@ def find_user_keyconfig(key):
     print(f"Couldn't find keymap item for {key}, using addon keymap instead. This won't be saved across sessions!")
     return kmi
 
-def add_to_attr_list_mt_editor_menus(self, context):
+def add_to_attr_list_mt_editor_menus(self, context: Context):
     if context.area.ui_type in ['GeometryNodeTree', 'ShaderNodeTree']:
         layout = self.layout
         layout.menu('ATTRLIST_MT_Menu', text=tr('属性'))
@@ -119,7 +120,7 @@ class ATTRLIST_AddonPrefs(AddonPreferences):
     panel_info         : StringProperty(name='panel_info',    description=tr('显示在n面板上的插件当前状态描述'), default="")
     rename_prefix      : StringProperty(name='rename_prefix', description=tr('重命名节点时添加的前缀'), default="")
     hide_prefix        : StringProperty(name='hide_prefix',   description=tr('隐藏带有特定前缀的属性,以|分隔多种,例 .|_|-'), default=".")
-    sort_list          : EnumProperty(name='列表排序方式',    description=tr('属性列表多种排序方式'),
+    sort_type          : EnumProperty(name='列表排序方式',    description=tr('属性列表多种排序方式'),
                                         items=[ ('按类型排序1',      tr('按类型排序1'),      tr('布尔-浮点-整数-矢量-颜色-旋转-矩阵'), 0, 0),
                                                 ('按类型排序1-反转', tr('按类型排序1-反转'), tr('矩阵-旋转-颜色-矢量-整数-浮点-布尔'), 0, 1),
                                                 ('按类型排序2',      tr('按类型排序2'),      tr('整数-布尔-浮点-矢量-颜色-旋转-矩阵'), 0, 2),
@@ -149,7 +150,7 @@ class ATTRLIST_AddonPrefs(AddonPreferences):
         box1.label(text=limit2)
         box1.label(text=limit3)
 
-def get_active_gn_tree(context, ui_type):
+def get_active_gn_tree(context: Context, ui_type: str):
     if ui_type == 'GeometryNodeTree':
         # for pinned node tree
         obj = context.space_data.id
@@ -210,25 +211,24 @@ def get_tree_attrs_dict(tree: NodeTree, attrs_dict: Attr_Dict, group_node_name: 
             # print(f"{tree.name = }")
             # print(f"{group_name_parent = }")
             if attr_name not in attrs_dict:                      # 没有存过这个属性名
-                attr_info: Attr_Info = {
-                    "data_type": node.data_type,
-                    "domain_info": [domain_cn],
-                    "domain": [node.domain],
-                    "group_name": [tree.name],
-                    "group_name_parent": [group_name_parent],
-                    "node_name": [node.name],
-                    "group_node_name": [group_node_name],
-                    "if_instanced": loop_find_if_instanced(node),
-                }
+                attr_info = Attr_Info(data_type=node.data_type,
+                                      domain=[node.domain],
+                                      domain_info=[domain_cn],
+                                      group_name=[tree.name],
+                                      group_name_parent=[group_name_parent],
+                                      node_name=[node.name],
+                                      group_node_name=[group_node_name],
+                                      if_instanced=loop_find_if_instanced(node)
+                                      )
                 attrs_dict[attr_name] = attr_info
             else:                                                # 已经存过这个属性名
-                dict_item = attrs_dict[attr_name]
-                dict_item["domain_info"].append(domain_cn)
-                dict_item["domain"].append(node.domain)
-                dict_item["group_name"].append(tree.name)
-                dict_item["group_name_parent"].append(group_name_parent)
-                dict_item["group_node_name"].append(group_node_name)
-                dict_item["node_name"].append(node.name)
+                attr_info = attrs_dict[attr_name]
+                attr_info.domain.append(node.domain)
+                attr_info.domain_info.append(domain_cn)
+                attr_info.group_name.append(tree.name)
+                attr_info.group_name_parent.append(group_name_parent)
+                attr_info.group_node_name.append(group_node_name)
+                attr_info.node_name.append(node.name)
         is_pass = not pref().hide_attr_in_group
         if node.type == "GROUP" and node.node_tree and is_pass:         # node.node_tree 以防止丢失数据的节点组
             group_name = node.node_tree.name
@@ -243,34 +243,34 @@ def get_tree_attrs_dict(tree: NodeTree, attrs_dict: Attr_Dict, group_node_name: 
     return attrs_dict
 
 # todo 为什么不是从 dict 的键里得到列表
-# 遍历节点得到的属性名称列表,省的被evaluated_obj_attrs里的同名,重存覆盖
-def get_tree_attrs_list(tree: NodeTree, all_tree_attr_list, stored_group) -> list[str]:
+def get_tree_attrs_list(tree: NodeTree, all_tree_attr: list[str], stored_group) -> list[str]:
+    """ 遍历节点得到的属性名称列表,省的被evaluated_obj_attrs里的同名,重存覆盖 """
     nodes = tree.nodes
     show_unused = not pref().hide_unused_attr
 
     for node in nodes:
-        if node.mute:   continue
+        if node.mute: continue
         if node.bl_idname == 'GeometryNodeStoreNamedAttribute':
             if show_unused or is_node_linked(node):
                 attr_name = node.inputs["Name"].default_value
                 if attr_name == "":  continue
 
-                if attr_name not in all_tree_attr_list:                      # 没有存过这个属性名
-                    all_tree_attr_list.append(attr_name)
+                if attr_name not in all_tree_attr:                      # 没有存过这个属性名
+                    all_tree_attr.append(attr_name)
         if node.type == "GROUP" and node.node_tree:
             group_name = node.node_tree.name
             if group_name in stored_group:
                 continue
             stored_group.append(group_name)
             if show_unused or is_node_linked(node):
-                # all_tree_attr_list.extend(get_all_tree_attrs_list(node.node_tree, all_tree_attr_list))    # 这样问题很严重,会指数级加项
-                all_tree_attr_list = get_tree_attrs_list(node.node_tree, all_tree_attr_list, stored_group)
+                # all_tree_attr.extend(get_tree_attrs_list(node.node_tree, all_tree_attr))    # 这样问题很严重,会指数级加项
+                all_tree_attr = get_tree_attrs_list(node.node_tree, all_tree_attr, stored_group)
 
-    return all_tree_attr_list
+    return all_tree_attr
 
 # todo 可以用新的获取属性的查漏补缺
 # todo 隐藏未使用属性不好用
-def extend_dict_with_evaluated_obj_attrs(attrs_dict: Attr_Dict, exclude_list: list[str], obj: Object, all_tree_attr_list: list[str]):
+def extend_dict_with_evaluated_obj_attrs(attrs_dict: Attr_Dict, exclude_list: list[str], obj: Object, all_tree_attr: list[str]):
     box = bpy.context.evaluated_depsgraph_get()
     obj = obj.evaluated_get(box)
     attrs = obj.data.attributes
@@ -283,12 +283,14 @@ def extend_dict_with_evaluated_obj_attrs(attrs_dict: Attr_Dict, exclude_list: li
     for attr in attrs:
         if attr.name in exclude_list:
             continue
-        if attr.name not in all_tree_attr_list:             # 用节点名称接口连了线的属性(第一种方法获取不到)
+        if attr.name not in all_tree_attr:             # 用节点名称接口连了线的属性(第一种方法获取不到)
             domain_info = "" + tr(get_domain_cn[attr.domain])
-            attrs_dict[attr.name] = {"data_type": attr.data_type, "domain": [attr.domain],
-                                     "domain_info": [domain_info], "group_name": tr("不确定")}
+            # attrs_dict[attr.name] = {"data_type": attr.data_type, "domain": [attr.domain],
+            #                          "domain_info": [domain_info], "group_name": tr("不确定")}
+            attrs_dict[attr.name] = Attr_Info(data_type=attr.data_type, domain=[attr.domain],
+                                         domain_info=[domain_info], group_name=tr("不确定"))
 
-def extend_dict_with_obj_data_attrs(attrs: Attr_Dict, all_tree_attr_list: list[str]):
+def extend_dict_with_obj_data_attrs(attrs: Attr_Dict, all_tree_attr: list[str]):
     ui_type = bpy.context.area.ui_type
     if ui_type == 'GeometryNodeTree':
         a_object = bpy.context.space_data.id
@@ -302,49 +304,45 @@ def extend_dict_with_obj_data_attrs(attrs: Attr_Dict, all_tree_attr_list: list[s
                     _.name for _ in color_attributes]
     prefs = pref()
     if not prefs.hide_extra_attr:
-        extend_dict_with_evaluated_obj_attrs(attrs, exclude_list, a_object, all_tree_attr_list)         # 扩展已有字典
+        extend_dict_with_evaluated_obj_attrs(attrs, exclude_list, a_object, all_tree_attr)         # 扩展已有字典
     if prefs.show_vertex_group:
         for v_g in vertex_groups:
             if attrs.get(v_g.name): continue        # 如果节点里又存了顶点组之类的,别覆盖
-            attrs[v_g.name] = {'data_type': 'FLOAT', "domain": ["POINT"], 'domain_info': [tr('点')],
-                                "group_name":tr("物体属性"), "info": tr("顶点组") }
+            attrs[v_g.name] = Attr_Info(data_type='FLOAT', domain=["POINT"], domain_info=[tr('点')],
+                                        group_name=tr("物体属性"), info=tr("顶点组"))
     if prefs.show_uv_map:
         for uv in uv_layers:
             if attrs.get(uv.name): continue
-            attrs[uv.name] = {'data_type': 'FLOAT2', "domain": ["CORNER"], 'domain_info': [tr('面拐')],
-                            "group_name":tr("物体属性"), "info": tr("UV贴图") }
+            attrs[uv.name] = Attr_Info(data_type='FLOAT2', domain=["CORNER"], domain_info=[tr('面拐')],
+                                       group_name=tr("物体属性"), info=tr("UV贴图"))
     if prefs.show_color_attr:
         for c_attr in color_attributes:
             if attrs.get(c_attr.name): continue
-            attrs[c_attr.name] = {'data_type': c_attr.data_type, "domain": [c_attr.domain], 
-                                  'domain_info': [tr(get_domain_cn[c_attr.domain])],
-                                  "group_name":tr("物体属性"), "info": tr("颜色属性") }
+            attrs[c_attr.name] = Attr_Info(data_type=c_attr.data_type, domain=[c_attr.domain],
+                                           domain_info=[tr(get_domain_cn[c_attr.domain])],
+                                           group_name=tr("物体属性"), info=tr("颜色属性"))
 
-# 二维三维矢量还是一起排序好
-def custom_sort_dict(attrs: Attr_Dict, sort_key_list) -> Attr_Dict:
-    sorted_list = []
-    for sort_key in sort_key_list:
-        for key in attrs.keys():
-            if attrs[key]['data_type'] == sort_key:
-                sorted_list.append((key, attrs[key]))
-    attrs = {k: v for k, v in sorted_list}
-    return attrs
+def custom_sort_dict(attrs: Attr_Dict, sort_key_l: list[Union[str, list]]) -> Attr_Dict:
+    sorted_attrs: Attr_Dict = {}
+    for sort_key in sort_key_l:
+        _sort_key: set[str] = set(sort_key) if isinstance(sort_key, list) else {sort_key}
+        for key in attrs:
+            if attrs[key].data_type in _sort_key:
+                sorted_attrs[key] = attrs[key]
+    return sorted_attrs
 
 def sort_attr_dict(attrs: Attr_Dict) -> Attr_Dict:
     # 在函数内部创建了一个新的局部变量 attrs，这个变量在函数结束后就会被销毁，不会影响外部的 attrs 变量。
     attrs = {k: attrs[k] for k in sorted(attrs)}        # sorted(dict) = sorted(d1.keys())
-    # print(f"{scene.sort_list = }")
-    prefs = pref()
-    if prefs.sort_list == '按类型排序1':
-        attrs = custom_sort_dict(attrs, sort_key_list1)
-    if prefs.sort_list == '按类型排序1-反转':
-        sort_key_list = reversed(sort_key_list1)
-        attrs = custom_sort_dict(attrs, sort_key_list)
-    if prefs.sort_list == '按类型排序2':
-        attrs = custom_sort_dict(attrs, sort_key_list2)
-    # todo 完全按字符串排序
-    # if prefs.sort_list == '完全按字符串排序':
-    #     attrs = attrs
+    # print(f"{scene.sort_type = }")
+    sort_map = {
+        '按类型排序1': sort_key_l1,
+        '按类型排序2': sort_key_l2,
+        '按类型排序1-反转': reversed(sort_key_l1),
+        '完全按字符串排序': None,                      # todo 完全按字符串排序
+    }
+    if sort_key := sort_map.get(pref().sort_type):
+        attrs = custom_sort_dict(attrs, sort_key)
     return attrs
 
 def draw_attr_menu(layout: UILayout, context: Context, is_panel):
@@ -357,14 +355,15 @@ def draw_attr_menu(layout: UILayout, context: Context, is_panel):
         attrs_dict: Attr_Dict = {}     # {'组内': {'data_type': 'FLOAT', 'domain_info': ['点', '面']},'距离': {'data_type': 'FLOAT', 'domain_info': ['点']}}
         attrs = get_tree_attrs_dict(tree, attrs_dict, stored_group=[],
                                     group_node_name="当前group是顶层节点树", group_name_parent="顶层节点树无父级")
-        all_tree_attr_list = get_tree_attrs_list(tree, all_tree_attr_list=[], stored_group=[])
+        all_tree_attr = get_tree_attrs_list(tree, all_tree_attr=[], stored_group=[])
     else:
         attrs = {}
-        all_tree_attr_list = []
+        all_tree_attr = []
     if context.space_data.id_from.type == "MESH":    # 几何节点时id是物体，材质节点时id是材质,id_from都是物体
-        extend_dict_with_obj_data_attrs(attrs, all_tree_attr_list)
+        extend_dict_with_obj_data_attrs(attrs, all_tree_attr)
     attrs = sort_attr_dict(attrs)
     # print("最终" + "*" * 60)
+    # pprint(attrs.keys())
     # pprint(attrs)
     # # print(context.space_data.id.name)
     prefix_list = pref().hide_prefix.split("|")
@@ -377,27 +376,27 @@ def draw_attr_menu(layout: UILayout, context: Context, is_panel):
                     break
         if has_prefix:
             continue
-        data_type = attr_info["data_type"]
+        data_type = attr_info.data_type
         ui_type = context.area.ui_type
         if data_type not in data_type:      # 用处不大了,但可能有string属性?
             continue
         if ui_type == 'ShaderNodeTree' and data_type not in shader_date_types:
             continue
-        stored_domain_list = list(set(attr_info['domain_info']))
+        stored_domain_list = list(set(attr_info.domain_info))
 
         domain_list_to_str = " | ".join(sorted(stored_domain_list, key=lambda x: get_domain_list().index(x)))
-        button_txt = attr_name + "  (" + domain_list_to_str + ")" if pref().show_attr_domain else attr_name
-        if_instanced = attr_info.get("if_instanced", False)
+        # button_txt = attr_name + "  (" + domain_list_to_str + ")" if pref().show_attr_domain else attr_name
+        button_txt = attr_name + pref().show_attr_domain * f"  ({domain_list_to_str})"
+        if_instanced = attr_info.if_instanced  or False   # @短路求值
         if ui_type == 'ShaderNodeTree' and if_instanced:
             button_txt = button_txt[:-1] + " ->实例)"
-            # button_txt = button_txt[:-1] + f' ->{ tr("实例") })'        #  或者外双引号内单引号
+            # button_txt = button_txt[:-1] + f' ->{ tr("实例") })'        # 或者外双引号内单引号
         description = tr("属性所在域: ") + domain_list_to_str
         # todo 更详细的description
         # description = "属性所在域:" + domain_list_to_str + \
         #             "\n此存储命名属性节点使用个数:" + "  " \
         #             "\n此命名属性节点使用个数:" + "  "
-        group_name = attr_info["group_name"]
-        node_name = str(attr_info.get("node_name", "无属性")[0])
+        group_name = attr_info.group_name
         # if len(stored_domain_list) == 1:
         can_find_store_node = False
         if group_name != tr("物体属性"):        # group_name 是该命名属性节点在什么节点组里存过
@@ -405,22 +404,19 @@ def draw_attr_menu(layout: UILayout, context: Context, is_panel):
             if group_name != tr("不确定"):
                 can_find_store_node = True
         if group_name == tr("物体属性"):
-            description += f'\n{tr("类型: ")}' + attr_info['info']  # "\n类型:"
+            description += f'\n{tr("类型: ")}' + attr_info.info  # "\n类型:"
         if is_panel:        # 面板里额外绘制
             split = layout.split(factor=0.9)
             op = split.operator('w.add_node_change_name_and_type', text=button_txt,
                                     icon_value=(_icons[data_with_png[data_type]].icon_id ) )
-            if can_find_store_node:
-                icon = "HIDE_OFF"
-            else:
-                icon = "HIDE_ON"
+            icon = "HIDE_OFF" if can_find_store_node else "HIDE_ON"
             if ui_type == 'GeometryNodeTree':
                 op_find = split.operator('node.view_stored_attribute_node', text="", emboss=can_find_store_node, icon=icon)
-                # op_find.node_name = attr_info.get("node_name", "无属性")
-                op_find.node_name = node_name
-                group_name_list = attr_info.get("group_node_name", "无属性")
+                op_find.node_name = (attr_info.node_name or "无属性")[0]    # @ operator里有关于 =="无" 的判断
+                group_name_list = attr_info.group_node_name or "无属性"
                 op_find.group_node_name = str(group_name_list[0])
-                op_find.parent_path = str(attr_info.get("group_name_parent", "无属性")[0])
+                # op_find.parent_path = str(attr_info.get("group_name_parent", "无属性")[0])
+                op_find.parent_path = (attr_info.group_name_parent or "无属性")[0]    # operator里有关于 =="无" 的判断
                 # total = len(group_name_list)
                 # op_find.total = total
                 # op_find.current += 1
@@ -431,15 +427,15 @@ def draw_attr_menu(layout: UILayout, context: Context, is_panel):
             # print(type(op))     # <class 'bpy.types.NODE_PIE_OT_add_node'>
         op.attr_name = attr_name
         op.attr_type = data_type
-        op.domain = attr_info["domain"][0]
+        op.domain = attr_info.domain[0]
         op.domain_str = domain_list_to_str
         op.if_instanced = if_instanced
         op.bl_description = description
         op.shader_node_type = "ShaderNodeAttribute"
         if group_name == tr("物体属性"):
-            if attr_info['info'] == tr("颜色属性"):
+            if attr_info.info == tr("颜色属性"):
                 op.shader_node_type = "ShaderNodeVertexColor"
-            if attr_info['info'] == tr("UV贴图"):
+            if attr_info.info == tr("UV贴图"):
                 op.shader_node_type = "ShaderNodeUVMap"
 
 class ATTRLIST_OT_Add_Node_Change_Name_Type_Hide(Operator):
@@ -602,7 +598,7 @@ class ATTRLIST_PT_NPanel(Panel):
         split.prop(prefs, 'show_set_panel', toggle=True, text='', icon="PREFERENCES")
 
         if prefs.show_set_panel:
-            arrow_show = "TRIA_RIGHT" if not prefs.add_settings else "TRIA_DOWN"
+            arrow_show = "TRIA_DOWN" if prefs.add_settings else "TRIA_RIGHT"
             box1 = layout.box()
             box1.scale_y = 0.9
             box1.prop(prefs, "add_settings", emboss=True, icon=arrow_show)
@@ -636,12 +632,12 @@ class ATTRLIST_PT_NPanel(Panel):
                 split.prop(prefs, 'hide_Store_Node',    toggle=True, text=tr('折叠节点'))
                 split.prop(prefs, 'rename_Store_Node',  toggle=True, text=tr('重命名节点标签'))
 
-            arrow_add = "TRIA_RIGHT" if not prefs.show_settings else "TRIA_DOWN"
+            arrow_add = "TRIA_DOWN" if prefs.show_settings else "TRIA_RIGHT"
             box1.prop(prefs, "show_settings", emboss=True, icon=arrow_add)
             if prefs.show_settings:
                 split2 = box1.split(factor=0.4)
                 split2.label(text=tr('列表排序方式'))
-                split2.prop(prefs, 'sort_list', text='')
+                split2.prop(prefs, 'sort_type', text='')
 
                 box1.label(text=tr('属性列表里是否显示'))
                 split3 = box1.split(factor=0.05)        # 使得文本左顶格，按钮前稍微缩进
@@ -723,8 +719,8 @@ class NODE_OT_View_Stored_Attribute_Node(Operator):
     bl_idname = "node.view_stored_attribute_node"
     bl_label = tr("跳转到已命名属性节点位置")
     bl_description = tr("对于存了多次的属性,查找节点目前只能定位到其中之一")
-    node_name :   StringProperty(name='node_name', description='存储属性节点目标', default="无", subtype='NONE')
-    parent_path : StringProperty(name='parent_path', description='parent_path', default="", subtype='NONE')
+    node_name       : StringProperty(name='node_name', description='存储属性节点目标', default="无", subtype='NONE')
+    parent_path     : StringProperty(name='parent_path', description='parent_path', default="", subtype='NONE')
     group_node_name : StringProperty(name='group_node_name', description='group_node_name', default="", subtype='NONE')
     # bl_description: StringProperty(default="", options={"HIDDEN"})
     # total :   IntProperty(description='total', default=0)
