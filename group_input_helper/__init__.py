@@ -230,7 +230,7 @@ def count_panel_depth(item: NodeTreeInterfacePanel):
 def draw_none_socket(layout: UILayout):
     layout.separator()
     # text=trans('空')
-    op = layout.operator('node.add_group_input_hide_socket', text=" ", icon_value=_icons['空.png'].icon_id)
+    op = layout.operator(NODE_OT_Add_Group_Input_Hide_Socket.bl_idname, text=" ", icon_value=_icons['空.png'].icon_id)
     op.index_start = -1
     op.is_panel = False
 
@@ -269,14 +269,14 @@ def draw_add_group_input_hide_socket(layout: UILayout):
             layout.separator()
             if prefs.show_panel_name:
                 panel_name = "●" * in_item["depth"] + item.name
-                op = layout.operator('node.add_group_input_hide_socket', text=iface_(panel_name), icon="DOWNARROW_HLT")
+                op = layout.operator(NODE_OT_Add_Group_Input_Hide_Socket.bl_idname, text=iface_(panel_name), icon="DOWNARROW_HLT")
                 op.panel_name = item.name
                 op.is_panel = True
         if item.item_type == 'SOCKET':
             socket_id = get_socket_idname(item.bl_socket_idname)
             input_png = inputs_png[socket_id]
             socket_name = item.name if item.name else " "  # 文本为空时,菜单里按钮不对齐
-            op = layout.operator('node.add_group_input_hide_socket', text=iface_(socket_name), icon_value=(_icons[input_png].icon_id ) )
+            op = layout.operator(NODE_OT_Add_Group_Input_Hide_Socket.bl_idname, text=iface_(socket_name), icon_value=(_icons[input_png].icon_id ) )
             in_panel = item.parent.index != -1
             op.is_panel = in_panel   # 不等于-1的话是面板内的接口
             if in_panel:
@@ -374,6 +374,7 @@ class NODE_PT_Add_Group_Input_Hide_Socket(Panel):
         layout = self.layout
         draw_add_group_input_hide_socket(layout)
 
+# ----------------------------------------
 def draw_add_new_socket(layout, context):
     for socket_type, socket_name in get_socket_name.items():
         in_socket_png = inputs_png[socket_type]
@@ -459,6 +460,7 @@ class NODE_PT_Add_New_Group_Item(Panel):
         split.prop(context.scene, 'add_output_socket', text=trans('输出接口'), toggle=True, icon='FORWARD')
         draw_add_new_socket(layout, context)
 
+# ----------------------------------------
 def abs_loc(node):
     return node.location + abs_loc(node.parent) if node.parent else node.location
 
@@ -776,17 +778,6 @@ def delete_reroute(link, nodes, links, out_socket):
             links.new(out_socket, re_link.to_socket)
             delete_reroute(re_link, nodes, links, out_socket)
         nodes.remove(reroute)
-""" # 多两行的版本
-def delete_reroute(link, nodes, links, out_socket):
-    if link.to_node.type == "REROUTE":
-        reroute = link.to_node
-        re_links = reroute.outputs[0].links
-        for re_link in re_links:
-            tar_socket = re_link.to_socket
-            links.new(out_socket, tar_socket)
-            delete_reroute(re_link, nodes, links, out_socket)
-        nodes.remove(reroute)
- """
 
 def split_all_and_merge_move(context, is_pre_merge=False):
     selected_nodes = context.selected_nodes

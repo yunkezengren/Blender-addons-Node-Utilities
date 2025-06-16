@@ -567,7 +567,7 @@ def exist_node_tree(context: Context):
 
 class ATTRLIST_MT_SubMenu(Menu):
     bl_idname = "ATTRLIST_MT_SubMenu"
-    bl_label = "Sub Menu"
+    bl_label = "Hide Menu"
 
     def draw(self, context):
         attrs = get_attrs(get_hided=True)

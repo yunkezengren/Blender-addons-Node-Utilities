@@ -4099,15 +4099,15 @@ class VqmtPieMath(bpy.types.Menu):
                 colLabel = pie.column()
                 box = colLabel.box()
                 row = box.row(align=True)
-                # TODO 如何对整数接口，浮点饼菜单就浮点的颜色
+                # _ TODO 如何对整数接口，浮点饼菜单就浮点的颜色
                 _math_type = VqmtData.qmSkType
                 _sk0 = VqmtData.sk0
                 float_or_int = False
                 if _sk0:
                     if VqmtData.qmSkType in ["VALUE", "INT"]:
                         float_or_int = True
-                        print("=="*20)
-                        print(VqmtData.qmSkType)
+                        # print("=="*20)
+                        # print(VqmtData.qmSkType)
                         color = float_int_color[VqmtData.qmSkType]   # 只影响提示的接口颜色
                     else:
                         color=GetSkColorRaw(_sk0)       # 原先情况：整数接口浮点饼是整数的颜色
@@ -4189,7 +4189,7 @@ class VqmtPieMath(bpy.types.Menu):
                 LyVqmAddItem(colRight,'SUBTRACT','REMOVE')
                 ##
                 LyVqmAddItem(colRight,'MULTIPLY','SORTBYEXT')
-                LyVqmAddItem(colRight,'DIVIDE','FIXED_SIZE')   #ITALIC  FIXED_SIZE
+                LyVqmAddItem(colRight,'DIVIDE','FIXED_SIZE') #ITALIC  FIXED_SIZE
                 ##
                 colRight.separator()
                 LyVqmAddItem(colRight, 'MULTIPLY_ADD')
