@@ -8,6 +8,7 @@ class Attr_Info:
     """ ## data_type提示 """
     domain: list[str]
     domain_info: list[str] = field(default_factory=list)
+    """ ### todo 应该可以删掉 domain_info,在需要的地方在处理 domain->domain_info """
     # 对于 list或dict这样的可变类型,必须这样, 直接写domain:list=[], 所有实例都会共享同一个列表
     group_name: Union[str, list[str]] = field(default_factory=list)
     group_node_name: list[str] = field(default_factory=list)

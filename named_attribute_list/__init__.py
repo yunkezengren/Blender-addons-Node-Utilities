@@ -234,7 +234,7 @@ def get_tree_attrs_dict(
                                 group_node_name=temp1, group_name_parent=temp2, in_group=True)
     return attrs_dict
 
-# todo 为什么不是从 dict 的键里得到列表
+# _ 为什么不是从 attrs_dict 的键里得到列表: attrs_dict因为未使用或组内等原因和 attrs_list 有时不同
 def get_tree_attrs_list(tree: NodeTree, all_tree_attr: list[str], stored_group) -> list[str]:
     """ 遍历节点得到的属性名称列表,省的被evaluated_obj_attrs里的同名,重存覆盖 """
     nodes = tree.nodes
@@ -277,15 +277,21 @@ def extend_dict_with_evaluated_obj_attrs(attrs_d: Attr_Dict, exclude_l: list[str
     all_evaluated_attr: list[str] = []
     for i, com in enumerate(components):
         if not com: continue
-        domain = attr.domain if i else "INSTANCE"  # 只有i是0时,这时虽然是点云,其实是实例
         for attr in com.attributes:
+            domain = attr.domain if i else "INSTANCE"  # 只有i是0时,这时虽然是点云,其实是实例
             # todo gp 只有layer的 没点和线的
             name = attr.name
             all_evaluated_attr.append(name)      # [name, domain, attr.data_type] 暂时只用name应该就足够了
             if name in exclude_l or name in all_tree_attr: continue   # 不覆盖 遍历节点得到有更多信息的属性,补上遍历漏的
             if name.startswith(".a_"): continue           # 匿名属性,噪音
-            attrs_d[name] = Attr_Info(data_type=attr.data_type, domain=[domain],
-                                        domain_info=[tr(get_domain_cn[domain])], group_name=tr("不确定"))
+            if name not in attrs_d:
+                attrs_d[name] = Attr_Info(data_type=attr.data_type, domain=[domain],
+                                        domain_info=[tr(get_domain_cn[domain])], group_name=[tr("不确定")])
+            else:
+                info = attrs_d[name]
+                info.domain.append(domain)
+                info.domain_info.append(tr(get_domain_cn[domain]))
+                info.group_name.append(tr("不确定"))
     return all_evaluated_attr
 
 def extend_dict_with_obj_data_attrs(attrs_d: Attr_Dict, sub_attrs_d: Attr_Dict, all_tree_attr: list[str]):
@@ -324,11 +330,11 @@ def extend_dict_with_obj_data_attrs(attrs_d: Attr_Dict, sub_attrs_d: Attr_Dict, 
                                     group_name=tr("物体属性"), info=tr("颜色属性"))
     return all_evaluated_attr
 
-def move_by_prefix_or_unused(attrs_d1: Attr_Dict, attrs_d2: Attr_Dict, all_evaluated_attr: list):
-    """ 把符合条件的从d1移到d2 """
+def move_by_prefix_or_unused(dict1: Attr_Dict, dict2: Attr_Dict, all_evaluated_attr: list):
+    """ 把符合条件的从 dict1 移到 dict2 """
     prefix_list = pref().prefix_to_hide.split("|")
     # 迭代 items 的列表副本, 修改的是字典, 迭代器仍在安全地遍历那个不变的列表副本
-    for name in list(attrs_d1):
+    for name in list(dict1):
         has_prefix = False
         if pref().hide_by_prefix:
             for prefix in prefix_list:
@@ -337,7 +343,7 @@ def move_by_prefix_or_unused(attrs_d1: Attr_Dict, attrs_d2: Attr_Dict, all_evalu
                     break
         hide_unuse = (pref().hide_unused_attr and name not in all_evaluated_attr)
         if has_prefix or hide_unuse:
-            attrs_d2[name] = attrs_d1.pop(name)    # pop() 会删除并返回值
+            dict2[name] = dict1.pop(name)    # pop() 会删除并返回值
 
 def custom_sort_dict(attrs: Attr_Dict, sort_key_l: list[Union[str, list]]) -> Attr_Dict:
     sorted_attrs: Attr_Dict = {}
