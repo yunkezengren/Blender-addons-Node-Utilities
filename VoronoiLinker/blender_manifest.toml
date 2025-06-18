@@ -1,0 +1,12 @@
+schema_version = "1.0.0"
+id = "voronoi_linker"
+version = "5.1.2"
+name = "Voronoi Linker"
+tagline = "aaaaa"
+maintainer = "ugorek"
+type = "add-on"
+tags = ["Node"]
+blender_version_min = "4.2.0"
+license = ["SPDX:GPL-3.0-or-later"]
+website = "https://github.com/ugorek000/VoronoiLinker"
+# website = "https://space.bilibili.com/1109241880"

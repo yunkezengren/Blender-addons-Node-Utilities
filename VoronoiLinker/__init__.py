@@ -1,44 +1,3 @@
-# 小王 transfer value
-# 小王 允许同时连接多个input 接口
-# 小王 唤起位置偏移
-# 小王 想让预览器自动激活
-# 小王 绘制颜色加深
-# 小王 解决 Ctrl Shift E / Ctrl E / Alt E 等显示太浅
-# 小王 这个更像影响全体 这里使得Ctrl Shift E / Ctrl E / Alt E 等显示太浅
-# 小王 这样更舒服，在输入或输出接口方面加强
-# 小王 这里也能更改颜色
-# 小王 额外绘制
-# 小王 饼菜单颜色条宽度
-# 小王-npr预览
-# 小王-优化-绘制节点组名字
-# 小王-只对有选项的节点绘制-导致节点组和bake之类的失效
-# 小王-Alt D 支持的接口
-# 小王-Alt D 旋转接口
-# 小王-Alt D 字符串接口
-# 小王-Alt D 矩阵接口
-# 小王-工具提示
-# 小王-折叠的节点同样绘制
-# 小王-支持交换接口
-# 小王-新建接口
-# 小王-新建接口-捕捉属性 烘焙 菜单切换
-# 小王-更改接口名称
-# 小王-模式名匹配
-# 小王-混合饼菜单对比较节点的额外支持
-# 小王-绘制工具提示
-# 小王-自动隐藏接口优化-inline
-# 小王-自动隐藏接口优化-旋转接口
-# 小王-判断节点是否有下拉列表
-# 小王-显示节点选项优化
-# 小王-显示节点选项优化-根据选项重命名节点-domain
-# 小王-隐藏接口值-节点组
-# 小王-新接口类型的Mix饼菜单
-
-# _ todo 补全工具名称提示
-# _ todo 接口1移到接口2上  FLIP模式，在两个接口绘制名后加上 接口1 接口2
-# _ 粘贴接口名,只支持那几个特定的
-# _ 浮点饼菜单 to 弧度 角度
-# _ 自动隐藏显示接口后,扩展接口不显示
-# _ TODO 交换接口 复制粘贴接口名 扩展接口 CTRl Shift A  Alt Shift A
 # TODO 没面板的组输入和节点组,插入接口才符合顺序
 # TODO 快速数学运算,在偏好设置里加个选项,如果连满了两个接口,是否hide
 # TODO 整数运算饼菜单
@@ -52,11 +11,14 @@ bl_info = {'name':"Voronoi Linker", 'author':"ugorek", #Так же спасиб
            'description':"Various utilities for nodes connecting, based on distance field.", 'location':"Node Editor", #Раньше была надпись 'Node Editor > Alt + RMB' в честь того, ради чего всё; но теперь VL "повсюду"!
            'warning':"", #Надеюсь не настанет тот момент, когда у VL будет предупреждение. Неработоспособность в Linux'е была очень близко к этому.
            'category':"Node",
-           'wiki_url':"https://github.com/ugorek000/VoronoiLinker/wiki", 'tracker_url':"https://github.com/ugorek000/VoronoiLinker/issues"}
+           'wiki_url':"https://github.com/ugorek000/VoronoiLinker/wiki", 
+           'tracker_url':"https://github.com/ugorek000/VoronoiLinker/issues"}
 
 from builtins import len as length #Я обожаю трёхбуквенные имена переменных. А без такого имени, как "len" -- мне очень грустно и одиноко... А ещё 'Vector.length'.
 import bpy, ctypes, rna_keymap_ui, bl_keymap_utils
 import blf, gpu, gpu_extras.batch
+from C_Structure import BNode, View2D, SkGetLocVec
+
 
 from math import pi, cos, sin
 from mathutils import Vector as Vec
@@ -66,6 +28,7 @@ import platform
 from time import perf_counter, perf_counter_ns
 import copy #Для VLNST.
 from pprint import pprint
+from bpy.types import (NodeSocket, UILayout)
 
 dict_classes = {} #Все подряд, которых нужно регистрировать. Через словарь -- для SmartAddToRegAndAddToKmiDefs(), но чтобы сохранял порядок.
 dict_vtClasses = {} #Только инструменты V*T.  #只有V*T工具。
@@ -77,9 +40,10 @@ Color_Bar_Width = 0.015     # 小王 饼菜单颜色条宽度
 Cursor_X_Offset = -50       # 小王 这样更舒服，在输入或输出接口方面加强
 
 
-voronoiAddonName = bl_info['name'].replace(" ","") #todo0 узнать разницу между названием аддона, именем аддона, именем файла, именем модуля, (мб ещё пакета); и ещё в установленных посмотреть.
+# voronoiAddonName = bl_info['name'].replace(" ","") #todo0 узнать разницу между названием аддона, именем аддона, именем файла, именем модуля, (мб ещё пакета); и ещё в установленных посмотреть.
+voronoiAddonName = __package__
 class VoronoiAddonPrefs(bpy.types.AddonPreferences):
-    bl_idname = voronoiAddonName
+    bl_idname = __package__
 
 list_kmiDefs = []
 dict_setKmiCats = {'grt':set(), 'oth':set(), 'spc':set(), 'qqm':set(), 'cus':set()}
@@ -93,7 +57,7 @@ def SmartAddToRegAndAddToKmiDefs(cls, txt, dict_props={}):
 isWin = platform.system()=='Windows'
 #isLinux = platform.system()=='Linux'
 
-viaverIsBlender4 = bpy.app.version[0]==4 #Для поддержки работы в предыдущих версиях. Нужно для комфортного осознания отсутствия напрягов при вынужденных переходах на старые версии,
+gt_blender4 = bpy.app.version[0]>=4 #Для поддержки работы в предыдущих версиях. Нужно для комфортного осознания отсутствия напрягов при вынужденных переходах на старые версии,
 # и получения дополнительной порции эндорфинов от возможности работы в разных версиях с разными api.
 #Todo0VV опуститься с поддержкой как можно ниже по версиям. Сейчас с гарантией: b4.0 и b4.1?
 
@@ -204,7 +168,7 @@ for dk in dict_vlHhTranslations:
     exec(dk+f" = '{dk}'") #Когда будут языки с @variantcode (наверное никогда), тогда и можно будет париться.
 
 class VlTrMapForKey():
-    def __init__(self, key, *, tc='a'):
+    def __init__(self, key: str, *, tc='a'):
         self.key = key
         self.data = {}
         self.tc = tc
@@ -554,7 +518,7 @@ def GetSetOfKeysFromEvent(event, isSide=False):
     return set_keys
 
 
-def FtgGetTargetOrNone(ftg):
+def FtgGetTargetOrNone(ftg) -> NodeSocket:
     return ftg.tar if ftg else None
 
 def MinFromFtgs(ftg1, ftg2):
@@ -577,7 +541,7 @@ def CheckUncollapseNodeAndReNext(nd, self, *, cond, flag=None): #Как же я 
         self.NextAssignmentRoot(flag)
 
 class LyAddQuickInactiveCol():
-    def __init__(self, where, att='row', align=True, active=False):
+    def __init__(self, where: UILayout, att='row', align=True, active=False):
         self.ly = getattr(where, att)(align=align)
         self.ly.active = active
     def __enter__(self):
@@ -585,14 +549,14 @@ class LyAddQuickInactiveCol():
     def __exit__(self, *_):
         pass
 
-def LyAddLeftProp(where, who, att, active=True):
+def LyAddLeftProp(where: UILayout, who, att, active=True):
     #where.prop(who, att); return
     row = where.row()
     row.alignment = 'LEFT'
     row.prop(who, att)
     row.active = active
 
-def LyAddDisclosureProp(where, who, att, *, txt=None, active=True, isWide=False): #Заметка: Не может на всю ширину, если where -- row.
+def LyAddDisclosureProp(where: UILayout, who, att, *, txt=None, active=True, isWide=False): #Заметка: Не может на всю ширину, если where -- row.
     tgl = getattr(who, att)
     rowMain = where.row(align=True)
     rowProp = rowMain.row(align=True)
@@ -605,11 +569,11 @@ def LyAddDisclosureProp(where, who, att, *, txt=None, active=True, isWide=False)
         rowPad.prop(who, att, text=" ", emboss=False)
     return tgl
 
-def LyAddNoneBox(where):
+def LyAddNoneBox(where: UILayout):
     box = where.box()
     box.label()
     box.scale_y = 0.5
-def LyAddHandSplitProp(where, who, att, *, text=None, active=True, returnAsLy=False, forceBoolean=0):
+def LyAddHandSplitProp(where: UILayout, who, att, *, text=None, active=True, returnAsLy=False, forceBoolean=0):
     spl = where.row().split(factor=0.42, align=True)
     spl.active = active
     row = spl.row(align=True)
@@ -627,7 +591,7 @@ def LyAddHandSplitProp(where, who, att, *, text=None, active=True, returnAsLy=Fa
         else:
             return spl
 
-def LyAddNiceColorProp(where, who, att, align=False, txt="", ico='NONE', decor=3):
+def LyAddNiceColorProp(where: UILayout, who, att, align=False, txt="", ico='NONE', decor=3):
     rowCol = where.row(align=align)
     rowLabel = rowCol.row()
     rowLabel.alignment = 'LEFT'
@@ -638,14 +602,14 @@ def LyAddNiceColorProp(where, who, att, align=False, txt="", ico='NONE', decor=3
     rowProp.prop(who, att, text="", icon=ico)
     rowProp.active = decor//2%2
 
-def LyAddKeyTxtProp(where, prefs, att):
+def LyAddKeyTxtProp(where: UILayout, prefs, att):
     rowProp = where.row(align=True)
     LyAddNiceColorProp(rowProp, prefs, att)
     #Todo0 я так и не врубился как пользоваться вашими prop event'ами, жуть какая-то. Помощь извне не помешала бы.
     with LyAddQuickInactiveCol(rowProp) as row:
         row.operator('wm.url_open', text="", icon='URL').url="https://docs.blender.org/api/current/bpy_types_enum_items/event_type_items.html#:~:text="+getattr(prefs, att)
 
-def LyAddLabeledBoxCol(where, *, text="", active=False, scale=1.0, align=True):
+def LyAddLabeledBoxCol(where: UILayout, *, text="", active=False, scale=1.0, align=True):
     colMain = where.column(align=True)
     box = colMain.box()
     box.scale_y = 0.5
@@ -657,24 +621,26 @@ def LyAddLabeledBoxCol(where, *, text="", active=False, scale=1.0, align=True):
     box.scale_y = scale
     return box.column(align=align)
 
-def LyAddTxtAsEtb(where, txt):
+def LyAddTxtAsEtb(where: UILayout, txt: str):
     row = where.row(align=True)
     row.label(icon='ERROR')
     col = row.column(align=True)
     for li in txt.split("\n")[:-1]:
         col.label(text=li, translate=False)
-def LyAddEtb(where): #"Вы дебагов фиксите? Нет, только нахожу."
+def LyAddEtb(where: UILayout): #"Вы дебагов фиксите? Нет, только нахожу."
     import traceback
     LyAddTxtAsEtb(where, traceback.format_exc())
 
-def PowerArr4(arr, *, pw=1/2.2): #def PowerArrToVec(arr, *, pw=1/2.2): return Vec(map(lambda a: a**pw, arr))
+
+const_float4 = tuple[float, float, float, float]
+def PowerArr4(arr: const_float4, *, pw=1/2.2): #def PowerArrToVec(arr, *, pw=1/2.2): return Vec(map(lambda a: a**pw, arr))
     return (arr[0]**pw, arr[1]**pw, arr[2]**pw, arr[3]**pw)
 
 def OpaqueCol3Tup4(col, *, al=1.0):
     return (col[0], col[1], col[2], al)
 def MaxCol4Tup4(col):
     return (max(col[0], 0), max(col[1], 0), max(col[2], 0), max(col[3], 0))
-def GetSkColorRaw(sk: bpy.types.NodeSocket):
+def GetSkColorRaw(sk: NodeSocket):
     if sk.bl_idname=='NodeSocketUndefined':
         return (1.0, 0.2, 0.2, 1.0)
     elif hasattr(sk,'draw_color'):
@@ -683,7 +649,7 @@ def GetSkColorRaw(sk: bpy.types.NodeSocket):
         return sk.draw_color_simple()
     else:
         return (1, 0, 1, 1)
-def GetSkColSafeTup4(sk): #Не брать прозрачность от сокетов; и избавляться от отрицательных значений, что могут быть у аддонских сокетов.
+def GetSkColSafeTup4(sk: NodeSocket): #Не брать прозрачность от сокетов; и избавляться от отрицательных значений, что могут быть у аддонских сокетов.
     return OpaqueCol3Tup4(MaxCol4Tup4(GetSkColorRaw(sk)))
 dict_skTypeHandSolderingColor = { #Для VQMT.
     'BOOLEAN':    (0.800000011920929,   0.6499999761581421,  0.8399999737739563,  1.0),
@@ -701,8 +667,8 @@ dict_skTypeHandSolderingColor = { #Для VQMT.
     'TEXTURE':    (0.6200000047683716,  0.3100000023841858,  0.6399999856948853,  1.0),
     'VECTOR':     (0.38999998569488525, 0.38999998569488525, 0.7799999713897705,  1.0),
     'CUSTOM':     (0.20000000298023224, 0.20000000298023224, 0.20000000298023224, 1.0) }
-for dk, dv in dict_skTypeHandSolderingColor.items():
-    dict_skTypeHandSolderingColor[dk] = PowerArr4(dv, pw=2.2)
+for key, value in dict_skTypeHandSolderingColor.items():
+    dict_skTypeHandSolderingColor[key] = PowerArr4(value, pw=2.2)
 
 class SoldThemeCols:
     dict_mapNcAtt = {0: 'input_node',        1:  'output_node',  3: 'color_node',
@@ -720,12 +686,12 @@ def SolderThemeCols(themeNe):
     SoldThemeCols.node_backdrop4 = Col4(themeNe.node_backdrop)
     SoldThemeCols.node_backdrop4pw = GetNiceColNone(SoldThemeCols.node_backdrop4) #对于Ctrl-F：使用它，请参阅下面的“+”4PW”。Для Ctrl-F: оно используется, см ниже `+"4pw"`.
 
-# theme = C.preferences.themes[0].node_editor
-# getattr(theme, "attribute_node")
-# for pr in theme.bl_rna.properties:
-#     dnf = pr.identifier
-#     if dnf.endswith("_node"):
-#         print(f"{dnf = }")
+    # theme = C.preferences.themes[0].node_editor
+    # getattr(theme, "attribute_node")
+    # for pr in theme.bl_rna.properties:
+    #     dnf = pr.identifier
+    #     if dnf.endswith("_node"):
+    #         print(f"{dnf = }")
 
     # themeNe is context.preferences.themes[0].node_editor
     # print("." * 50)
@@ -1456,194 +1422,11 @@ def EdgePanInit(self, area):
     EdgePanData.speed = self.prefs.vEdgePanSpeed
     bpy.app.timers.register(EdgePanTimer, first_interval=0.0)
 
-# *Я в конце 2022*: Уу, какой мимимишный аддончик у меня получился на 157 строчки кода.
-# *Я в конце 2023*: ААаа чёрт возьми, что тут происходит??
-
-class StructBase(ctypes.Structure):
-    _subclasses = []
-    __annotations__ = {}
-    def __init_subclass__(cls):
-        cls._subclasses.append(cls)
-    @staticmethod
-    def _init_structs():
-        functype = type(lambda: None)
-        for cls in StructBase._subclasses:
-            fields = []
-            for field, value in cls.__annotations__.items():
-                if isinstance(value, functype):
-                    value = value()
-                fields.append((field, value))
-            if fields:
-                cls._fields_ = fields
-            cls.__annotations__.clear()
-        StructBase._subclasses.clear()
-    @classmethod
-    def GetFields(cls, tar):
-        return cls.from_address(tar.as_pointer())
-
-class BNodeSocketRuntimeHandle(StructBase): #\source\blender\makesdna\DNA_node_types.h
-    if isWin:
-        _pad0:        ctypes.c_char*8
-    declaration:  ctypes.c_void_p
-    changed_flag: ctypes.c_uint32
-    total_inputs: ctypes.c_short
-    _pad1:        ctypes.c_char*2
-    location:     ctypes.c_float*2
-class BNodeStack(StructBase):
-    vec:        ctypes.c_float*4
-    min:        ctypes.c_float
-    max:        ctypes.c_float
-    data:       ctypes.c_void_p
-    hasinput:   ctypes.c_short
-    hasoutput:  ctypes.c_short
-    datatype:   ctypes.c_short
-    sockettype: ctypes.c_short
-    is_copy:    ctypes.c_short
-    external:   ctypes.c_short
-    _pad:       ctypes.c_char*4
-class BNodeSocket(StructBase):
-    next:                   ctypes.c_void_p #lambda: ctypes.POINTER(BNodeSocket)
-    prev:                   ctypes.c_void_p #lambda: ctypes.POINTER(BNodeSocket)
-    prop:                   ctypes.c_void_p
-    identifier:             ctypes.c_char*64
-    name:                   ctypes.c_char*64
-    storage:                ctypes.c_void_p
-    in_out:                 ctypes.c_short
-    typeinfo:               ctypes.c_void_p
-    idname:                 ctypes.c_char*64
-    default_value:          ctypes.c_void_p
-    _pad:                   ctypes.c_char*4
-    label:                  ctypes.c_char*64
-    description:            ctypes.c_char*64
-    if (viaverIsBlender4)and(bpy.app.version_string!='4.0.0 Alpha'):
-        short_label:            ctypes.c_char*64
-    default_attribute_name: ctypes.POINTER(ctypes.c_char)
-    to_index:               ctypes.c_int
-    link:                   ctypes.c_void_p
-    ns:                     BNodeStack
-    runtime:                ctypes.POINTER(BNodeSocketRuntimeHandle)
-
-class BNodeType(StructBase): #\source\blender\blenkernel\BKE_node.h
-    idname:         ctypes.c_char*64
-    type:           ctypes.c_int
-    ui_name:        ctypes.c_char*64
-    ui_description: ctypes.c_char*256
-    ui_icon:        ctypes.c_int
-    if bpy.app.version>=(4,0,0):
-        char:           ctypes.c_void_p
-    width:          ctypes.c_float
-    minwidth:       ctypes.c_float
-    maxwidth:       ctypes.c_float
-    height:         ctypes.c_float
-    minheight:      ctypes.c_float
-    maxheight:      ctypes.c_float
-    nclass:         ctypes.c_int16 #https://github.com/ugorek000/ManagersNodeTree
-class BNode(StructBase): #Для VRT.
-    next:    lambda: ctypes.POINTER(BNode)
-    prev:    lambda: ctypes.POINTER(BNode)
-    inputs:     ctypes.c_void_p*2
-    outputs:    ctypes.c_void_p*2
-    name:       ctypes.c_char*64
-    identifier: ctypes.c_int
-    flag:       ctypes.c_int
-    idname:     ctypes.c_char*64
-    typeinfo:   ctypes.POINTER(BNodeType)
-    type:       ctypes.c_int16
-    ui_order:   ctypes.c_int16
-    custom1:    ctypes.c_int16
-    custom2:    ctypes.c_int16
-    custom3:    ctypes.c_float
-    custom4:    ctypes.c_float
-    id:         ctypes.c_void_p
-    storage:    ctypes.c_void_p
-    prop:       ctypes.c_void_p
-    parent:     ctypes.c_void_p
-    locx:       ctypes.c_float
-    locy:       ctypes.c_float
-    width:      ctypes.c_float
-    height:     ctypes.c_float
-    offsetx:    ctypes.c_float
-    offsety:    ctypes.c_float
-    label:      ctypes.c_char*64
-    color:      ctypes.c_float*3
-#Спасибо пользователю с ником "Oxicid", за этот кусок кода по части ctypes. "А что, так можно было?".
-#Ох уж эти разрабы; пришлось самому добавлять возможность получать позиции сокетов. Месево от 'Blender 4.0 alpha' прижало к стенке и вынудило.
-#..Это получилось сделать аш на питоне, неужели так сложно было пронести api?
-#P.s. минута молчания в честь павших героев, https://projects.blender.org/blender/blender/pulls/117809.
-
-def SkGetLocVec(sk):
-    return Vec2(BNodeSocket.GetFields(sk).runtime.contents.location[:]) if (sk.enabled)and(not sk.hide) else Vec2((0, 0))
-#Что ж, самое сложное пройдено. До технической возможности поддерживать свёрнутые ноды осталось всего ничего.
-#Жаждущие это припрутся сюда по-быстрому с покерфейсом, возьмут что нужно, и модифицируют себе.
-#Тот первый, кто это сделает, моё тебе послание: "Что ж, молодец. Теперь ты можешь сосаться к сокетам свёрнутого нода. Надеюсь у тебя счастья полные штаны".
-
-class RectBase(StructBase):
-    def GetRaw(self):
-        return self.xmin, self.ymin, self.xmax, self.ymax
-    def TranslateRaw(self, xy):
-        self.xmin += xy[0]
-        self.xmax += xy[0]
-        self.ymin += xy[1]
-        self.ymax += xy[1]
-    def TranslateScaleFac(self, xy, fac=0.5):
-        if xy[0]>0:
-            self.xmin += xy[0]*fac
-            self.xmax += xy[0]
-        elif xy[0]<0:
-            self.xmin += xy[0]
-            self.xmax += xy[0]*fac
-        ##
-        if xy[1]>0:
-            self.ymin += xy[1]*fac
-            self.ymax += xy[1]
-        elif xy[1]<0:
-            self.ymin += xy[1]
-            self.ymax += xy[1]*fac
-    def Zooming(self, center=None, fac=1.0):
-        if center:
-            centerX = center[0]
-            centerY = center[1]
-        else:
-            centerX = (self.xmax+self.xmin)/2
-            centerY = (self.ymax+self.ymin)/2
-        self.xmax = (self.xmax-centerX)*fac+centerX
-        self.xmin = (self.xmin-centerX)*fac+centerX
-        self.ymax = (self.ymax-centerY)*fac+centerY
-        self.ymin = (self.ymin-centerY)*fac+centerY
-class Rctf(RectBase):
-    xmin: ctypes.c_float
-    xmax: ctypes.c_float
-    ymin: ctypes.c_float
-    ymax: ctypes.c_float
-class Rcti(RectBase):
-    xmin: ctypes.c_int
-    xmax: ctypes.c_int
-    ymin: ctypes.c_int
-    ymax: ctypes.c_int
-class View2D(StructBase): #\source\blender\makesdna\DNA_view2d_types.h
-    tot:       Rctf
-    cur:       Rctf
-    vert:      Rcti
-    hor:       Rcti
-    mask:      Rcti
-    min:       ctypes.c_float*2
-    max:       ctypes.c_float*2
-    minzoom:   ctypes.c_float
-    maxzoom:   ctypes.c_float
-    scroll:    ctypes.c_short
-    scroll_ui: ctypes.c_short
-    keeptot:   ctypes.c_short
-    keepzoom:  ctypes.c_short
-    def GetZoom(self):
-        return (self.mask.xmax-self.mask.xmin)/(self.cur.xmax-self.cur.xmin) #Благодаря keepzoom==3, можно читать только с одной оси.
-
-StructBase._init_structs()
-
 viaverSkfMethod = -1 #Переключатель-пайка под успешный способ взаимодействия. Можно было и распределить по карте с версиями, но у попытки "по факту" есть свои эстетические прелести.
 
 #Заметка: ViaVer'ы не обновлялись.
 def ViaVerNewSkf(tree, isSide, ess, name):
-    if viaverIsBlender4: #Todo1VV переосмыслить топологию; глобальные функции с методами и глобальная переменная, указывающая на успешную из них; с "полной пайкой защёлкиванием".
+    if gt_blender4: #Todo1VV переосмыслить топологию; глобальные функции с методами и глобальная переменная, указывающая на успешную из них; с "полной пайкой защёлкиванием".
         global viaverSkfMethod
         if viaverSkfMethod==-1:
             viaverSkfMethod = 1+hasattr(tree.interface,'items_tree')
@@ -1655,7 +1438,7 @@ def ViaVerNewSkf(tree, isSide, ess, name):
         skf = (tree.outputs if isSide else tree.inputs).new(ess if type(ess)==str else ess.bl_idname, name)
     return skf
 def ViaVerGetSkfa(tree, isSide):
-    if viaverIsBlender4:
+    if gt_blender4:
         global viaverSkfMethod
         if viaverSkfMethod==-1:
             viaverSkfMethod = 1+hasattr(tree.interface,'items_tree')
@@ -1667,7 +1450,7 @@ def ViaVerGetSkfa(tree, isSide):
 def ViaVerGetSkf(tree, isSide, name):
     return ViaVerGetSkfa(tree, isSide).get(name)
 def ViaVerSkfRemove(tree, isSide, name):
-    if viaverIsBlender4:
+    if gt_blender4:
         tree.interface.remove(name)
     else:
         (tree.outputs if isSide else tree.inputs).remove(name)
@@ -1994,16 +1777,16 @@ def SolderSkLinks(tree):
 
 def RegisterSolderings():
     txtDoc = "Property from and only for VoronoiLinker addon."
-    #bpy.types.NodeSocket.vl_sold_links_raw = property(SkGetSolderedLinksRaw)
-    bpy.types.NodeSocket.vl_sold_links_final = property(SkGetSolderedLinksFinal)
-    bpy.types.NodeSocket.vl_sold_is_final_linked_cou = property(SkGetSolderedIsFinalLinkedCount)
-    #bpy.types.NodeSocket.vl_sold_links_raw.__doc__ = txtDoc
-    bpy.types.NodeSocket.vl_sold_links_final.__doc__ = txtDoc
-    bpy.types.NodeSocket.vl_sold_is_final_linked_cou.__doc__ = txtDoc
+    #NodeSocket.vl_sold_links_raw = property(SkGetSolderedLinksRaw)
+    NodeSocket.vl_sold_links_final = property(SkGetSolderedLinksFinal)
+    NodeSocket.vl_sold_is_final_linked_cou = property(SkGetSolderedIsFinalLinkedCount)
+    #NodeSocket.vl_sold_links_raw.__doc__ = txtDoc
+    NodeSocket.vl_sold_links_final.__doc__ = txtDoc
+    NodeSocket.vl_sold_is_final_linked_cou.__doc__ = txtDoc
 def UnregisterSolderings():
-    #del bpy.types.NodeSocket.vl_sold_links_raw
-    del bpy.types.NodeSocket.vl_sold_links_final
-    del bpy.types.NodeSocket.vl_sold_is_final_linked_cou
+    #del NodeSocket.vl_sold_links_raw
+    del NodeSocket.vl_sold_links_final
+    del NodeSocket.vl_sold_is_final_linked_cou
 
 #Обеспечивает поддержку свёрнутых нодов:
 #Дождались таки... Конечно же не "честную поддержку". Я презираю свёрнутые ноды; и у меня нет желания шататься с округлостью, и соответствующе изменённым рисованием.
@@ -2087,7 +1870,7 @@ def GenFtgsFromPuts(nd, isSide, samplePos, uiScale): #Вынесено для vp
             if (not isSide)and(sk.type=='VECTOR')and(SkIsLinkedVisible(sk))and(not sk.hide_value):
                 if "VectorDirection" in str(sk.rna_type):
                     hei = 2
-                elif not( (nd.type in ('BSDF_PRINCIPLED','SUBSURFACE_SCATTERING'))and(not viaverIsBlender4) )or( not(sk.name in ("Subsurface Radius","Radius"))):
+                elif not( (nd.type in ('BSDF_PRINCIPLED','SUBSURFACE_SCATTERING'))and(not gt_blender4) )or( not(sk.name in ("Subsurface Radius","Radius"))):
                     hei = 3
             boxHeiBound = (pos.y-11-hei*20,  pos.y+11+max(sk.vl_sold_is_final_linked_cou-2,0)*5*(not isSide))
             txt = TranslateIface(GetSkLabelName(sk)) if sk.bl_idname!='NodeSocketVirtual' else TranslateIface("Virtual" if not sk.name else GetSkLabelName(sk))
@@ -3074,9 +2857,9 @@ def VptPreviewFromSk(self, prefs, skTar):
         self.tree.links.new(ndRvSave.outputs[0], finalLink.to_socket)
 
 class VmtData(PieRootData):
-    sk0 = None
-    sk1 = None
-    sk2 = None  # 小王 
+    sk0: NodeSocket = None
+    sk1: NodeSocket = None
+    sk2: NodeSocket = None  # 小王 
     skType = ""
     isHideOptions = False
     isPlaceImmediately = False
@@ -3379,9 +3162,9 @@ class VmtPieMixer(bpy.types.Menu):
     bl_idname = 'VL_MT_Voronoi_mixer_pie'
     bl_label = "" #Текст здесь будет отображаться в центре пирога.
     def draw(self, context):
-        def LyVmAddOp(where, txt):
+        def LyVmAddOp(where: UILayout, txt):
             where.operator(VmtOpMixer.bl_idname, text=TranslateIface(dict_vmtMixerNodesDefs[txt][2])).operation = txt
-        def LyVmAddItem(where, txt):
+        def LyVmAddItem(where: UILayout, txt):
             ly = where.row(align=VmtData.pieAlignment==0)
             soldPdsc = VmtData.pieDisplaySocketColor
             if soldPdsc:
@@ -3935,7 +3718,7 @@ def DoQuickMath(event, tree, operation, isCombo=False):
         # if VqmtData.qmSkType=='VECTOR':
         #     aNd.inputs[0].hide_value = True
         #Идея с event.shift гениальна. Изначально ради одиночного линка во второй сокет, но благодаря визуальному поиску ниже, может и менять местами и два линка.
-        bl4ofs = 2*viaverIsBlender4*(tree.bl_idname in {'ShaderNodeTree','GeometryNodeTree'})
+        bl4ofs = 2*gt_blender4*(tree.bl_idname in {'ShaderNodeTree','GeometryNodeTree'})
         skInx = aNd.inputs[0] if VqmtData.qmSkType!='RGBA' else aNd.inputs[-2-bl4ofs] #"Inx", потому что пародия на int "index", но потом понял, что можно сразу в сокет для линковки далее.
         if event.shift:
             for sk in aNd.inputs:
@@ -4055,7 +3838,7 @@ class VqmtPieMath(bpy.types.Menu):
     bl_idname = 'VL_MT_Voronoi_quick_math_pie'
     bl_label = "" #Текст здесь будет отображаться в центре пирога.
     def draw(self, _context):
-        def LyVqmAddOp(where, text: str, icon='NONE'):
+        def LyVqmAddOp(where: UILayout, text: str, icon='NONE'):
             #Автоматический перевод выключен, ибо оригинальные операции у нода математики тоже не переводятся; по крайней мере для Русского.
             # label = text.replace("_"," ").capitalize()
             label = text.replace("_"," ").title()
@@ -4066,7 +3849,7 @@ class VqmtPieMath(bpy.types.Menu):
                 label = "To Degrees"
             where.operator(VqmtOpMain.bl_idname, text=label, icon=icon, translate=False).operation = text
         soldCanIcons = VqmtData.prefs.vqmtDisplayIcons
-        def LyVqmAddItem(where, txt, ico='NONE'):
+        def LyVqmAddItem(where: UILayout, txt, ico='NONE'):
             ly = where.row(align=VqmtData.pieAlignment==0)
             soldPdsc = VqmtData.pieDisplaySocketColor# if not VqmtData.isJustPie else 0
             if soldPdsc:
@@ -5366,7 +5149,7 @@ class SNA_OT_Change_Node_Domain_And_Name(bpy.types.Operator):
 
 dict_classes[SNA_OT_Change_Node_Domain_And_Name] = True
 
-def VestLyAddEnumSelectorBox(where, lyDomain=None):
+def VestLyAddEnumSelectorBox(where: UILayout, lyDomain=None):
     assert VestData.list_enumProps
     colMain = where.row()           # 小王-显示节点选项优化-每个下拉列表，各占一列
     # colMain = where.column()
@@ -5431,7 +5214,7 @@ class VestPieBox(bpy.types.Menu):
     bl_label = "Enum Selector"
     def draw(self, _context):
         pie = self.layout.menu_pie()
-        def GetCol(where, tgl=True):
+        def GetCol(where: UILayout, tgl=True):
             col = (where.box() if tgl else where).column()
             col.ui_units_x = 7*((VestData.boxScale-1)/2+1)            # 只对饼菜单显示选项有用
             # col.ui_units_x = 7*((VestData.boxScale-1)/2+1) * len(VestData.list_enumProps)
@@ -7065,7 +6848,8 @@ class VoronoiAddonPrefs(VoronoiAddonPrefs):
 #RANTO
 
 def Prefs():
-    return bpy.context.preferences.addons[voronoiAddonName].preferences
+    # return bpy.context.preferences.addons[voronoiAddonName].preferences
+    return bpy.context.preferences.addons[__package__].preferences
 
 class VoronoiOpAddonTabs(bpy.types.Operator):
     bl_idname = 'node.voronoi_addon_tabs'
@@ -7084,7 +6868,7 @@ class VoronoiOpAddonTabs(bpy.types.Operator):
                 prefs.vaUiTabs = self.opt
         return {'FINISHED'}
 
-def LyAddThinSep(where, scaleY):
+def LyAddThinSep(where: UILayout, scaleY):
     row = where.row(align=True)
     row.separator()
     row.scale_y = scaleY
@@ -7304,7 +7088,7 @@ class VoronoiAddonPrefs(VoronoiAddonPrefs):
 
 class VoronoiAddonPrefs(VoronoiAddonPrefs):
     def LyDrawTabSettings(self, where):
-        def LyAddAddonBoxDiscl(where, who, att, *, txt=None, isWide=False, align=False):
+        def LyAddAddonBoxDiscl(where: UILayout, who, att, *, txt=None, isWide=False, align=False):
             colBox = where.box().column(align=True)
             if LyAddDisclosureProp(colBox, who, att, txt=txt, active=False, isWide=isWide):
                 rowTool = colBox.row()
@@ -7334,7 +7118,7 @@ class VoronoiAddonPrefs(VoronoiAddonPrefs):
             if cls.canDrawInAppearance:
                 cls.LyDrawInAppearance(colMain, self)
     def LyDrawTabDraw(self, where):
-        def LyAddPairProp(where, txt):
+        def LyAddPairProp(where: UILayout, txt):
             row = where.row(align=True)
             row.prop(self, txt)
             row.active = getattr(self, txt.replace("Colored","Draw"))
@@ -7463,7 +7247,7 @@ class VoronoiAddonPrefs(VoronoiAddonPrefs):
         rowAddNew.ui_units_x = 12
         rowAddNew.separator()
         rowAddNew.operator(VoronoiOpAddonTabs.bl_idname, text="Add New", icon='NONE').opt = 'AddNewKmi' #NONE  ADD
-        def LyAddKmisCategory(where, cat):
+        def LyAddKmisCategory(where: UILayout, cat):
             if not cat.set_kmis:
                 return
             colListCat = where.row().column(align=True)
@@ -7481,7 +7265,7 @@ class VoronoiAddonPrefs(VoronoiAddonPrefs):
         rowLabelPost.label(text=f"({scoAll})", translate=False)
 
     def LyDrawTabInfo(self, where):
-        def LyAddUrlHl(where, text, url, txtHl=""):
+        def LyAddUrlHl(where: UILayout, text, url, txtHl=""):
             row = where.row(align=True)
             row.alignment = 'LEFT'
             if txtHl:
@@ -7558,13 +7342,13 @@ class VoronoiAddonPrefs(VoronoiAddonPrefs):
                 with LyAddQuickInactiveCol(row) as row:
                     row.label(text="{}", translate=False)
             colLangDebug.row().prop(self,'vaLangDebEnum', expand=True)
-            def LyAddAlertNested(where, text):
+            def LyAddAlertNested(where: UILayout, text):
                 with LyAddQuickInactiveCol(where) as row:
                     row.label(text=text, translate=False)
                 row = where.row(align=True)
                 row.label(icon='BLANK1')
                 return row.column(align=True)
-            def LyAddTran(where, label, text, *, dot="."):
+            def LyAddTran(where: UILayout, label, text, *, dot="."):
                 rowRoot = where.row(align=True)
                 with LyAddQuickInactiveCol(rowRoot) as row:
                     row.alignment = 'LEFT'
@@ -7577,7 +7361,7 @@ class VoronoiAddonPrefs(VoronoiAddonPrefs):
                     hig = length(list_split)-1
                     for cyc, li in enumerate(list_split):
                         col.label(text=li+(dot if cyc==hig else ""), translate=False)
-            def LyAddTranDataForProp(where, pr, dot="."):
+            def LyAddTranDataForProp(where: UILayout, pr, dot="."):
                 colRoot = where.column(align=True)
                 with LyAddQuickInactiveCol(colRoot) as row:
                     row.label(text=pr.identifier, translate=False)
@@ -7654,7 +7438,7 @@ class VoronoiAddonPrefs(VoronoiAddonPrefs):
                             set_alreadyDone.add(pr.identifier)
 class VoronoiAddonPrefs(VoronoiAddonPrefs):
     def draw(self, context):
-        def LyAddDecorLyColRaw(where, sy=0.05, sx=1.0, en=False):
+        def LyAddDecorLyColRaw(where: UILayout, sy=0.05, sx=1.0, en=False):
             where.prop(self,'vaDecorLy', text="")
             where.scale_x = sx
             where.scale_y = sy #Если будет меньше, чем 0.05, то макет исчезнет, и угловатость пропадёт.
