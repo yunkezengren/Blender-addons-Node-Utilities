@@ -1,6 +1,6 @@
 from .globals import dict_vlHhTranslations
 from .globals import *
-from .一些前向func import Prefs
+from .forward_func import Prefs
 
 
 class TranClsItemsUtil():

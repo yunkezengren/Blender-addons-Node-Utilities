@@ -46,22 +46,22 @@ from .Rot_or_Mat_Converter import Rot_or_Mat_Converter, Pie_MT_Converter_To_Rota
 
 from .globals import *
 from .globals import dict_vlHhTranslations
-from .一些前向func import GetFirstUpperLetters, GetUserKmNe, format_tool_set
-from .关于翻译的函数 import *
-from .关于节点的函数 import *
-from .关于ui的函数 import *
-from .关于颜色的函数 import *
+from .forward_func import GetFirstUpperLetters, GetUserKmNe, format_tool_set
+from .translation_utils import *
+from .node_utils import *
+from .ui_utils import *
+from .color_utils import *
 from .VoronoiTool import *
-from .关于sold的函数 import *
+from .solder_utils import *
 from .globals import *
-from .一些前向class import *
-from .一些前向func import *
-from .关于绘制的函数 import *
-from .一些前向func import Prefs
-from .一些前向class import TryAndPass
-from .关于sold的函数 import SolderClsToolNames, RegisterSolderings, UnregisterSolderings
-from .关于翻译的函数 import GetAnnotFromCls, VlTrMapForKey
-from .关于绘制的函数 import TestDraw
+from .forward_class import *
+from .forward_func import *
+from .drawing_utils import *
+from .forward_func import Prefs
+from .forward_class import TryAndPass
+from .solder_utils import SolderClsToolNames, RegisterSolderings, UnregisterSolderings
+from .translation_utils import GetAnnotFromCls, VlTrMapForKey
+from .drawing_utils import TestDraw
 
 
 dict_classes = {} # 所有需要注册的类都放在这里. 使用字典是为了 smart_add_to_reg_and_kmiDefs() 函数, 同时还能保持顺序.

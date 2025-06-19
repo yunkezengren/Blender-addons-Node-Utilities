@@ -2,7 +2,7 @@ import bpy
 from builtins import len as length
 from bpy.types import (NodeSocket, UILayout)
 # from .common_func import sk_label_or_name, index_switch_add_input
-from .一些前向func import *
+from .forward_func import *
 
 class Equestrian():
     set_equestrianNodeTypes = {'GROUP', 'GROUP_INPUT', 'GROUP_OUTPUT', 

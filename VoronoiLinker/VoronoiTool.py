@@ -6,23 +6,23 @@ from pprint import pprint
 from bpy.types import Node, Area
 from bpy.types import View2D as View2d
 
-from .关于节点的函数 import GetNearestSocketsFtg, GetNearestNodesFtg, RestoreCollapsedNodes
-from .关于sold的函数 import SolderSkLinks
-from .关于绘制的函数 import DrawDebug, TemplateDrawNodeFull, TemplateDrawSksToolHh
+from .node_utils import GetNearestSocketsFtg, GetNearestNodesFtg, RestoreCollapsedNodes
+from .solder_utils import SolderSkLinks
+from .drawing_utils import DrawDebug, TemplateDrawNodeFull, TemplateDrawSksToolHh
 from .C_Structure import RectBase
-from .一些前向class import TryAndPass
+from .forward_class import TryAndPass
 from .globals import set_utilTypeSkFields
 
-from .关于翻译的函数 import *
-from .关于节点的函数 import *
-from .关于ui的函数 import *
-from .关于颜色的函数 import *
+from .translation_utils import *
+from .node_utils import *
+from .ui_utils import *
+from .color_utils import *
 from .VoronoiTool import *
-from .关于sold的函数 import *
+from .solder_utils import *
 from .globals import *
-from .一些前向class import *
-from .一些前向func import *
-from .关于绘制的函数 import *
+from .forward_class import *
+from .forward_func import *
+from .drawing_utils import *
 
 
 

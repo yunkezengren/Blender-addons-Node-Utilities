@@ -1,5 +1,5 @@
-from .关于节点的函数 import node_abs_loc
-from .关于颜色的函数 import (Color4, power_color4, clamp_color4, opaque_color4, get_color_black_alpha,
+from .node_utils import node_abs_loc
+from .color_utils import (Color4, power_color4, clamp_color4, opaque_color4, get_color_black_alpha,
                       get_sk_color_safe, get_sk_color)
 from builtins import len as length
 import gpu, gpu_extras, blf, copy
@@ -7,16 +7,16 @@ from mathutils import Vector as Vec2
 from math import pi, cos, sin
 from .C_Structure import View2D
 
-from .关于翻译的函数 import *
-from .关于节点的函数 import *
-from .关于ui的函数 import *
-from .关于颜色的函数 import *
+from .translation_utils import *
+from .node_utils import *
+from .ui_utils import *
+from .color_utils import *
 from .VoronoiTool import *
-from .关于sold的函数 import *
+from .solder_utils import *
 from .globals import *
-from .一些前向class import *
-from .一些前向func import *
-from .关于绘制的函数 import *
+from .forward_class import *
+from .forward_func import *
+from .drawing_utils import *
 
 
 tup_whiteCol4 = (1.0, 1.0, 1.0, 1.0)

@@ -1,20 +1,20 @@
 
-from .关于翻译的函数 import *
-from .关于节点的函数 import *
-from .关于ui的函数 import *
-from .关于颜色的函数 import *
+from .translation_utils import *
+from .node_utils import *
+from .ui_utils import *
+from .color_utils import *
 from .VoronoiTool import *
-from .关于sold的函数 import *
+from .solder_utils import *
 from .globals import *
-from .一些前向class import *
-from .一些前向func import *
-from .关于绘制的函数 import *
+from .forward_class import *
+from .forward_func import *
+from .drawing_utils import *
 from .VoronoiTool import VoronoiToolTripleSk
-from .一些前向func import *
-from .关于节点的函数 import GetListOfNdEnums, NewLinkHhAndRemember, FtgGetTargetOrNone
+from .forward_func import *
+from .node_utils import GetListOfNdEnums, NewLinkHhAndRemember, FtgGetTargetOrNone
 from .Rot_or_Mat_Converter import Convert_Data, Pie_MT_Converter_Rotation_To, Pie_MT_Separate_Matrix
 from .globals import Cursor_X_Offset
-from .关于绘制的函数 import TemplateDrawSksToolHh
+from .drawing_utils import TemplateDrawSksToolHh
 
 class VoronoiQuickDimensionsTool(VoronoiToolTripleSk):
     bl_idname = 'node.voronoi_quick_dimensions'
