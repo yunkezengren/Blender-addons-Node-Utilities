@@ -2,6 +2,7 @@ from math import pi
 import platform
 import bpy
 
+# 这两个变量会被更改,别的不会
 prefsTran = None
 dict_vlHhTranslations = {}      # 再多个文件配合使用
 
