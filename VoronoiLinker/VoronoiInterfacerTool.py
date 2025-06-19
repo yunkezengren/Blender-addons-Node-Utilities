@@ -1,6 +1,6 @@
 from .utils_node import DoLinkHh
 from .utils_color import get_sk_color_safe, Color4
-from .forward_func import sk_label_or_name
+from .common_forward_func import sk_label_or_name
 from .utils_translate import GetAnnotFromCls, VlTrMapForKey
 from .utils_translate import *
 from .utils_node import *
@@ -9,8 +9,8 @@ from .utils_color import *
 from .VoronoiTool import *
 from .utils_solder import *
 from .globals import *
-from .forward_class import *
-from .forward_func import *
+from .common_forward_class import *
+from .common_forward_func import *
 from .utils_drawing import *
 from .VoronoiTool import VoronoiToolPairSk
 

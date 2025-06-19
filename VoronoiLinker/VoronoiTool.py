@@ -10,7 +10,7 @@ from .utils_node import GetNearestSocketsFtg, GetNearestNodesFtg, RestoreCollaps
 from .utils_solder import SolderSkLinks
 from .utils_drawing import DrawDebug, TemplateDrawNodeFull, TemplateDrawSksToolHh
 from .C_Structure import RectBase
-from .forward_class import TryAndPass
+from .common_forward_class import TryAndPass
 from .globals import set_utilTypeSkFields
 
 from .utils_translate import *
@@ -20,8 +20,8 @@ from .utils_color import *
 from .VoronoiTool import *
 from .utils_solder import *
 from .globals import *
-from .forward_class import *
-from .forward_func import *
+from .common_forward_class import *
+from .common_forward_func import *
 from .utils_drawing import *
 
 

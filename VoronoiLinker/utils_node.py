@@ -1,13 +1,13 @@
 from .C_Structure import BNode, BNodeSocket
 from .globals import is_blender4plus, set_classicSocketsBlid, dict_typeSkToBlid, set_utilTypeSkFields
 from .globals import *
-from .forward_class import Equestrian, Fotago
-from .forward_class import *
+from .common_forward_class import Equestrian, Fotago
+from .common_forward_class import *
 from bpy.types import (Node, NodeSocket, UILayout)
 import bpy
 from mathutils import Vector as Vec2
-from .forward_func import sk_label_or_name, index_switch_add_input
-from .forward_func import *
+from .common_forward_func import sk_label_or_name, index_switch_add_input
+from .common_forward_func import *
 from bpy.app.translations import pgettext_iface as TranslateIface
 
 

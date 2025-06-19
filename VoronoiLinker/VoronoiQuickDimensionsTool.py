@@ -6,11 +6,11 @@ from .utils_color import *
 from .VoronoiTool import *
 from .utils_solder import *
 from .globals import *
-from .forward_class import *
-from .forward_func import *
+from .common_forward_class import *
+from .common_forward_func import *
 from .utils_drawing import *
 from .VoronoiTool import VoronoiToolTripleSk
-from .forward_func import *
+from .common_forward_func import *
 from .utils_node import GetListOfNdEnums, NewLinkHhAndRemember, FtgGetTargetOrNone
 from .Rot_or_Mat_Converter import Convert_Data, Pie_MT_Converter_Rotation_To, Pie_MT_Separate_Matrix
 from .globals import Cursor_X_Offset

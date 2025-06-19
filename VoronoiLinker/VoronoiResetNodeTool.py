@@ -1,4 +1,4 @@
-from .forward_class import TryAndPass
+from .common_forward_class import TryAndPass
 from .utils_solder import SolderSkLinks
 from .utils_drawing import TemplateDrawNodeFull
 from .utils_translate import GetAnnotFromCls, VlTrMapForKey
@@ -9,8 +9,8 @@ from .utils_color import *
 from .VoronoiTool import *
 from .utils_solder import *
 from .globals import *
-from .forward_class import *
-from .forward_func import *
+from .common_forward_class import *
+from .common_forward_func import *
 from .utils_drawing import *
 from .VoronoiTool import VoronoiToolNd
 

@@ -46,7 +46,7 @@ from .Rot_or_Mat_Converter import Rot_or_Mat_Converter, Pie_MT_Converter_To_Rota
 
 from .globals import *
 from .globals import dict_vlHhTranslations
-from .forward_func import GetFirstUpperLetters, GetUserKmNe, format_tool_set
+from .common_forward_func import GetFirstUpperLetters, GetUserKmNe, format_tool_set
 from .utils_translate import *
 from .utils_node import *
 from .utils_ui import *
@@ -54,11 +54,11 @@ from .utils_color import *
 from .VoronoiTool import *
 from .utils_solder import *
 from .globals import *
-from .forward_class import *
-from .forward_func import *
+from .common_forward_class import *
+from .common_forward_func import *
 from .utils_drawing import *
-from .forward_func import Prefs
-from .forward_class import TryAndPass
+from .common_forward_func import Prefs
+from .common_forward_class import TryAndPass
 from .utils_solder import SolderClsToolNames, RegisterSolderings, UnregisterSolderings
 from .utils_translate import GetAnnotFromCls, VlTrMapForKey
 from .utils_drawing import TestDraw

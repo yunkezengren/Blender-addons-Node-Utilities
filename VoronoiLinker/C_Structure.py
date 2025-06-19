@@ -4,7 +4,6 @@ from bpy.types import NodeSocket
 from .globals import isWin, is_blender4plus
 # from typing import cast
 
-
 class StructBase(ctypes.Structure):
     _subclasses = []
     __annotations__ = {}

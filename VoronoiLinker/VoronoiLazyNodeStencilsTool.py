@@ -6,13 +6,13 @@ from .utils_color import *
 from .VoronoiTool import *
 from .utils_solder import *
 from .globals import *
-from .forward_class import *
-from .forward_func import *
+from .common_forward_class import *
+from .common_forward_func import *
 from .utils_drawing import *
 from .VoronoiTool import VoronoiToolPairSk
 from .globals import dict_typeSkToBlid
 from .utils_node import sk_type_to_idname
-from .forward_func import sk_label_or_name
+from .common_forward_func import sk_label_or_name
 import copy
 
 
