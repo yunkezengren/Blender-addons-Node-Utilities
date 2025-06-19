@@ -1,6 +1,5 @@
 from .关于节点的函数 import DoLinkHh
-
-
+from .关于颜色的函数 import get_sk_color_safe, Color4
 
 
 
@@ -45,8 +44,8 @@ class VoronoiInterfacerTool(VoronoiToolPairSk):
 
                     y = ftgNdTar.pos.y
                     boxHeiBound = Vec((y-7, y+7 ))
-                    DrawVlSocketArea(drata, near_group_in.tar, boxHeiBound, Color4(GetSkColorSafeTup4(ftgMain.tar)))
-                    # DrawVlSocketArea(drata, near_group_in.tar, near_group_in.boxHeiBound, Color4(GetSkColorSafeTup4(near_group_in.tar)))
+                    DrawVlSocketArea(drata, near_group_in.tar, boxHeiBound, Color4(get_sk_color_safe(ftgMain.tar)))
+                    # DrawVlSocketArea(drata, near_group_in.tar, near_group_in.boxHeiBound, Color4(get_sk_color_safe(near_group_in.tar)))
             case 'FLIP':            # 失败
                 # ftgMain = self.fotagoSkMain
                 # if ftgMain:
@@ -61,8 +60,8 @@ class VoronoiInterfacerTool(VoronoiToolPairSk):
 
                     y = ftgNdTar.pos.y
                     boxHeiBound = Vec((y-20, y+20 ))
-                    DrawVlSocketArea(drata, near_group_in.tar, boxHeiBound, Color4(GetSkColorSafeTup4(ftgMain.tar)))
-                    # DrawVlSocketArea(drata, near_group_in.tar, near_group_in.boxHeiBound, Color4(GetSkColorSafeTup4(near_group_in.tar)))
+                    DrawVlSocketArea(drata, near_group_in.tar, boxHeiBound, Color4(get_sk_color_safe(ftgMain.tar)))
+                    # DrawVlSocketArea(drata, near_group_in.tar, near_group_in.boxHeiBound, Color4(get_sk_color_safe(near_group_in.tar)))
             case _:
                 # 小王-模式名匹配
                 name = {'COPY':  "复制接口名",

@@ -1,5 +1,6 @@
 from .common_class import VmtData
 from .VoronoiTool import VoronoiToolPairSk
+from .关于颜色的函数 import power_color4, get_sk_color_safe
 
 
 class VptWayTree():
@@ -297,7 +298,7 @@ def VptPreviewFromSk(self, prefs, skTar):
                 ndRvSave.show_options = False
                 ndRvSave.blend_type = 'ADD'
                 ndRvSave.inputs[0].default_value = 0
-                ndRvSave.inputs[1].default_value = PowerArr4(SoldThemeCols.color_node4, pw=2.2)
+                ndRvSave.inputs[1].default_value = power_color4(SoldThemeCols.color_node4, pw=2.2)
                 ndRvSave.inputs[2].default_value = ndRvSave.inputs[1].default_value # 有点多余.
                 ndRvSave.inputs[0].hide = True
                 ndRvSave.inputs[1].name = "Color"
@@ -379,7 +380,7 @@ class VoronoiMixerTool(VoronoiToolPairSk):
         if socket1 and socket1.type == "MATRIX":
             VmtData.skType = "MATRIX"
             _sk = VmtData.sk1
-        SetPieData(self, VmtData, prefs, PowerArr4(GetSkColorSafeTup4(_sk), pw=2.2))
+        SetPieData(self, VmtData, prefs, power_color4(get_sk_color_safe(_sk), pw=2.2))
         if not self.isInvokeInClassicTree: #由于 usefulnessForCustomTree, 这是个无用的检查.
             return {'CANCELLED'} #如果操作地点不在经典编辑器中, 就直接退出. 因为经典编辑器对所有人都一样, 而插件编辑器有无数种.
 

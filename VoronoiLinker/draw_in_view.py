@@ -1,5 +1,6 @@
 from .关于节点的函数 import node_abs_loc
-
+from .关于颜色的函数 import (power_color4, clamp_color4, opaque_color4, get_color_black_alpha,
+                      get_sk_color_safe, get_sk_color)
 
 tup_whiteCol4 = (1.0, 1.0, 1.0, 1.0)
 
@@ -59,9 +60,9 @@ class VlDrawData():
             case 'SIMPLIFIED': self.dsFrameDisplayType = 1
             case 'ONLY_TEXT':  self.dsFrameDisplayType = 0
         ##
-        self.dsUniformColor = Col4(PowerArr4(self.dsUniformColor))
-        self.dsUniformNodeColor = Col4(PowerArr4(self.dsUniformNodeColor))
-        self.dsCursorColor = Col4(PowerArr4(self.dsCursorColor))
+        self.dsUniformColor = Col4(power_color4(self.dsUniformColor))
+        self.dsUniformNodeColor = Col4(power_color4(self.dsUniformNodeColor))
+        self.dsCursorColor = Col4(power_color4(self.dsCursorColor))
 
 def DrawWorldStick(drata, pos1, pos2, col1, col2):
     drata.DrawPathLL( (drata.VecUiViewToReg(pos1), drata.VecUiViewToReg(pos2)), (col1, col2), wid=drata.dsLineWidth )
@@ -80,7 +81,7 @@ def DrawVlWidePoint(drata, loc, *, col1=Col4(tup_whiteCol4), col2=tup_whiteCol4,
     drata.DrawWidePoint(drata.VecUiViewToReg(loc), radHh=( (6*drata.dsPointScale*drata.worldZoom)**2+10 )**0.5, col1=col1, col2=col2, resl=resl)
 
 def DrawMarker(drata, loc, col, *, style):
-    fac = GetBlackAlphaFromCol(col, pw=1.5)*0.625 #todo1v6 标记颜色在亮色和黑色之间看起来不美观; 需要想点办法.
+    fac = get_color_black_alpha(col, pw=1.5)*0.625 #todo1v6 标记颜色在亮色和黑色之间看起来不美观; 需要想点办法.
     colSh = (fac, fac, fac, 0.5) # 阴影
     colHl = (0.65, 0.65, 0.65, max(max(col[0],col[1]),col[2])*0.9/(3.5, 5.75, 4.5)[style]) # 透明白色描边
     colMt = (col[0], col[1], col[2], 0.925) # 彩色底
@@ -143,7 +144,7 @@ def DrawFramedText(drata, pos1, pos2, txt, *, siz, adj, colTx, colFr, colBg):
     blf.enable(fontId, blf.SHADOW)
     # 暗色套接字的背光:
     blf.shadow_offset(fontId, 1, -1)
-    blf.shadow(fontId, blur, 1.0, 1.0, 1.0, GetBlackAlphaFromCol(colTx, pw=3.0)*0.75)
+    blf.shadow(fontId, blur, 1.0, 1.0, 1.0, get_color_black_alpha(colTx, pw=3.0)*0.75)
     blf.color(fontId, 0.0, 0.0, 0.0, 0.0)
     blf.draw(fontId, txt)
     # 文本本身:
@@ -173,15 +174,15 @@ def DrawWorldText(drata, pos, ofsHh, text, *, colText, colBg, fontSizeOverwrite=
     pos2 = (pos[0]+ofsHh[0]+ofsGap+dimDb[0]+frameOffset, pos[1]+placePosY+dimDb[1]+frameOffset)
     ##
     # 这个更像影响全体 这里使得Ctrl Shift E / Ctrl E / Alt E 等显示太浅
-    # return DrawFramedText(drata, pos1, pos2, text, siz=siz, adj=dimDb[1]*drata.dsManualAdjustment, colTx=PowerArr4(colText, pw=1/1.975), colFr=PowerArr4(colBg, pw=1/1.5), colBg=colBg)
+    # return DrawFramedText(drata, pos1, pos2, text, siz=siz, adj=dimDb[1]*drata.dsManualAdjustment, colTx=power_color4(colText, pw=1/1.975), colFr=power_color4(colBg, pw=1/1.5), colBg=colBg)
     return DrawFramedText(drata, pos1, pos2, text, siz=siz, adj=dimDb[1]*drata.dsManualAdjustment, colTx=colText, colFr=colBg, colBg=colBg)   # 绘制颜色加深
 
 def DrawVlSkText(drata, pos, ofsHh, ftg, *, fontSizeOverwrite=0): # 注意: `pos` 总是为了 drata.cursorLoc, 但请参见 vptRvEeSksHighlighting.
     if not drata.dsIsDrawText:
         return (1, 0) #'1' 需要用于保存标记位置的方向信息.
     if drata.dsIsColoredText:
-        colText = GetSkColorSafeTup4(ftg.tar)
-        colBg = MaxCol4Tup4(GetSkColorRaw(ftg.tar))
+        colText = get_sk_color_safe(ftg.tar)
+        colBg = clamp_color4(get_sk_color(ftg.tar))
     else:
         colText = colBg = drata.dsUniformColor
     return DrawWorldText(drata, pos, ofsHh, ftg.soldText, colText=colText, colBg=colBg, fontSizeOverwrite=fontSizeOverwrite)
@@ -280,8 +281,8 @@ def TemplateDrawSksToolHh(drata, *args_ftgSks, sideMarkHh=1, isDrawText=True,
         ftg2 = list_ftgSks[1]
         if ftg1.dir*ftg2.dir<0: # 对于 VMLT, 为了不为它的两个套接字绘制, 它们在同一侧.
             if drata.dsIsColoredLine:
-                col1 = GetSkColorSafeTup4(ftg1.tar)
-                col2 = GetSkColorSafeTup4(ftg2.tar)
+                col1 = get_sk_color_safe(ftg1.tar)
+                col2 = get_sk_color_safe(ftg2.tar)
             else:
                 col1 = col2 = drata.dsUniformColor
             DrawWorldStick(drata, GetPosFromFtg(ftg1), GetPosFromFtg(ftg2), col1, col2)
@@ -296,15 +297,15 @@ def TemplateDrawSksToolHh(drata, *args_ftgSks, sideMarkHh=1, isDrawText=True,
         # pprint(ftg.__dict__)      # ftg.pos 这是接口的位置
         if (drata.dsIsDrawLine)and( (not isClassicFlow)or(isOne and drata.dsIsAlwaysLine) ):
             if drata.dsIsColoredLine:
-                col1 = GetSkColorSafeTup4(ftg.tar)
+                col1 = get_sk_color_safe(ftg.tar)
                 col2 = drata.dsCursorColor if (isOne+(drata.dsCursorColorAvailability-1))>0 else col1
             else:
                 col1 = col2 = drata.dsUniformColor
             DrawWorldStick(drata, GetPosFromFtg(ftg), cursorLoc, col1, col2)
         if drata.dsIsDrawSkArea:
-            DrawVlSocketArea(drata, ftg.tar, ftg.boxHeiBound, Col4(GetSkColorSafeTup4(ftg.tar)))
+            DrawVlSocketArea(drata, ftg.tar, ftg.boxHeiBound, Col4(get_sk_color_safe(ftg.tar)))
         if drata.dsIsDrawPoint:
-            DrawVlWidePoint(drata, GetPosFromFtg(ftg), col1=Col4(MaxCol4Tup4(GetSkColorRaw(ftg.tar))), col2=Col4(GetSkColorSafeTup4(ftg.tar)))
+            DrawVlWidePoint(drata, GetPosFromFtg(ftg), col1=Col4(clamp_color4(get_sk_color(ftg.tar))), col2=Col4(get_sk_color_safe(ftg.tar)))
     # 文本
     if isDrawText: # 文本应该在所有其他 ^ 之上.
         list_ftgSksIn = [ftg for ftg in list_ftgSks if ftg.dir<0]
@@ -319,7 +320,7 @@ def TemplateDrawSksToolHh(drata, *args_ftgSks, sideMarkHh=1, isDrawText=True,
                 x_offset = drata.dsDistFromCursor*dir
                 frameDim = DrawVlSkText(drata, cursorLoc, (drata.dsDistFromCursor*dir, ofsY-0.5), ftg)
                 if (drata.dsIsDrawMarker)and( (ftg.tar.vl_sold_is_final_linked_cou)and(not isDrawMarkersMoreTharOne)or(ftg.tar.vl_sold_is_final_linked_cou>1) ):
-                    DrawVlMarker(drata, cursorLoc, ofsHh=(frameDim[0]*dir, frameDim[1]*ofsY), col=GetSkColorSafeTup4(ftg.tar))
+                    DrawVlMarker(drata, cursorLoc, ofsHh=(frameDim[0]*dir, frameDim[1]*ofsY), col=get_sk_color_safe(ftg.tar))
             # 绘制工具提示
             ftg_show_name = copy.copy(ftg)
             ftg_show_name.soldText = tool_name.capitalize()
@@ -413,10 +414,10 @@ class TestDraw:
         DrawMarker(drata, center+Vec2((-50,-60)), col, style=0)
         DrawMarker(drata, center+Vec2((-100,-60)), col, style=1)
         DrawMarker(drata, center+Vec2((-150,-60)), col, style=2)
-        drata.DrawPathLL( (center+Vec2((0,-60)), center+Vec2((100,-60))), (OpaqueCol3Tup4(col), OpaqueCol3Tup4(col)), wid=drata.dsLineWidth )
-        drata.DrawPathLL( (center+Vec2((100,-60)), center+Vec2((200,-60))), (OpaqueCol3Tup4(col), OpaqueCol3Tup4(col, al=0.0)), wid=drata.dsLineWidth )
-        drata.DrawWidePoint(center+Vec2((0,-60)), radHh=( (6*drata.dsPointScale+1)**2+10 )**0.5, col1=Col4(OpaqueCol3Tup4(col)), col2=Col4(OpaqueCol3Tup4(col)))
-        drata.DrawWidePoint(center+Vec2((100,-60)), radHh=( (6*drata.dsPointScale+1)**2+10 )**0.5, col1=col, col2=Col4(OpaqueCol3Tup4(col)))
+        drata.DrawPathLL( (center+Vec2((0,-60)), center+Vec2((100,-60))), (opaque_color4(col), opaque_color4(col)), wid=drata.dsLineWidth )
+        drata.DrawPathLL( (center+Vec2((100,-60)), center+Vec2((200,-60))), (opaque_color4(col), opaque_color4(col, al=0.0)), wid=drata.dsLineWidth )
+        drata.DrawWidePoint(center+Vec2((0,-60)), radHh=( (6*drata.dsPointScale+1)**2+10 )**0.5, col1=Col4(opaque_color4(col)), col2=Col4(opaque_color4(col)))
+        drata.DrawWidePoint(center+Vec2((100,-60)), radHh=( (6*drata.dsPointScale+1)**2+10 )**0.5, col1=col, col2=Col4(opaque_color4(col)))
         import gpu_extras.presets; gpu_extras.presets.draw_circle_2d((256,256),(1,1,1,1),10)
         ##
         cls.time += 0.01

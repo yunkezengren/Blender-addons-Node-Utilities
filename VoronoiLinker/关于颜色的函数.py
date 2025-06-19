@@ -1,20 +1,19 @@
 
-
-from mathutils import Vector as Vec
-Vec2 = Color4 = Vec
-
-
+from mathutils import Vector as Color4
 const_float4 = tuple[float, float, float, float]
-def PowerArr4(arr: const_float4, *, pw=1/2.2):
+
+def power_color4(arr: const_float4, *, pw=1/2.2) -> const_float4:
+    # return (arr[0]**pw, arr[1]**pw, arr[2]**pw, arr[3]**pw)
     # return Vec(map(lambda a: a**pw, arr))
-    return (arr[0]**pw, arr[1]**pw, arr[2]**pw, arr[3]**pw)
+    return (i**pw for i in arr)
 
-def OpaqueCol3Tup4(col, *, al=1.0):
-    return (col[0], col[1], col[2], al)
-def clamp_Color4(col) -> const_float4:
-    return (max(col[0], 0), max(col[1], 0), max(col[2], 0), max(col[3], 0))
+def opaque_color4(c, *, alpha=1.0) -> const_float4:
+    return (c[0], c[1], c[2], alpha)
 
-def GetSkColorRaw(sk: NodeSocket):
+def clamp_color4(c) -> const_float4:
+    return (max(c[0], 0), max(c[1], 0), max(c[2], 0), max(c[3], 0))
+
+def get_sk_color(sk: NodeSocket):
     if sk.bl_idname=='NodeSocketUndefined':
         return (1.0, 0.2, 0.2, 1.0)
     elif hasattr(sk,'draw_color'):
@@ -25,10 +24,9 @@ def GetSkColorRaw(sk: NodeSocket):
     else:
         return (1, 0, 1, 1)
 
-def GetSkColorSafeTup4(sk: NodeSocket): # 不从插槽获取透明度; 并去掉插件插槽可能存在的负值.
-    return OpaqueCol3Tup4(clamp_Color4(GetSkColorRaw(sk)))
+def get_sk_color_safe(sk: NodeSocket) -> const_float4:   # 不从插槽获取透明度; 并去掉插槽可能存在的负值.
+    return opaque_color4(clamp_color4(get_sk_color(sk)))
 
-
-def GetBlackAlphaFromCol(c: Color4, *, pw: float) -> Color3:
+def get_color_black_alpha(c: Color4, *, pw: float) -> float:
     # return ( 1.0 - max(max(c[0], c[1]), c[2]) )**pw
-    return ( 1.0 - max(c[:3]) )**pw
+    return ( 1 - max(c[:3]) )**pw

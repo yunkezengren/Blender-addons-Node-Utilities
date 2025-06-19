@@ -1,4 +1,5 @@
 
+from .关于颜色的函数 import power_color4, get_sk_color_safe
 
 
 set_vqmtSkTypeFields = {'VALUE', 'RGBA', 'VECTOR', 'INT', 'BOOLEAN', 'ROTATION', 'MATRIX'}
@@ -157,10 +158,10 @@ class VoronoiQuickMathTool(VoronoiToolTripleSk):
                 # case 'INT':     opr = self.quickOprInt
             return DoQuickMath(event, tree, opr)
         # print('这里只在绘制连线时调用一次,切换饼菜单不会刷新这里')
-        # self.VqmSetPieData(prefs, PowerArr4(GetSkColorSafeTup4(VqmtData.sk0), pw=2.2))
-        self.VqmSetPieData(prefs, PowerArr4(GetSkColorSafeTup4(VqmtData.sk0), pw=2.2))
+        # self.VqmSetPieData(prefs, power_color4(get_sk_color_safe(VqmtData.sk0), pw=2.2))
+        self.VqmSetPieData(prefs, power_color4(get_sk_color_safe(VqmtData.sk0), pw=2.2))
         if self.int_default_float:     # 整数接口浮点饼
-            color = PowerArr4(float_int_color["VALUE"], pw=2.2)
+            color = power_color4(float_int_color["VALUE"], pw=2.2)
             pref().vaDecorColSkBack = color
             pref().vaDecorColSk = color
         VqmtData.isJustPie = False

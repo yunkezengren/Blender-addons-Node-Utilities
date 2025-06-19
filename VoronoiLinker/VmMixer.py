@@ -1,6 +1,7 @@
 from .VoronoiTool import VoronoiOpTool
 from .common_class import VmtData
 from .关于节点的函数 import DoLinkHh
+from .关于颜色的函数 import get_sk_color
 
 
 
@@ -157,5 +158,5 @@ class VmtPieMixer(bpy.types.Menu):
             if VmtData.pieDisplaySocketTypeInfo:
                 box = pie.box()
                 row = box.row(align=True)
-                row.template_node_socket(color=GetSkColorRaw(VmtData.sk0))
+                row.template_node_socket(color=get_sk_color(VmtData.sk0))
                 row.label(text=VmtData.sk0.bl_label)

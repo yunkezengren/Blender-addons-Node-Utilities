@@ -1,4 +1,5 @@
 from .VoronoiTool import VoronoiOpTool
+from .关于颜色的函数 import power_color4, get_sk_color
 
 
 
@@ -100,7 +101,7 @@ class VqmtOpMain(VoronoiOpTool):
         if self.operation == "切换浮点/整数菜单":   #  这时候类型只会是下面两种
             _switch = {"VALUE":"INT", "INT":"VALUE"}
             VqmtData.qmSkType = _switch[VqmtData.qmSkType]
-            color = PowerArr4(float_int_color[VqmtData.qmSkType], pw=2.2)
+            color = power_color4(float_int_color[VqmtData.qmSkType], pw=2.2)
             pref().vaDecorColSkBack = color
             pref().vaDecorColSk = color
 
@@ -206,7 +207,7 @@ class VqmtPieMath(bpy.types.Menu):
                         # print(VqmtData.qmSkType)
                         color = float_int_color[VqmtData.qmSkType]   # 只影响提示的接口颜色
                     else:
-                        color=GetSkColorRaw(_sk0)       # 原先情况：整数接口浮点饼是整数的颜色
+                        color=get_sk_color(_sk0)       # 原先情况：整数接口浮点饼是整数的颜色
                     row.template_node_socket(color=color)
                 match VqmtData.qmSkType:
                     case 'VALUE':   txt = txt_FloatQuickMath

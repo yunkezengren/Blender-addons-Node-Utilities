@@ -1,4 +1,5 @@
 from .关于节点的函数 import SolderSkLinks, RestoreCollapsedNodes
+from .关于颜色的函数 import get_sk_color_safe, Color4
 
 
 
@@ -27,7 +28,7 @@ class VoronoiPreviewTool(VoronoiToolSk):
                                 if ftg.tar==sk:
                                     #不支持遍历转接点. 因为懒, 而且懒得为此重写代码.
                                     if drata.dsIsDrawSkArea:
-                                        DrawVlSocketArea(drata, ftg.tar, ftg.boxHeiBound, Color4(GetSkColorSafeTup4(ftg.tar)))
+                                        DrawVlSocketArea(drata, ftg.tar, ftg.boxHeiBound, Color4(get_sk_color_safe(ftg.tar)))
                                     DrawVlSkText(drata, ftg.pos, (1-isSide*2, -0.5), ftg, fontSizeOverwrite=min(24*drata.worldZoom*self.prefs.vptHlTextScale, 25))
                                     break
                         nd.hide = False #在绘制时写入. 至少不像 VMLT 中那么严重.

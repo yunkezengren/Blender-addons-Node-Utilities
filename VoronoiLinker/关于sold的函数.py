@@ -1,4 +1,5 @@
 from .globals import *
+from .关于颜色的函数 import opaque_color4, power_color4
 
 
 dict_solderedSkLinksFinal = {}
@@ -27,7 +28,7 @@ def SolderSkLinks(tree):
 
 
 for key, value in dict_skTypeHandSolderingColor.items():
-    dict_skTypeHandSolderingColor[key] = PowerArr4(value, pw=2.2)
+    dict_skTypeHandSolderingColor[key] = power_color4(value, pw=2.2)
 
 class SoldThemeCols:
     dict_mapNcAtt = {0: 'input_node',        1:  'output_node',  3: 'color_node',
@@ -39,7 +40,7 @@ class SoldThemeCols:
 def SolderThemeCols(themeNe):
     def GetNiceColNone(col4):
         return Col4(col4)
-        # return Col4(PowerArr4(col4, pw=1/1.75))   # 小王 这个更像影响全体 这里使得Ctrl Shift E / Ctrl E / Alt E 等显示太浅
+        # return Col4(power_color4(col4, pw=1/1.75))   # 小王 这个更像影响全体 这里使得Ctrl Shift E / Ctrl E / Alt E 等显示太浅
     def MixThCol(col1, col2, fac=0.4): # \source\blender\editors\space_node\node_draw.cc : node_draw_basis() : "Header"
         return col1*(1-fac)+col2*fac
     SoldThemeCols.node_backdrop4 = Col4(themeNe.node_backdrop)
@@ -59,14 +60,14 @@ def SolderThemeCols(themeNe):
         if dnf.endswith("_node"):
             # print(f"{dnf = }")
             # print(f"{getattr(themeNe, dnf) = }")                            # type  Color
-            # print(f"{OpaqueCol3Tup4(getattr(themeNe, dnf)) = }")            # type  tuple
-            # print(f"{Col4(OpaqueCol3Tup4(getattr(themeNe, dnf))) = }")     # type  Vector
+            # print(f"{opaque_color4(getattr(themeNe, dnf)) = }")            # type  tuple
+            # print(f"{Col4(opaque_color4(getattr(themeNe, dnf))) = }")     # type  Vector
             # print(f" 混合后 {col4 = }")
             # 和背景混合使得偏亮
-            # col4 = MixThCol(SoldThemeCols.node_backdrop4, Col4(OpaqueCol3Tup4(getattr(themeNe, dnf))))
-            col4 = Col4(OpaqueCol3Tup4(getattr(themeNe, dnf)))   # 小王 解决 Ctrl Shift E / Ctrl E / Alt E 等显示太浅
+            # col4 = MixThCol(SoldThemeCols.node_backdrop4, Col4(opaque_color4(getattr(themeNe, dnf))))
+            col4 = Col4(opaque_color4(getattr(themeNe, dnf)))   # 小王 解决 Ctrl Shift E / Ctrl E / Alt E 等显示太浅
             # 5.0.2里这样写的
-            # col4 = MixThCol(SoldThemeCols.node_backdrop4, Col4(OpaqueCol3Tup4(getattr(themeNe, dnf))))
+            # col4 = MixThCol(SoldThemeCols.node_backdrop4, Col4(opaque_color4(getattr(themeNe, dnf))))
             setattr(SoldThemeCols, dnf+"4", col4)
             setattr(SoldThemeCols, dnf+"4pw", GetNiceColNone(col4))
             setattr(SoldThemeCols, dnf+"3", Vec(col4[:3])) # 用于 vptRvEeIsSavePreviewResults.
