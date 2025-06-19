@@ -8,7 +8,7 @@ from .关于sold的函数 import *
 from .globals import *
 from .common_class import *
 from .common_func import *
-from .draw_in_view import *
+from .关于绘制的函数 import *
 from .VoronoiTool import VoronoiToolPairSk
 from .globals import dict_typeSkToBlid
 from .关于节点的函数 import sk_type_to_idname

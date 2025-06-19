@@ -1,6 +1,6 @@
 from .common_class import TryAndPass
 from .关于sold的函数 import SolderSkLinks
-from .draw_in_view import TemplateDrawNodeFull
+from .关于绘制的函数 import TemplateDrawNodeFull
 from .关于翻译的函数 import GetAnnotFromCls, VlTrMapForKey
 from .关于翻译的函数 import *
 from .关于节点的函数 import *
@@ -11,7 +11,7 @@ from .关于sold的函数 import *
 from .globals import *
 from .common_class import *
 from .common_func import *
-from .draw_in_view import *
+from .关于绘制的函数 import *
 from .VoronoiTool import VoronoiToolNd
 
 class VoronoiResetNodeTool(VoronoiToolNd):

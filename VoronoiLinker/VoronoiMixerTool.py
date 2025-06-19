@@ -9,7 +9,7 @@ from .关于sold的函数 import *
 from .globals import *
 from .common_class import *
 from .common_func import *
-from .draw_in_view import *
+from .关于绘制的函数 import *
 from .VoronoiTool import VoronoiToolPairSk
 from .关于颜色的函数 import power_color4, get_sk_color_safe
 from .关于翻译的函数 import GetAnnotFromCls, VlTrMapForKey

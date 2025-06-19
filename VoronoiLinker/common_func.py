@@ -10,7 +10,6 @@ def Prefs():        # 很多局部变量也是prefs 还是改大写好点
 def GetUserKmNe():
     return bpy.context.window_manager.keyconfigs.user.keymaps['Node Editor']
 
-
 def GetFirstUpperLetters(txt):
     txtUppers = "ABCDEFGHIJKLMNOPQRSTUVWXYZ" #"".join([chr(cyc) for cyc in range(65, 91)])
     list_result = []
@@ -18,7 +17,6 @@ def GetFirstUpperLetters(txt):
         if (ch1 not in txtUppers)and(ch2 in txtUppers): #/(?<=[^A-Z])[A-Z]/
             list_result.append(ch2)
     return "".join(list_result)
-
 
 def DisplayMessage(title: str, text, icon='NONE'):
     def PopupMessage(self, _context):
@@ -28,7 +26,8 @@ def DisplayMessage(title: str, text, icon='NONE'):
 def format_tool_set(cls: bpy.types.Operator):
     return cls.bl_label + " tool settings"
 
-# 放在这避免循环导入
+# ======================放在这避免循环导入
+# 关于节点的函数 和 common_class 都用到了
 def sk_label_or_name(sk: NodeSocket):
     return sk.label if sk.label else sk.name
 
@@ -39,8 +38,6 @@ def is_builtin_tree_idname(blid):
     set_quartetClassicTreeBlids = {'ShaderNodeTree','GeometryNodeTree','CompositorNodeTree','TextureNodeTree'}
     return blid in set_quartetClassicTreeBlids
 
-
-# 放在这避免循环导入
 def index_switch_add_input(nodes, index_switch_node):
     old_active = nodes.active
     nodes.active = index_switch_node
@@ -48,7 +45,7 @@ def index_switch_add_input(nodes, index_switch_node):
     nodes.active = old_active
     return index_switch_node.inputs[-2]
 
-
+# ========================================
 
 def SetPieData(self, toolData, prefs, col):
     def GetPiePref(name):

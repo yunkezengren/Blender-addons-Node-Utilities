@@ -8,7 +8,7 @@ from bpy.types import View2D as View2d
 
 from .关于节点的函数 import GetNearestSocketsFtg, GetNearestNodesFtg, RestoreCollapsedNodes
 from .关于sold的函数 import SolderSkLinks
-from .draw_in_view import DrawDebug, TemplateDrawNodeFull, TemplateDrawSksToolHh
+from .关于绘制的函数 import DrawDebug, TemplateDrawNodeFull, TemplateDrawSksToolHh
 from .C_Structure import RectBase
 from .common_class import TryAndPass
 from .globals import set_utilTypeSkFields
@@ -22,7 +22,7 @@ from .关于sold的函数 import *
 from .globals import *
 from .common_class import *
 from .common_func import *
-from .draw_in_view import *
+from .关于绘制的函数 import *
 
 
 

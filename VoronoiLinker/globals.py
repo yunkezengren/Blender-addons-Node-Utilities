@@ -1,4 +1,4 @@
-from math import pi, cos, sin
+from math import pi
 import platform
 import bpy
 
@@ -15,8 +15,6 @@ voronoiAnchorCnName = "Voronoi_Anchor"           # 不支持翻译, 就这样一
 voronoiAnchorDtName = "Voronoi_Anchor_Dist"      # 不支持翻译! 请参考相关的拓扑结构.
 voronoiSkPreviewName = "voronoi_preview"         # 不支持翻译, 不想每次读取都用 TranslateIface() 包裹一下.
 voronoiPreviewResultNdName = "SavePreviewResult" # 不支持翻译, 就这样一起吧.
-
-
 
 
 float_int_color = {"INT": (0.35, 0.55, 0.36, 1), "VALUE": (0.63, 0.63, 0.63, 1)}

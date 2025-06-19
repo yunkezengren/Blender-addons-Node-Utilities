@@ -34,6 +34,7 @@ def LyAddNoneBox(where: UILayout):
     box = where.box()
     box.label()
     box.scale_y = 0.5
+
 def LyAddHandSplitProp(where: UILayout, who, att, *, text=None, active=True, returnAsLy=False, forceBoolean=0):
     spl = where.row().split(factor=0.42, align=True)
     spl.active = active
@@ -88,7 +89,12 @@ def LyAddTxtAsEtb(where: UILayout, txt: str):
     col = row.column(align=True)
     for li in txt.split("\n")[:-1]:
         col.label(text=li, translate=False)
+
 def LyAddEtb(where: UILayout): # "你们修复bug吗? 不, 我们只发现bug."
     import traceback
     LyAddTxtAsEtb(where, traceback.format_exc())
 
+def LyAddThinSep(where: UILayout, scaleY):
+    row = where.row(align=True)
+    row.separator()
+    row.scale_y = scaleY

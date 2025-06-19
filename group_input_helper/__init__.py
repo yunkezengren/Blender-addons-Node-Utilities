@@ -16,6 +16,8 @@ bl_info = {
     "category" : "Node"
 }
 
+# todo 显示组输入 是否灰显或隐藏
+
 import bpy
 from bpy.types import Operator, Menu, Panel, AddonPreferences
 

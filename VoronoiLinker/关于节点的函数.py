@@ -21,6 +21,7 @@ def node_abs_loc(nd):
 # 终于等到了... 当然, 这不是"真正的支持". 我鄙视折叠起来的节点; 我也不想去处理圆角和随之改变的绘制逻辑.
 # 所以, 在官方提供获取插槽位置的API之前, 这就是最好的办法了. 我们翘首以盼. 🙏
 dict_collapsedNodes = {}
+
 def SaveCollapsedNodes(nodes):
     dict_collapsedNodes.clear()
     for nd in nodes:
@@ -32,6 +33,7 @@ def RestoreCollapsedNodes(nodes):
     for nd in nodes:
         if dict_collapsedNodes.get(nd, None): # 工具在过程中可能会创建节点; 例如 vptRvEeIsSavePreviewResults.
             nd.hide = dict_collapsedNodes[nd]
+
 
 def GenFtgFromNd(nd, pos: Vec2, uiScale: float): # 从 GetNearestNodesFtg 中提取出来, 本来没必要, 但 VLTT 逼我这么做.
     def DistanceField(field0: Vec2, boxbou: Vec2): # 感谢 RayMarching, 没有它我不会想到这个.
@@ -121,7 +123,58 @@ class VlrtData:
     reprLastSkOut = ""
     reprLastSkIn = ""
 
+def FtgGetTargetOrNone(ftg) -> NodeSocket:
+    return ftg.tar if ftg else None
 
+def IsClassicSk(sk: NodeSocket):
+    if sk.bl_idname=='NodeSocketVirtual':
+        return True
+    else:
+        return sk_type_to_idname(sk) in set_classicSocketsBlid
+
+def CompareSkLabelName(sk1, sk2, ignore_upper_lower=False):
+    if ignore_upper_lower:
+        return sk_label_or_name(sk1).upper()==sk_label_or_name(sk2).upper()
+    else:
+        return sk_label_or_name(sk1)==sk_label_or_name(sk2)
+
+def get_node_domain_item_list(node):
+    enum_list = []
+    for p in node.rna_type.properties:
+        if p.type == 'ENUM' and p.identifier == "domain":
+            enum_list = [item for item in p.enum_items]
+            # enum_list = [item.identifier for item in p.enum_items]
+            # enum_list = [[item.name, item.identifier] for item in p.enum_items]
+    return enum_list
+
+def SelectAndActiveNdOnly(ndTar):
+    for nd in ndTar.id_data.nodes:
+        nd.select = False
+    ndTar.id_data.nodes.active = ndTar
+    ndTar.select = True
+
+def MinFromFtgs(ftg1, ftg2):
+    # print(type(ftg1))   # <class Fotago>
+    if (ftg1)or(ftg2): # 如果至少有一个存在.
+        if not ftg2: # 如果其中一个不存在,
+            return ftg1
+        elif not ftg1: # 那么另一个就是唯一的选择.
+            return ftg2
+        else: # 否则选择最近的那个.
+            return ftg1 if ftg1.dist<ftg2.dist else ftg2
+    return None
+
+def FindAnySk(nd, list_ftgSksIn, list_ftgSksOut): # Todo0NA: 需要泛化!, 用 lambda. 并且外部循环遍历列表, 而不是两个循环.
+    ftgSkOut, ftgSkIn = None, None
+    for ftg in list_ftgSksOut:
+        if (ftg.blid!='NodeSocketVirtual')and(Equestrian.IsSimRepCorrectSk(nd, ftg.tar)): # todo1v6: 这个函数到处都和 !=NodeSocketVirtual 一起使用, 需要重做拓扑.
+            ftgSkOut = ftg
+            break
+    for ftg in list_ftgSksIn:
+        if (ftg.blid!='NodeSocketVirtual')and(Equestrian.IsSimRepCorrectSk(nd, ftg.tar)):
+            ftgSkIn = ftg
+            break
+    return MinFromFtgs(ftgSkOut, ftgSkIn)
 
 # 注意: DoLinkHh 现在有太多其他依赖项, 想要把它单独抽离出来会更困难.
 # P.s. "HH" -- 意思是 "High Level", 但我打错字母了 D:
@@ -241,66 +294,10 @@ def VlrtRememberLastSockets(sko, ski):
         # ski 对 VLRT 来说, 如果没有 sko 就没用
         if (ski)and(ski.id_data==sko.id_data):
             VlrtData.reprLastSkIn = repr(ski)
+
 def NewLinkHhAndRemember(sko, ski):
     DoLinkHh(sko, ski) #sko.id_data.links.new(sko, ski)
     VlrtRememberLastSockets(sko, ski)
-
-
-def FtgGetTargetOrNone(ftg) -> NodeSocket:
-    return ftg.tar if ftg else None
-
-def IsClassicSk(sk: NodeSocket):
-    if sk.bl_idname=='NodeSocketVirtual':
-        return True
-    else:
-        return sk_type_to_idname(sk) in set_classicSocketsBlid
-
-def CompareSkLabelName(sk1, sk2, ignore_upper_lower=False):
-    if ignore_upper_lower:
-        return sk_label_or_name(sk1).upper()==sk_label_or_name(sk2).upper()
-    else:
-        return sk_label_or_name(sk1)==sk_label_or_name(sk2)
-
-def get_node_domain_item_list(node):
-    enum_list = []
-    for p in node.rna_type.properties:
-        if p.type == 'ENUM' and p.identifier == "domain":
-            enum_list = [item for item in p.enum_items]
-            # enum_list = [item.identifier for item in p.enum_items]
-            # enum_list = [[item.name, item.identifier] for item in p.enum_items]
-    return enum_list
-
-def SelectAndActiveNdOnly(ndTar):
-    for nd in ndTar.id_data.nodes:
-        nd.select = False
-    ndTar.id_data.nodes.active = ndTar
-    ndTar.select = True
-
-def MinFromFtgs(ftg1, ftg2):
-    # print(type(ftg1))   # <class Fotago>
-    if (ftg1)or(ftg2): # 如果至少有一个存在.
-        if not ftg2: # 如果其中一个不存在,
-            return ftg1
-        elif not ftg1: # 那么另一个就是唯一的选择.
-            return ftg2
-        else: # 否则选择最近的那个.
-            return ftg1 if ftg1.dist<ftg2.dist else ftg2
-    return None
-
-def FindAnySk(nd, list_ftgSksIn, list_ftgSksOut): # Todo0NA: 需要泛化!, 用 lambda. 并且外部循环遍历列表, 而不是两个循环.
-    ftgSkOut, ftgSkIn = None, None
-    for ftg in list_ftgSksOut:
-        if (ftg.blid!='NodeSocketVirtual')and(Equestrian.IsSimRepCorrectSk(nd, ftg.tar)): # todo1v6: 这个函数到处都和 !=NodeSocketVirtual 一起使用, 需要重做拓扑.
-            ftgSkOut = ftg
-            break
-    for ftg in list_ftgSksIn:
-        if (ftg.blid!='NodeSocketVirtual')and(Equestrian.IsSimRepCorrectSk(nd, ftg.tar)):
-            ftgSkIn = ftg
-            break
-    return MinFromFtgs(ftgSkOut, ftgSkIn)
-
-
-
 
 def DoQuickMath(event, tree, operation, isCombo=False):
     txt = dict_vqmtEditorNodes[VqmtData.qmSkType].get(tree.bl_idname, "")

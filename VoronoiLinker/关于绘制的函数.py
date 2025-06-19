@@ -16,7 +16,7 @@ from .关于sold的函数 import *
 from .globals import *
 from .common_class import *
 from .common_func import *
-from .draw_in_view import *
+from .关于绘制的函数 import *
 
 
 tup_whiteCol4 = (1.0, 1.0, 1.0, 1.0)

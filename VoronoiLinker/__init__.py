@@ -1,39 +1,23 @@
-bl_info = {'name':"Voronoi Linker", 
-           'author':"ugorek", # 同样感谢"Oxicid"为VL提供的关键帮助.
-           'version':(5,1,2), 
-           'blender':(4,0,2), 
-           'created':"2024.03.06", # 'created'键用于内部需求.
+bl_info = {'name': "Voronoi Linker", 
+           'author': "ugorek",       # 同样感谢"Oxicid"为VL提供的关键帮助.
+           'version': (5,1,2), 
+           'blender': (4,0,2), 
+           'created': "2024.03.06",           # 'created'键用于内部需求.
            'info_supported_blvers': "b4.0.2 – b4.0.2", # 这也是内部使用的.
-           'description':"Various utilities for nodes connecting, based on distance field.", 'location':"Node Editor", # 以前为了纪念这个插件的初衷, 这里写的是 'Node Editor > Alt + RMB'; 但现在 VL 已经"无处不在"了! 🚀
-           'warning':"", # 希望永远不要有需要在这里添加警告的那一天. 之前在Linux上无法使用的问题已经非常接近这个地步了. 😬
-           'category':"Node",
-           'wiki_url':"https://github.com/ugorek000/VoronoiLinker/wiki", 
-           'tracker_url':"https://github.com/ugorek000/VoronoiLinker/issues"}
+           'description': "Various utilities for nodes connecting, based on distance field.", 'location':"Node Editor",  # 以前为了纪念这个插件的初衷, 这里写的是 'Node Editor > Alt + RMB'; 但现在 VL 已经"无处不在"了! 🚀
+           'warning': "",  # 希望永远不要有需要在这里添加警告的那一天. 之前在Linux上无法使用的问题已经非常接近这个地步了. 😬
+           'category': "Node",
+           'wiki_url': "https://github.com/ugorek000/VoronoiLinker/wiki", 
+           'tracker_url': "https://github.com/ugorek000/VoronoiLinker/issues"}
 
-from builtins import len as length # 我超爱三个字母的变量名.没有像"len"这样的名字, 我会感到非常伤心和孤独... 😭 还有 'Vector.length' 也是.
+from builtins import len as length       # 我超爱三个字母的变量名.没有像"len"这样的名字, 我会感到非常伤心和孤独... 😭 还有 'Vector.length' 也是.
 import bpy, rna_keymap_ui, bl_keymap_utils
 
-from time import perf_counter, perf_counter_ns
+from time import perf_counter_ns
 from pprint import pprint
-from bpy.types import (NodeSocket, UILayout)
+from bpy.types import UILayout
 from bpy.app.translations import pgettext_iface as TranslateIface
 
-from .C_Structure import BNode
-from .common_class import Equestrian
-from .globals import *
-from .globals import dict_typeSkToBlid, dict_vlHhTranslations
-from .common_func import GetFirstUpperLetters, GetUserKmNe, format_tool_set, sk_label_or_name
-from .关于翻译的函数 import *
-from .关于节点的函数 import *
-from .关于ui的函数 import *
-from .关于颜色的函数 import *
-from .VoronoiTool import *
-from .关于sold的函数 import *
-from .globals import *
-from .common_class import *
-from .common_func import *
-from .draw_in_view import *
-from .common_func import Prefs
 from .VoronoiTool import VoronoiToolRoot, VoronoiToolPairSk
 from .VoronoiLinkerTool import VoronoiLinkerTool
 from .VoronoiMixerTool import VoronoiMixerTool
@@ -58,10 +42,26 @@ from .VqmtPieMath import VqmtOpMain, VqmtPieMath
 from .VmMixer import VmtOpMixer, VmtPieMixer
 from .VoronoiCallNodePie import VoronoiCallNodePie
 from .Rot_or_Mat_Converter import Rot_or_Mat_Converter, Pie_MT_Converter_To_Rotation, Pie_MT_Converter_Rotation_To, Pie_MT_Separate_Matrix, Pie_MT_Combine_Matrix
+
+
+from .globals import *
+from .globals import dict_vlHhTranslations
+from .common_func import GetFirstUpperLetters, GetUserKmNe, format_tool_set
+from .关于翻译的函数 import *
+from .关于节点的函数 import *
+from .关于ui的函数 import *
+from .关于颜色的函数 import *
+from .VoronoiTool import *
+from .关于sold的函数 import *
+from .globals import *
+from .common_class import *
+from .common_func import *
+from .关于绘制的函数 import *
+from .common_func import Prefs
 from .common_class import TryAndPass
 from .关于sold的函数 import SolderClsToolNames, RegisterSolderings, UnregisterSolderings
 from .关于翻译的函数 import GetAnnotFromCls, VlTrMapForKey
-from .draw_in_view import TestDraw
+from .关于绘制的函数 import TestDraw
 
 
 dict_classes = {} # 所有需要注册的类都放在这里. 使用字典是为了 smart_add_to_reg_and_kmiDefs() 函数, 同时还能保持顺序.
@@ -482,8 +482,6 @@ with VlTrMapForKey(format_tool_set(VoronoiMassLinkerTool)) as dm:
 dict_toolLangSpecifDataPool[VoronoiMassLinkerTool, "ru_RU"] = """"Малыш котопёс", не ноды, не сокеты. Создан ради редких точечных спец-ускорений.
 VLT на максималках. В связи со своим принципом работы, по своему божественен."""
 
-
-
 # 最初想用 'V_Sca', 但手指伸到 V 太远了. 而且, 考虑到创建这个工具的原因, 需要最小化调用的复杂性.
 smart_add_to_reg_and_kmiDefs(VoronoiEnumSelectorTool, "#C#_R", {'isPieChoice':True, 'isSelectNode':3})
 smart_add_to_reg_and_kmiDefs(VoronoiEnumSelectorTool, "#C#_E", {'isInstantActivation':False})
@@ -512,7 +510,6 @@ dict_classes[VestOpBox] = True
 dict_classes[VestPieBox] = True
 
 # 参见: VlrtData, VlrtRememberLastSockets() 和 NewLinkHhAndRemember().
-
 smart_add_to_reg_and_kmiDefs(VoronoiLinkRepeatingTool, "###_V", {'toolMode':'SOCKET'})
 smart_add_to_reg_and_kmiDefs(VoronoiLinkRepeatingTool, "S##_V", {'toolMode':'NODE'})
 dict_setKmiCats['oth'].add(VoronoiLinkRepeatingTool.bl_idname)
@@ -544,7 +541,6 @@ with VlTrMapForKey(VoronoiQuickConstant.bl_label) as dm:
     dm["zh_CN"] = "Voronoi快速常量"
 
 dict_toolLangSpecifDataPool[VoronoiQuickConstant, "ru_RU"] = "Инструмент для ускорения нужд разделения и объединения векторов (и цвета).\nА ещё может разделить геометрию на составляющие."
-
 
 smart_add_to_reg_and_kmiDefs(VoronoiInterfacerTool, "SC#_A", {'toolMode':'NEW'})
 smart_add_to_reg_and_kmiDefs(VoronoiInterfacerTool, "S#A_A", {'toolMode':'CREATE'})
@@ -586,7 +582,6 @@ with VlTrMapForKey(VoronoiWarperTool.bl_label) as dm:
 
 dict_toolLangSpecifDataPool[VoronoiWarperTool, "ru_RU"] = "Мини-ответвление реверс-инженеринга топологии, (как у VPT).\nИнструмент для \"точечных прыжков\" по сокетам."
 
-
 smart_add_to_reg_and_kmiDefs(VoronoiLazyNodeStencilsTool, "##A_Q")
 dict_setKmiCats['spc'].add(VoronoiLazyNodeStencilsTool.bl_idname)
 
@@ -603,27 +598,8 @@ dict_toolLangSpecifDataPool[VoronoiLazyNodeStencilsTool, "ru_RU"] = """Мощь.
 NodeWrangler'а, и никогда не реализованный 'VoronoiLazyNodeContinuationTool'. """ #"Больше лени богу лени!"
 dict_toolLangSpecifDataPool[VoronoiLazyNodeStencilsTool, "zh_CN"] = "代替NodeWrangler的ctrl+t"
 
-# class VlnstData:
-#     lastLastExecError = "" # 用于用户编辑 vlnstLastExecError, 不能添加或修改, 但可以删除.
-#     isUpdateWorking = False
-# def VlnstUpdateLastExecError(self, _context):
-#     if VlnstData.isUpdateWorking:
-#         return
-#     VlnstData.isUpdateWorking = True
-#     if not VlnstData.lastLastExecError:
-#         self.vlnstLastExecError = ""
-#     elif self.vlnstLastExecError:
-#         if self.vlnstLastExecError!=VlnstData.lastLastExecError: # 注意: 谨防堆栈溢出.
-#             self.vlnstLastExecError = VlnstData.lastLastExecError
-#     else:
-#         VlnstData.lastLastExecError = ""
-#     VlnstData.isUpdateWorking = False
-
 class VoronoiAddonPrefs(VoronoiAddonPrefs):
     vlnstLastExecError: bpy.props.StringProperty(name="Last exec error", default="", update=VlnstUpdateLastExecError)
-
-
-
 
 smart_add_to_reg_and_kmiDefs(VoronoiResetNodeTool, "###_BACK_SPACE")
 smart_add_to_reg_and_kmiDefs(VoronoiResetNodeTool, "S##_BACK_SPACE", {'isResetEnums':True})
@@ -634,7 +610,6 @@ with VlTrMapForKey(VoronoiResetNodeTool.bl_label) as dm:
 
 dict_toolLangSpecifDataPool[VoronoiResetNodeTool, "ru_RU"] = """Инструмент для сброса нодов без нужды прицеливания, с удобствами ведения мышкой
 и игнорированием свойств перечислений. Был создан, потому что в NW было похожее."""
-
 
 #smart_add_to_reg_and_kmiDefs(VoronoiDummyTool, "###_D", {'isDummy':True})
 dict_setKmiCats['grt'].add(VoronoiDummyTool.bl_idname)
@@ -792,16 +767,13 @@ for li in ["Free", "Special", "AddonPrefs"]+[cls.bl_label for cls in dict_vtClas
 
 def VaUpdateTestDraw(self, context):
     TestDraw.Toggle(context, self.dsIsTestDrawing)
+
 class VoronoiAddonPrefs(VoronoiAddonPrefs):
     vaLangDebDiscl: bpy.props.BoolProperty(name="Language bruteforce debug", default=False)
     vaLangDebEnum: bpy.props.EnumProperty(name="LangDebEnum", default='FREE', items=list_langDebEnumItems)
     dsIsFieldDebug: bpy.props.BoolProperty(name="Field debug", default=False)
     dsIsTestDrawing: bpy.props.BoolProperty(name="Testing draw", default=False, update=VaUpdateTestDraw)
     dsIncludeDev: bpy.props.BoolProperty(name="IncludeDev", default=False)
-
-# 在这里留下我的个人"愿望清单"的一小部分 (按集成时间顺序), 这些是从我其他的个人插件移植到 VL 的:
-# Hider, QuckMath 和 JustMathPie, Warper, RANTO
-
 
 class VoronoiOpAddonTabs(bpy.types.Operator):
     bl_idname = 'node.voronoi_addon_tabs'
@@ -820,17 +792,13 @@ class VoronoiOpAddonTabs(bpy.types.Operator):
                 prefs.vaUiTabs = self.opt
         return {'FINISHED'}
 
-def LyAddThinSep(where: UILayout, scaleY):
-    row = where.row(align=True)
-    row.separator()
-    row.scale_y = scaleY
-
 class KmiCat():
     def __init__(self, propName='', set_kmis=set(), set_idn=set()):
         self.propName = propName
         self.set_kmis = set_kmis
         self.set_idn = set_idn
         self.sco = 0
+
 class KmiCats:
     pass
 
@@ -1434,7 +1402,7 @@ isRegisterFromMain = False
 def register():
     for dk in dict_classes:
         bpy.utils.register_class(dk)
-    ##
+
     prefs = Prefs()
     if isRegisterFromMain:
         if hasattr(bpy.types.SpaceNodeEditor,'handle'):
@@ -1445,20 +1413,16 @@ def register():
         for cls in dict_vtClasses:
             setattr(prefs, cls.disclBoxPropNameInfo, False)
         prefs.dsIsTestDrawing = False
-    ##
+
     kmANe = bpy.context.window_manager.keyconfigs.addon.keymaps.new(name="Node Editor", space_type='NODE_EDITOR')
     for blid, key, shift, ctrl, alt, repeat, dict_props in list_kmiDefs:
         kmi = kmANe.keymap_items.new(idname=blid, type=key, value='PRESS', shift=shift, ctrl=ctrl, alt=alt, repeat=repeat)
         kmi.active = blid!='node.voronoi_dummy'
-        print("=" * 50)
-        pprint(kmi.properties)
-        pprint(dict_props)
         if dict_props:
             for dk, dv in dict_props.items():
-                # print(dk, dv)
                 setattr(kmi.properties, dk, dv)
         list_addonKeymaps.append(kmi)
-    ##
+    
     RegisterTranslations()
     RegisterSolderings()
 
@@ -1473,12 +1437,6 @@ def unregister():
     ##
     for dk in dict_classes:
         bpy.utils.unregister_class(dk)
-
-# 在 bl_info 里放我的 GitHub 链接当然很酷, 但最好还是明确提供一些联系方式:
-#  coaltangle@gmail.com
-#  ^ 我的邮箱. 如果万一发生世界末日, 或者这个 VL-考古-发现能够解决一个非多项式问题, 就写信到那里.
-# 为了更实时的交流 (首选) 以及关于 VL 及其代码的问题, 请在我的 Discord 上找我 'ugorek#6434'.
-# 另外, 在 blenderartists.org 上也有一个帖子 blenderartists.org/t/voronoi-linker-addon-node-wrangler-killer
 
 def DisableKmis(): # 用于重复运行脚本. 在第一次"恢复"之前有效.
     kmUNe = GetUserKmNe()

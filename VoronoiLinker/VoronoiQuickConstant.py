@@ -4,7 +4,7 @@ from bpy.types import (NodeSocket, UILayout)
 
 from .Rot_or_Mat_Converter import Convert_Data, Pie_MT_Converter_To_Rotation, Pie_MT_Combine_Matrix
 from .globals import Cursor_X_Offset
-from .draw_in_view import TemplateDrawSksToolHh
+from .关于绘制的函数 import TemplateDrawSksToolHh
 from .关于翻译的函数 import *
 from .关于节点的函数 import *
 from .关于ui的函数 import *
@@ -14,7 +14,7 @@ from .关于sold的函数 import *
 from .globals import *
 from .common_class import *
 from .common_func import *
-from .draw_in_view import *
+from .关于绘制的函数 import *
 from .VoronoiTool import VoronoiToolTripleSk
 
 class VoronoiQuickConstant(VoronoiToolTripleSk):

@@ -37,10 +37,11 @@
 ##
 # 未使用的变量名前加 "_下划线".
 
+# 在这里留下我的个人"愿望清单"的一小部分 (按集成时间顺序), 这些是从我其他的个人插件移植到 VL 的:
+# Hider, QuckMath 和 JustMathPie, Warper, RANTO
 
-
-
-
-
-
-
+# 在 bl_info 里放我的 GitHub 链接当然很酷, 但最好还是明确提供一些联系方式:
+#  coaltangle@gmail.com
+#  ^ 我的邮箱. 如果万一发生世界末日, 或者这个 VL-考古-发现能够解决一个非多项式问题, 就写信到那里.
+# 为了更实时的交流 (首选) 以及关于 VL 及其代码的问题, 请在我的 Discord 上找我 'ugorek#6434'.
+# 另外, 在 blenderartists.org 上也有一个帖子 blenderartists.org/t/voronoi-linker-addon-node-wrangler-killer

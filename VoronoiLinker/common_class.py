@@ -339,6 +339,7 @@ class TryAndPass():
 class VlnstData:
     lastLastExecError = "" # 用于用户编辑 vlnstLastExecError, 不能添加或修改, 但可以删除.
     isUpdateWorking = False
+
 def VlnstUpdateLastExecError(self, _context):
     if VlnstData.isUpdateWorking:
         return
