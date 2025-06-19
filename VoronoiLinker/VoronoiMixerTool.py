@@ -108,7 +108,7 @@ def DoPreviewCore(skTar, list_distAnchs, cursorLoc):
     higWay = length(list_way)-1
     list_way[higWay].nd = skTar.node # 通过默认的保证-流程进入的深度, 目标节点不会被处理, 所以需要明确指定. (别忘了把这段精灵语翻译成中文 😂)
     ##
-    previewSkType = "Color4" # 颜色, 而不是着色器 -- 因为有时需要在预览路径上插入节点.
+    previewSkType = "RGBA" # 颜色, 而不是着色器 -- 因为有时需要在预览路径上插入节点.
     # 但如果链接是着色器类型的 -- 准备好失望吧. 所以用颜色 (这也是 NW 最初的方式).
     isGeoTree = list_way[0].tree.bl_idname=='GeometryNodeTree'
     if isGeoTree:
@@ -126,7 +126,7 @@ def DoPreviewCore(skTar, list_distAnchs, cursorLoc):
         match previewSkType:
             case 'GEOMETRY': return "NodeSocketGeometry"
             case 'SHADER':   return "NodeSocketShader"
-            case 'Color4':     return "NodeSocketColor"
+            case 'RGBA':     return "NodeSocketColor"
     ##
     isInClassicTrees = IsClassicTreeBlid(skTar.id_data.bl_idname)
     for cyc in reversed(range(higWay+1)):

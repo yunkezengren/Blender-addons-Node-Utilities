@@ -11,6 +11,8 @@ def CheckUncollapseNodeAndReNext(nd: Node, self, *, cond: bool, flag=None): # �
         # todo0: 如果连续展开了多个节点, 应该只重绘一次; 但没必要. 如果发生了这种情况, 说明这个工具的搜索拓扑很糟糕.
         self.NextAssignmentRoot(flag)
 
-
 def FtgGetTargetOrNone(ftg) -> NodeSocket:
     return ftg.tar if ftg else None
+
+def Prefs():
+    return bpy.context.preferences.addons[__package__].preferences

@@ -11,19 +11,15 @@ bl_info = {'name':"Voronoi Linker",
            'tracker_url':"https://github.com/ugorek000/VoronoiLinker/issues"}
 
 from builtins import len as length # 我超爱三个字母的变量名.没有像"len"这样的名字, 我会感到非常伤心和孤独... 😭 还有 'Vector.length' 也是.
-import bpy, ctypes, rna_keymap_ui, bl_keymap_utils
-import blf, gpu, gpu_extras.batch
-from math import pi, cos, sin
-from mathutils import Vector as Vec
-Vec2 = Color4 = Vec
-
+import bpy, rna_keymap_ui, bl_keymap_utils
+from mathutils import Vector as Vec2
 
 import platform
 from time import perf_counter, perf_counter_ns
 import copy     # 用于 VLNST.
 from pprint import pprint
 from bpy.types import (NodeSocket, UILayout)
-
+from bpy.app.translations import pgettext_iface as TranslateIface
 
 from .C_Structure import BNode
 from .common_class import Equestrian, VmtData, VqmtData
@@ -56,9 +52,6 @@ from .Rot_or_Mat_Converter import Rot_or_Mat_Converter, Pie_MT_Converter_To_Rota
 from .common_class import TryAndPass
 from .关于sold的函数 import RegisterSolderings, UnregisterSolderings
 from .draw_in_view import TestDraw
-
-# Rot_or_Mat_Converter 只被快速维度和常量使用
-
 
 dict_classes = {} # 所有需要注册的类都放在这里. 使用字典是为了 smart_add_to_reg_and_kmiDefs() 函数, 同时还能保持顺序.
 dict_vtClasses = {} # 只存放 V*T (Voronoi Tool) 工具.
@@ -96,11 +89,8 @@ voronoiPreviewResultNdName = "SavePreviewResult" # 不支持翻译, 就这样一
 def GetUserKmNe():
     return bpy.context.window_manager.keyconfigs.user.keymaps['Node Editor']
 
-
-
 #Todo0VV: 处理 n^3 种组合: space_data.tree_type 和 space_data.edit_tree.bl_idname; 包括经典的, 丢失的和插件的; 绑定和未绑定到编辑器的.
 # ^ 然后检查所有工具在这些组合中的可用性. 之后在现有节点树中检查所有工具与丢失节点的丢失插槽的交互情况.
-
 
 dict_timeAvg = {}
 dict_timeOutside = {}
@@ -128,7 +118,6 @@ class ToTimeNs(): # 我投降了. 🤷‍ 我不知道为什么在大型节点�
 
 # todo1v6: 当工具处于活动状态时, 按下 PrtScr 会在控制台刷屏 `WARN ... pyrna_enum_to_py: ... '171' matches no enum in 'Event'`.
 
-from bpy.app.translations import pgettext_iface as TranslateIface
 
 dict_vlHhTranslations = {}
 
@@ -568,10 +557,6 @@ def index_switch_add_input(nodes, index_switch_node):
     bpy.ops.node.index_switch_item_add()
     nodes.active = old_active
     return index_switch_node.inputs[-2]
-
-
-
-
 
 smart_add_to_reg_and_kmiDefs(VoronoiLinkerTool, "##A_RIGHTMOUSE") # "##A_RIGHTMOUSE"?
 dict_setKmiCats['grt'].add(VoronoiLinkerTool.bl_idname)
@@ -1356,8 +1341,8 @@ class VoronoiAddonPrefs(VoronoiAddonPrefs):
 # 在这里留下我的个人"愿望清单"的一小部分 (按集成时间顺序), 这些是从我其他的个人插件移植到 VL 的:
 # Hider, QuckMath 和 JustMathPie, Warper, RANTO
 
-def Prefs():
-    return bpy.context.preferences.addons[__package__].preferences
+from .common_func import Prefs
+
 
 class VoronoiOpAddonTabs(bpy.types.Operator):
     bl_idname = 'node.voronoi_addon_tabs'

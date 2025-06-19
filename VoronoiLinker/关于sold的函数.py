@@ -82,14 +82,12 @@ def GetNdThemeNclassCol(ndTar):
         # 小王
         return getattr(SoldThemeCols, SoldThemeCols.dict_mapNcAtt.get(BNode.GetFields(ndTar).typeinfo.contents.nclass, 'node_backdrop')+"4pw")
 
-
 def SolderClsToolNames():
     for cls in dict_vtClasses:
         cls.vlTripleName = GetFirstUpperLetters(cls.bl_label)+"T" # 最初创建是"因为好玩", 但现在需要了; 参见 SetPieData().
         cls.disclBoxPropName = cls.vlTripleName[:-1].lower()+"BoxDiscl"
         cls.disclBoxPropNameInfo = cls.disclBoxPropName+"Info"
 SolderClsToolNames()
-
 
 def RegisterSolderings():
     txtDoc = "Property from and only for VoronoiLinker addon."

@@ -1,19 +1,16 @@
-from time import perf_counter, perf_counter_ns
-from builtins import len as length # 我超爱三个字母的变量名.没有像"len"这样的名字, 我会感到非常伤心和孤独... 😭 还有 'Vector.length' 也是.
-import bpy, ctypes, rna_keymap_ui, bl_keymap_utils
-import blf, gpu, gpu_extras.batch
-from math import pi, cos, sin
-from mathutils import Vector as Vec
-Vec2 = Color4 = Vec
+from time import perf_counter
+import bpy
+from mathutils import Vector as Vec2
 
-from time import perf_counter, perf_counter_ns
 from pprint import pprint
 from bpy.types import (NodeSocket, UILayout, View2D, Area)
 
 from .关于节点的函数 import GetNearestSocketsFtg, GetNearestNodesFtg, RestoreCollapsedNodes, SolderSkLinks
-from .draw_in_view import DrawDebug, TemplateDrawNodeFull
+from .draw_in_view import DrawDebug, TemplateDrawNodeFull, TemplateDrawSksToolHh
 from .C_Structure import RectBase
-from .common_class import TryAndPass
+from .common_class import TryAndPass, Prefs
+from .draw_in_view import TemplateDrawSksToolHh
+from .globals import set_utilTypeSkFields
 
 
 class VoronoiOpTool(bpy.types.Operator):

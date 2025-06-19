@@ -7,7 +7,6 @@ from .globals import Cursor_X_Offset
 from .draw_in_view import TemplateDrawSksToolHh
 from .VoronoiTool import VoronoiToolTripleSk
 
-
 class VoronoiQuickConstant(VoronoiToolTripleSk):
     bl_idname = 'node.voronoi_quick_constant'
     bl_label = "Voronoi Quick Constant"

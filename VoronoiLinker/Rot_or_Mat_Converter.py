@@ -46,13 +46,16 @@ def Do_Rot_or_Mat_Converter(context: Context, isS: bool, isA: bool, node_type: s
         tree.links.new(sk0, skOut)
         # if Convert_Data.sk1:     tree.links.new(Convert_Data.sk1, skOut)    # 只有sk0,旋转节口不会触发更多
 
-class rot_or_mat_converter(VoronoiOpTool):
+# Rot_or_Mat_Converter 只被快速维度和常量使用
+class Rot_or_Mat_Converter(VoronoiOpTool):
     bl_idname = 'node.rot_or_mat_converter'
     bl_label = "Mixer Mixer"
     node_type: bpy.props.StringProperty()
     def invoke(self, context, event):
         Do_Rot_or_Mat_Converter(context, event.shift, event.alt, self.node_type)
         return {'FINISHED'}
+
+
 
 class Pie_MT_Combine_Matrix(bpy.types.Menu):
     bl_idname = "Combine_Matrix"

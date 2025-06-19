@@ -2,16 +2,13 @@ from .C_Structure import BNode, BNodeSocket
 from .common_class import Equestrian
 from bpy.types import (Node, NodeSocket, UILayout)
 
-from mathutils import Vector as Vec
-Vec2 = Color4 = Vec
+from mathutils import Vector as Vec2
 
 def sk_loc(sk):
     return Vec2(BNodeSocket.GetFields(sk).runtime.contents.location[:]) if (sk.enabled) and (not sk.hide) else Vec2((0, 0))
 
 def node_abs_loc(nd):
-    return nd.location+node_abs_loc(nd.parent) if nd.parent else nd.location
-
-
+    return nd.location + node_abs_loc(nd.parent) if nd.parent else nd.location
 
 # 提供对折叠节点的支持:
 # 终于等到了... 当然, 这不是"真正的支持". 我鄙视折叠起来的节点; 我也不想去处理圆角和随之改变的绘制逻辑.
@@ -21,6 +18,7 @@ def SaveCollapsedNodes(nodes):
     dict_collapsedNodes.clear()
     for nd in nodes:
         dict_collapsedNodes[nd] = nd.hide
+
 # 我没有只展开最近的节点, 而是做了一个"痕迹".
 # 为了不让这一切变成混乱的, 不断"抽搐"的场面, 而是可以引导, 展开, 冷静下来, 看到"当前情况", 分析, 然后 спокойно 地连接需要的东西.
 def RestoreCollapsedNodes(nodes):
