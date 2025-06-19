@@ -95,7 +95,7 @@ class VoronoiInterfacerTool(VoronoiToolPairSk):
             nd = ftgNd.tar
             if nd.type=='REROUTE':
                 continue
-            if (not prefs.vitPasteToAnySocket)and(self.toolMode=='PASTE')and(nd.type not in Equestrian.set_equestrianNodeTypes):
+            if (not prefs.vitPasteToAnySocket)and(self.toolMode=='PASTE')and(nd.type not in Node_Items_Manager.set_equestrianNodeTypes):
                 break # 光标必须靠近骑士 (或组节点) (对于非 vitPasteToAnySocket). 还有 `continue` 不会有高级取消.
             list_ftgSksIn, list_ftgSksOut = self.ToolGetNearestSockets(nd, cur_x_off=0)
             self.fotagoSkMain = FindAnySk(nd, list_ftgSksIn, list_ftgSksOut)
@@ -108,7 +108,7 @@ class VoronoiInterfacerTool(VoronoiToolPairSk):
             nd = ftgNd.tar
             if nd.type=='REROUTE':
                 continue
-            if nd.type not in Equestrian.set_equestrianNodeTypes:
+            if nd.type not in Node_Items_Manager.set_equestrianNodeTypes:
                 break # 光标必须靠近骑士 (或组节点); 但也可以通过选择同一个套接字来取消, 所以不确定.
             if (self.fotagoSkRosw)and(self.fotagoSkRosw.tar.node!=nd):
                 continue
@@ -119,7 +119,7 @@ class VoronoiInterfacerTool(VoronoiToolPairSk):
             skRosw = FtgGetTargetOrNone(self.fotagoSkRosw)
             if skRosw:
                 for ftg in list_ftgSksOut if skRosw.is_output else list_ftgSksIn:
-                    if (ftg.blid!='NodeSocketVirtual')and(Equestrian.IsSimRepCorrectSk(nd, ftg.tar)):
+                    if (ftg.blid!='NodeSocketVirtual')and(Node_Items_Manager.IsSimRepCorrectSk(nd, ftg.tar)):
                         self.fotagoSkMain = ftg
                         break
                 if (self.fotagoSkMain)and(self.fotagoSkMain.tar==skRosw):
@@ -155,11 +155,11 @@ class VoronoiInterfacerTool(VoronoiToolPairSk):
                     if isFirstActivation:
                         ftgSkOut, ftgSkIn = None, None
                         for ftg in list_ftgSksIn:
-                            if (ftg.blid!='NodeSocketVirtual')and(Equestrian.IsSimRepCorrectSk(nd, ftg.tar)):
+                            if (ftg.blid!='NodeSocketVirtual')and(Node_Items_Manager.IsSimRepCorrectSk(nd, ftg.tar)):
                                 ftgSkIn = ftg
                                 break
                         for ftg in list_ftgSksOut:
-                            if (ftg.blid!='NodeSocketVirtual')and(Equestrian.IsSimRepCorrectSk(nd, ftg.tar)):
+                            if (ftg.blid!='NodeSocketVirtual')and(Node_Items_Manager.IsSimRepCorrectSk(nd, ftg.tar)):
                                 ftgSkOut = ftg
                                 break
                         self.fotagoSkMain = MinFromFtgs(ftgSkOut, ftgSkIn)
@@ -168,7 +168,7 @@ class VoronoiInterfacerTool(VoronoiToolPairSk):
                     if skMain:
                         if nd==skMain.node: # 也可以允许来自自己的节点, 但也许最好不要.
                             break
-                        if nd.type not in Equestrian.set_equestrianNodeTypes:
+                        if nd.type not in Node_Items_Manager.set_equestrianNodeTypes:
                             continue
                         if (skMain.is_output)and(nd.type=='GROUP_INPUT'):
                             continue
@@ -209,13 +209,13 @@ class VoronoiInterfacerTool(VoronoiToolPairSk):
             case 'PASTE':
                 #tovo1v6 添加一个按键, 按下后会“取消”--不进行粘贴; 因为此模式保证会粘附 (参见选项) 到任何套接字, 需要某种方式来“退后一步”.
                 skMain = self.fotagoSkMain.tar
-                if (skMain.node.type not in Equestrian.set_equestrianNodeTypes)and(prefs.vitPasteToAnySocket):
+                if (skMain.node.type not in Node_Items_Manager.set_equestrianNodeTypes)and(prefs.vitPasteToAnySocket):
                     skMain.name = self.clipboard
                 else:
-                    Equestrian(skMain).GetSkfFromSk(skMain).name = self.clipboard
+                    Node_Items_Manager(skMain).GetSkfFromSk(skMain).name = self.clipboard
             case 'SWAP'|'FLIP':
                 skMain = self.fotagoSkMain.tar
-                equr = Equestrian(skMain)
+                equr = Node_Items_Manager(skMain)
                 skfFrom = equr.GetSkfFromSk(self.fotagoSkRosw.tar)
                 skfTo = equr.GetSkfFromSk(skMain)
                 equr.MoveBySkfs(skfFrom, skfTo, isSwap=self.toolMode=='SWAP')
@@ -224,7 +224,7 @@ class VoronoiInterfacerTool(VoronoiToolPairSk):
             case 'CREATE':
                 ftgNdTar = self.fotagoNdTar
                 ndTar = ftgNdTar.tar
-                equr = Equestrian(ndTar)
+                equr = Node_Items_Manager(ndTar)
                 skMain = self.fotagoSkMain.tar
                 skfNew = equr.NewSkfFromSk(skMain, isFlipSide=ndTar.type not in {'GROUP_INPUT', 'GROUP_OUTPUT'})
                 can = True
@@ -241,7 +241,7 @@ class VoronoiInterfacerTool(VoronoiToolPairSk):
                     min = 16777216.0
                     list_ftgSksIn, list_ftgSksOut = self.ToolGetNearestSockets(ndTar)
                     for ftg in list_ftgSksIn if skMain.is_output else list_ftgSksOut:
-                        if (ftg.blid!='NodeSocketVirtual')and(Equestrian.IsSimRepCorrectSk(ndTar, ftg.tar)):
+                        if (ftg.blid!='NodeSocketVirtual')and(Node_Items_Manager.IsSimRepCorrectSk(ndTar, ftg.tar)):
                             len = (ftgNdTar.pos-ftg.pos).length
                             if min>len:
                                 min = len

@@ -1,7 +1,7 @@
 from .C_Structure import BNode, BNodeSocket
 from .globals import is_blender4plus, set_classicSocketsBlid, dict_typeSkToBlid, set_utilTypeSkFields
 from .globals import *
-from .common_forward_class import Equestrian, Fotago
+from .common_forward_class import Node_Items_Manager, Fotago
 from .common_forward_class import *
 from bpy.types import (Node, NodeSocket, UILayout)
 import bpy
@@ -167,11 +167,11 @@ def MinFromFtgs(ftg1, ftg2):
 def FindAnySk(nd, list_ftgSksIn, list_ftgSksOut): # Todo0NA: 需要泛化!, 用 lambda. 并且外部循环遍历列表, 而不是两个循环.
     ftgSkOut, ftgSkIn = None, None
     for ftg in list_ftgSksOut:
-        if (ftg.blid!='NodeSocketVirtual')and(Equestrian.IsSimRepCorrectSk(nd, ftg.tar)): # todo1v6: 这个函数到处都和 !=NodeSocketVirtual 一起使用, 需要重做拓扑.
+        if (ftg.blid!='NodeSocketVirtual')and(Node_Items_Manager.IsSimRepCorrectSk(nd, ftg.tar)): # todo1v6: 这个函数到处都和 !=NodeSocketVirtual 一起使用, 需要重做拓扑.
             ftgSkOut = ftg
             break
     for ftg in list_ftgSksIn:
-        if (ftg.blid!='NodeSocketVirtual')and(Equestrian.IsSimRepCorrectSk(nd, ftg.tar)):
+        if (ftg.blid!='NodeSocketVirtual')and(Node_Items_Manager.IsSimRepCorrectSk(nd, ftg.tar)):
             ftgSkIn = ftg
             break
     return MinFromFtgs(ftgSkOut, ftgSkIn)
@@ -257,7 +257,7 @@ def DoLinkHh(sko, ski, *, isReroutesToAnyType=True, isCanBetweenField=True, isCa
         # 创建接口
         match typeEq:
             case 0|1:
-                equr = Equestrian(ski if isSkiVirtual else sko)
+                equr = Node_Items_Manager(ski if isSkiVirtual else sko)
                 skf = equr.NewSkfFromSk(skTar)
                 skNew = equr.GetSkFromSkf(skf, isOut=skf.in_out!='OUTPUT') # * 痛苦的声音 *
             case 2|3:       # [-2]  -1是扩展接口,-2是新添加的接口
@@ -265,7 +265,7 @@ def DoLinkHh(sko, ski, *, isReroutesToAnyType=True, isCanBetweenField=True, isCa
                 if True: # SimRep 的重新选择是微不足道的; 因为它们没有面板, 所有新套接字都出现在底部.
                     skNew = ski.node.inputs[-2] if isSkiVirtual else sko.node.outputs[-2]
                 else:
-                    skNew = Equestrian(ski if isSkiVirtual else sko).GetSkFromSkf(_skf, isOut=isSkoVirtual)
+                    skNew = Node_Items_Manager(ski if isSkiVirtual else sko).GetSkFromSkf(_skf, isOut=isSkoVirtual)
             case 4:       # 新建接口-菜单切换
                 _skf = ndEq.enum_items.new(sk_label_or_name(skTar))
                 skNew = ski.node.inputs[-2] if isSkiVirtual else sko.node.outputs[-2]

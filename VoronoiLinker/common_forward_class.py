@@ -4,7 +4,11 @@ from bpy.types import (NodeSocket, UILayout)
 # from .common_func import sk_label_or_name, index_switch_add_input
 from .common_forward_func import *
 
-class Equestrian():
+
+# Equestrian 的意思是"骑手"或"马术的",取其驾驭、控制的寓意.似乎是专门用来操作管理有 item 的节点, 比如:
+# 这些节点都有一个共同点: 它们内部有自己的items, 可以动态地添加、删除、移动它们上面的插槽 (socket).
+# 提供了一套统一的 API 来驾驭它们的内部接口, 抽象成了统一的操作
+class Node_Items_Manager():
     set_equestrianNodeTypes = {'GROUP', 'GROUP_INPUT', 'GROUP_OUTPUT', 
                                'SIMULATION_INPUT', 'SIMULATION_OUTPUT', 
                                'REPEAT_INPUT', 'REPEAT_OUTPUT',
@@ -27,9 +31,9 @@ class Equestrian():
         return None
     @staticmethod
     def IsSimRepCorrectSk(node, skTar: NodeSocket):
-        node_interface = {'SIMULATION_INPUT', 'SIMULATION_OUTPUT', 'REPEAT_INPUT', 'REPEAT_OUTPUT', 
+        node_has_items = {'SIMULATION_INPUT', 'SIMULATION_OUTPUT', 'REPEAT_INPUT', 'REPEAT_OUTPUT', 
                           'MENU_SWITCH', 'BAKE', 'CAPTURE_ATTRIBUTE', 'INDEX_SWITCH'}       # 'INDEX_SWITCH' 在这里还没用到
-        if (skTar.bl_idname=='NodeSocketVirtual')and(node.type in node_interface):
+        if (skTar.bl_idname=='NodeSocketVirtual')and(node.type in node_has_items):
             return False
         match node.type:            # 小王-让一些接口不被判定
             case 'SIMULATION_INPUT':
@@ -130,7 +134,7 @@ class Equestrian():
                     if hasattr(skfNew,'min_value'):
                         nd = skTar.node
                         if (nd.type in {'GROUP_INPUT', 'GROUP_OUTPUT'})or( (nd.type=='GROUP')and(nd.node_tree) ): # 如果套接字来自另一个节点组，则完全复制。
-                            skf = Equestrian(nd).GetSkfFromSk(skTar)
+                            skf = Node_Items_Manager(nd).GetSkfFromSk(skTar)
                             for pr in skfNew.rna_type.properties:
                                 if not(pr.is_readonly or pr.is_registered):
                                     setattr(skfNew, pr.identifier, getattr(skf, pr.identifier))
@@ -150,6 +154,7 @@ class Equestrian():
                             if dt.node_tree: # 对于 materials -- https://github.com/ugorek000/VoronoiLinker/issues/19; 我仍然不明白它怎么可能是 None。
                                 FixInTree(dt.node_tree)
                 return skfNew
+    
     def MoveBySkfs(self, skfFrom, skfTo, *, isSwap=False): # 本可以自行处理“BySks”的复杂性，但这已经是调用方的责任了。
         match self.type:
             case 'SIM' | 'REP' | 'MENU' | 'BAKE' | 'CAPTURE':       # 小王-支持交换接口
@@ -223,6 +228,7 @@ class Equestrian():
                         if scoPanel>0:
                             skft.move_to_parent(skf, list_panels[scoPanel][0], 0) # 因为 'reversed(skfa)'，位置问题得以解决，这里只需 '0'；令人惊叹的方便巧合。
                         scoSkf += 1
+    
     def __init__(self, snkd): #"snkd" = 套接字或节点。
         isSk = hasattr(snkd,'link_limit') # self.IsSocketDefinitely(snkd)
         ndEq = snkd.node if isSk else snkd

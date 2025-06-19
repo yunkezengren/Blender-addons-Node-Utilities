@@ -40,7 +40,7 @@ class VlDrawData():
     def VecUiViewToReg(self, vec):
         vec = vec*self.uiScale
         return Vec2( self.view_to_region(vec.x, vec.y, clip=False) )
-    ##
+
     def DrawRectangle(self, bou1, bou2, col):
         self.DrawAreaFanLL(( (bou1[0],bou1[1]), (bou2[0],bou1[1]), (bou2[0],bou2[1]), (bou1[0],bou2[1]) ), col)
     def DrawCircle(self, loc, rad, *, resl=54, col=tup_whiteCol4):
@@ -55,10 +55,8 @@ class VlDrawData():
         self.DrawCircle(loc, radHh,     resl=resl, col=col1*colFacOut)
         self.DrawCircle(loc, radHh/1.5, resl=resl, col=col2)
     def __init__(self, context, cursorLoc, uiScale, prefs):
-        # self.shaderLine = gpu.shader.from_builtin('POLYLINE_SMOOTH_COLOR')        # 作者
         self.shaderLine = gpu.shader.from_builtin('POLYLINE_SMOOTH_COLOR')
-        # POLYLINE_FLAT_COLOR, POLYLINE_SMOOTH_COLOR, POLYLINE_UNIFORM_COLOR
-        # FLAT_COLOR, SMOOTH_COLOR, [UNIFORM_COLOR]
+        # POLYLINE_FLAT_COLOR, POLYLINE_SMOOTH_COLOR, POLYLINE_UNIFORM_COLOR, FLAT_COLOR, SMOOTH_COLOR, [UNIFORM_COLOR]
         self.shaderArea = gpu.shader.from_builtin('UNIFORM_COLOR')
         #self.shaderLine.uniform_float('lineSmooth', True) # 无需, 默认为 True.
         self.fontId = blf.load(prefs.dsFontFile) # 持续设置字体是为了在更换主题时字体不消失.
@@ -80,9 +78,9 @@ class VlDrawData():
         self.dsUniformNodeColor = Color4(power_color4(self.dsUniformNodeColor))
         self.dsCursorColor = Color4(power_color4(self.dsCursorColor))
 
-def DrawWorldStick(drata, pos1, pos2, col1, col2):
+def DrawWorldStick(drata: VlDrawData, pos1, pos2, col1, col2):
     drata.DrawPathLL( (drata.VecUiViewToReg(pos1), drata.VecUiViewToReg(pos2)), (col1, col2), wid=drata.dsLineWidth )
-def DrawVlSocketArea(drata, sk, bou, col):
+def DrawVlSocketArea(drata: VlDrawData, sk, bou, col):
     loc = node_abs_loc(sk.node)
     pos1 = drata.VecUiViewToReg(Vec2( (loc.x,               bou[0]) ))
     pos2 = drata.VecUiViewToReg(Vec2( (loc.x+sk.node.width, bou[1]) ))
@@ -91,12 +89,12 @@ def DrawVlSocketArea(drata, sk, bou, col):
     else:
         col = drata.dsUniformColor
     drata.DrawRectangle(pos1, pos2, col)
-def DrawVlWidePoint(drata, loc, *, col1=Color4(tup_whiteCol4), col2=tup_whiteCol4, resl=54, forciblyCol=False): #"forciblyCol" 只用于 DrawDebug.
+def DrawVlWidePoint(drata: VlDrawData, loc, *, col1=Color4(tup_whiteCol4), col2=tup_whiteCol4, resl=54, forciblyCol=False): #"forciblyCol" 只用于 DrawDebug.
     if not(drata.dsIsColoredPoint or forciblyCol):
         col1 = col2 = drata.dsUniformColor
     drata.DrawWidePoint(drata.VecUiViewToReg(loc), radHh=( (6*drata.dsPointScale*drata.worldZoom)**2+10 )**0.5, col1=col1, col2=col2, resl=resl)
 
-def DrawMarker(drata, loc, col, *, style):
+def DrawMarker(drata: VlDrawData, loc, col, *, style):
     fac = get_color_black_alpha(col, pw=1.5)*0.625 #todo1v6 标记颜色在亮色和黑色之间看起来不美观; 需要想点办法.
     colSh = (fac, fac, fac, 0.5) # 阴影
     colHl = (0.65, 0.65, 0.65, max(max(col[0],col[1]),col[2])*0.9/(3.5, 5.75, 4.5)[style]) # 透明白色描边
@@ -105,7 +103,7 @@ def DrawMarker(drata, loc, col, *, style):
     ##
     drata.DrawRing((loc[0]+1.5, loc[1]+3.5), 9.0, wid=3.0, resl=resl, col=colSh)
     drata.DrawRing((loc[0]-3.5, loc[1]-5.0), 9.0, wid=3.0, resl=resl, col=colSh)
-    def DrawMarkerBacklight(spin, col):
+    def DrawMarkerBacklight(spin: VlDrawData, col):
         resl = (16, 4, 16)[style]
         drata.DrawRing((loc[0],     loc[1]+5.0), 9.0, wid=3.0, resl=resl, col=col, spin=spin)
         drata.DrawRing((loc[0]-5.0, loc[1]-3.5), 9.0, wid=3.0, resl=resl, col=col, spin=spin)
@@ -113,14 +111,14 @@ def DrawMarker(drata, loc, col, *, style):
     DrawMarkerBacklight(0.0,     colHl) # 但因此需要将白色描边的 alpha 减半。
     drata.DrawRing((loc[0],     loc[1]+5.0), 9.0, wid=1.0, resl=resl, col=colMt)
     drata.DrawRing((loc[0]-5.0, loc[1]-3.5), 9.0, wid=1.0, resl=resl, col=colMt)
-def DrawVlMarker(drata, loc, *, ofsHh, col):
+def DrawVlMarker(drata: VlDrawData, loc, *, ofsHh, col):
     vec = drata.VecUiViewToReg(loc)
     dir = 1 if ofsHh[0]>0 else -1
     ofsX = dir*( (20*drata.dsIsDrawText+drata.dsDistFromCursor)*1.5+drata.dsFrameOffset )+4
     col = col if drata.dsIsColoredMarker else drata.dsUniformColor
     DrawMarker(drata, (vec[0]+ofsHh[0]+ofsX, vec[1]+ofsHh[1]), col, style=drata.dsMarkerStyle)
 
-def DrawFramedText(drata, pos1, pos2, txt, *, siz, adj, colTx, colFr, colBg):
+def DrawFramedText(drata: VlDrawData, pos1, pos2, txt, *, siz, adj, colTx, colFr, colBg):
     pos1x = ps1x = pos1[0]
     pos1y = ps1y = pos1[1]
     pos2x = ps2x = pos2[0]
@@ -174,7 +172,7 @@ def DrawFramedText(drata, pos1, pos2, txt, *, siz, adj, colTx, colFr, colBg):
     blf.draw(fontId, txt)
     return (pos2x-pos1x, pos2y-pos1y)
 
-def DrawWorldText(drata, pos, ofsHh, text, *, colText, colBg, fontSizeOverwrite=0): # fontSizeOverwrite 仅用于 vptRvEeSksHighlighting.
+def DrawWorldText(drata: VlDrawData, pos, ofsHh, text, *, colText, colBg, fontSizeOverwrite=0): # fontSizeOverwrite 仅用于 vptRvEeSksHighlighting.
     siz = drata.dsFontSize*(not fontSizeOverwrite)+fontSizeOverwrite
     blf.size(drata.fontId, siz)
     # 不计算“实际文本”的高度, 因为那样每个框每次的高度都会不同.
@@ -193,7 +191,7 @@ def DrawWorldText(drata, pos, ofsHh, text, *, colText, colBg, fontSizeOverwrite=
     # return DrawFramedText(drata, pos1, pos2, text, siz=siz, adj=dimDb[1]*drata.dsManualAdjustment, colTx=power_color4(colText, pw=1/1.975), colFr=power_color4(colBg, pw=1/1.5), colBg=colBg)
     return DrawFramedText(drata, pos1, pos2, text, siz=siz, adj=dimDb[1]*drata.dsManualAdjustment, colTx=colText, colFr=colBg, colBg=colBg)   # 绘制颜色加深
 
-def DrawVlSkText(drata, pos, ofsHh, ftg, *, fontSizeOverwrite=0): # 注意: `pos` 总是为了 drata.cursorLoc, 但请参见 vptRvEeSksHighlighting.
+def DrawVlSkText(drata: VlDrawData, pos, ofsHh, ftg, *, fontSizeOverwrite=0): # 注意: `pos` 总是为了 drata.cursorLoc, 但请参见 vptRvEeSksHighlighting.
     if not drata.dsIsDrawText:
         return (1, 0) #'1' 需要用于保存标记位置的方向信息.
     if drata.dsIsColoredText:
@@ -203,7 +201,7 @@ def DrawVlSkText(drata, pos, ofsHh, ftg, *, fontSizeOverwrite=0): # 注意: `pos
         colText = colBg = drata.dsUniformColor
     return DrawWorldText(drata, pos, ofsHh, ftg.soldText, colText=colText, colBg=colBg, fontSizeOverwrite=fontSizeOverwrite)
 
-def DrawDebug(self, drata):
+def DrawDebug(self, drata: VlDrawData):
     def DebugTextDraw(pos, txt, r, g, b):
         blf.size(0,18)
         blf.position(0, pos[0]+10,pos[1], 0)
@@ -230,7 +228,7 @@ def DrawDebug(self, drata):
         DrawVlWidePoint(drata, list_ftgSksOut[0].pos, col1=col, col2=col, resl=4, forciblyCol=True)
         DebugTextDraw(drata.VecUiViewToReg(list_ftgSksOut[0].pos), "Nearest socketOut here", 0.75, 0.75, 1)
 
-def TemplateDrawNodeFull(drata, ftgNd, *, side=1, tool_name=""): # 模板重新思考过了; 很好. 现在它变得像其他所有的一样了.. 至少没有旧版本中的意大利面条式代码了.
+def TemplateDrawNodeFull(drata: VlDrawData, ftgNd, *, side=1, tool_name=""): # 模板重新思考过了; 很好. 现在它变得像其他所有的一样了.. 至少没有旧版本中的意大利面条式代码了.
     #todo1v6 模板只有一个 ftg, 没有分层, 两个调用会从一个绘制点和线到另一个的文本上方.
     if ftgNd:
         ndTar = ftgNd.tar
@@ -273,7 +271,7 @@ def TemplateDrawNodeFull(drata, ftgNd, *, side=1, tool_name=""): # 模板重新�
 
 # 高级套接字绘制模板. 现在名称中有“Sk”, 因为节点已完全进入 VL.
 # 在旧版本中的硬核之后, 使用这个模板简直是享受 (甚至不要看那里, 那里简直是地狱).
-def TemplateDrawSksToolHh(drata, *args_ftgSks, sideMarkHh=1, isDrawText=True, 
+def TemplateDrawSksToolHh(drata: VlDrawData, *args_ftgSks, sideMarkHh=1, isDrawText=True, 
                           isClassicFlow=False, isDrawMarkersMoreTharOne=False, tool_name=""): # 模板重新思考过了, 万岁. 感觉上并没有变得更好.
     def GetPosFromFtg(ftg):
         return ftg.pos+Vec2((drata.dsPointOffsetX*ftg.dir, 0.0))
