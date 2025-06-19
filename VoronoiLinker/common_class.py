@@ -303,9 +303,6 @@ class Equestrian():
                     raise Exception(f"Tree for nodegroup `{ndEq.path_from_id()}` not found, from `{snkd.path_from_id()}`")
                 self.skfa = ndEq.node_tree.interface.items_tree
 
-
-
-
 class PieRootData:
     isSpeedPie = False
     pieScale = 0
@@ -337,7 +334,6 @@ class VqmtData(PieRootData):
     isFirstDone = False #https://github.com/ugorek000/VoronoiLinker/issues/20
     dict_existingValues = {}
     test_bool = False
-
 
 
 class VestData:

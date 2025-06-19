@@ -1,5 +1,9 @@
 from math import pi, cos, sin
 
+Color_Bar_Width = 0.015     # 小王 饼菜单颜色条宽度
+Cursor_X_Offset = -50       # 小王 这样更舒服,在输入或输出接口方面加强
+
+
 dict_typeSkToBlid = {
     'SHADER':    'NodeSocketShader',
     'RGBA':      'NodeSocketColor',
