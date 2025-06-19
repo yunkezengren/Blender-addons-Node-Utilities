@@ -1,17 +1,17 @@
-from .node_utils import RestoreCollapsedNodes
-from .solder_utils import SolderSkLinks
-from .color_utils import get_sk_color_safe, Color4
-from .translation_utils import GetAnnotFromCls, VlTrMapForKey
-from .translation_utils import *
-from .node_utils import *
-from .ui_utils import *
-from .color_utils import *
+from .utils_node import RestoreCollapsedNodes
+from .utils_solder import SolderSkLinks
+from .utils_color import get_sk_color_safe, Color4
+from .utils_translate import GetAnnotFromCls, VlTrMapForKey
+from .utils_translate import *
+from .utils_node import *
+from .utils_ui import *
+from .utils_color import *
 from .VoronoiTool import *
-from .solder_utils import *
+from .utils_solder import *
 from .globals import *
 from .forward_class import *
 from .forward_func import *
-from .drawing_utils import *
+from .utils_drawing import *
 from .VoronoiTool import VoronoiToolSk
 
 

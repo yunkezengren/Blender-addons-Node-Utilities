@@ -4,17 +4,17 @@ from bpy.types import (NodeSocket, UILayout)
 
 from .Rot_or_Mat_Converter import Convert_Data, Pie_MT_Converter_To_Rotation, Pie_MT_Combine_Matrix
 from .globals import Cursor_X_Offset
-from .drawing_utils import TemplateDrawSksToolHh
-from .translation_utils import *
-from .node_utils import *
-from .ui_utils import *
-from .color_utils import *
+from .utils_drawing import TemplateDrawSksToolHh
+from .utils_translate import *
+from .utils_node import *
+from .utils_ui import *
+from .utils_color import *
 from .VoronoiTool import *
-from .solder_utils import *
+from .utils_solder import *
 from .globals import *
 from .forward_class import *
 from .forward_func import *
-from .drawing_utils import *
+from .utils_drawing import *
 from .VoronoiTool import VoronoiToolTripleSk
 
 class VoronoiQuickConstant(VoronoiToolTripleSk):

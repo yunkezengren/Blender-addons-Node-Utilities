@@ -98,3 +98,10 @@ def LyAddThinSep(where: UILayout, scaleY):
     row = where.row(align=True)
     row.separator()
     row.scale_y = scaleY
+
+utils_solder
+utils_color
+utils_ui
+utils_node
+utils_drawing
+utils_translation

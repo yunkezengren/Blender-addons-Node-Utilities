@@ -47,21 +47,21 @@ from .Rot_or_Mat_Converter import Rot_or_Mat_Converter, Pie_MT_Converter_To_Rota
 from .globals import *
 from .globals import dict_vlHhTranslations
 from .forward_func import GetFirstUpperLetters, GetUserKmNe, format_tool_set
-from .translation_utils import *
-from .node_utils import *
-from .ui_utils import *
-from .color_utils import *
+from .utils_translate import *
+from .utils_node import *
+from .utils_ui import *
+from .utils_color import *
 from .VoronoiTool import *
-from .solder_utils import *
+from .utils_solder import *
 from .globals import *
 from .forward_class import *
 from .forward_func import *
-from .drawing_utils import *
+from .utils_drawing import *
 from .forward_func import Prefs
 from .forward_class import TryAndPass
-from .solder_utils import SolderClsToolNames, RegisterSolderings, UnregisterSolderings
-from .translation_utils import GetAnnotFromCls, VlTrMapForKey
-from .drawing_utils import TestDraw
+from .utils_solder import SolderClsToolNames, RegisterSolderings, UnregisterSolderings
+from .utils_translate import GetAnnotFromCls, VlTrMapForKey
+from .utils_drawing import TestDraw
 
 
 dict_classes = {} # 所有需要注册的类都放在这里. 使用字典是为了 smart_add_to_reg_and_kmiDefs() 函数, 同时还能保持顺序.
