@@ -1,24 +1,25 @@
 
 
-#"Массовый линкер" -- как линкер, только много за раз (ваш кэп).
-#См. вики на гитхабе, чтобы посмотреть 5 примеров использования массового линкера. Дайте мне знать, если обнаружите ещё одно необычное применение этому инструменту.
-class VoronoiMassLinkerTool(VoronoiToolRoot): #"Малыш котопёс", не ноды, не сокеты.
+
+#"批量链接器" -- 就像链接器一样, 只是一次性处理多个 (显而易见).
+#请查看 github 上的 wiki, 看看批量链接器的5个使用示例. 如果你发现这个工具还有其他不寻常的用法, 请告诉我.
+class VoronoiMassLinkerTool(VoronoiToolRoot): #"猫狗合体", 既不是节点, 也不是接口.
     bl_idname = 'node.voronoi_mass_linker'
-    bl_label = "Voronoi MassLinker" #Единственный, у кого нет пробела. Потому что слишком котопёсный))00)0
-    # А если серьёзно, то он действительно самый странный. Пародирует VLT с его dsIsAlwaysLine. SocketArea стакаются, если из нескольких в одного. Пишет в функции рисования...
-    # А ещё именно он есть/будет на превью аддона, ибо обладает самой большой степенью визуальности из всех инструментов (причем без верхнего предела).
+    bl_label = "Voronoi MassLinker" #唯一一个没有空格的. 因为它太像猫狗了))00)0
+    # 说真的, 它的确是最奇怪的. 它模仿 VLT 的 dsIsAlwaysLine. 如果从多个连接到一个, SocketArea 会堆叠起来. 它在绘制函数中写入...
+    # 而且, 正是它出现在/将出现在插件的预览图上, 因为它在所有工具中具有最大的视觉表现力 (而且没有上限).
     usefulnessForCustomTree = True
     isIgnoreExistingLinks: bpy.props.BoolProperty(name="Ignore existing links", default=False)
     def CallbackDrawTool(self, drata):
-        #Здесь нарушается местная VL'ская концепция чтения-записи, и CallbackDraw ищет и записывает найденные сокеты вместо того, чтобы просто читать и рисовать. Полагаю, так инструмент проще реализовать.
-        self.list_equalFtgSks.clear() #Очищать каждый раз. P.s. важно делать это в начале, а не в ветке двух нод.
+        #这里违反了本地 VL 的读写概念, CallbackDraw 会查找并记录找到的接口, 而不是简单地读取和绘制. 我想这样更容易实现这个工具.
+        self.list_equalFtgSks.clear() #每次都清除. P.s. 在开始时执行此操作很重要, 而不是在两个节点的分支中.
         if not self.ndTar0:
             TemplateDrawSksToolHh(drata, None, None, isClassicFlow=True, tool_name="MassLinker")
         elif (self.ndTar0)and(not self.ndTar1):
             list_ftgSksOut = self.ToolGetNearestSockets(self.ndTar0)[1]
             if list_ftgSksOut:
-                #Не известно, к кому это будет подсоединено и к кому получится -- рисовать от всех сокетов.
-                TemplateDrawSksToolHh(drata, *list_ftgSksOut, isDrawText=False, isClassicFlow=True, tool_name="MassLinker") #"Всем к курсору!"
+                #不知道它会连接到谁, 以及会成功连接到谁 -- 从所有接口开始绘制.
+                TemplateDrawSksToolHh(drata, *list_ftgSksOut, isDrawText=False, isClassicFlow=True, tool_name="MassLinker") #"全体到光标!"
             else:
                 TemplateDrawSksToolHh(drata, None, None, isClassicFlow=True, tool_name="MassLinker")
         else:
@@ -26,47 +27,47 @@ class VoronoiMassLinkerTool(VoronoiToolRoot): #"Малыш котопёс", не
             list_ftgSksIn = self.ToolGetNearestSockets(self.ndTar1)[0]
             for ftgo in list_ftgSksOut:
                 for ftgi in list_ftgSksIn:
-                    #Т.к. "массовый" -- критерии приходится автоматизировать и сделать их едиными для всех.
-                    if CompareSkLabelName(ftgo.tar, ftgi.tar, self.prefs.vmltIgnoreCase): #Соединяться только с одинаковыми по именам сокетами.
+                    #因为是“批量”的 -- 标准必须自动化, 并对所有情况都统一.
+                    if CompareSkLabelName(ftgo.tar, ftgi.tar, self.prefs.vmltIgnoreCase): #只与名称相同的接口连接.
                         tgl = False
-                        if self.isIgnoreExistingLinks: #Если соединяться без разбору, то исключить уже имеющиеся "желанные" связи. Нужно для эстетики.
+                        if self.isIgnoreExistingLinks: #如果是不分青红皂白地连接, 就排除已经存在的“期望”连接. 这是为了美观.
                             for lk in ftgi.tar.vl_sold_links_final:
-                                #Проверка is_linked нужна, чтобы можно было включить выключенные линки, перезаменив их.
+                                #需要检查 is_linked, 以便可以启用已禁用的链接, 替换它们.
                                 if (lk.from_socket.is_linked)and(lk.from_socket==ftgo.tar):
                                     tgl = True
                             tgl = not tgl
-                        else: #Иначе не трогать уже соединённых.
+                        else: #否则, 不要动已经连接的.
                             tgl = not ftgi.tar.vl_sold_is_final_linked_cou
                         if tgl:
                             self.list_equalFtgSks.append( (ftgo, ftgi) )
             if not self.list_equalFtgSks:
-                DrawVlWidePoint(drata, drata.cursorLoc, col1=drata.dsCursorColor, col2=drata.dsCursorColor) #Иначе вообще всё исчезнет.
+                DrawVlWidePoint(drata, drata.cursorLoc, col1=drata.dsCursorColor, col2=drata.dsCursorColor) #否则一切都会消失.
             for li in self.list_equalFtgSks:
-                #Т.к. поиск по именам, рисоваться здесь и подсоединяться ниже, возможно из двух (и больше) сокетов в один и тот же одновременно. Типа "конфликт" одинаковых имён.
+                #因为是按名称搜索, 所以这里会绘制并可能在下面同时从两个 (或更多) 接口连接到同一个接口. 就像同名“冲突”一样.
                 TemplateDrawSksToolHh(drata, li[0], li[1], isDrawText=False, isClassicFlow=True, tool_name="MassLinker") #*[ti for li in self.list_equalFtgSks for ti in li]
     def NextAssignmentTool(self, isFirstActivation, prefs, tree):
         for ftgNd in self.ToolGetNearestNodes(cur_x_off=Cursor_X_Offset):
             nd = ftgNd.tar
             CheckUncollapseNodeAndReNext(nd, self, cond=isFirstActivation, flag=True)
-            #Помимо свёрнутых также игнорируются и рероуты, потому что у них инпуты всегда одни и с одинаковыми именами.
+            #除了折叠的节点, 还忽略了转接点, 因为它们的输入总是相同的, 并且名称相同.
             if nd.type=='REROUTE':
                 continue
             self.ndTar1 = nd
             if isFirstActivation:
-                self.ndTar0 = nd #Здесь нод-вывод устанавливается один раз.
-            if self.ndTar0==self.ndTar1: #Проверка на самокопию.
-                self.ndTar1 = None #Здесь нод-вход обнуляется каждый раз в случае неудачи.
-            #Заметка: Первое нахождение ndTar1 -- list_equalFtgSks == [].
+                self.ndTar0 = nd #这里的输出节点只设置一次.
+            if self.ndTar0==self.ndTar1: #检查是否是自我复制.
+                self.ndTar1 = None #这里的输入节点在失败时每次都会被清空.
+            #注意: 第一次找到 ndTar1 时 -- list_equalFtgSks == [].
             if self.ndTar1:
-                list_ftgSksIn = self.ToolGetNearestSockets(self.ndTar1)[0] #Только ради условия раскрытия. Можно было и list_equalFtgSks, но опять проскальзывающие кадры.
+                list_ftgSksIn = self.ToolGetNearestSockets(self.ndTar1)[0] #仅为了展开的条件. 也可以用 list_equalFtgSks, 但又会有跳帧问题.
                 CheckUncollapseNodeAndReNext(nd, self, cond=list_ftgSksIn, flag=False)
             break
     def MatterPurposePoll(self):
         return self.list_equalFtgSks
     def MatterPurposeTool(self, event, prefs, tree):
         if True:
-            #Если выходы нода и входы другого нода имеют в сумме 4 одинаковых сокета по названию, то происходит не ожидаемое от инструмента поведение.
-            #Поэтому соединять только один линк на входной сокет (мультиинпуты не в счёт).
+            #如果一个节点的输出和另一个节点的输入总共有4个同名接口, 就会发生与工具预期不符的行为.
+            #因此, 每个输入接口只连接一个链接 (多输入接口不计).
             set_alreadyDone = set()
             list_skipToEndEq = []
             list_skipToEndSk = []
@@ -75,15 +76,15 @@ class VoronoiMassLinkerTool(VoronoiToolRoot): #"Малыш котопёс", не
                 ski = li[1].tar
                 if ski in set_alreadyDone:
                     continue
-                if sko in list_skipToEndSk: #Заметка: Достаточно и линейного чтения, но пока оставлю так, чтоб наверняка.
+                if sko in list_skipToEndSk: #注意: 线性读取就足够了, 但暂时保持这样以确保万无一失.
                     list_skipToEndEq.append(li)
                     continue
-                tree.links.new(sko, ski) #Заметка: Наверное лучше оставить безопасное "сырое" соединение, учитывая массовость соединения и неограниченность количества.
-                VlrtRememberLastSockets(sko, ski) #Заметка: Эта и далее -- "последнее всегда последнее", эффективно-ниже проверками уже не опуститься; ну или по крайней мере на моём уровне знаний.
-                if not ski.is_multi_input: #"Мультиинпуты бездонны!"
+                tree.links.new(sko, ski) #注意: 考虑到批量连接和数量不限, 最好还是保留安全的“原始”连接.
+                VlrtRememberLastSockets(sko, ski) #注意: 这行和后面的 -- “最后一个永远是最后一个”, 更高效的下面检查已经无法实现了; 至少以我的知识水平是这样.
+                if not ski.is_multi_input: #"多输入是无底洞!"
                     set_alreadyDone.add(ski)
                 list_skipToEndSk.append(sko)
-            #Далее обрабатываются пропущенные на предыдущем цикле.
+            #接下来处理上一个循环中跳过的.
             for li in list_skipToEndEq:
                 sko = li[0].tar
                 ski = li[1].tar
@@ -94,7 +95,7 @@ class VoronoiMassLinkerTool(VoronoiToolRoot): #"Малыш котопёс", не
                 VlrtRememberLastSockets(sko, ski)
         else:
             for li in self.list_equalFtgSks:
-                tree.links.new(li[0].tar, li[1].tar) #Соединить всех!
+                tree.links.new(li[0].tar, li[1].tar) #连接所有!
     def InitTool(self, event, prefs, tree):
         self.ndTar0 = None
         self.ndTar1 = None

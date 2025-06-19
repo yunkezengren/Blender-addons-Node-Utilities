@@ -352,22 +352,7 @@ def CompareSkLabelName(sk1, sk2, isIgnoreCase=False):
 def RecrGetNodeFinalLoc(nd):
     return nd.location+RecrGetNodeFinalLoc(nd.parent) if nd.parent else nd.location
 
-# def GetListOfNdEnums(nd):     # 插件作者的方法 - 判断节点是否有下拉列表
-#     return [pr for pr in nd.rna_type.properties 
-#                 if (pr.type == 'ENUM') and (not (pr.is_readonly or pr.is_registered)) ]
-def GetListOfNdEnums(node):   # 小王-判断节点是否有下拉列表
-    enum_l = []
-    for p in node.rna_type.properties:
-        if (p.type == 'ENUM') and (p.name != "Warning Propagation") and (not (p.is_readonly or p.is_registered)):
-            enum_l.append(p)
-    return enum_l
-# 小王-显示节点选项优化-根据选项重命名节点-domain
-# def get_node_enum_item_list_dict(node):
-#     enum_dict = {}
-#     for p in node.rna_type.properties:
-#         if (p.type == 'ENUM') and (p.name != "Warning Propagation") and (not (p.is_readonly or p.is_registered)):
-#             enum_dict[p.identifier] = [item.name for item in p.enum_items]
-#     return enum_dict
+
 def get_node_domain_item_list(node):
     enum_list = []
     for p in node.rna_type.properties:
@@ -408,19 +393,6 @@ def SetPieData(self, toolData, prefs, col):
     prefs.vaDecorColSkBack = col # 这句在 vaDecorColSk 之前很重要; 参见 VaUpdateDecorColSk().
     prefs.vaDecorColSk = col
 
-class VlrtData:
-    reprLastSkOut = ""
-    reprLastSkIn = ""
-
-def VlrtRememberLastSockets(sko, ski):
-    if sko:
-        VlrtData.reprLastSkOut = repr(sko)
-        # ski 对 VLRT 来说, 如果没有 sko 就没用
-        if (ski)and(ski.id_data==sko.id_data):
-            VlrtData.reprLastSkIn = repr(ski)
-def NewLinkHhAndRemember(sko, ski):
-    DoLinkHh(sko, ski) #sko.id_data.links.new(sko, ski)
-    VlrtRememberLastSockets(sko, ski)
 
 def GetOpKmi(self, event): # Todo00: 有没有更正确的设计或方法?
     # 操作符可以有多种调用组合, 所有这些组合在 `keymap_items` 中的键都相同, 所以我们手动遍历所有
@@ -442,10 +414,6 @@ def GetSetOfKeysFromEvent(event, isSide=False):
     if event.oskey:
         set_keys.add('OSKEY' if isSide else 'OSKEY')
     return set_keys
-
-
-def FtgGetTargetOrNone(ftg) -> NodeSocket:
-    return ftg.tar if ftg else None
 
 def MinFromFtgs(ftg1, ftg2):
     # print(type(ftg1))   # <class Fotago>

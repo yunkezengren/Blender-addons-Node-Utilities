@@ -1,8 +1,7 @@
 
 
 
-
-class VoronoiRantoTool(VoronoiToolNd): #Свершилось.
+class VoronoiRantoTool(VoronoiToolNd): #完成了.
     bl_idname = 'node.voronoi_ranto'
     bl_label = "Voronoi RANTO"
     usefulnessForCustomTree = True
@@ -55,7 +54,7 @@ class VoronoiRantoTool(VoronoiToolNd): #Свершилось.
             tgl = nd in rada.dict_ndTopoWorking
             if (self.isSelectNodes==1)and(soldNAcc):
                 nd.select = tgl
-            if (not tgl)and(self.isUncollapseNodes): #Восстановить у незадействованных.
+            if (not tgl)and(self.isUncollapseNodes): #恢复未涉及节点的隐藏状态.
                 nd.hide = dict_remresNdHide[nd]
         if self.isAccumulate:
             tree.nodes.active = ndTar
@@ -67,7 +66,7 @@ class VoronoiRantoTool(VoronoiToolNd): #Свершилось.
         for ftgNd in self.ToolGetNearestNodes(cur_x_off=0):
             nd = ftgNd.tar
             if nd.type=='REROUTE':
-                continue #За этим обращайтесь к оригинальному RANTO-аддону.
+                continue #为此，请参考原始的RANTO插件.
             self.fotagoNd = ftgNd
             #if not self.ndMaxAccRoot:
             #    self.ndMaxAccRoot = nd
@@ -92,14 +91,14 @@ class VoronoiRantoTool(VoronoiToolNd): #Свершилось.
     def BringTranslations(cls):
         with VlTrMapForKey("This tool is empty") as dm:
             dm["ru_RU"] = "Этот инструмент пуст"
-#            dm["zh_CN"] = ""
+            dm["zh_CN"] = "该工具是空的"
         ##
         with VlTrMapForKey(GetAnnotFromCls(cls,'isOnlySelected').name) as dm:
             dm["ru_RU"] = "Только выделенные"
             dm["zh_CN"] = "仅选定的"
         with VlTrMapForKey(GetAnnotFromCls(cls,'isOnlySelected').description) as dm:
             dm["ru_RU"] = "0 – Любой нод.\n1 – Выделенные + рероуты.\n2 – Только выделенные"
-#            dm["zh_CN"] = ""
+            dm["zh_CN"] = "0 – 任意节点。\n1 – 选定+转向节点。\n2 – 仅选定的节点"
         with VlTrMapForKey(GetAnnotFromCls(cls,'isUniWid').name) as dm:
             dm["ru_RU"] = "Постоянная ширина"
             dm["zh_CN"] = "统一宽度"
@@ -117,26 +116,26 @@ class VoronoiRantoTool(VoronoiToolNd): #Свершилось.
             dm["zh_CN"] = "展开节点"
         with VlTrMapForKey(GetAnnotFromCls(cls,'isDeleteReroutes').name) as dm:
             dm["ru_RU"] = "Удалять рероуты"
-#            dm["zh_CN"] = ""
+            dm["zh_CN"] = "删除转向节点"
         with VlTrMapForKey(GetAnnotFromCls(cls,'isSelectNodes').name) as dm:
             dm["ru_RU"] = "Выделять ноды"
             dm["zh_CN"] = "选择节点"
         with VlTrMapForKey(GetAnnotFromCls(cls,'isSelectNodes').description) as dm:
             dm["ru_RU"] = "-1 – Де-выделять всё.\n 0 – Ничего не делать.\n 1 – Выделять задействованные ноды"
-#            dm["zh_CN"] = ""
+            dm["zh_CN"] = "-1 – 取消全选。\n 0 – 不做任何事。\n 1 – 选择涉及的节点"
         with VlTrMapForKey(GetAnnotFromCls(cls,'isIncludeMutedLinks').name) as dm:
             dm["ru_RU"] = "Разрешить выключенные линки"
-#            dm["zh_CN"] = ""
+            dm["zh_CN"] = "包含禁用的连线"
         with VlTrMapForKey(GetAnnotFromCls(cls,'isIncludeNonValidLinks').name) as dm:
             dm["ru_RU"] = "Разрешить невалидные линки"
-#            dm["zh_CN"] = ""
+            dm["zh_CN"] = "包含无效的连线"
         with VlTrMapForKey(GetAnnotFromCls(cls,'isAccumulate').name) as dm:
             dm["ru_RU"] = "Накапливать"
-#            dm["zh_CN"] = ""
+            dm["zh_CN"] = "累积"
         ##
         with VlTrMapForKey(GetPrefsRnaProp('vrtIsLiveRanto').name) as dm:
             dm["ru_RU"] = "Ranto в реальном времени"
             dm["zh_CN"] = "实时对齐"
         with VlTrMapForKey(GetPrefsRnaProp('vrtIsFixIslands').name) as dm:
             dm["ru_RU"] = "Чинить острова"
-            dm["zh_CN"] = ""
+            dm["zh_CN"] = "修复孤岛"

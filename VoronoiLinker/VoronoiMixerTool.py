@@ -1,16 +1,17 @@
 
 
+
 class VoronoiMixerTool(VoronoiToolPairSk):
     bl_idname = 'node.voronoi_mixer'
     bl_label = "Voronoi Mixer"
     usefulnessForCustomTree = False
     canDrawInAppearance = True
-    isCanFromOne:       bpy.props.BoolProperty(name="Can from one socket", default=True) #Стоит первым, чтобы быть похожим на VQMT в kmi.
+    isCanFromOne:       bpy.props.BoolProperty(name="Can from one socket", default=True) #放在第一位, 以便在 kmi 中与 VQMT 类似.
     isHideOptions:      bpy.props.BoolProperty(name="Hide node options",   default=False)
     isPlaceImmediately: bpy.props.BoolProperty(name="Place immediately",   default=False)
     def NextAssignmentTool(self, isFirstActivation, prefs, tree):
         if isFirstActivation:
-            self.fotagoSk0 = None #Нужно обнулять из-за наличия двух continue ниже.
+            self.fotagoSk0 = None #需要清空, 因为下面有两个 continue.
         self.fotagoSk1 = None
         soldReroutesCanInAnyType = prefs.vmtReroutesCanInAnyType
         for ftgNd in self.ToolGetNearestNodes(cur_x_off=Cursor_X_Offset):
@@ -19,11 +20,11 @@ class VoronoiMixerTool(VoronoiToolPairSk):
             list_ftgSksOut = self.ToolGetNearestSockets(nd, cur_x_off=Cursor_X_Offset)[1]
             if not list_ftgSksOut:
                 continue
-            #В фильтре нод нет нужды.
-            #Этот инструмент триггерится на любой выход (теперь кроме виртуальных) для первого.
+            #节点过滤器没有必要.
+            #这个工具会触发第一个遇到的任何输出 (现在除了虚拟接口).
             if isFirstActivation:
                 self.fotagoSk0 = list_ftgSksOut[0] if list_ftgSksOut else None
-            #Для второго по условиям:
+            #对于第二个, 根据条件:
             skOut0 = FtgGetTargetOrNone(self.fotagoSk0)
             if skOut0:
                 for ftg in list_ftgSksOut:
@@ -31,19 +32,19 @@ class VoronoiMixerTool(VoronoiToolPairSk):
                     if skOut0==skOut1:
                         break
                     orV = (skOut1.bl_idname=='NodeSocketVirtual')or(skOut0.bl_idname=='NodeSocketVirtual')
-                    #Теперь VMT к виртуальным снова может
+                    #现在 VMT 又可以连接到虚拟接口了
                     tgl = (skOut1.bl_idname=='NodeSocketVirtual')^(skOut0.bl_idname=='NodeSocketVirtual')
                     tgl = (tgl)or( self.SkBetweenFieldsCheck(skOut0, skOut1)or( (skOut1.bl_idname==skOut0.bl_idname)and(not orV) ) )
                     tgl = (tgl)or( (skOut0.node.type=='REROUTE')or(skOut1.node.type=='REROUTE') )and(soldReroutesCanInAnyType)
                     if tgl:
                         self.fotagoSk1 = ftg
                         break
-                if (self.fotagoSk1)and(skOut0==self.fotagoSk1.tar): #Проверка на самокопию.
+                if (self.fotagoSk1)and(skOut0==self.fotagoSk1.tar): #检查是否是自我复制.
                     self.fotagoSk1 = None
                 CheckUncollapseNodeAndReNext(nd, self, cond=self.fotagoSk1, flag=False)
-            #Не смотря на то, что в фильтре нод нет нужды и и так прекрасно работает на первом попавшемся, всё равно нужно продолжать поиск, если первый сокет найден не был.
-            #Потому что если первым(ближайшим) окажется нод с неудачным результатом поиска, цикл закончится и инструмент ничего не выберет, даже если рядом есть подходящий.
-            if self.fotagoSk0: #Особенно заметно с активным ныне несуществующим isCanReOut; без этого результат будет выбираться успешно/неуспешно в зависимости от положения курсора.
+            #尽管节点过滤器没有必要, 并且在第一个遇到的节点上工作得很好, 但如果第一个接口没有找到, 仍然需要继续搜索.
+            #因为如果第一个(最近的)节点搜索结果失败, 循环将结束, 工具将不会选择任何东西, 即使旁边有合适的.
+            if self.fotagoSk0: #在使用现在不存在的 isCanReOut 时尤其明显; 如果没有这个, 结果会根据光标位置成功/不成功地选择.
                 break
     def MatterPurposePoll(self):
         if not self.fotagoSk0:
@@ -56,7 +57,7 @@ class VoronoiMixerTool(VoronoiToolPairSk):
         VmtData.sk0 = self.fotagoSk0.tar
         socket1 = FtgGetTargetOrNone(self.fotagoSk1)
         VmtData.sk1 = socket1
-        #Поддержка виртуальных выключена; читается только из первого
+        #对虚拟接口的支持已关闭; 只从第一个读取
         VmtData.skType = VmtData.sk0.type if VmtData.sk0.bl_idname!='NodeSocketVirtual' else socket1.type
         VmtData.isHideOptions = self.isHideOptions
         VmtData.isPlaceImmediately = self.isPlaceImmediately
@@ -65,16 +66,16 @@ class VoronoiMixerTool(VoronoiToolPairSk):
             VmtData.skType = "MATRIX"
             _sk = VmtData.sk1
         SetPieData(self, VmtData, prefs, PowerArr4(GetSkColSafeTup4(_sk), pw=2.2))
-        if not self.isInvokeInClassicTree: #В связи с usefulnessForCustomTree, бесполезная проверка.
-            return {'CANCELLED'} #Если место действия не в классических редакторах, то просто выйти. Ибо классические редакторы у всех одинаковые, а аддонских есть бесчисленное множество.
+        if not self.isInvokeInClassicTree: #由于 usefulnessForCustomTree, 这是个无用的检查.
+            return {'CANCELLED'} #如果操作地点不在经典编辑器中, 就直接退出. 因为经典编辑器对所有人都一样, 而插件编辑器有无数种.
 
         tup_nodes = dict_vmtTupleMixerMain.get(tree.bl_idname, False).get(VmtData.skType, None)
         if tup_nodes:
-            if length(tup_nodes)==1: #Если выбор всего один, то пропустить его и сразу переходить к смешиванию.
-                DoMix(tree, False, False, tup_nodes[0]) #При моментальной активации можно и не отпустить модификаторы. Поэтому DoMix() получает не event, а вручную.
-            else: #Иначе предоставить выбор
+            if length(tup_nodes)==1: #如果只有一个选择, 就跳过它直接进行混合.
+                DoMix(tree, False, False, tup_nodes[0]) #在即时激活时, 可能没有释放修饰键. 因此 DoMix() 接收的是手动设置而不是 event.
+            else: #否则提供选择
                 bpy.ops.wm.call_menu_pie(name=VmtPieMixer.bl_idname)
-        else: #Иначе для типа сокета не определено (например шейдер в геонодах).
+        else: #否则接口类型未定义 (例如几何节点中的着色器).
             DisplayMessage(self.bl_label, txt_vmtNoMixingOptions, icon='RADIOBUT_OFF')
     @staticmethod
     def LyDrawInAddonDiscl(col, prefs):

@@ -1,6 +1,3 @@
-
-
-
 fitVitModeItems = ( ('COPY',   "Copy",   "Copy a socket name to clipboard"),
                     ('PASTE',  "Paste",  "Paste the contents of clipboard into an interface name"),
                     ('SWAP',   "Swap",   "Swap a two interfaces"),
@@ -73,8 +70,8 @@ class VoronoiInterfacerTool(VoronoiToolPairSk):
                 TemplateDrawSksToolHh(drata, self.fotagoSkMain, self.fotagoSkRosw, tool_name=mode)
     def NextAssignmentToolCopyPaste(self, _isFirstActivation, prefs, tree):
         self.fotagoSkMain = None
-        if (self.toolMode=='PASTE')and(not self.clipboard): #Ожидаемо; а ещё #https://projects.blender.org/blender/blender/issues/113860
-            return #Todo0VV пройтись по версиям и указать, в каких крашится.
+        if (self.toolMode=='PASTE')and(not self.clipboard): # 预料之中; 还有 #https://projects.blender.org/blender/blender/issues/113860
+            return #Todo0VV 遍历版本并指出哪些会崩溃.
         for ftgNd in self.ToolGetNearestNodes(cur_x_off=0):
             # print(ftgNd)
             # pprint(ftgNd.__dict__)
@@ -82,7 +79,7 @@ class VoronoiInterfacerTool(VoronoiToolPairSk):
             if nd.type=='REROUTE':
                 continue
             if (not prefs.vitPasteToAnySocket)and(self.toolMode=='PASTE')and(nd.type not in Equestrian.set_equestrianNodeTypes):
-                break #Курсор должен быть рядом со всадником (или групповым нодом) (для не vitPasteToAnySocket). А ещё с `continue` не будет высокоуровневой отмены.
+                break # 光标必须靠近骑士 (或组节点) (对于非 vitPasteToAnySocket). 还有 `continue` 不会有高级取消.
             list_ftgSksIn, list_ftgSksOut = self.ToolGetNearestSockets(nd, cur_x_off=0)
             self.fotagoSkMain = FindAnySk(nd, list_ftgSksIn, list_ftgSksOut)
             if self.fotagoSkMain:
@@ -95,7 +92,7 @@ class VoronoiInterfacerTool(VoronoiToolPairSk):
             if nd.type=='REROUTE':
                 continue
             if nd.type not in Equestrian.set_equestrianNodeTypes:
-                break #Курсор должен быть рядом со всадником (или групповым нодом); но отмену можно сделать и выбором одного и того же сокета, так что это не точно.
+                break # 光标必须靠近骑士 (或组节点); 但也可以通过选择同一个套接字来取消, 所以不确定.
             if (self.fotagoSkRosw)and(self.fotagoSkRosw.tar.node!=nd):
                 continue
             list_ftgSksIn, list_ftgSksOut = self.ToolGetNearestSockets(nd, cur_x_off=0)
@@ -134,7 +131,7 @@ class VoronoiInterfacerTool(VoronoiToolPairSk):
                             if (ftg.blid=='NodeSocketVirtual')^self.tglCrossVirt:
                                 self.fotagoSkMain = ftg
                                 break
-                        if (self.fotagoSkMain)and(self.fotagoSkMain.tar.node==skRosw.node): #todo0NA обобщить такую проверку для всех; мб в класс.
+                        if (self.fotagoSkMain)and(self.fotagoSkMain.tar.node==skRosw.node): #todo0NA 概括这种检查到类中.
                             self.fotagoSkMain = None
                     CheckUncollapseNodeAndReNext(nd, self, cond=self.fotagoSkMain, flag=True)
                 case 'CREATE':
@@ -152,7 +149,7 @@ class VoronoiInterfacerTool(VoronoiToolPairSk):
                     self.fotagoNdTar = None
                     skMain = FtgGetTargetOrNone(self.fotagoSkMain)
                     if skMain:
-                        if nd==skMain.node: #Можно было бы и разрешить из своего нода тоже, но наверное лучше не стоит.
+                        if nd==skMain.node: # 也可以允许来自自己的节点, 但也许最好不要.
                             break
                         if nd.type not in Equestrian.set_equestrianNodeTypes:
                             continue
@@ -193,7 +190,7 @@ class VoronoiInterfacerTool(VoronoiToolPairSk):
             case 'COPY':
                 self.clipboard = GetSkLabelName(self.fotagoSkMain.tar)
             case 'PASTE':
-                #tovo1v6 добавить клавишу, нажатие которой приведёт к "отмене" -- вставки не будет; поскольку этот режим гарантированно прилипает (см. опцию) к любому сокету, и нужно как-то обслужить желание "дать заднюю".
+                #tovo1v6 添加一个按键, 按下后会“取消”--不进行粘贴; 因为此模式保证会粘附 (参见选项) 到任何套接字, 需要某种方式来“退后一步”.
                 skMain = self.fotagoSkMain.tar
                 if (skMain.node.type not in Equestrian.set_equestrianNodeTypes)and(prefs.vitPasteToAnySocket):
                     skMain.name = self.clipboard
@@ -218,10 +215,10 @@ class VoronoiInterfacerTool(VoronoiToolPairSk):
                 is_group = equr.node.type in ['GROUP', 'GROUP_INPUT', 'GROUP_OUTPUT']
                 if is_group:
                     for skf in equr.skfa:
-                        if skf.item_type=='PANEL': #Нахрен эту головную боль. Шатайтесь с этим сами, а мне уже лень.
+                        if skf.item_type=='PANEL': # 该死的头疼. 你们自己搞定吧, 我已经懒得搞了.
                             can = False #|4|.
                             break
-                if can: #tovo0v6 и панели тоже.
+                if can: #tovo0v6 还有面板.
                     nameSn = skfNew.name
                     ftgNearest = None# MinFromFtgs(list_ftgSksIn[0] if list_ftgSksIn else None, list_ftgSksOut[0] if list_ftgSksOut else None)
                     min = 16777216.0
@@ -235,11 +232,11 @@ class VoronoiInterfacerTool(VoronoiToolPairSk):
                     if ftgNearest and (not equr.is_index_switch):
                         skfTo = equr.GetSkfFromSk(ftgNearest.tar)
                         equr.MoveBySkfs(skfNew, skfTo, isSwap=False)
-                        if (ftgNdTar.pos.y<ftgNearest.pos.y): #'True' -- далее по списку в группе, а не мироориентация.
+                        if (ftgNdTar.pos.y<ftgNearest.pos.y): # 'True' -- 在组中往下, 而不是世界朝向.
                             if equr.has_extend_socket:
-                                equr.MoveBySkfs(equr.GetSkfFromSk(ftgNearest.tar), skfTo, isSwap=None) #Осторожнее с skfTo.
+                                equr.MoveBySkfs(equr.GetSkfFromSk(ftgNearest.tar), skfTo, isSwap=None) # 小心 skfTo.
                             else:
-                                equr.MoveBySkfs(skfNew, skfTo, isSwap=None) #Гениально!
+                                equr.MoveBySkfs(skfNew, skfTo, isSwap=None) # 天才!
                     if ftgNearest and equr.is_index_switch:
                         links = tree.links
                         tar_input = ftgNearest.tar       # 要插入的位置的接口
@@ -294,7 +291,7 @@ class VoronoiInterfacerTool(VoronoiToolPairSk):
                 #    self.NextAssignmentRoot(True)
                 #    if self.fotagoSkRosw:
                 #        tgl = self.fotagoSkRosw.blid!='NodeSocketVirtual'
-                if True: #todo1v6 что-нибудь придумать с ^ этим ради эстетики.
+                if True: #todo1v6 为了美观, 对 ^ 做点什么.
                         for nd in tree.nodes:
                             if nd.bl_idname in set_utilEquestrianPortalBlids:
                                 if nd.inputs:
@@ -304,10 +301,10 @@ class VoronoiInterfacerTool(VoronoiToolPairSk):
                                     self.dict_ndHidingVirtualOut[nd] = nd.outputs[-1].hide
                                     nd.outputs[-1].hide = False
                 self.tglCrossVirt = None
-                #Какой-то баг, если не перерисовать, то первый найденный виртуальный не сможет выбраться корректно.
+                # 某个 bug, 如果不重绘, 第一个找到的虚拟的就无法正确选择.
                 bpy.ops.wm.redraw_timer(type='DRAW', iterations=0)
             case 'CREATE':
-                self.fotagoNdTar = None #Омг.
+                self.fotagoNdTar = None # 天啊.
         VoronoiInterfacerTool.clipboard = property(lambda _:bpy.context.window_manager.clipboard, lambda _,v:setattr(bpy.context.window_manager,'clipboard', v))
     @staticmethod
     def LyDrawInAddonDiscl(col, prefs):

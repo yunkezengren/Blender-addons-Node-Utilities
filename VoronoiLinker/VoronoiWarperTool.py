@@ -1,4 +1,3 @@
-
 class VoronoiWarperTool(VoronoiToolSk):
     bl_idname = 'node.voronoi_warper'
     bl_label = "Voronoi Warper"
@@ -21,7 +20,7 @@ class VoronoiWarperTool(VoronoiToolSk):
         for ftgNd in self.ToolGetNearestNodes(cur_x_off=0):
             nd = ftgNd.tar
             list_ftgSksIn, list_ftgSksOut = self.ToolGetNearestSockets(nd, cur_x_off=0)
-            if nd.type=='REROUTE': #todo0NA и это в обобщение к обобщению.
+            if nd.type=='REROUTE': #todo0NA 以及这个要加入到通用的通用部分中.
                 self.fotagoSk = list_ftgSksIn[0] if self.cursorLoc.x<nd.location.x else list_ftgSksOut[0]
             else:
                 self.fotagoSk = FindAnySk()
@@ -47,21 +46,21 @@ class VoronoiWarperTool(VoronoiToolSk):
                     else:
                         nd.select = True
             RecrRerouteWalkerSelecting(skTar)
-            #Можно было бы добавить окраску выделенных нод, но я не знаю, как потом эти цвета отчищать. Хоткей для этого лепить будет слишком не юзабельно.
-            #Todo0v6SF Или можно на один кадр нарисовать яркие прямоугольники поверх нодов. Но наверное это будет несовместимо с плавным зумом к цели.
+            #可以为选中的节点添加颜色，但我不知道之后如何清除这些颜色。为此设置一个快捷键会太不方便使用.
+            #Todo0v6SF 或者可以在节点上方绘制明亮的矩形一帧。但这可能与平滑缩放到目标的功能不兼容.
             if self.isSelectTargetKey:
                 skTar.node.select = True
             tree.nodes.active = skTar.node
             if self.isZoomedTo:
                 bpy.ops.node.view_selected('INVOKE_DEFAULT')
-        else: #Эта ветка не используется.
+        else: #这个分支没有被使用.
             skTar.node.select = True
             if self.isZoomedTo:
                 bpy.ops.node.view_selected('INVOKE_DEFAULT')
-            skTar.node.select = False #Огонь хак.
+            skTar.node.select = False #很棒的技巧.
     def InitTool(self, event, prefs, tree):
         self.isSelectTargetKey = prefs.vwtSelectTargetKey in GetSetOfKeysFromEvent(event)
-        self.dict_saveRestoreRerouteSelecting = {} #См. `action='DESELECT'`.
+        self.dict_saveRestoreRerouteSelecting = {} #见 `action='DESELECT'`.
         for nd in tree.nodes:
             if nd.type=='REROUTE':
                 self.dict_saveRestoreRerouteSelecting[nd] = nd.select
@@ -78,7 +77,7 @@ class VoronoiWarperTool(VoronoiToolSk):
             dm["zh_CN"] = "选择更改路线"
         with VlTrMapForKey(GetAnnotFromCls(cls,'isSelectReroutes').description) as dm:
             dm["ru_RU"] = "-1 – Де-выделять всех.\n 0 – Ничего не делать.\n 1 – Выделять связанные рероуты"
-#            dm["zh_CN"] = ""
+            dm["zh_CN"] = "-1 – 取消全选。\n 0 – 不做任何事。\n 1 – 选择相连的转向节点"
         ##
         with VlTrMapForKey(GetPrefsRnaProp('vwtSelectTargetKey').name) as dm:
             dm["ru_RU"] = "Клавиша выделения цели"

@@ -1,12 +1,11 @@
-
-class VoronoiLinksTransferTool(VoronoiToolPairNd): #Todo2v6 кандидат на слияние с VST и превращение в "PairAny".
+class VoronoiLinksTransferTool(VoronoiToolPairNd): #Todo2v6 与 VST 合并并变成 "PairAny" 的候选者.
     bl_idname = 'node.voronoi_links_transfer'
     bl_label = "Voronoi Links Transfer"
     usefulnessForCustomTree = True
     canDrawInAddonDiscl = False
     isByIndexes: bpy.props.BoolProperty(name="Transfer by indexes", default=False)
     def CallbackDrawTool(self, drata):
-        #Паттерн VLT
+        # VLT 模式
         if not self.fotagoNd0:
             TemplateDrawSksToolHh(drata, None, tool_name="Links Transfer")
         elif (self.fotagoNd0)and(not self.fotagoNd1):
@@ -28,12 +27,12 @@ class VoronoiLinksTransferTool(VoronoiToolPairNd): #Todo2v6 кандидат н�
             self.fotagoNd1 = ftgNd
             if self.fotagoNd0.tar==self.fotagoNd1.tar:
                 self.fotagoNd1 = None
-            #Свершилось. Теперь у VL есть два нода.
-            #Внезапно оказалось, что позиция "попадания" для нода буквально прилипает к нему, что весьма необычно наблюдать, когда тут вся тусовка про сокеты.
-            # Должна ли она скользить вместо прилипания?. Скорее всего нет, ведь иначе неизбежны осеориентированные проекции, визуально "затирающие" информацию.
-            # А также они оба будут изменяться от движения курсора, от чего не будет интуитивно понятно, кто первый, а кто второй,
-            # В отличие от прилипания, когда точно понятно, что "вот этот вот первый"; что особенно актуально для этого инструмента, где важно, какой нод был выбран первым.
-            if prefs.dsIsSlideOnNodes: #Не приспичило, но пусть будет.
+            # 成了. 现在 VL 有两个节点了.
+            # 突然发现, 节点的“命中”位置简直是粘在它上面, 这在整个都是关于套接字的聚会中观察到相当不寻常.
+            # 它应该滑动而不是粘住吗?. 大概不应该, 否则不可避免地会有轴向投影, 在视觉上“抹去”信息.
+            # 而且它们都会随着光标移动而改变, 导致无法直观地知道谁是第一个, 谁是第二个,
+            # 与粘住不同, 粘住时可以清楚地知道“这个是第一个”; 这对于这个工具尤其重要, 因为哪个节点被首先选择很重要.
+            if prefs.dsIsSlideOnNodes: # 虽然不急, 但还是留着吧.
                 if self.fotagoNd0:
                     self.fotagoNd0.pos = GenFtgFromNd(self.fotagoNd0.tar, self.cursorLoc, self.uiScale).pos
             break
@@ -50,7 +49,7 @@ class VoronoiLinksTransferTool(VoronoiToolPairNd): #Todo2v6 кандидат н�
                 tree.links.remove(lk)
         def GetOnlyVisualSks(puts):
             return [sk for sk in puts if sk.enabled and not sk.hide]
-        SolderSkLinks(tree) #Иначе на vl_sold_links_final будет '... has been removed'; но можно было обойтись и обычным 'sk.links'.
+        SolderSkLinks(tree) # 否则在 vl_sold_links_final 上会是 '... has been removed'; 但也可以用普通的 'sk.links'.
         if not self.isByIndexes:
             for putsFrom, putsTo in [(ndFrom.inputs, ndTo.inputs), (ndFrom.outputs, ndTo.outputs)]:
                 for sk in putsFrom:

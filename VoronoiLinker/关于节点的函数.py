@@ -95,3 +95,36 @@ def GetNearestSocketsFtg(nd, samplePos, uiScale): # 返回"最近的插槽"列�
     list_ftgSksIn.sort(key=lambda a:a.dist)
     list_ftgSksOut.sort(key=lambda a:a.dist)
     return list_ftgSksIn, list_ftgSksOut
+
+
+# def GetListOfNdEnums(nd):     # 插件作者的方法 - 判断节点是否有下拉列表
+#     return [pr for pr in nd.rna_type.properties 
+#                 if (pr.type == 'ENUM') and (not (pr.is_readonly or pr.is_registered)) ]
+def GetListOfNdEnums(node):   # 小王-判断节点是否有下拉列表
+    enum_l = []
+    for p in node.rna_type.properties:
+        if (p.type == 'ENUM') and (p.name != "Warning Propagation") and (not (p.is_readonly or p.is_registered)):
+            enum_l.append(p)
+    return enum_l
+# 小王-显示节点选项优化-根据选项重命名节点-domain
+# def get_node_enum_item_list_dict(node):
+#     enum_dict = {}
+#     for p in node.rna_type.properties:
+#         if (p.type == 'ENUM') and (p.name != "Warning Propagation") and (not (p.is_readonly or p.is_registered)):
+#             enum_dict[p.identifier] = [item.name for item in p.enum_items]
+#     return enum_dict
+
+
+class VlrtData:
+    reprLastSkOut = ""
+    reprLastSkIn = ""
+
+def VlrtRememberLastSockets(sko, ski):
+    if sko:
+        VlrtData.reprLastSkOut = repr(sko)
+        # ski 对 VLRT 来说, 如果没有 sko 就没用
+        if (ski)and(ski.id_data==sko.id_data):
+            VlrtData.reprLastSkIn = repr(ski)
+def NewLinkHhAndRemember(sko, ski):
+    DoLinkHh(sko, ski) #sko.id_data.links.new(sko, ski)
+    VlrtRememberLastSockets(sko, ski)

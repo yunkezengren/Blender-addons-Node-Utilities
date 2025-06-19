@@ -1,66 +1,65 @@
-
-#Заметка: У DoLinkHh теперь слишком много других зависимостей, просто так его выдернуть уже будет сложнее.
-#P.s. "HH" -- типа "High Level", но я с буквой промахнулся D:
+# 注意: DoLinkHh 现在有太多其他依赖项, 想要把它单独抽离出来会更困难.
+# P.s. "HH" -- 意思是 "High Level", 但我打错字母了 D:
 
 def DoLinkHh(sko, ski, *, isReroutesToAnyType=True, isCanBetweenField=True, isCanFieldToShader=True): 
-    #Какое неожиданное визуальное совпадение с порядковым номером "sk0" и "sk1".
-    #Коль мы теперь высокоуровневые, придётся суетиться с особыми ситуациями:
-    if not(sko and ski): #Они должны быть.
+    # 多么意外的视觉巧合, 与 "sk0" 和 "sk1" 的序列号.
+    # 既然我们现在是高级别的, 就得处理特殊情况:
+    if not(sko and ski): # 它们必须存在.
         raise Exception("One of the sockets is none")
-    if sko.id_data!=ski.id_data: #Они должны быть в одном мире.
+    if sko.id_data!=ski.id_data: # 它们必须在同一个世界里.
         raise Exception("Socket trees vary")
-    if not(sko.is_output^ski.is_output): #Они должны быть разного гендера.
+    if not(sko.is_output^ski.is_output): # 它们必须是不同的性别.
         raise Exception("Sockets `is_output` is same")
-    if not sko.is_output: #Выход должен быть первым.
+    if not sko.is_output: # 输出必须是第一个.
         sko, ski = ski, sko
-    #Заметка: "высокоуровневый", но не для глупых юзеров; соединяться между виртуальными можно, чорт побери.
+    # 注意: "高级别", 但不是为傻瓜用户准备的; 天哪, 可以在虚拟之间连接.
     tree = sko.id_data
-    if tree.bl_idname=='NodeTreeUndefined': #Дерево не должно быть потерянным.
-        return #В потерянном дереве линки вручную создаются, а через api нет; так что выходим.
-    if sko.node==ski.node: #Для одного и того же нода всё очевидно бессмысленно, пусть и возможно. Более актуально для интерфейсов.
+    if tree.bl_idname=='NodeTreeUndefined': # 树不应该是丢失的.
+        return # 在丢失的树中, 链接可以手动创建, 但通过 API不行; 所以退出.
+    if sko.node==ski.node: # 对于同一个节点, 显然是无意义的, 尽管可能. 对接口更重要.
         return
     isSkoField = sko.type in set_utilTypeSkFields
     isSkoNdReroute = sko.node.type=='REROUTE'
     isSkiNdReroute = ski.node.type=='REROUTE'
-    isSkoVirtual = (sko.bl_idname=='NodeSocketVirtual')and(not isSkoNdReroute) #Виртуальный актуален только для интерфейсов, нужно исключить "рероута-самозванца".
-    isSkiVirtual = (ski.bl_idname=='NodeSocketVirtual')and(not isSkiNdReroute) #Заметка: У виртуального и у аддонских сокетов sk.type=='CUSTOM'.
-    #Можно, если
-    if not( (isReroutesToAnyType)and( (isSkoNdReroute)or(isSkiNdReroute) ) ): #Хотя бы один из них рероут.
-        if not( (sko.bl_idname==ski.bl_idname)or( (isCanBetweenField)and(isSkoField)and(ski.type in set_utilTypeSkFields) ) ): #Одинаковый по блидам или между полями.
-            if not( (isCanFieldToShader)and(isSkoField)and(ski.type=='SHADER') ): #Поле в шейдер.
-                if not(isSkoVirtual or isSkiVirtual): #Кто-то из них виртуальный (для интерфейсов).
-                    if (not IsClassicTreeBlid(tree.bl_idname))or( IsClassicSk(sko)==IsClassicSk(ski) ): #Аддонский сокет в классических деревьях; см. VLT.
-                        return None #Низя между текущими типами.
-    #Отсеивание некорректных завершено. Теперь интерфейсы:
+    isSkoVirtual = (sko.bl_idname=='NodeSocketVirtual')and(not isSkoNdReroute) # 虚拟只对接口有效, 需要排除“冒名顶替的 reroute”.
+    isSkiVirtual = (ski.bl_idname=='NodeSocketVirtual')and(not isSkiNdReroute) # 注意: 虚拟和插件套接字的 sk.type=='CUSTOM'.
+    # 如果可以
+    if not( (isReroutesToAnyType)and( (isSkoNdReroute)or(isSkiNdReroute) ) ): # 至少一个是 reroute.
+        if not( (sko.bl_idname==ski.bl_idname)or( (isCanBetweenField)and(isSkoField)and(ski.type in set_utilTypeSkFields) ) ): # blid 相同或在字段之间.
+            if not( (isCanFieldToShader)and(isSkoField)and(ski.type=='SHADER') ): # 字段到 shader.
+                if not(isSkoVirtual or isSkiVirtual): # 它们中有一个是虚拟的 (用于接口).
+                    if (not IsClassicTreeBlid(tree.bl_idname))or( IsClassicSk(sko)==IsClassicSk(ski) ): # 经典树中的插件套接字; 参见 VLT.
+                        return None # 当前类型之间不允许.
+    # 不正确的筛选完成. 现在是接口:
     ndo = sko.node
     ndi = ski.node
     isProcSkfs = True
-    #Для суеты с интерфейсами требуется только один виртуальный. Если их нет, то обычное соединение.
-    #Но если они оба виртуальные, читать информацию не от кого; от чего суета с интерфейсами бесполезна.
-    if not(isSkoVirtual^isSkiVirtual): #Два условия упакованы в один xor.
+    # 与接口的交互只需要一个虚拟的. 如果没有, 就是普通连接.
+    # 但如果它们都是虚拟的, 就无法读取信息; 因此与接口的交互无用.
+    if not(isSkoVirtual^isSkiVirtual): # 两个条件打包成一个 xor.
         isProcSkfs = False
-    elif ndo.type==ndi.type=='REROUTE': #Между рероутами гарантированно связь. Этакий мини-островок безопасности, затишье перед бурей.
+    elif ndo.type==ndi.type=='REROUTE': # reroute 之间保证连接. 这是一个小小的安全岛, 风暴前的宁静.
         isProcSkfs = False
-    elif not( (ndo.bl_idname in set_utilEquestrianPortalBlids)or(ndi.bl_idname in set_utilEquestrianPortalBlids) ): #Хотя бы один из нодов должен быть всадником.
+    elif not( (ndo.bl_idname in set_utilEquestrianPortalBlids)or(ndi.bl_idname in set_utilEquestrianPortalBlids) ): # 至少一个节点应该是骑士.
         isProcSkfs = False
-    if isProcSkfs: #Что ж, буря оказалось не такой уж и бурей. Я ожидал больший спагетти-код. Как всё легко и ясно получается, если мозги-то включить.
-        #Получить нод всадника виртуального сокета
-        ndEq = ndo if isSkoVirtual else ndi #Исходим из того, что всадник вывода равновероятен со своим компаньоном.
-        #Коллапсируем компаньнов
+    if isProcSkfs: # 嗯, 风暴原来没那么大. 我预想了更多的意大利面条代码. 如果动动脑筋, 一切都变得如此简单明了.
+        # 获取虚拟套接字的骑士节点
+        ndEq = ndo if isSkoVirtual else ndi # 基于输出骑士与其同伴等概率的假设.
+        # 折叠同伴
         ndEq = getattr(ndEq,'paired_output', ndEq)
-        #Интересно, где-нибудь в параллельной вселенной существуют виртуальные мультиинпуты?.
+        # 有趣的是, 在某个平行宇宙中是否存在虚拟的多输入?.
         skTar = sko if isSkiVirtual else ski
         match ndEq.bl_idname:
             case 'NodeGroupInput':  typeEq = 0
             case 'NodeGroupOutput': typeEq = 1
             case 'GeometryNodeSimulationOutput': typeEq = 2
             case 'GeometryNodeRepeatOutput':     typeEq = 3
-            # 小王-新建接口
+            # 新建接口
             case 'GeometryNodeMenuSwitch':       typeEq = 4
             case 'GeometryNodeBake':             typeEq = 5
             case 'GeometryNodeCaptureAttribute': typeEq = 6
             case 'GeometryNodeIndexSwitch':      typeEq = 7
-        #Неподдерживаемых всадником типы не обрабатывать:
+        # 不处理骑士不支持的类型:
         can = True
         match typeEq:
             case 2: 
@@ -77,46 +76,46 @@ def DoLinkHh(sko, ski, *, isReroutesToAnyType=True, isCanBetweenField=True, isCa
                 can = skTar.type in {'VALUE','INT','BOOLEAN','VECTOR','ROTATION','STRING','RGBA','OBJECT','IMAGE','GEOMETRY','COLLECTION','MATERIAL','TEXTURE','MENU'}
         if not can:
             return None
-        #Создать интерфейс
+        # 创建接口
         match typeEq:
             case 0|1:
                 equr = Equestrian(ski if isSkiVirtual else sko)
                 skf = equr.NewSkfFromSk(skTar)
-                skNew = equr.GetSkFromSkf(skf, isOut=skf.in_out!='OUTPUT') #* звуки страданий *
+                skNew = equr.GetSkFromSkf(skf, isOut=skf.in_out!='OUTPUT') # * 痛苦的声音 *
             case 2|3:       # [-2]  -1是扩展接口,-2是新添加的接口
                 _skf = (ndEq.state_items if typeEq==2 else ndEq.repeat_items).new({'VALUE':'FLOAT'}.get(skTar.type,skTar.type), GetSkLabelName(skTar))
-                if True: #Перевыбор для SimRep'а тривиален; ибо у них нет панелей, и все новые сокеты появляются снизу.
+                if True: # SimRep 的重新选择是微不足道的; 因为它们没有面板, 所有新套接字都出现在底部.
                     skNew = ski.node.inputs[-2] if isSkiVirtual else sko.node.outputs[-2]
                 else:
                     skNew = Equestrian(ski if isSkiVirtual else sko).GetSkFromSkf(_skf, isOut=isSkoVirtual)
-            case 4:       # 小王-新建接口-菜单切换
+            case 4:       # 新建接口-菜单切换
                 _skf = ndEq.enum_items.new(GetSkLabelName(skTar))
                 skNew = ski.node.inputs[-2] if isSkiVirtual else sko.node.outputs[-2]
-            case 5|6:       # 小王-新建接口-捕捉属性 烘焙
+            case 5|6:       # 新建接口-捕捉属性 烘焙
                 _skf = (ndEq.bake_items if typeEq==5 else ndEq.capture_items).new({'VALUE':'FLOAT'}.get(skTar.type,skTar.type), GetSkLabelName(skTar))
                 skNew = ski.node.inputs[-2] if isSkiVirtual else sko.node.outputs[-2]
-            case 7:         # 小王-新建接口-编号切换
+            case 7:         # 新建接口-编号切换
                 nodes = ski.node.id_data.nodes  # id_data是group/tree
                 skNew = index_switch_add_input(nodes, ski.node)
 
-        #Перевыбрать новый появившийся сокет
+        # 重新选择新出现的套接字
         if isSkiVirtual:
             ski = skNew
         else:
             sko = skNew
-    #Путешествие успешно выполнено. Наконец-то переходим к самому главному:
+    # 旅程成功完成. 终于到了最重要的一步:
     def DoLinkLL(tree, sko, ski):
         return tree.links.new(sko, ski) #hi.
     return DoLinkLL(tree, sko, ski)
-    #Заметка: С версии b3.5 виртуальные инпуты теперь могут принимать в себя прям как мультиинпуты.
-    # Они даже могут между собой по нескольку раз соединяться, офигеть. Разрабы "отпустили", так сказать, в свободное плаванье.
+    # 注意: 从 b3.5 版本开始, 虚拟输入现在可以直接像多输入一样接收.
+    # 它们甚至可以相互多次连接, 太棒了. 开发者可以说“放手了”, 让它自由发展.
 
 def DoMix(tree, isShift, isAlt, type):
     bpy.ops.node.add_node('INVOKE_DEFAULT', type=type, use_transform=not VmtData.isPlaceImmediately)
     aNd = tree.nodes.active
     aNd.width = 140
     txtFix = {'VALUE':'FLOAT'}.get(VmtData.skType, VmtData.skType)
-    #Дважды switch case -- для комфортного кода и немножко экономии.
+    # 两次 switch case -- 为了代码舒适和一点点节约.
     match aNd.bl_idname:
         case 'ShaderNodeMath'|'ShaderNodeVectorMath'|'CompositorNodeMath'|'TextureNodeMath':
             aNd.operation = 'MAXIMUM'
@@ -138,26 +137,26 @@ def DoMix(tree, isShift, isAlt, type):
             match aNd.bl_idname:
                 case 'FunctionNodeCompare': txtFix = {'BOOLEAN':'INT'}.get(txtFix, txtFix)
                 case 'ShaderNodeMix':       txtFix = {'INT':'VALUE', 'BOOLEAN':'VALUE'}.get(txtFix, txtFix)
-            #Для микса и переключателя искать с конца, потому что их сокеты для переключения имеют тип некоторых искомых. У нода сравнения всё наоборот.
+            # 对于混合和切换器, 从末尾搜索, 因为它们的切换套接字类型与某些搜索的类型相同. 比较节点则相反.
             list_foundSk = [sk for sk in ( reversed(aNd.inputs) if tgl else aNd.inputs ) if sk.type==txtFix]
-            NewLinkHhAndRemember(VmtData.sk0, list_foundSk[tgl^isShift]) #Из-за направления поиска, нужно выбирать их из списка также с учётом направления.
+            NewLinkHhAndRemember(VmtData.sk0, list_foundSk[tgl^isShift]) # 由于搜索方向, 也需要根据方向从列表中选择它们.
             if VmtData.sk1:
                 NewLinkHhAndRemember(VmtData.sk1, list_foundSk[(not tgl)^isShift])
         case _:
-            #Такая плотная суета ради мультиинпута -- для него нужно изменить порядок подключения.
+            # 这种密集的处理是为了多输入 -- 需要改变连接顺序.
             Mix_item = dict_vmtMixerNodesDefs[aNd.bl_idname]
             swap_link = 0       # sk0是矩阵,sk1是矢量,不交换(这是默认情况)
             if VmtData.sk1 and VmtData.sk1.type == "MATRIX" and VmtData.sk0.type != "MATRIX":
                 swap_link = 1
             soc_in = aNd.inputs[Mix_item[1^isShift^swap_link]]
             is_multi_in = aNd.inputs[Mix_item[0]].is_multi_input
-            if (VmtData.sk1)and(is_multi_in): #`0` здесь в основном из-за того, что в dict_vmtMixerNodesDefs у "нодов-мультиинпутов" всё по нулям.
+            if (VmtData.sk1)and(is_multi_in): # `0` 在这里主要是因为 dict_vmtMixerNodesDefs 中的“多输入节点”都是零.
                 NewLinkHhAndRemember( VmtData.sk1, soc_in)
-            DoLinkHh( VmtData.sk0, aNd.inputs[Mix_item[0^isShift]^swap_link] ) #Заметка: Это не NewLinkHhAndRemember(), чтобы визуальный второй мультиинпута был последним в VlrtData.
+            DoLinkHh( VmtData.sk0, aNd.inputs[Mix_item[0^isShift]^swap_link] ) # 注意: 这不是 NewLinkHhAndRemember(), 以便多输入的第二个视觉上是 VlrtData 中的最后一个.
             if (VmtData.sk1)and(not is_multi_in):
                 NewLinkHhAndRemember( VmtData.sk1, soc_in)
     aNd.show_options = not VmtData.isHideOptions
-    #Далее так же, как и в vqmt. У него первично; здесь дублировано для интуитивного соответствия.
+    # 接下来和 vqmt 中一样. 它的是主要的; 这里为了直观对应而复制.
     if isAlt:
         for sk in aNd.inputs:
             sk.hide = True
@@ -171,7 +170,7 @@ class VmtOpMixer(VoronoiOpTool):
         return {'FINISHED'}
 class VmtPieMixer(bpy.types.Menu):
     bl_idname = 'VL_MT_Voronoi_mixer_pie'
-    bl_label = "" #Текст здесь будет отображаться в центре пирога.
+    bl_label = "" # 这里的文本将显示在饼菜单的中心.
     def draw(self, context):
         def LyVmAddOp(where: UILayout, txt):
             where.operator(VmtOpMixer.bl_idname, text=TranslateIface(dict_vmtMixerNodesDefs[txt][2])).operation = txt
@@ -187,7 +186,7 @@ class VmtPieMixer(bpy.types.Menu):
                 # print(f"{ 0.01*abs(soldPdsc)/(1+(soldPdsc>0)) = }")
                 # print(f"{ ( abs( (soldPdsc>0)- 0.01*abs(soldPdsc)/(1+(soldPdsc>0)) ) )/VmtData.uiScale = }")
                 # ly = ly.split(factor=0.05, align=True)
-                ly = ly.split(factor=Color_Bar_Width * VmtData.uiScale, align=True)      # 小王 饼菜单颜色条宽度
+                ly = ly.split(factor=Color_Bar_Width * VmtData.uiScale, align=True)      # 饼菜单颜色条宽度
             if soldPdsc<0:
                 ly.prop(VmtData.prefs,'vaDecorColSk', text="")
             LyVmAddOp(ly, txt)
@@ -201,7 +200,7 @@ class VmtPieMixer(bpy.types.Menu):
                 if ti!=vmtSep:
                     LyVmAddOp(pie, ti)
         else:
-            #Если при выполнении колонка окажется пустой, то в ней будет отображаться только пустая точка-коробка. Два списка ниже нужны, чтобы починить это.
+            # 如果执行时列为空, 则只显示一个空的点框. 下面两个列表是为了修复这个问题.
             list_cols = [pie.row(), pie.row(), pie.row() if VmtData.pieDisplaySocketTypeInfo>0 else None]
             list_done = [False, False, False]
             def LyGetPieCol(inx):
@@ -239,7 +238,7 @@ class VmtPieMixer(bpy.types.Menu):
                     if VmtData.skType != "MATRIX":  # 暂时只是让矩阵接口的混合饼菜单不显示 混合和比较节点
                         LyVmAddItem(row2, 'ShaderNodeMix')
                         LyVmAddItem(row3, 'FunctionNodeCompare')
-                    # # 小王-混合饼菜单对比较节点的额外支持
+                    # # 混合饼菜单对比较节点的额外支持
                     # row4 = col.row(align=VmtData.pieAlignment==0)
                     # row5 = col.row(align=VmtData.pieAlignment==0)
                     # LyVmAddItem(row4, 'FunctionNodeCompare')

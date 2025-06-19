@@ -1,7 +1,5 @@
-
-
-#Нужен только для наведения порядка и эстетики в дереве.
-#Для тех, кого (например меня) напрягают "торчащие без дела" пустые сокеты выхода, или нулевые (чьё значение 0.0, чёрный, и т.п.) незадействованные сокеты входа.
+# 只需要为了树中的整洁和美观.
+# 对于那些 (比如我) 觉得“无所事事”的空输出套接字, 或者值为零 (0.0, 黑色等) 的未使用输入套接字感到困扰的人.
 fitVhtModeItems = ( ('NODE',      "Auto-node",    "Automatically processing of hiding of sockets for a node"),
                     ('SOCKET',    "Socket",       "Hiding the socket"),
                     ('SOCKETVAL', "Socket value", "Switching the visibility of a socket contents") )
@@ -13,7 +11,7 @@ class VoronoiHiderTool(VoronoiToolAny):
     toolMode: bpy.props.EnumProperty(name="Mode", default='SOCKET', items=fitVhtModeItems)
     isTriggerOnCollapsedNodes: bpy.props.BoolProperty(name="Trigger on collapsed nodes", default=True)
     def CallbackDrawTool(self, drata):
-        # 小王-模式名匹配
+        # 模式名匹配
         name = { 'NODE'     : "自动隐藏/显示接口",
                  'SOCKET'   : "隐藏接口",
                  'SOCKETVAL': "隐藏/显示接口值",
@@ -26,12 +24,12 @@ class VoronoiHiderTool(VoronoiToolAny):
             nd = ftgNd.tar
             if (not self.isTriggerOnCollapsedNodes)and(nd.hide):
                 continue
-            if nd.type=='REROUTE': #Для этого инструмента рероуты пропускаются, по очевидным причинам.
+            if nd.type=='REROUTE': # 对于这个工具, reroute 会被跳过, 原因很明显.
                 continue
             self.fotagoAny = ftgNd
             match self.toolMode:
                 case 'SOCKET'|'SOCKETVAL':
-                    #Для режима сокетов обработка свёрнутости такая же, как у всех.
+                    # 对于套接字模式, 折叠处理和所有其他一样.
                     list_ftgSksIn, list_ftgSksOut = self.ToolGetNearestSockets(nd, cur_x_off=0)
                     def GetNotLinked(list_ftgSks): #Findanysk.
                         for ftg in list_ftgSks:
@@ -43,34 +41,34 @@ class VoronoiHiderTool(VoronoiToolAny):
                         self.fotagoAny = MinFromFtgs(ftgSkOut, ftgSkIn)
                     else:
                         self.fotagoAny = ftgSkIn
-                    CheckUncollapseNodeAndReNext(nd, self, cond=self.fotagoAny) #Для режима сокетов тоже нужно перерисовывать, ибо нод у прицепившегося сокета может быть свёрнут.
+                    CheckUncollapseNodeAndReNext(nd, self, cond=self.fotagoAny) # 对于套接字模式也需要重绘, 因为连接的套接字节点可能是折叠的.
                 case 'NODE':
-                    #Для режима нод нет разницы, раскрывать все подряд под курсором, или нет.
+                    # 对于节点模式, 展开光标下的所有节点或不展开, 没有区别.
                     if prefs.vhtIsToggleNodesOnDrag:
                         if self.firstResult is None:
-                            #Если активация для нода ничего не изменила, то для остальных хочется иметь сокрытие, а не раскрытие. Но текущая концепция не позволяет,
-                            # информации об этом тупо нет. Поэтому реализовал это точечно вовне (здесь), а не модификацией самой реализации.
+                            # 如果对节点的激活没有改变任何东西, 那么对于其余的, 最好是隐藏而不是展开. 但当前概念不允许,
+                            # 根本没有这方面的信息. 所以我在这里局部地实现了它, 而不是修改实现本身.
                             LGetVisSide = lambda puts: [sk for sk in puts if sk.enabled and not sk.hide]
                             list_visibleSks = [LGetVisSide(nd.inputs), LGetVisSide(nd.outputs)]
                             self.firstResult = HideFromNode(prefs, nd, True, False)
-                            HideFromNode(prefs, nd, self.firstResult, True) #Заметка: Изменить для нода (для проверки ниже), но не трогать 'self.firstResult'.
+                            HideFromNode(prefs, nd, self.firstResult, True) # 注意: 改变节点 (为了下面的检查), 但不要动 'self.firstResult'.
                             if list_visibleSks==[LGetVisSide(nd.inputs), LGetVisSide(nd.outputs)]:
                                 self.firstResult = True
                         HideFromNode(prefs, nd, self.firstResult, True)
-                        #См. в вики, почему опция isReDrawAfterChange была удалена.
-                        #Todo0v6SF Единственное возможное решение, так это сделать изменение нода _после_ отрисовки одного кадра.
-                        #^ Т.е. цепляться к новому ноду на один кадр, а потом уже обработать его сразу с поиском нового нода и рисовки к нему (как для примера в вики).
+                        # 参见 wiki, 为什么 isReDrawAfterChange 选项被删除了.
+                        #Todo0v6SF 唯一可能的解决方案是, 在绘制一帧后_再_改变节点.
+                        #^ 也就是说, 附加到新节点一帧, 然后立即处理它, 同时寻找新节点并向其绘制 (如 wiki 中的示例).
             break
     def MatterPurposeTool(self, event, prefs, tree):
         match self.toolMode:
             case 'NODE':
                 if not prefs.vhtIsToggleNodesOnDrag:
-                    #Во время сокрытия сокета нужно иметь информацию обо всех, поэтому выполняется дважды. В первый заход собирается, во второй выполняется.
+                    # 在隐藏套接字时, 需要所有套接字的信息, 因此执行两次. 第一次收集信息, 第二次执行.
                     HideFromNode(prefs, self.fotagoAny.tar, HideFromNode(prefs, self.fotagoAny.tar, True), True)
             case 'SOCKET':
                 tar_socket = self.fotagoAny.tar
                 tar_socket.hide = True
-                # 小王-自动隐藏接口优化-inline
+                # 自动隐藏接口优化-inline
                 inline_socket_node_list = [ 
                         'GeometryNodeSimulationInput', 'GeometryNodeSimulationOutput', 
                         'GeometryNodeRepeatInput', 'GeometryNodeRepeatOutput',
@@ -91,7 +89,7 @@ class VoronoiHiderTool(VoronoiToolAny):
                     pass
             case 'SOCKETVAL':
                 # self.fotagoAny.tar.hide_value = not self.fotagoAny.tar.hide_value    # 插件作者方法,他对节点组方法不对,只要撤销就恢复了隐藏的接口值
-                # 小王-隐藏接口值-节点组
+                # 隐藏接口值-节点组
                 # # type(self)             <class 'VoronoiLinker.VoronoiHiderTool'>
                 # # type(self.fotagoAny)   <class 'VoronoiLinker.Fotago'>
                 # print("开始" * 30)
@@ -112,7 +110,7 @@ class VoronoiHiderTool(VoronoiToolAny):
                     socket.hide_value = not socket.hide_value
 
     def InitTool(self, event, prefs, tree):
-        self.firstResult = None #Получить действие у первого нода "свернуть" или "развернуть", а потом транслировать его на все остальные попавшиеся.
+        self.firstResult = None # 从第一个节点获取“折叠”或“展开”的动作, 然后将其广播到所有其他遇到的节点.
     @staticmethod
     def LyDrawInAddonDiscl(col, prefs):
         LyAddHandSplitProp(col, prefs,'vhtHideBoolSocket')

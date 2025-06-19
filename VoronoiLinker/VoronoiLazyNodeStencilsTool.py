@@ -1,14 +1,11 @@
-
-
-
-class VoronoiLazyNodeStencilsTool(VoronoiToolPairSk): #Первый инструмент, созданный по запросам извне, а не по моим личным хотелкам.
+class VoronoiLazyNodeStencilsTool(VoronoiToolPairSk): # 第一个应外部请求而非个人意愿创建的工具.
     bl_idname = 'node.voronoi_lazy_node_stencils'
-    bl_label = "Voronoi Lazy Node Stencils" #Три буквы на инструмент, дожили.
+    bl_label = "Voronoi Lazy Node Stencils" # 每个工具三个字母, 真是够了.
     def CallbackDrawTool(self, drata):
-        #Заметка: Для разных гендеров получается не очевидное соответствие стороне текста гендеру сокета. Наверное, придётся смириться.
+        # 注意: 对于不同的性别, 文本侧与套接字性别的对应关系不明显. 大概要接受了.
         TemplateDrawSksToolHh(drata, self.fotagoSk0, self.fotagoSk1, tool_name="Lazy Node Stencils")
         if ( (not not self.fotagoSk0)^(not not self.fotagoSk1) )and(drata.dsIsDrawPoint):
-            DrawVlWidePoint(drata, drata.cursorLoc, col1=drata.dsCursorColor, col2=drata.dsCursorColor) #Для эстетики.
+            DrawVlWidePoint(drata, drata.cursorLoc, col1=drata.dsCursorColor, col2=drata.dsCursorColor) # 为了美观.
     def NextAssignmentTool(self, isFirstActivation, prefs, tree):
         def FindAnySk():
             ftgSkOut, ftgSkIn = None, None
@@ -20,7 +17,7 @@ class VoronoiLazyNodeStencilsTool(VoronoiToolPairSk): #Первый инстру
                 break
             return MinFromFtgs(ftgSkOut, ftgSkIn)
         self.fotagoSk1 = None
-        #Из-за своего предназначения, этот инструмент гарантированно получает первый попавшийся сокет.
+        # 由于其目的, 这个工具保证会获取第一个遇到的套接字.
         for ftgNd in self.ToolGetNearestNodes(cur_x_off=0):
             nd = ftgNd.tar
             list_ftgSksIn, list_ftgSksOut = self.ToolGetNearestSockets(nd, cur_x_off=0)

@@ -27,10 +27,10 @@ class VoronoiSwapperTool(VoronoiToolPairSk):
             nd = ftgNd.tar
             CheckUncollapseNodeAndReNext(nd, self, cond=isFirstActivation, flag=True)
             list_ftgSksIn, list_ftgSksOut = self.ToolGetNearestSockets(nd, cur_x_off=0)
-            #За основу были взяты критерии от Миксера.
+            #基于Mixer的标准.
             if isFirstActivation:
                 ftgSkOut, ftgSkIn = None, None
-                for ftg in list_ftgSksOut: #todo0NA да это же Findanysk!?
+                for ftg in list_ftgSksOut: #todo0NA 但这不就是Findanysk吗!?
                     if ftg.blid!='NodeSocketVirtual':
                         ftgSkOut = ftg
                         break
@@ -38,13 +38,13 @@ class VoronoiSwapperTool(VoronoiToolPairSk):
                     if ftg.blid!='NodeSocketVirtual':
                         ftgSkIn = ftg
                         break
-                #Разрешить возможность "добавлять" и для входов тоже, но только для мультиинпутов, ибо очевидное
+                #也允许对输入端口使用“添加”功能，但仅限于多输入端口，因为这很明显
                 if (self.toolMode=='ADD')and(ftgSkIn):
-                    #Проверка по типу, но не по 'is_multi_input', чтобы из обычного в мультиинпут можно было добавлять.
-                    if (ftgSkIn.blid not in ('NodeSocketGeometry','NodeSocketString')):#or(not ftgSkIn.tar.is_multi_input): #Без второго условия больше возможностей.
+                    #按类型检查，而不是按'is_multi_input'，这样就可以从常规输入添加到多输入.
+                    if (ftgSkIn.blid not in ('NodeSocketGeometry','NodeSocketString')):#or(not ftgSkIn.tar.is_multi_input): #没有第二个条件可能性更多.
                         ftgSkIn = None
                 self.fotagoSk0 = MinFromFtgs(ftgSkOut, ftgSkIn)
-            #Здесь вокруг аккумулировалось много странных проверок с None и т.п. -- результат соединения вместе многих типа высокоуровневых функций, что я понаизобретал.
+            #这里积累了很多奇怪的关于None等的检查 -- 这是我将自己发明的许多高级函数连接在一起的结果.
             skOut0 = FtgGetTargetOrNone(self.fotagoSk0)
             if skOut0:
                 for ftg in list_ftgSksOut if skOut0.is_output else list_ftgSksIn:
@@ -52,13 +52,13 @@ class VoronoiSwapperTool(VoronoiToolPairSk):
                         continue
                     if (self.isCanAnyType)or(skOut0.bl_idname==ftg.blid)or(self.SkBetweenFieldsCheck(skOut0, ftg.tar)):
                         self.fotagoSk1 = ftg
-                    if self.fotagoSk1: #В случае успеха прекращать поиск.
+                    if self.fotagoSk1: #如果成功则停止搜索.
                         break
-                if (self.fotagoSk1)and(skOut0==self.fotagoSk1.tar): #Проверка на самокопию.
+                if (self.fotagoSk1)and(skOut0==self.fotagoSk1.tar): #检查是否为自我复制.
                     self.fotagoSk1 = None
-                    break #Ломать для isCanAnyType, когда isFirstActivation==False и сокет оказался самокопией; чтобы не находил сразу два нода.
+                    break #当isFirstActivation==False且接口为自我复制时，为isCanAnyType中断循环；以免一次找到两个节点.
                 if not self.isCanAnyType:
-                    if not(self.fotagoSk1 or isFirstActivation): #Если нет результата, продолжаем искать.
+                    if not(self.fotagoSk1 or isFirstActivation): #如果没有结果，则继续搜索.
                         continue
                 CheckUncollapseNodeAndReNext(nd, self, cond=self.fotagoSk1, flag=False)
             break
@@ -69,17 +69,17 @@ class VoronoiSwapperTool(VoronoiToolPairSk):
         skIo1 = self.fotagoSk1.tar
         match self.toolMode:
             case 'SWAP':
-                #Поменять местами все соединения у первого и второго сокета:
+                #交换第一个和第二个接口的所有连接:
                 list_memSks = []
-                if skIo0.is_output: #Проверка одинаковости is_output -- забота для NextAssignmentTool().
+                if skIo0.is_output: #检查 is_output 的一致性是 NextAssignmentTool() 的任务.
                     for lk in skIo0.vl_sold_links_final:
-                        if lk.to_node!=skIo1.node: # T 1  Чтобы линк от нода не создался сам в себя. Проверять нужно у всех и таковые не обрабатывать.
+                        if lk.to_node!=skIo1.node: # T 1  以防止节点创建指向自身的连接。需要检查所有情况并且不处理此类连接.
                             list_memSks.append(lk.to_socket)
                             tree.links.remove(lk)
                     for lk in skIo1.vl_sold_links_final:
                         if lk.to_node!=skIo0.node: # T 0  ^
                             tree.links.new(skIo0, lk.to_socket)
-                            if lk.to_socket.is_multi_input: #Для мультиинпутов удалить.
+                            if lk.to_socket.is_multi_input: #对于多输入端口则删除.
                                 tree.links.remove(lk)
                     for li in list_memSks:
                         tree.links.new(skIo1, li)
@@ -95,44 +95,44 @@ class VoronoiSwapperTool(VoronoiToolPairSk):
                     for li in list_memSks:
                         tree.links.new(li, skIo1)
             case 'ADD'|'TRAN':
-                #Просто добавить линки с первого сокета на второй. Aka объединение, добавление.
+                #只需将第一个接口的连接添加到第二个接口。即合并、添加.
                 if self.toolMode=='TRAN':
-                    #Тоже самое, как и добавление, только с потерей связей у первого сокета.
+                    #与添加相同，只是第一个接口会丢失连接.
                     for lk in skIo1.vl_sold_links_final:
                         tree.links.remove(lk)
                 if skIo0.is_output:
                     for lk in skIo0.vl_sold_links_final:
                         if lk.to_node!=skIo1.node: # T 1  ^
                             tree.links.new(skIo1, lk.to_socket)
-                            if lk.to_socket.is_multi_input: #Без этого lk всё равно указывает на "добавленный" линк, от чего удаляется. Поэтому явная проверка для мультиинпутов.
+                            if lk.to_socket.is_multi_input: #没有这个，lk仍然会指向“已添加”的连接，从而被删除。因此需要对多输入进行显式检查.
                                 tree.links.remove(lk)
-                else: #Добавлено ради мультиинпутов.
+                else: #为了多输入端口而添加.
                     for lk in skIo0.vl_sold_links_final:
                         if lk.from_node!=skIo1.node: # F 1  ^
                             tree.links.new(lk.from_socket, skIo1)
                             tree.links.remove(lk)
-        #VST VLRT же без нужды, да ведь?
+        #VST VLRT是不需要的，对吧？
     @classmethod
     def BringTranslations(cls):
         tran = GetAnnotFromCls(cls,'toolMode').items
         with VlTrMapForKey(tran.SWAP.name) as dm:
             dm["ru_RU"] = "Поменять"
-#            dm["zh_CN"] = ""
+            dm["zh_CN"] = "交换"
         with VlTrMapForKey(tran.SWAP.description) as dm:
             dm["ru_RU"] = "Все линки у первого сокета будут на втором, у второго на первом."
-#            dm["zh_CN"] = ""
+            dm["zh_CN"] = "第一个接口的所有连线将移至第二个，第二个的将移至第一个。"
         with VlTrMapForKey(tran.ADD.name) as dm:
             dm["ru_RU"] = "Добавить"
-#            dm["zh_CN"] = ""
+            dm["zh_CN"] = "添加"
         with VlTrMapForKey(tran.ADD.description) as dm:
             dm["ru_RU"] = "Добавить все линки со второго сокета на первый. Второй будет пустым."
-#            dm["zh_CN"] = ""
+            dm["zh_CN"] = "将第二个接口的所有连线添加到第一个。第二个将变为空。"
         with VlTrMapForKey(tran.TRAN.name) as dm:
             dm["ru_RU"] = "Переместить"
-#            dm["zh_CN"] = ""
+            dm["zh_CN"] = "转移"
         with VlTrMapForKey(tran.TRAN.description) as dm:
             dm["ru_RU"] = "Переместить все линки со второго сокета на первый с заменой."
-#            dm["zh_CN"] = ""
+            dm["zh_CN"] = "将第二个接口的所有连线转移到第一个并替换现有连线。"
         with VlTrMapForKey(GetAnnotFromCls(cls,'isCanAnyType').name) as dm:
             dm["ru_RU"] = "Может меняться с любым типом"
             dm["zh_CN"] = "可以与任何类型交换"

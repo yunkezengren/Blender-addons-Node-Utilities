@@ -1,5 +1,6 @@
 
 
+
 set_vqmtSkTypeFields = {'VALUE', 'RGBA', 'VECTOR', 'INT', 'BOOLEAN', 'ROTATION', 'MATRIX'}
 fitVqmtRloDescr = "Bypassing the pie call, activates the last used operation for the selected socket type.\n"+\
                   "Searches for sockets only from an available previous operations that were performed for the socket type.\n"+\
@@ -9,11 +10,11 @@ class VoronoiQuickMathTool(VoronoiToolTripleSk):
     bl_label = "Voronoi Quick Math"
     usefulnessForCustomTree = False
     canDrawInAppearance = True
-    quickOprFloat:         bpy.props.StringProperty(name="Float (quick)",  default="") #Они в начале, чтобы в kmi отображалось выровненным.
-    quickOprInt:           bpy.props.StringProperty(name="Int (quick)",  default="") #Они в начале, чтобы в kmi отображалось выровненным.
-    quickOprVector:        bpy.props.StringProperty(name="Vector (quick)", default="") #quick вторым, чтобы при нехватке места отображалось первое слово, от чего пришлось заключить в скобки.
+    quickOprFloat:         bpy.props.StringProperty(name="Float (quick)",  default="") #它们在前面, 以便在 kmi 中对齐显示.
+    quickOprInt:           bpy.props.StringProperty(name="Int (quick)",  default="") #它们在前面, 以便在 kmi 中对齐显示.
+    quickOprVector:        bpy.props.StringProperty(name="Vector (quick)", default="") #quick 在第二位, 以便在空间不足时显示第一个词, 所以不得不用括号括起来.
     isCanFromOne:          bpy.props.BoolProperty(name="Can from one socket", default=True)
-    isRepeatLastOperation: bpy.props.BoolProperty(name="Repeat last operation", default=False, description=fitVqmtRloDescr) #Что ж, квартет qqm теперь вынуждает их постоянно выравнивать.
+    isRepeatLastOperation: bpy.props.BoolProperty(name="Repeat last operation", default=False, description=fitVqmtRloDescr) #嗯, qqm 四重奏现在迫使它们不断对齐.
     isHideOptions:         bpy.props.BoolProperty(name="Hide node options",   default=True)
     isPlaceImmediately:    bpy.props.BoolProperty(name="Place immediately",   default=False)
     quickOprBool:          bpy.props.StringProperty(name="Bool (quick)",   default="")
@@ -33,7 +34,7 @@ class VoronoiQuickMathTool(VoronoiToolTripleSk):
             list_ftgSksIn, list_ftgSksOut = self.ToolGetNearestSockets(nd, cur_x_off=Cursor_X_Offset)
             if not list_ftgSksOut:
                 continue
-            #Этот инструмент триггерится только на выходы поля.
+            #这个工具只触发字段输出.
             if isFirstActivation:
                 isSucessOut = False
                 for ftg in list_ftgSksOut:
@@ -43,7 +44,7 @@ class VoronoiQuickMathTool(VoronoiToolTripleSk):
                                 self.fotagoSk0 = ftg
                                 isSucessOut = True
                                 break
-                        else: #Для isQuickQuickMath цепляться только к типам сокетов от явно указанных операций.
+                        else: #对于 isQuickQuickMath, 只附加到明确指定操作的套接字类型.
                             match ftg.tar.type:
                                 # case 'VALUE'|'INT':         isSucessOut = self.quickOprFloat
                                 case 'VALUE':         isSucessOut = self.quickOprFloat
@@ -60,26 +61,26 @@ class VoronoiQuickMathTool(VoronoiToolTripleSk):
                             self.fotagoSk0 = ftg
                             break
                 if not isSucessOut:
-                    continue #Искать нод для isFirstActivation'а, у которого попадёт на сокет поля.
-                #Для следующего `continue`, ибо если далее будет неудача с последующей активацией continue, то произойдёт перевыбор isFirstActivation
-                isFirstActivation = False #Но в связи с текущей топологией выбора, это без нужды.
-            CheckUncollapseNodeAndReNext(nd, self, cond=self.fotagoSk0, flag=True) #todo0NA см. строчку выше, этот 'cond' должен быть не от isFirstActivation.
+                    continue #寻找 isFirstActivation 的节点, 该节点将命中字段套接字.
+                #对于下一个 `continue`, 因为如果接下来激活 continue 失败, 将会重新选择 isFirstActivation
+                isFirstActivation = False #但考虑到当前的选择拓扑, 这没有必要.
+            CheckUncollapseNodeAndReNext(nd, self, cond=self.fotagoSk0, flag=True) #todo0NA 参见上面一行, 这个 'cond' 不应该来自 isFirstActivation.
             skOut0 = FtgGetTargetOrNone(self.fotagoSk0)
             if isNotCanPickThird:
-                #Для второго по условиям:
+                #对于第二个, 根据条件:
                 if skOut0:
                     for ftg in list_ftgSksOut:
                         if self.SkBetweenFieldsCheck(skOut0, ftg.tar):
                             self.fotagoSk1 = ftg
                             break
                     if not self.fotagoSk1:
-                        continue #Чтобы ноды без сокетов полей были прозрачными.
-                    if (self.fotagoSk1)and(skOut0==self.fotagoSk1.tar): #Проверка на самокопию.
+                        continue #以便没有字段套接字的节点是透明的.
+                    if (self.fotagoSk1)and(skOut0==self.fotagoSk1.tar): #检查是否是自我复制.
                         self.fotagoSk1 = None
                     CheckUncollapseNodeAndReNext(nd, self, cond=self.fotagoSk1, flag=False)
             else:
-                self.fotagoSk2 = None #Обнулять для удобства высокоуровневой отмены.
-                #Для третьего, если не ноды двух предыдущих.
+                self.fotagoSk2 = None #为了方便高级取消而清空.
+                #对于第三个, 如果不是前两个的节点.
                 skOut1 = FtgGetTargetOrNone(self.fotagoSk1)
                 for ftg in list_ftgSksIn:
                     skIn = ftg.tar
@@ -97,12 +98,12 @@ class VoronoiQuickMathTool(VoronoiToolTripleSk):
         VqmtData.isPlaceImmediately = self.isPlaceImmediately
         VqmtData.depth = 0
         VqmtData.isFirstDone = False
-    def ModalMouseNext(self, event, prefs): #Копия-алерт, у VLT такое же.
+    def ModalMouseNext(self, event, prefs): #复制警报, VLT 也有一个.
         if event.type==prefs.vqmtRepickKey:
             self.repickState = event.value=='PRESS'
             if self.repickState:
                 self.NextAssignmentRoot(True)
-                self.canPickThird = False #В целом хреновая идея добавить возможность перевыбора для инструмента, у которого есть третий сокет; управление инструментом стало сложно-контролируемее.
+                self.canPickThird = False #为有第三个套接字的工具添加重新选择功能, 总体上是个糟糕的主意; 工具的控制变得更难了.
         else:
             match event.type:
                 case 'MOUSEMOVE':
@@ -120,11 +121,11 @@ class VoronoiQuickMathTool(VoronoiToolTripleSk):
         VqmtData.sk0 = self.fotagoSk0.tar
         VqmtData.sk1 = FtgGetTargetOrNone(self.fotagoSk1)
         VqmtData.sk2 = FtgGetTargetOrNone(self.fotagoSk2)
-        VqmtData.qmSkType = VqmtData.sk0.type #Заметка: Наличие только сокетов поля -- забота на уровень выше.
-        VqmtData.qmTrueSkType = VqmtData.qmSkType #Эта информация нужна для "последней операции".
+        VqmtData.qmSkType = VqmtData.sk0.type #注意: 只有字段套接字是更高级别的问题.
+        VqmtData.qmTrueSkType = VqmtData.qmSkType #这个信息对于“最后的操作”是必需的.
         self.int_default_float = False
         match VqmtData.sk0.type:
-            # case 'INT':      VqmtData.qmSkType = 'VALUE' #И только целочисленный обделён своим нодом математики. Может его добавят когда-нибудь?.
+            # case 'INT':      VqmtData.qmSkType = 'VALUE' #只有整数被剥夺了它自己的数学节点. 也许以后会添加?.
             case 'INT':
                 # 为的是除了两个接口都是整数，一个接口是整数，默认浮点饼菜单
                 if VqmtData.sk1:
@@ -137,9 +138,9 @@ class VoronoiQuickMathTool(VoronoiToolTripleSk):
                     # VqmtData.qmSkType = 'VALUE'   # 整数接口浮点饼
                     # self.int_default_float = True
                     VqmtData.qmSkType = 'INT'
-            case 'ROTATION': VqmtData.qmSkType = 'VECTOR' #Больше шансов, что для математика для кватерниона будет первее.
-            case 'MATRIX':   VqmtData.qmSkType = 'MATRIX' #Больше шансов, что для математика для кватерниона будет первее.
-            #case 'ROTATION': return {'FINISHED'} #Однако странно, почему с RGBA линки отмечаются некорректными, ведь оба Arr4... Зачем тогда цвету альфа?
+            case 'ROTATION': VqmtData.qmSkType = 'VECTOR' #更有可能的是, 四元数的数学节点会先出现.
+            case 'MATRIX':   VqmtData.qmSkType = 'MATRIX' #更有可能的是, 四元数的数学节点会先出现.
+            #case 'ROTATION': return {'FINISHED'} #但奇怪的是, 为什么与 RGBA 的链接被标记为不正确, 明明都是 Arr4... 那颜色为什么需要 alpha?
         match tree.bl_idname:
             case 'ShaderNodeTree':     VqmtData.qmSkType = {'BOOLEAN':'VALUE'}.get(VqmtData.qmSkType, VqmtData.qmSkType)
             case 'GeometryNodeTree':   pass
@@ -167,7 +168,7 @@ class VoronoiQuickMathTool(VoronoiToolTripleSk):
         bpy.ops.node.voronoi_quick_math_main('INVOKE_DEFAULT')
     def InitTool(self, event, prefs, tree):
         self.repickState = False
-        VqmtData.canProcHideSks = False #Сразу для двух DoQuickMath выше и оператора ниже.
+        VqmtData.canProcHideSks = False #立即用于上面的两个 DoQuickMath 和下面的操作符.
         if self.justPieCall:
             match tree.bl_idname:
                 case 'ShaderNodeTree': can = self.justPieCall in {1,2,4}
@@ -176,7 +177,7 @@ class VoronoiQuickMathTool(VoronoiToolTripleSk):
             if not can:
                 DisplayMessage(self.bl_label, txt_vqmtThereIsNothing)
                 return {'CANCELLED'}
-            VqmtData.sk0 = None #Обнулять для полноты картины и для GetSkCol.
+            VqmtData.sk0 = None #为了完整性和 GetSkCol 而清空.
             VqmtData.sk1 = None
             VqmtData.sk2 = None
             VqmtData.qmSkType = ('VALUE','VECTOR','BOOLEAN','RGBA', 'INT')[self.justPieCall-1]
@@ -195,7 +196,7 @@ class VoronoiQuickMathTool(VoronoiToolTripleSk):
         LyAddKeyTxtProp(col, prefs,'vqmtRepickKey')
     @classmethod
     def LyDrawInAppearance(cls, colLy, prefs):
-        #VoronoiMixerTool.__dict__['LyDrawInAppearance'].__func__(cls, colLy, prefs) #Чума. Обход из-за @classmethod. Но теперь без нужды, потому что появился vqmtPieScaleExtra.
+        #VoronoiMixerTool.__dict__['LyDrawInAppearance'].__func__(cls, colLy, prefs) #该死. 由于 @classmethod 而绕过. 但现在没必要了, 因为有了 vqmtPieScaleExtra.
         colBox = LyAddLabeledBoxCol(colLy, text=TranslateIface("Pie")+" (VQMT)")
         LyAddHandSplitProp(colBox, prefs,'vqmtPieType')
         colProps = colBox.column(align=True)
@@ -210,7 +211,7 @@ class VoronoiQuickMathTool(VoronoiToolTripleSk):
         with VlTrMapForKey(GetAnnotFromCls(cls,'isHideOptions').name) as dm:
             dm["ru_RU"] = "Скрывать опции нода"
             dm["zh_CN"] = "隐藏节点选项"
-        #* Перевод isPlaceImmediately уже есть в VMT *
+        #* isPlaceImmediately 的翻译已在 VMT 中 *
         with VlTrMapForKey(GetAnnotFromCls(cls,'justPieCall').name) as dm:
             dm["ru_RU"] = "Просто вызвать пирог"
             dm["zh_CN"] = "仅调用饼图"
@@ -250,5 +251,5 @@ class VoronoiQuickMathTool(VoronoiToolTripleSk):
         with VlTrMapForKey(GetPrefsRnaProp('vqmtDisplayIcons').name) as dm:
             dm["ru_RU"] = "Отображать иконки"
 #            dm[zh_CN] = ""
-        #См. перевод vqmtRepickKey в VLT.
-        #Переводы vqmtPie такие же, как и в VMT.
+        #参见 vqmtRepickKey 在 VLT 中的翻译.
+        #vqmtPie 的翻译与 VMT 中的相同.

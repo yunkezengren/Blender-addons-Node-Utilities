@@ -1,6 +1,3 @@
-
-
-
 domain_en = [
         'POINT',
         'EDGE',
@@ -39,13 +36,13 @@ get_mesh_domain_cn = {k: v for k, v in zip(mesh_domain_en, mesh_domain_ch)}
 
 def VestLyAddEnumSelectorBox(where: UILayout, lyDomain=None):
     assert VestData.list_enumProps
-    colMain = where.row()           # 小王-显示节点选项优化-每个下拉列表，各占一列
+    colMain = where.row()           # 显示节点选项优化-每个下拉列表，各占一列
     # colMain = where.column()
     colDomain = lyDomain.column() if lyDomain else None
     nd = VestData.nd
-    #Нод математики имеет высокоуровневое разбиение на категории для .prop(), но как показать их вручную простым перечислением я не знаю. И вообще, VQMT.
-    #Игнорировать их не стал, пусть обрабатываются как есть. И с ними даже очень удобно выбирать операцию векторной математики (обычная не влезает).
-    #Домен всегда первым. Например, StoreNamedAttribute и FieldAtIndex имеют одинаковые енумы, но в разном порядке; интересно почему.
+    # 数学节点有高级的分类用于 .prop(), 但我不知道如何通过简单枚举手动显示它们. 反正有 VQMT.
+    # 我没有忽略它们, 让它们按原样处理. 用它们选择矢量数学运算甚至非常方便 (普通数学运算放不下).
+    # 域总是第一个. 例如, StoreNamedAttribute 和 FieldAtIndex 有相同的枚举, 但顺序不同; 有趣为什么.
     # print("开始-" * 20)
     # pprint("VestData.__dict__")
     # pprint(VestData.__dict__)
@@ -59,13 +56,13 @@ def VestLyAddEnumSelectorBox(where: UILayout, lyDomain=None):
             rowLabel = colProp.row(align=True)
             rowLabel.alignment = 'CENTER'
             rowLabel.label(text=li.name)
-            #rowLabel.active = not VestData.isPieChoice #Для пирога рамка прозрачная, от чего текст может сливаться с яркими нодами на фоне. Так что выключено.
-            rowLabel.active = not(VestData.isDarkStyle and VestData.isPieChoice) #Но для тёмного пирога всё-таки отобразить их тёмными.
+            #rowLabel.active = not VestData.isPieChoice # 对于饼菜单, 边框是透明的, 文本可能会与背景中明亮的节点融合. 所以关闭了.
+            rowLabel.active = not(VestData.isDarkStyle and VestData.isPieChoice) # 但对于深色饼菜单, 还是显示深色文本.
         elif cyc:
             colProp.separator()
         colEnum = colProp.column(align=True)     # 每个下拉列表，每个选项绘制一行
         colEnum.scale_y = VestData.boxScale
-        # 小王-显示节点选项优化-根据选项重命名节点-不好用
+        # 显示节点选项优化-根据选项重命名节点-不好用
         # if li.identifier == "domain":
         #     for item in VestData.domain_item_list:
         #         # op = colEnum.row('vor.change_node_domain_and_name', text=item.capitalize())   # 这样是错的
@@ -80,22 +77,22 @@ def VestLyAddEnumSelectorBox(where: UILayout, lyDomain=None):
             colEnum.prop_tabs_enum(nd, li.identifier)
         else:
             colEnum.prop(nd, li.identifier, expand=True)
-    #В своей первой задумке я неправильно назвал этот инструмент -- "Prop Selector". Нужно придумать как отличить общие свойства нода от тех, которые рисуются у него в опциях.
-    #Повезло, что у каждого нода енумов нет разных...
+    # 在我最初的想法中, 我错误地称这个工具为“Prop Selector”. 需要想办法区分节点的通用属性和在选项中绘制的属性.
+    # 幸运的是, 每个节点没有不同的枚举...
 class VestOpBox(VoronoiOpTool):
     bl_idname = 'node.voronoi_enum_selector_box'
     bl_label = "Enum Selector"
-    def execute(self, context): #Для draw() ниже, иначе не отобразится.
+    def execute(self, context): # 用于下面的 draw(), 否则不显示.
         pass
     def draw(self, _context):
         VestLyAddEnumSelectorBox(self.layout)
     def invoke(self, context, event):
-        # 小王-显示节点选项优化-box宽度*列数
+        # 显示节点选项优化-box宽度*列数
         width = 90 * VestData.boxScale * len(VestData.list_enumProps)
         return context.window_manager.invoke_popup(self, width=int(width))    # 必须要 int
         # return context.window_manager.invoke_popup(self, width=int(128*VestData.boxScale))
     def cancel(self, context):
-        rename_node_based_option(VestData.nd)     # 小王-显示节点选项优化-根据选项重命名节点-domain
+        rename_node_based_option(VestData.nd)     # 显示节点选项优化-根据选项重命名节点-domain
 
 class VestPieBox(bpy.types.Menu):
     bl_idname = 'VL_MT_Voronoi_enum_selector_box'
@@ -169,7 +166,7 @@ class VoronoiEnumSelectorTool(VoronoiToolNd):
     isPieChoice:         bpy.props.BoolProperty(name="Pie choice",          default=False, description="Allows to select an enum by releasing the key")
     isToggleOptions:     bpy.props.BoolProperty(name="Toggle node options", default=False)
     isSelectNode:        bpy.props.IntProperty(name="Select target node",  default=1, min=0, max=3, description="0 – Do not select.\n1 – Select.\n2 – And center.\n3 – And zooming")
-    def CallbackDrawTool(self, drata):              # 小王-工具提示
+    def CallbackDrawTool(self, drata):              # 工具提示
         if self.isToggleOptions:
             mode = "隐藏选项"
             if self.firstResult == False:           # 最近节点选项是隐藏的，后续就是显示选项
@@ -178,11 +175,11 @@ class VoronoiEnumSelectorTool(VoronoiToolNd):
             mode = "切换选项"
         TemplateDrawNodeFull(drata, self.fotagoNd, tool_name=mode)
         # self.TemplateDrawAny(drata, self.fotagoAny, cond=self.toolMode=='NODE', tool_name=name)
-    def ToggleOptionsFromNode(self, nd, lastResult, isCanDo=False): #Принцип работы скопирован с VHT HideFromNode()'a.
+    def ToggleOptionsFromNode(self, nd, lastResult, isCanDo=False): # 工作原理复制自 VHT HideFromNode().
         if lastResult:
             success = nd.show_options
             if isCanDo:
-                # 小王-显示节点选项优化-根据选项重命名节点-domain
+                # 显示节点选项优化-根据选项重命名节点-domain
                 rename_node_based_option(nd)
                 nd.show_options = False
             return success
@@ -194,27 +191,27 @@ class VoronoiEnumSelectorTool(VoronoiToolNd):
         self.fotagoNd = None
         for ftgNd in self.ToolGetNearestNodes(cur_x_off=0):
             nd = ftgNd.tar
-            if nd.type=='REROUTE': #Для этого инструмента рероуты пропускаются, по очевидным причинам.
+            if nd.type=='REROUTE': # 对于这个工具, reroute 会被跳过, 原因很明显.
                 continue
-            # if nd.bl_idname in set_utilEquestrianPortalBlids:    # 小王-注释掉
+            # if nd.bl_idname in set_utilEquestrianPortalBlids:    # 注释掉
             #     continue
             # have_options = ["GeometryNodeBake", "GeometryNodeGroup", 
             #                 "GeometryNodeForeachGeometryElementInput", "ShaderNodeTexCoord"]
             # if nd.bl_idname not in have_options:
-            #     if not GetListOfNdEnums(nd):    # 小王-想只对有下拉列表选项的节点绘制-导致节点组、bake、serpens里很多节点的 隐藏选项失效
+            #     if not GetListOfNdEnums(nd):    # 想只对有下拉列表选项的节点绘制-导致节点组、bake、serpens里很多节点的 隐藏选项失效
             #         continue
-            # if nd.hide: #У свёрнутых нодов результат переключения не увидеть, поэтому игнорировать.
-            #     continue              # 小王-折叠的节点同样绘制
+            # if nd.hide: # 对于折叠的节点, 切换结果看不到, 所以忽略.
+            #     continue              # 折叠的节点同样绘制
             if self.isToggleOptions:
                 self.fotagoNd = ftgNd
-                #Смысл такой же, как и в VHT:
+                # 和 VHT 的意思一样:
                 if prefs.vestIsToggleNodesOnDrag:
                     # print(f"{self.firstResult = }")
                     if self.firstResult is None:
                         self.firstResult = self.ToggleOptionsFromNode(nd, True)
                     self.ToggleOptionsFromNode(nd, self.firstResult, True)
                 break
-            elif GetListOfNdEnums(nd): #Почему бы не игнорировать ноды без енум-свойств?.
+            elif GetListOfNdEnums(nd): # 为什么不忽略没有枚举属性的节点呢?.
                 self.fotagoNd = ftgNd
                 break
     def DoActivation(self, prefs, tree):
@@ -229,12 +226,12 @@ class VoronoiEnumSelectorTool(VoronoiToolNd):
                 return False
             return True
         VestData.list_enumProps = GetListOfNdEnums(self.fotagoNd.tar)
-        VestData.domain_item_list = get_node_domain_item_list(self.fotagoNd.tar)  # 小王-显示节点选项优化-根据选项重命名节点-domain
+        VestData.domain_item_list = get_node_domain_item_list(self.fotagoNd.tar)  # 显示节点选项优化-根据选项重命名节点-domain
         # print("-"*50)
         # print(self.fotagoNd.tar.name)
         # pprint(VestData.domain_item_list)
-        #Если ничего нет, то вызов коробки всё равно обрабатывается, словно она есть, и от чего повторный вызов инструмента не работает без движения курсора.
-        if VestData.list_enumProps: #Поэтому если пусто, то ничего не делаем. А ещё assert в VestLyAddEnumSelectorBox().
+        # 如果什么都没有, 盒子调用还是会处理, 就像它存在一样, 导致不移动光标就无法再次调用工具.
+        if VestData.list_enumProps: # 所以如果为空, 什么也不做. 还有 VestLyAddEnumSelectorBox() 中的 assert.
             ndTar = self.fotagoNd.tar
             VestData.nd = ndTar
             VestData.boxScale = prefs.vestBoxScale
@@ -245,7 +242,7 @@ class VoronoiEnumSelectorTool(VoronoiToolNd):
             if self.isSelectNode:
                 SelectAndActiveNdOnly(VestData.nd)
                 if self.isSelectNode>1:
-                    #Определить, если нод находится за пределами экрана; и только тогда центрировать:
+                    # 判断节点是否在屏幕外; 只有这样才居中:
                     region = self.region
                     vec = ndTar.location.copy()
                     tup1 = region.view2d.view_to_region(vec.x, vec.y, clip=False)
@@ -255,7 +252,7 @@ class VoronoiEnumSelectorTool(VoronoiToolNd):
                     rect = (region.x, region.y, region.width, region.height)
                     if not(IsPtInRect(tup1, rect) and IsPtInRect(tup2, rect)):
                         if self.isSelectNode==3:
-                            #"Хак", (но нужно ещё перерисовать):
+                            # "HACK", (但还需要重绘):
                             rr1 = tree.nodes.new('NodeReroute')
                             rr1.location = (ndTar.location.x-360, ndTar.location.y)
                             rr2 = tree.nodes.new('NodeReroute')
@@ -268,33 +265,33 @@ class VoronoiEnumSelectorTool(VoronoiToolNd):
             if self.isPieChoice:
                 bpy.ops.wm.call_menu_pie(name=VestPieBox.bl_idname)
             else:
-                # 小王-更改节口类型-todo
+                # 更改节口类型-todo
                 bpy.ops.node.voronoi_enum_selector_box('INVOKE_DEFAULT')
             # ops运行唤出菜单后生效,再更改选项不生效，不是实时更改name
-            # # rename_node_based_option(ndTar)         # 小王-显示节点选项优化-根据选项重命名节点-domain
+            # # rename_node_based_option(ndTar)         # 显示节点选项优化-根据选项重命名节点-domain
                 
-            return True #Для modal(), чтобы вернуть успех.
+            return True # 用于 modal(), 返回成功.
     def MatterPurposeTool(self, event, prefs, tree):
         if self.isToggleOptions:
-            if not prefs.vestIsToggleNodesOnDrag: #И тут так же, как и в VHT.
+            if not prefs.vestIsToggleNodesOnDrag: # 和 VHT 中一样.
                 self.ToggleOptionsFromNode(self.fotagoNd.tar, self.ToggleOptionsFromNode(self.fotagoNd.tar, True), True)
         else:
             if not self.isInstantActivation:
                 self.DoActivation(prefs, tree)
     def InitTool(self, event, prefs, tree):
         if (self.isInstantActivation)and(not self.isToggleOptions):
-            #Заметка: Коробка может полностью закрыть нод вместе с линией к нему.
+            # 注意: 盒子可能会完全覆盖节点及其连接线.
             self.NextAssignmentRoot(None)
             if not self.fotagoNd:
                 return {'CANCELLED'}
             self.DoActivation(prefs, tree)
-            return {'FINISHED'} #Важно завершить инструмент.
-        self.firstResult = None #В идеале тоже перед выше, но не обязательно, см. топологию isToggleOptions.
+            return {'FINISHED'} # 完成工具很重要.
+        self.firstResult = None # 理想情况下也应该在上面, 但不是必须的, 参见 isToggleOptions 的拓扑.
     @staticmethod
     def LyDrawInAddonDiscl(col, prefs):
         LyAddLeftProp(col, prefs,'vestIsToggleNodesOnDrag')
     @staticmethod
-    def LyDrawInAppearance(colLy, prefs): #Заметка: Это @staticmethod.
+    def LyDrawInAppearance(colLy, prefs): # 注意: 这是 @staticmethod.
         colBox = LyAddLabeledBoxCol(colLy, text=TranslateIface("Box ").strip()+" (VEST)")
         LyAddHandSplitProp(colBox, prefs,'vestBoxScale')
         LyAddHandSplitProp(colBox, prefs,'vestDisplayLabels')
@@ -326,7 +323,7 @@ class VoronoiEnumSelectorTool(VoronoiToolNd):
             dm["ru_RU"] = "0 – Не выделять.\n1 – Выделять.\n2 – и центрировать.\n3 – и приближать"
 #            dm["zh_CN"] = ""
         ##
-        #* Перевод vestIsToggleNodesOnDrag уже есть в VHT *
+        #* vestIsToggleNodesOnDrag 的翻译已在 VHT 中 *
         with VlTrMapForKey(GetPrefsRnaProp('vestBoxScale').name) as dm:
             dm["ru_RU"] = "Масштаб панели"
             dm["zh_CN"] = "下拉列表面板大小"
@@ -340,7 +337,7 @@ class VoronoiEnumSelectorTool(VoronoiToolNd):
 
 
 
-# 小王-显示节点选项优化-根据选项重命名节点-不好用-自定义ops,单击按钮立即运行(缺点：按钮文本居中对齐，按钮上文本翻译有问题)
+# 显示节点选项优化-根据选项重命名节点-不好用-自定义ops,单击按钮立即运行(缺点：按钮文本居中对齐，按钮上文本翻译有问题)
 class SNA_OT_Change_Node_Domain_And_Name(bpy.types.Operator):
     bl_idname = "vor.change_node_domain_and_name"
     bl_label = ""

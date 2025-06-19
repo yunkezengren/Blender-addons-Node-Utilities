@@ -1,6 +1,6 @@
 
 
-class VoronoiDummyTool(VoronoiToolSk): #Шаблон для быстро-удобного(?) добавления нового инструмента.
+class VoronoiDummyTool(VoronoiToolSk):   # 快速便捷地添加新工具的模板
     bl_idname = 'node.voronoi_dummy'
     bl_label = "Voronoi Dummy"
     usefulnessForCustomTree = True

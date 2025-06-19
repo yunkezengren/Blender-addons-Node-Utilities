@@ -1,10 +1,6 @@
-
-
-
-
 fitVlrtModeItems = ( ('SOCKET', "For socket", "Using the last link created by some from the tools, create the same for the specified socket"),
                      ('NODE',   "For node",   "Using name of the last socket, find and connect for a selected node") )
-class VoronoiLinkRepeatingTool(VoronoiToolAny): #Вынесено в отдельный инструмент, чтобы не осквернять святая святых спагетти-кодом (изначально был только для VLT).
+class VoronoiLinkRepeatingTool(VoronoiToolAny): # 分离成单独的工具, 以免用意大利面条代码玷污神圣的地方 (最初只用于 VLT).
     bl_idname = 'node.voronoi_link_repeating'
     bl_label = "Voronoi Link Repeating"
     usefulnessForCustomTree = True
@@ -19,12 +15,12 @@ class VoronoiLinkRepeatingTool(VoronoiToolAny): #Вынесено в отдел�
         skLastIn = self.skLastIn
         if not skLastOut:
             return
-        SolderSkLinks(tree) #Вроде и без перепайки работает.
+        SolderSkLinks(tree) # 好像不重新焊接也能工作.
         self.fotagoAny = None
         cur_x_off_repeat = -Cursor_X_Offset if self.toolMode=='SOCKET' else 0     # 小王 这个有点特殊
         for ftgNd in self.ToolGetNearestNodes(cur_x_off=cur_x_off_repeat):
             nd = ftgNd.tar
-            if nd==skLastOut.node: #Исключить само-нод.
+            if nd==skLastOut.node: # 排除自身节点.
                 break #continue
             if self.toolMode=='SOCKET':
                 list_ftgSksIn, list_ftgSksOut = self.ToolGetNearestSockets(nd, cur_x_off=-Cursor_X_Offset)
@@ -33,7 +29,7 @@ class VoronoiLinkRepeatingTool(VoronoiToolAny): #Вынесено в отдел�
                         if (skLastOut.bl_idname==ftg.blid)or(IsSkBetweenFields(skLastOut, ftg.tar)):
                             can = True
                             for lk in ftg.tar.vl_sold_links_final:
-                                if lk.from_socket==skLastOut: #Определить уже имеющийся линк, и не выбирать таковой сокет.
+                                if lk.from_socket==skLastOut: # 识别已有的链接, 并且不选择这样的套接字.
                                     can = False
                             if can:
                                 self.fotagoAny = ftg
@@ -46,21 +42,21 @@ class VoronoiLinkRepeatingTool(VoronoiToolAny): #Вынесено в отдел�
                     for sk in nd.inputs:
                         if CompareSkLabelName(sk, skLastIn):
                             if (sk.enabled)and(not sk.hide):
-                                tree.links.new(skLastOut, sk) #Заметка: Не высокоуровневый; зачем для повторения по нодам нужны интерфейсы?.
+                                tree.links.new(skLastOut, sk) # 注意: 不是高级的; 为什么节点重复需要接口?.
             break
     def MatterPurposeTool(self, event, prefs, tree):
         if self.toolMode=='SOCKET':
-            #Здесь нет нужды проверять на одинаковость дерева сокетов, проверка на это уже есть в NextAssignmentTool().
-            #Также нет нужды проверять существование skLastOut, см. его топологию в NextAssignmentTool().
-            #Заметка: Проверка одинаковости `.id_data` имеется у VlrtRememberLastSockets().
-            #Заметка: Нет нужды проверять существование дерева, потому что если прицепившийся сокет тут существует, то уже где-то.
+            # 这里不需要检查套接字树是否相同, NextAssignmentTool() 中已经检查过了.
+            # 同样不需要检查 skLastOut 是否存在, 参见其在 NextAssignmentTool() 中的拓扑.
+            # 注意: VlrtRememberLastSockets() 中有 `.id_data` 的相同性检查.
+            # 注意: 不需要检查树是否存在, 因为如果连接的套接字在这里存在, 那它就肯定在某个地方.
             DoLinkHh(self.skLastOut, self.fotagoAny.tar)
-            VlrtRememberLastSockets(self.skLastOut, self.fotagoAny.tar) #Потому что. И вообще.. "саморекурсия"?.
+            VlrtRememberLastSockets(self.skLastOut, self.fotagoAny.tar) # 因为. 而且.. “自递归”?.
     def InitTool(self, event, prefs, tree):
         for txt in "Out", "In":
             txtAttSkLast = 'skLast'+txt
-            txtAttReprLastSk = 'reprLastSk'+txt #В случае неудачи записывать ничего.
-            setattr(self, txtAttSkLast, None) #Инициализировать для инструмента и присвоить ниже.
+            txtAttReprLastSk = 'reprLastSk'+txt # 如果失败, 不记录任何东西.
+            setattr(self, txtAttSkLast, None) # 为工具初始化并在下面赋值.
             if reprTxtSk:=getattr(VlrtData, txtAttReprLastSk):
                 try:
                     sk = eval(reprTxtSk)
@@ -70,7 +66,7 @@ class VoronoiLinkRepeatingTool(VoronoiToolAny): #Вынесено в отдел�
                         setattr(VlrtData, txtAttReprLastSk, "")
                 except:
                     setattr(VlrtData, txtAttReprLastSk, "")
-        #Заметка: Оказывается, Ctrl-Z делает (глобально сохранённую) ссылку на tree 'ReferenceError: StructRNA of type ShaderNodeTree has been removed'.
+        # 注意: 原来, Ctrl-Z 会使(全局保存的) tree 链接变成 'ReferenceError: StructRNA of type ShaderNodeTree has been removed'.
     @classmethod
     def BringTranslations(cls):
         tran = GetAnnotFromCls(cls,'toolMode').items

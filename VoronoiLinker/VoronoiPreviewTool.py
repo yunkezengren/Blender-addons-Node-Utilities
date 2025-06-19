@@ -1,21 +1,19 @@
 
 
 
-
-
 class VoronoiPreviewTool(VoronoiToolSk):
     bl_idname = 'node.voronoi_preview'
     bl_label = "Voronoi Preview"
     usefulnessForCustomTree = True
     isSelectingPreviewedNode: bpy.props.BoolProperty(name="Select previewed node", default=True)
-    isTriggerOnlyOnLink:      bpy.props.BoolProperty(name="Only linked",           default=False, description="Trigger only on linked socket") #Изначально было в prefs.
+    isTriggerOnlyOnLink:      bpy.props.BoolProperty(name="Only linked",           default=False, description="Trigger only on linked socket") #最初在 prefs 中.
     isEqualAnchorType:        bpy.props.BoolProperty(name="Equal anchor type",     default=False, description="Trigger only on anchor type sockets")
     def CallbackDrawTool(self, drata):
-        if (self.prefs.vptRvEeSksHighlighting)and(self.fotagoSk): #Помощь в реверс-инженеринге -- подсвечивать места соединения, и отображать имена этих сокетов, одновременно.
-            SolderSkLinks(self.tree) #Иначе крашится на `ftg.tar==sk:`.
-            #Определить масштаб для надписей:
+        if (self.prefs.vptRvEeSksHighlighting)and(self.fotagoSk): #帮助逆向工程 -- 高亮连接点, 并同时显示这些接口的名称.
+            SolderSkLinks(self.tree) #否则在 `ftg.tar==sk:` 上会崩溃.
+            #确定标签的缩放比例:
             soldCursorLoc = drata.cursorLoc
-            #Нарисовать:
+            #绘制:
             ndTar = self.fotagoSk.tar.node
             for isSide in (False, True):
                 for skTar in ndTar.outputs if isSide else ndTar.inputs:
@@ -26,13 +24,13 @@ class VoronoiPreviewTool(VoronoiToolSk):
                             list_ftgSks = GenFtgsFromPuts(nd, not isSide, soldCursorLoc, drata.uiScale)
                             for ftg in list_ftgSks:
                                 if ftg.tar==sk:
-                                    #Хождение по рероутом не поддерживается. Потому что лень, и лень переделывать под это код.
+                                    #不支持遍历转接点. 因为懒, 而且懒得为此重写代码.
                                     if drata.dsIsDrawSkArea:
                                         DrawVlSocketArea(drata, ftg.tar, ftg.boxHeiBound, Col4(GetSkColSafeTup4(ftg.tar)))
                                     DrawVlSkText(drata, ftg.pos, (1-isSide*2, -0.5), ftg, fontSizeOverwrite=min(24*drata.worldZoom*self.prefs.vptHlTextScale, 25))
                                     break
-                        nd.hide = False #Запись во время рисования. По крайней мере, не так как сильно как в VMLT.
-                        #todo0SF: использование bpy.ops.wm.redraw_timer вызывает зависание намертво. Так что из-за этого здесь имеется ещё один "проскальзывающий кадр".
+                        nd.hide = False #在绘制时写入. 至少不像 VMLT 中那么严重.
+                        #todo0SF: 使用 bpy.ops.wm.redraw_timer 会导致死锁. 所以这里还有另一个“跳帧”.
         TemplateDrawSksToolHh(drata, self.fotagoSk, isDrawMarkersMoreTharOne=True, tool_name="Preview")
     @staticmethod
     def OmgNodeColor(nd, col=None):
@@ -51,53 +49,53 @@ class VoronoiPreviewTool(VoronoiToolSk):
             else:
                 return nd.color.copy()
     def NextAssignmentTool(self, _isFirstActivation, prefs, tree):
-        SolderSkLinks(tree) #Иначе крашится.
+        SolderSkLinks(tree) #否则会崩溃.
         isGeoTree = tree.bl_idname=='GeometryNodeTree'
         if False:
-            #我已经为Viever添加了一个粘附在字段上的功能，但后来我意识到没有API可以取代它的预览类型。又来了我们必须保持低启动。用于粘附到地理查看器的字段。
-            # Уж было я добавил возможность цепляться к полям для виевера, но потом понял, что нет api на смену его типа предпросмотра. Опять. Придётся хранить на низком старте.
-            isGeoViewer = False #Для цепляния к полям для гео-Viewer'a.
+            #我已经为Viewer添加了一个粘附在字段上的功能, 但后来我意识到没有API可以取代它的预览类型. 又来了. 我们必须保持低调. 用于粘附到几何查看器的字段.
+            # 我已经添加了为查看器附加到字段的功能, 但后来我意识到没有API可以更改其预览类型. 又来了. 不得不保持低调.
+            isGeoViewer = False #用于为几何查看器附加到字段.
             if isGeoTree:
                 for nd in tree.nodes:
                     if nd.type=='VIEWER':
                         isGeoViewer = True
                         break
-        self.fotagoSk = None #Нет нужды, но сбрасывается для ясности картины. Было полезно для отладки.
+        self.fotagoSk = None #没必要, 但为了清晰起见重置. 对调试很有用.
         for ftgNd in self.ToolGetNearestNodes(cur_x_off=Cursor_X_Offset):
             nd = ftgNd.tar
-            if (prefs.vptRvEeIsSavePreviewResults)and(nd.name==voronoiPreviewResultNdName): #Игнорировать готовый нод для переименования и тем самым сохраняя результаты предпросмотра.
+            if (prefs.vptRvEeIsSavePreviewResults)and(nd.name==voronoiPreviewResultNdName): #忽略准备好的节点以进行重命名, 从而保存预览结果.
                 continue
-            #Если в геометрических нодах, то игнорировать ноды без выходов геометрии
+            #如果在几何节点中, 则忽略没有几何输出的节点
             if (isGeoTree)and(not self.isAnyAncohorExist):
-                if not any(True for sk in nd.outputs if (sk.type=='GEOMETRY')and(not sk.hide)and(sk.enabled)): #Искать сокеты геометрии, которые видимы.
+                if not any(True for sk in nd.outputs if (sk.type=='GEOMETRY')and(not sk.hide)and(sk.enabled)): #寻找可见的几何接口.
                     continue
-            #Пропускать ноды если визуально нет сокетов; или есть, но только виртуальные. Для рероутов всё бесполезно.
+            #如果视觉上没有接口, 或者有但只有虚拟接口, 则跳过节点. 对于转接点, 一切都无用.
             if (not any(True for sk in nd.outputs if (not sk.hide)and(sk.enabled)and(sk.bl_idname!='NodeSocketVirtual')))and(nd.type!='REROUTE'):
                 continue
-            #Всё выше нужно было для того, чтобы точка не висела просто так и нод не мешал для удобного использования инструмента. По ощущениям получаются как "прозрачные" ноды.
-            #Игнорировать свой собственный спец-рероут-якорь (проверка на тип и имя)
+            #以上所有都是为了让点不只是挂在那里, 节点不干扰工具的方便使用. 感觉就像“透明”节点.
+            #忽略自己的特殊转接点锚点 (检查类型和名称)
             if ( (nd.type=='REROUTE')and(nd.name==voronoiAnchorCnName) ):
                 continue
-            #В случае успеха переходить к сокетам:
+            #如果成功, 则转到接口:
             list_ftgSksOut = self.ToolGetNearestSockets(nd, cur_x_off=Cursor_X_Offset)[1]
             for ftg in list_ftgSksOut:
-                #Игнорировать свои сокеты мостов здесь. Нужно для нод нод-групп, у которых "торчит" сокет моста и к которому произойдёт прилипание без этой проверки; и после чего они будут удалены в VptPreviewFromSk().
+                #在这里忽略自己的桥接接口. 这对于节点组节点是必要的, 它们的桥接接口“伸出”并且没有这个检查就会被粘住; 之后它们将在 VptPreviewFromSk() 中被删除.
                 if ftg.tar.name==voronoiSkPreviewName:
                     continue
-                #Этот инструмент триггерится на любой выход кроме виртуального. В геометрических нодах искать только выходы геометрии.
-                #Якорь притягивает на себя превиев; рероут может принимать любой тип; следовательно -- при наличии якоря отключать триггер только на геосокеты
+                #这个工具会触发除虚拟接口外的任何输出. 在几何节点中只寻找几何输出.
+                #锚点吸引预览; 转接点可以接受任何类型; 因此 -- 如果有锚点, 则禁用仅对几何接口的触发
                 if (ftg.blid!='NodeSocketVirtual')and( (not isGeoTree)or(ftg.tar.type=='GEOMETRY')or(self.isAnyAncohorExist) ):
                     can = True
                     if rrAnch:=tree.nodes.get(voronoiAnchorCnName): #EqualAnchorType.
                         rrSkBlId = rrAnch.outputs[0].bl_idname
                         can = (not self.isEqualAnchorType)or(ftg.blid==rrSkBlId)or(rrSkBlId=='NodeSocketVirtual')
-                    #todo1v6 для якорей близости тоже сделать выбор по типу?
+                    #todo1v6 对于邻近锚点也按类型选择?
                     can = (can)and(not ftg.tar.node.label==voronoiAnchorDtName) #ftg.tar.node not in self.list_distanceAnchors
                     if can:
-                        if (not self.isTriggerOnlyOnLink)or(ftg.tar.vl_sold_is_final_linked_cou): #Помощь в реверс-инженеринге -- триггериться только на существующие линки; ускоряет процесс "чтения/понимания" дерева.
+                        if (not self.isTriggerOnlyOnLink)or(ftg.tar.vl_sold_is_final_linked_cou): #帮助逆向工程 -- 仅在现有链接上触发; 加快“读取/理解”树的过程.
                             self.fotagoSk = ftg
                             break
-            if self.fotagoSk: #Завершать в случае успеха. Иначе, например для игнорирования своих сокетов моста, если у нода только они -- остановится рядом и не найдёт других.
+            if self.fotagoSk: #如果成功则完成. 否则, 例如忽略自己的桥接接口, 如果节点只有它们 -- 将停在旁边而找不到其他.
                 break
         if self.fotagoSk:
             CheckUncollapseNodeAndReNext(nd, self, cond=True)
@@ -106,10 +104,10 @@ class VoronoiPreviewTool(VoronoiToolSk):
                 # print(f"{self.fotagoSk = }")
                 # print(f"{self.fotagoSk.tar = }")
                 VptPreviewFromSk(self, prefs, self.fotagoSk.tar)
-            if prefs.vptRvEeIsColorOnionNodes: #Помощь в реверс-инженеринге -- вместо поиска глазами тоненьких линий, быстрое визуальное считывание связанных топологией нодов.
-                SolderSkLinks(tree) #Без этого придётся окрашивать принимающий нод вручную, чтобы не "моргал".
+            if prefs.vptRvEeIsColorOnionNodes: #帮助逆向工程 -- 不是用眼睛寻找细线, 而是快速视觉读取拓扑连接的节点.
+                SolderSkLinks(tree) #没有这个, 将不得不手动为接收节点着色, 以免“闪烁”.
                 ndTar = self.fotagoSk.tar.node
-                #Не париться с запоминанием последних и тупо выключать у всех каждый раз. Дёшево и сердито
+                #不要费心记住最后一个, 每次都把它们全部关闭. 简单粗暴
                 for nd in tree.nodes:
                     nd.use_custom_color = False
                 def RecrRerouteWalkerPainter(sk, col):
@@ -119,25 +117,25 @@ class VoronoiPreviewTool(VoronoiToolSk):
                             RecrRerouteWalkerPainter(nd.outputs[0] if sk.is_output else nd.inputs[0], col)
                         else:
                             nd.use_custom_color = True
-                            if (not prefs.vptRvEeIsSavePreviewResults)or(nd.name!=voronoiPreviewResultNdName): #Нод для сохранения результата не перекрашивать
+                            if (not prefs.vptRvEeIsSavePreviewResults)or(nd.name!=voronoiPreviewResultNdName): #不重新着色用于保存结果的节点
                                 self.OmgNodeColor(nd, col)
-                            nd.hide = False #А также раскрывать их.
+                            nd.hide = False #并展开它们.
                 for sk in ndTar.outputs:
                     RecrRerouteWalkerPainter(sk, prefs.vptOnionColorOut)
                 for sk in ndTar.inputs:
                     RecrRerouteWalkerPainter(sk, prefs.vptOnionColorIn)
     def MatterPurposeTool(self, event, prefs, tree):
-        SolderSkLinks(tree) #Иначе крашится.
+        SolderSkLinks(tree) #否则会崩溃.
         VptPreviewFromSk(self, prefs, self.fotagoSk.tar)
         VlrtRememberLastSockets(self.fotagoSk.tar, None)
         if prefs.vptRvEeIsColorOnionNodes:
             for nd in tree.nodes:
-                dv = self.dict_saveRestoreNodeColors.get(nd, None) #Точно так же, как и в RestoreCollapsedNodes.
+                dv = self.dict_saveRestoreNodeColors.get(nd, None) #与 RestoreCollapsedNodes 中完全相同.
                 if dv:
                     nd.use_custom_color = dv[0]
                     self.OmgNodeColor(nd, dv[1])
     def InitTool(self, event, prefs, tree):
-        #Если использование классического viewer'а разрешено, завершить инструмент с меткой пропуска, "передавая эстафету" оригинальному виеверу.
+        #如果允许使用经典查看器, 则用跳过标记完成工具, “将接力棒传给”原始查看器.
         match tree.bl_idname:
             case 'GeometryNodeTree':
                 if (prefs.vptAllowClassicGeoViewer)and('FINISHED' in bpy.ops.node.select('INVOKE_DEFAULT')):
@@ -146,27 +144,27 @@ class VoronoiPreviewTool(VoronoiToolSk):
                 if (prefs.vptAllowClassicCompositorViewer)and('FINISHED' in bpy.ops.node.select('INVOKE_DEFAULT')):
                     return {'PASS_THROUGH'}
         if prefs.vptRvEeIsColorOnionNodes:
-            #Запомнить все цвета, и обнулить их всех:
+            #记住所有颜色, 并将它们全部重置:
             self.dict_saveRestoreNodeColors = {}
             for nd in tree.nodes:
                 self.dict_saveRestoreNodeColors[nd] = (nd.use_custom_color, self.OmgNodeColor(nd))
                 nd.use_custom_color = False
-            #Заметка: Ноды сохранения результата с луковичными цветами обрабатываются как есть. Дублированный нод не будет оставаться незатрагиваемым.
-        #Пайка:
+            #注意: 带有洋葱皮颜色的保存结果节点按原样处理. 重复的节点不会保持不受影响.
+        #焊接:
         list_distAnchs = []
         for nd in tree.nodes:
             if (nd.type=='REROUTE')and(nd.name.startswith(voronoiAnchorDtName)):
                 list_distAnchs.append(nd)
-                nd.label = voronoiAnchorDtName #А также используется для проверки на свои рероуты.
+                nd.label = voronoiAnchorDtName #也用于检查自己的转接点.
         self.list_distanceAnchors = list_distAnchs
-        #Пайка:
+        #焊接:
         rrAnch = tree.nodes.get(voronoiAnchorCnName)
-        #Некоторые пользователи в "начале знакомства" с инструментом захотят переименовать якорь.
-        #Каждый призыв якоря одинаков по заголовку, а при повторном призыве заголовок всё равно меняется обратно на стандартный.
-        #После чего пользователи поймут, что переименовывать якорь бесполезно.
+        #一些用户在“初次接触”工具时会想重命名锚点.
+        #每次调用锚点的标题都是一样的, 再次调用时标题仍然会变回标准标题.
+        #之后用户会明白重命名锚点是没用的.
         if rrAnch:
-            rrAnch.label = voronoiAnchorCnName #Эта установка лишь ускоряет процесс осознания.
-        self.isAnyAncohorExist = not not (rrAnch or list_distAnchs) #Для геонод; если в них есть якорь, то триггериться не только на геосокеты.
+            rrAnch.label = voronoiAnchorCnName #这个设置只是加速了意识到的过程.
+        self.isAnyAncohorExist = not not (rrAnch or list_distAnchs) #对于几何节点; 如果其中有锚点, 则不仅触发几何接口.
     @staticmethod
     def LyDrawInAddonDiscl(col, prefs):
         LyAddLeftProp(col, prefs,'vptAllowClassicGeoViewer')
@@ -250,4 +248,3 @@ class VoronoiPreviewTool(VoronoiToolSk):
         with VlTrMapForKey(GetPrefsRnaProp('vptHlTextScale').name) as dm:
             dm["ru_RU"] = "Масштаб текста"
 #            dm["zh_CN"] = ""
-

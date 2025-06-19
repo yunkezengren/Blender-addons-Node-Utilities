@@ -1,24 +1,12 @@
-from builtins import len as length #Я обожаю трёхбуквенные имена переменных. А без такого имени, как "len" -- мне очень грустно и одиноко... А ещё 'Vector.length'.
-import bpy, ctypes, rna_keymap_ui, bl_keymap_utils
-import blf, gpu, gpu_extras.batch
-
-from .C_Structure import BNode, View2D, SkGetLocVec
-from .common_class import Equestrian
-from .global_var import *
-
-
-from math import pi, cos, sin
-from mathutils import Vector as Vec
-Vec2 = Col4 = Vec
-
-import platform
-from time import perf_counter, perf_counter_ns
-import copy #Для VLNST.
+import bpy
 from pprint import pprint
 from bpy.types import (NodeSocket, UILayout)
 
 
 from .Rot_or_Mat_Converter import Rot_or_Mat_Converter, Pie_MT_Converter_To_Rotation, Pie_MT_Converter_Rotation_To, Pie_MT_Separate_Matrix, Pie_MT_Combine_Matrix
+from .globals import Cursor_X_Offset
+from .draw_in_view import TemplateDrawSksToolHh
+from .VoronoiTool import VoronoiToolTripleSk
 
 
 class VoronoiQuickConstant(VoronoiToolTripleSk):

@@ -23,20 +23,20 @@ dict_typeSkToBlid = {
     'CUSTOM':    'NodeSocketVirtual',
 }
 
-set_utilTypeSkFields = {'VALUE', 'RGBA', 'VECTOR', 'INT', 'BOOLEAN', 'ROTATION', 'STRING', 'MATRIX'}       # 小王-Alt D 等多个操作 支持的接口
+set_utilTypeSkFields = {'VALUE', 'RGBA', 'VECTOR', 'INT', 'BOOLEAN', 'ROTATION', 'STRING', 'MATRIX'}       # Alt D 等多个操作 支持的接口
 
 set_classicSocketsBlid = {'NodeSocketShader',  'NodeSocketColor',   'NodeSocketVector','NodeSocketFloat',     'NodeSocketString',  'NodeSocketInt',    'NodeSocketBool',
                             'NodeSocketRotation','NodeSocketGeometry','NodeSocketObject','NodeSocketCollection','NodeSocketMaterial','NodeSocketTexture','NodeSocketImage',
                             'NodeSocketMatrix'}
 
-# 小王-新建接口-用到了
+# 新建接口-用到了
 set_utilEquestrianPortalBlids = {'NodeGroupInput', 'NodeGroupOutput', 
                                  'GeometryNodeSimulationInput', 'GeometryNodeSimulationOutput', 
                                  'GeometryNodeRepeatInput', 'GeometryNodeRepeatOutput',
                                  'GeometryNodeMenuSwitch', 'GeometryNodeBake',
                                  'GeometryNodeCaptureAttribute', 'GeometryNodeIndexSwitch'
                                  }
-inline_socket_node_list = [ # 小王-自动隐藏接口优化-inline
+inline_socket_node_list = [ # 自动隐藏接口优化-inline
                             'GeometryNodeSimulationInput', 'GeometryNodeSimulationOutput', 
                             'GeometryNodeRepeatInput', 'GeometryNodeRepeatOutput',
                             'GeometryNodeForeachGeometryElementInput', 'GeometryNodeForeachGeometryElementOutput', 
@@ -45,7 +45,7 @@ inline_socket_node_list = [ # 小王-自动隐藏接口优化-inline
 
 set_quartetClassicTreeBlids = {'ShaderNodeTree','GeometryNodeTree','CompositorNodeTree','TextureNodeTree'}
 
-dict_skTypeHandSolderingColor = { #Для VQMT.
+dict_skTypeHandSolderingColor = { # 用于 VQMT.
     'BOOLEAN':    (0.800000011920929,   0.6499999761581421,  0.8399999737739563,  1.0),
     'COLLECTION': (0.9599999785423279,  0.9599999785423279,  0.9599999785423279,  1.0),
     'RGBA':       (0.7799999713897705,  0.7799999713897705,  0.1599999964237213,  1.0),
@@ -64,8 +64,8 @@ dict_skTypeHandSolderingColor = { #Для VQMT.
 
 
 vmtSep = 'MixerItemsSeparator123'
-# 小王-新接口类型的Mix饼菜单
-dict_vmtTupleMixerMain = { #Порядок важен; самые частые (в этом списке) идут первее (кроме MixRGB).
+# 新接口类型的Mix饼菜单
+dict_vmtTupleMixerMain = { # 顺序很重要; 最常用的 (在此列表中) 优先显示 (MixRGB 除外).
         'ShaderNodeTree':     {'SHADER':     ('ShaderNodeMixShader','ShaderNodeAddShader'),
                                'VALUE':      ('ShaderNodeMixRGB',  'ShaderNodeMix',                      'ShaderNodeMath'),
                                'RGBA':       ('ShaderNodeMixRGB',  'ShaderNodeMix'),
@@ -76,7 +76,7 @@ dict_vmtTupleMixerMain = { #Порядок важен; самые частые (
                                'RGBA':       ('GeometryNodeSwitch','ShaderNodeMix','FunctionNodeCompare'),
                                'VECTOR':     ('GeometryNodeSwitch','ShaderNodeMix','FunctionNodeCompare',                 'ShaderNodeVectorMath'),
                                'STRING':     ('GeometryNodeSwitch',                'FunctionNodeCompare',
-                                              'GeometryNodeStringJoin',   # 小王-字符串接口 Alt Shift 左键
+                                              'GeometryNodeStringJoin',   # 字符串接口 Alt Shift 左键
                                               "FunctionNodeStringLength", "FunctionNodeReplaceString", ),
                                'INT':        ('GeometryNodeSwitch','ShaderNodeMix','FunctionNodeCompare','ShaderNodeMath'),
                                'BOOLEAN':    ('GeometryNodeSwitch','ShaderNodeMix','FunctionNodeCompare','ShaderNodeMath',                       'FunctionNodeBooleanMath'),
@@ -101,8 +101,8 @@ dict_vmtTupleMixerMain = { #Порядок важен; самые частые (
                                'RGBA':       ('TextureNodeMixRGB','TextureNodeTexture'),
                                'VECTOR':     ('TextureNodeMixRGB',                                        'TextureNodeDistance'),
                                'INT':        ('TextureNodeMixRGB','TextureNodeTexture','TextureNodeMath')}}
-dict_vmtMixerNodesDefs = { #'-1' означают визуальную здесь метку, что их сокеты подключения высчитываются автоматически (см. |2|), а не указаны явно в этом списке
-        #Отсортировано по количеству в "базе данных" выше.
+dict_vmtMixerNodesDefs = { # '-1' 表示这里的视觉标记，它们的连接套接字是自动计算的（参见 |2|），而不是在此列表中明确指定
+        # 按照上面“数据库”中的数量排序。
         'GeometryNodeSwitch':             (-1, -1, "Switch  "),
         'ShaderNodeMix':                  (-1, -1, "Mix  "),
         'FunctionNodeCompare':            (-1, -1, "Compare  "),
@@ -119,7 +119,7 @@ dict_vmtMixerNodesDefs = { #'-1' означают визуальную здес�
         'TextureNodeMath':                (0, 1, "Max Float "),
         'ShaderNodeMixShader':            (1, 2, "Mix Shader "),
         'ShaderNodeAddShader':            (0, 1, "Add Shader "),
-        # 小王-字符串接口 Alt Shift 左键
+        # 字符串接口 Alt Shift 左键
         'GeometryNodeStringJoin':         (1, 1, "Join String "),
         "FunctionNodeStringLength":       (0, 0, "String Length "),
         "FunctionNodeReplaceString":      (0, 1, "Replace String "),
@@ -141,28 +141,28 @@ dict_vmtMixerNodesDefs = { #'-1' означают визуальную здес�
         }
 
 
-#Быстрая математика.
-#Заполучить нод с нужной операцией и автоматическим соединением в сокеты, благодаря мощностям VL'а.
-#Неожиданно для меня оказалось, что пирог может рисовать обычный layout. От чего добавил дополнительный тип пирога "для контроля".
-#А также сам буду пользоваться им, потому что за то время, которое экономится при двойном пироге, отдохнуть как-то всё равно не получается.
+# 快速数学运算.
+# 通过 VL 的强大功能获取具有所需操作和自动套接字连接的节点。
+# 令人意想不到的是，饼菜单可以绘制普通的布局。因此，添加了额外的“控制”饼菜单类型。
+# 我自己也会用它，因为双层饼菜单节省的时间仍然无法让我得到休息。
 
-#Важная эстетическая ценность двойного пирога -- визуальная неперегруженность вариантами. Вместо того, чтобы вываливать всё сразу, показываются только по 8 штук за раз.
+# 双层饼菜单重要的美学价值是：选项视觉上不那么拥挤。它一次只显示 8 个选项，而不是一次性全部显示。
 
-#todo00 с приходом популярности, посмотреть кто использует быстрый пирог, а потом аннигилировать его за ненадобностью; настолько распинаться о нём было бессмысленно. Мб опрос(голосование) сделать на BA.
-#Заметка для меня: сохранять поддержку двойного пирога чёрт возьми, ибо эстетика. Но выпилить его с каждым разом хочется всё больше D:
+# TODO00 随着它的流行，看看谁在使用快速饼菜单，然后如果它不必要，就删除它；如此吹嘘它是毫无意义的。也许可以在 BA 上做个调查（投票）。
+# 给我自己的备注：天哪，保持双层饼菜单的支持，因为它的美学。但每次都越来越想把它删掉 D:
 
-#Было бы бездумно разбросать их как попало, поэтому я пытался соблюсти некоторую логическую последовательность. Например, расставляя пары по смыслу диаметрально противоположными.
-#Пирог Блендера располагает в себе элементы следующим образом: лево, право, низ, верх, после чего классическое построчное заполнение.
-#"Compatible..." -- чтобы у векторов и у математики одинаковые операции были на одинаковых местах (кроме тригонометрических).
-#За исключением примитивов, где прослеживается супер очевидная логика (право -- плюс -- add, лево -- минус -- sub; всё как на числовой оси), лево и низ у меня более простые, чем обратная сторона.
-#Например, length проще, чем distance. Всем же остальным не очевидным и не осе-ориентированным досталось как получится.
+# 我试图遵守一定的逻辑顺序，而不是随意放置它们。例如，将意义上对立的对放置在相对的位置。
+# Blender 的饼菜单按以下方式排列元素：左、右、下、上，然后是经典的逐行填充。
+# 除了那些非常明显的原始类型（右 - 加 - add，左 - 减 - sub；就像数轴一样），我的左边和下边比反面更简单。
+# 例如，length 比 distance 简单。所有其他不明显且非轴向的元素都随意放置。
 
 tup_vqmtQuickMathMapValue = (
         ("Advanced ",              ('SQRT',       'POWER',        'EXPONENT',   'LOGARITHM',   'INVERSE_SQRT','PINGPONG',    'FLOORED_MODULO' )),
         ("Compatible Primitives ", ('SUBTRACT',   'ADD',          'DIVIDE'   ,  'MULTIPLY',    'ABSOLUTE',    'MULTIPLY_ADD'                  )),
         ("Rounding ",              ('SMOOTH_MIN', 'SMOOTH_MAX',   'LESS_THAN',  'GREATER_THAN','SIGN',        'COMPARE',     'TRUNC',  'ROUND')),
         ("Compatible Vector ",     ('MINIMUM',    'MAXIMUM',      'FLOOR',      'FRACT',       'CEIL',        'MODULO',      'SNAP',   'WRAP' )),
-        ("", ()), #Важны дубликаты и порядок, поэтому не словарь а список.
+        ("", ()), # 重要的是重复和顺序，所以是列表而不是字典。
+        ("", ()),
         ("", ()),
         ("Other ",                 ('COSH',       'RADIANS',      'DEGREES',    'SINH',        'TANH'                                         )),
         ("Trigonometric ",         ('SINE',       'COSINE',       'TANGENT',    'ARCTANGENT',  'ARCSINE',     'ARCCOSINE',   'ARCTAN2'        )) )
@@ -179,16 +179,16 @@ tup_vqmtQuickMathMapBoolean = (
         ("High ",  ('NOR','NAND','XNOR','XOR','IMPLY','NIMPLY')),
         ("Basic ", ('OR', 'AND', 'NOT'                        )) )
 tup_vqmtQuickModeMapColor = (
-        #Для операции 'MIX' используйте VMT.
-        ("Math ", ('SUBTRACT','ADD',       'DIVIDE','MULTIPLY','DIFFERENCE','EXCLUSION'                    )), #'EXCLUSION' не влез в "Art"; и было бы неплохо узнать его предназначение.
+        # 对于 'MIX' 操作，请使用 VMT。
+        ("Math ", ('SUBTRACT','ADD',       'DIVIDE','MULTIPLY','DIFFERENCE','EXCLUSION'                    )), #'EXCLUSION' 不适合放在 "Art" 里; 最好知道它的目的。
         ("Art ",  ('DARKEN',  'LIGHTEN','   DODGE', 'SCREEN',  'SOFT_LIGHT','LINEAR_LIGHT','BURN','OVERLAY')),
-        ("Raw ",  ('VALUE',   'SATURATION','HUE',   'COLOR'                                                )) ) #Хотел переназвать на "Overwrite", но передумал.
+        ("Raw ",  ('VALUE',   'SATURATION','HUE',   'COLOR'                                                )) ) # 曾想改名为“Overwrite”，但改变了主意。
 dict_vqmtQuickMathMain = {
         'VALUE':   tup_vqmtQuickMathMapValue,
         'VECTOR':  tup_vqmtQuickMathMapVector,
         'BOOLEAN': tup_vqmtQuickMathMapBoolean,
         'RGBA':    tup_vqmtQuickModeMapColor}
-#Ассоциация нода для типа редактора и сокета
+# 节点类型与编辑器和套接字类型的关联
 dict_vqmtEditorNodes = {
         'VALUE':   {'ShaderNodeTree':     'ShaderNodeMath',
                     'GeometryNodeTree':   'ShaderNodeMath',
@@ -205,7 +205,7 @@ dict_vqmtEditorNodes = {
                     'GeometryNodeTree':   'ShaderNodeMix',
                     'CompositorNodeTree': 'CompositorNodeMixRGB',
                     'TextureNodeTree':    'TextureNodeMixRGB'} }
-#Значения по умолчанию для сокетов в зависимости от операции
+# 根据操作的套接字默认值
 dict_vqmtDefaultValueOperation = {
         'VALUE': {'MULTIPLY':(1.0, 1.0, 1.0),
                   'DIVIDE':  (1.0, 1.0, 1.0),
@@ -237,8 +237,8 @@ dict_vqmtDefaultValueOperation = {
                  'SATURATION':( (1,1,1,1), (0,0,1,1) ),
                  'HUE':       ( (1,1,1,1), (0,1,0,1) ),
                  'COLOR':     ( (1,1,1,1), (1,0,0,1) )} }
-dict_vqmtDefaultDefault = { #Можно было оставить без изменений, но всё равно обнуляю. Ради чего был создан VQMT?.
-        #Заметка: Основано на типе нода, а не на типе сокета. Повезло, что они одинаковые.
+dict_vqmtDefaultDefault = { # 可以保持不变，但我仍然将其归零。VQMT 是为了什么而创建的？
+        # 注意：基于节点类型，而不是套接字类型。幸运的是它们是相同的。
         'VALUE': (0.0, 0.0, 0.0),
         'INT': (0, 0, 0),
         'VECTOR': ((0,0,0), (0,0,0), (0,0,0), 0.0),
@@ -275,18 +275,18 @@ dict_vqdtQuickDimensionsMain = {
                               'VALUE':    ('ShaderNodeCombineXYZ','FunctionNodeCombineColor','FunctionNodeQuaternionToRotation'),
                               'INT':      ('ShaderNodeCombineXYZ',),
                               'BOOLEAN':  ('ShaderNodeCombineXYZ',),
-                              'STRING':   ('GeometryNodeStringToCurves',),   # 小王-Alt D 字符串接口
-                              'MATRIX':   ('FunctionNodeSeparateTransform',),   # 小王-Alt D 矩阵接口
+                              'STRING':   ('GeometryNodeStringToCurves',),   # Alt D 字符串接口
+                              'MATRIX':   ('FunctionNodeSeparateTransform',),   # Alt D 矩阵接口
                               'ROTATION': ('FunctionNodeRotationToQuaternion',),
-                              'GEOMETRY': ('GeometryNodeSeparateGeometry',)}, #Зато одинаковый по смыслу. Воспринимать как мини-рофл.
-                            #   'GEOMETRY': ('GeometryNodeSeparateComponents',)}, #Зато одинаковый по смыслу. Воспринимать как мини-рофл.
+                              'GEOMETRY': ('GeometryNodeSeparateGeometry',)}, # 虽然意义相同。将其视为一个迷你彩蛋。
+                            #   'GEOMETRY': ('GeometryNodeSeparateComponents',)}, # 虽然意义相同。将其视为一个迷你彩蛋。
         'CompositorNodeTree':{'VECTOR':   ('CompositorNodeSeparateXYZ',),
                               'RGBA':     ('CompositorNodeSeparateColor',),
                               'VALUE':    ('CompositorNodeCombineXYZ','CompositorNodeCombineColor'),
                               'INT':      ('CompositorNodeCombineXYZ',)},
         'TextureNodeTree':   {'VECTOR':   ('TextureNodeSeparateColor',),
                               'RGBA':     ('TextureNodeSeparateColor',),
-                              'VALUE':    ('TextureNodeCombineColor',''), #Нет обработок отсутствия второго, поэтому пусто; см. |3|.
+                              'VALUE':    ('TextureNodeCombineColor',''), # 无法处理缺少第二个的情况，因此留空；参见 |3|。
                               'INT':      ('TextureNodeCombineColor',)}}
 
 dict_vqdtQuickConstantMain = {
@@ -310,14 +310,3 @@ dict_vqdtQuickConstantMain = {
                               'RGBA':     'CompositorNodeRGB'     },
         'TextureNodeTree':   { }
         }
-
-
-
-
-
-
-
-
-
-
-
