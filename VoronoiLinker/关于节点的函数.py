@@ -1,11 +1,14 @@
 from .C_Structure import BNode, BNodeSocket
-from .globals import gt_blender4, set_classicSocketsBlid, dict_typeSkToBlid
-from .common_class import Equestrian
+from .globals import is_blender4plus, set_classicSocketsBlid, dict_typeSkToBlid, set_utilTypeSkFields
+from .common_class import Equestrian, Fotago
 from bpy.types import (Node, NodeSocket, UILayout)
 import bpy
 from mathutils import Vector as Vec2
+from .common_func import sk_label_or_name, index_switch_add_input
+from bpy.app.translations import pgettext_iface as TranslateIface
 
-def sk_loc(sk):
+
+def sk_loc(sk: NodeSocket):
     return Vec2(BNodeSocket.GetFields(sk).runtime.contents.location[:]) if (sk.enabled) and (not sk.hide) else Vec2((0, 0))
 
 def node_abs_loc(nd):
@@ -20,35 +23,12 @@ def SaveCollapsedNodes(nodes):
     for nd in nodes:
         dict_collapsedNodes[nd] = nd.hide
 
-def index_switch_add_input(nodes, index_switch_node):
-    old_active = nodes.active
-    nodes.active = index_switch_node
-    bpy.ops.node.index_switch_item_add()
-    nodes.active = old_active
-    return index_switch_node.inputs[-2]
-
 # 我没有只展开最近的节点, 而是做了一个"痕迹".
 # 为了不让这一切变成混乱的, 不断"抽搐"的场面, 而是可以引导, 展开, 冷静下来, 看到"当前情况", 分析, 然后 спокойно 地连接需要的东西.
 def RestoreCollapsedNodes(nodes):
     for nd in nodes:
         if dict_collapsedNodes.get(nd, None): # 工具在过程中可能会创建节点; 例如 vptRvEeIsSavePreviewResults.
             nd.hide = dict_collapsedNodes[nd]
-
-class Fotago(): # Found Target Goal (找到的目标), "剩下的你们自己看着办".
-    #def __getattr__(self, att): # 天才. 仅次于 '(*args): return Vector((args))'.
-    #    return getattr(self.target, att) # 但要小心, 它的速度慢了大约5倍.
-    def __init__(self, target: NodeSocket, *, dist=0.0, pos=Vec2((0.0, 0.0)), dir=0, boxHeiBound=(0.0, 0.0), text=""):
-        #self.target = target
-        self.tar = target
-        #self.sk = target #Fotago.sk = property(lambda a:a.target)
-        #self.nd = target #Fotago.nd = property(lambda a:a.target)
-        self.blid: str = target.bl_idname  #Fotago.blid = property(lambda a:a.target.bl_idname)
-        self.dist = dist
-        self.pos = pos
-        # 下面的仅用于插槽.
-        self.dir = dir
-        self.boxHeiBound = boxHeiBound
-        self.soldText = text # 用于支持其他语言的翻译. 每次绘制时都获取翻译太不方便了, 所以直接"焊接"上去.
 
 def GenFtgFromNd(nd, pos: Vec2, uiScale: float): # 从 GetNearestNodesFtg 中提取出来, 本来没必要, 但 VLTT 逼我这么做.
     def DistanceField(field0: Vec2, boxbou: Vec2): # 感谢 RayMarching, 没有它我不会想到这个.
@@ -85,7 +65,7 @@ def GetNearestNodesFtg(nodes, samplePos, uiScale, includePoorNodes=True): # 返�
 
 def GenFtgsFromPuts(nd, isSide, samplePos, uiScale): # 为 vptRvEeSksHighlighting 提取出来.
     # 注意: 这个函数应该自己从标记中获取方向, 因为 `reversed(nd.inputs)`.
-    def SkIsLinkedVisible(sk):
+    def SkIsLinkedVisible(sk: NodeSocket):
         if not sk.is_linked:
             return True
         return (sk.vl_sold_is_final_linked_cou)and(sk.vl_sold_links_final[0].is_muted)
@@ -100,7 +80,7 @@ def GenFtgsFromPuts(nd, isSide, samplePos, uiScale): # 为 vptRvEeSksHighlightin
             if (not isSide)and(sk.type=='VECTOR')and(SkIsLinkedVisible(sk))and(not sk.hide_value):
                 if "VectorDirection" in str(sk.rna_type):
                     hei = 2
-                elif not( (nd.type in ('BSDF_PRINCIPLED','SUBSURFACE_SCATTERING'))and(not gt_blender4) )or( not(sk.name in ("Subsurface Radius","Radius"))):
+                elif not( (nd.type in ('BSDF_PRINCIPLED','SUBSURFACE_SCATTERING'))and(not is_blender4plus) )or( not(sk.name in ("Subsurface Radius","Radius"))):
                     hei = 3
             boxHeiBound = (pos.y-11-hei*20,  pos.y+11+max(sk.vl_sold_is_final_linked_cou-2,0)*5*(not isSide))
             txt = TranslateIface(sk_label_or_name(sk)) if sk.bl_idname!='NodeSocketVirtual' else TranslateIface("Virtual" if not sk.name else sk_label_or_name(sk))
@@ -263,37 +243,24 @@ def NewLinkHhAndRemember(sko, ski):
     VlrtRememberLastSockets(sko, ski)
 
 
-def CheckUncollapseNodeAndReNext(nd: Node, self, *, cond: bool, flag=None): # 我是多么鄙视折叠起来的节点啊.
-    if nd.hide and cond:
-        nd.hide = False
-        # 注意: 在 NextAssignmentTool 的拓扑结构中要小心无限循环.
-        # 警告! type='DRAW_WIN' 会导致某些罕见的带有折叠节点的节点树崩溃! 如果知道如何重现, 最好能报个bug.
-        bpy.ops.wm.redraw_timer(type='DRAW', iterations=0)
-        # todo0: 如果连续展开了多个节点, 应该只重绘一次; 但没必要. 如果发生了这种情况, 说明这个工具的搜索拓扑很糟糕.
-        self.NextAssignmentRoot(flag)
-
-
 def FtgGetTargetOrNone(ftg) -> NodeSocket:
     return ftg.tar if ftg else None
-
-def sk_label_or_name(sk):
-    return sk.label if sk.label else sk.name
 
 def is_builtin_tree_idname(blid):
     set_quartetClassicTreeBlids = {'ShaderNodeTree','GeometryNodeTree','CompositorNodeTree','TextureNodeTree'}
     return blid in set_quartetClassicTreeBlids
 
-def sk_type_to_idname(sk):
+def sk_type_to_idname(sk: NodeSocket):
     return dict_typeSkToBlid.get(sk.type, "Vl_Unknow")
 
-def IsClassicSk(sk):
+def IsClassicSk(sk: NodeSocket):
     if sk.bl_idname=='NodeSocketVirtual':
         return True
     else:
         return sk_type_to_idname(sk) in set_classicSocketsBlid
 
 def CompareSkLabelName(sk1, sk2, ignore_upper_lower=False):
-    if isIgnoreCase:
+    if ignore_upper_lower:
         return sk_label_or_name(sk1).upper()==sk_label_or_name(sk2).upper()
     else:
         return sk_label_or_name(sk1)==sk_label_or_name(sk2)
@@ -312,3 +279,27 @@ def SelectAndActiveNdOnly(ndTar):
         nd.select = False
     ndTar.id_data.nodes.active = ndTar
     ndTar.select = True
+
+def MinFromFtgs(ftg1, ftg2):
+    # print(type(ftg1))   # <class Fotago>
+    if (ftg1)or(ftg2): # 如果至少有一个存在.
+        if not ftg2: # 如果其中一个不存在,
+            return ftg1
+        elif not ftg1: # 那么另一个就是唯一的选择.
+            return ftg2
+        else: # 否则选择最近的那个.
+            return ftg1 if ftg1.dist<ftg2.dist else ftg2
+    return None
+
+def FindAnySk(nd, list_ftgSksIn, list_ftgSksOut): # Todo0NA: 需要泛化!, 用 lambda. 并且外部循环遍历列表, 而不是两个循环.
+    ftgSkOut, ftgSkIn = None, None
+    for ftg in list_ftgSksOut:
+        if (ftg.blid!='NodeSocketVirtual')and(Equestrian.IsSimRepCorrectSk(nd, ftg.tar)): # todo1v6: 这个函数到处都和 !=NodeSocketVirtual 一起使用, 需要重做拓扑.
+            ftgSkOut = ftg
+            break
+    for ftg in list_ftgSksIn:
+        if (ftg.blid!='NodeSocketVirtual')and(Equestrian.IsSimRepCorrectSk(nd, ftg.tar)):
+            ftgSkIn = ftg
+            break
+    return MinFromFtgs(ftgSkOut, ftgSkIn)
+

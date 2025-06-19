@@ -1,4 +1,4 @@
-
+from .globals import dict_vlHhTranslations
 
 class TranClsItemsUtil():
     def __init__(self, tup_items):
@@ -18,6 +18,7 @@ class TranClsItemsUtil():
             return TranClsItemsUtil(self.data[att]) #`toolProp.ENUM1.name`
     def __getitem__(self, key):
         return TranClsItemsUtil(self.data[key]) #`toolProp['ENUM1'].name`
+
 class TranAnnotFromCls():
     def __init__(self, annot):
         self.annot = annot
@@ -26,8 +27,6 @@ class TranAnnotFromCls():
         return result if att!='items' else TranClsItemsUtil(result)
 def GetAnnotFromCls(cls, key): # 原来它们藏在这里, 在注解(annotations)里. 我都快放弃希望了, 以为必须手动一个个写了. 😂
     return TranAnnotFromCls(cls.__annotations__[key])
-
-
 
 
 class VlTrMapForKey():
@@ -40,5 +39,4 @@ class VlTrMapForKey():
     def __exit__(self, *_):
         for dk, dv in self.data.items():
             dict_vlHhTranslations[dk]['trans'][self.tc][self.key] = dv
-
 

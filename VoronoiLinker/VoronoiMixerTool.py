@@ -1,8 +1,9 @@
 from .common_class import VmtData
 from .common_func import DisplayMessage
-from .VoronoiTool import VoronoiToolPairSk
+from .VoronoiTool import VoronoiToolPairSk, CheckUncollapseNodeAndReNext
 from .关于颜色的函数 import power_color4, get_sk_color_safe
 from .关于翻译的函数 import GetAnnotFromCls, VlTrMapForKey
+from bpy.app.translations import pgettext_iface as TranslateIface
 
 
 class VptWayTree():
@@ -102,7 +103,7 @@ viaverSkfMethod = -1 # 用于成功交互方法的切换开关. 本可以按版�
 
 # 注意: ViaVer'ы 尚未更新.
 def ViaVerNewSkf(tree, isSide, ess, name):
-    if gt_blender4: # Todo1VV: 重新思考拓扑结构; 使用全局函数和方法, 以及一个指向成功方法的全局变量, 实现"完全锁定".
+    if is_blender4plus: # Todo1VV: 重新思考拓扑结构; 使用全局函数和方法, 以及一个指向成功方法的全局变量, 实现"完全锁定".
         global viaverSkfMethod
         if viaverSkfMethod==-1:
             viaverSkfMethod = 1+hasattr(tree.interface,'items_tree')
@@ -115,7 +116,7 @@ def ViaVerNewSkf(tree, isSide, ess, name):
     return skf
 
 def ViaVerGetSkfa(tree, isSide):
-    if gt_blender4:
+    if is_blender4plus:
         global viaverSkfMethod
         if viaverSkfMethod==-1:
             viaverSkfMethod = 1+hasattr(tree.interface,'items_tree')
@@ -129,7 +130,7 @@ def ViaVerGetSkf(tree, isSide, name):
     return ViaVerGetSkfa(tree, isSide).get(name)
 
 def ViaVerSkfRemove(tree, isSide, name):
-    if gt_blender4:
+    if is_blender4plus:
         tree.interface.remove(name)
     else:
         (tree.outputs if isSide else tree.inputs).remove(name)

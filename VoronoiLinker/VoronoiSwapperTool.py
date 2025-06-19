@@ -1,5 +1,5 @@
 from .关于翻译的函数 import GetAnnotFromCls, VlTrMapForKey
-from .VoronoiTool import VoronoiToolPairSk
+from .VoronoiTool import VoronoiToolPairSk, CheckUncollapseNodeAndReNext
 
 
 fitVstModeItems = ( ('SWAP', "Swap",     "All links from the first socket will be on the second, from the second on the first"),

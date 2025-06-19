@@ -12,11 +12,8 @@ bl_info = {'name':"Voronoi Linker",
 
 from builtins import len as length # 我超爱三个字母的变量名.没有像"len"这样的名字, 我会感到非常伤心和孤独... 😭 还有 'Vector.length' 也是.
 import bpy, rna_keymap_ui, bl_keymap_utils
-from mathutils import Vector as Vec2
 
-import platform
 from time import perf_counter, perf_counter_ns
-import copy     # 用于 VLNST.
 from pprint import pprint
 from bpy.types import (NodeSocket, UILayout)
 from bpy.app.translations import pgettext_iface as TranslateIface
@@ -24,8 +21,8 @@ from bpy.app.translations import pgettext_iface as TranslateIface
 from .C_Structure import BNode
 from .common_class import Equestrian
 from .globals import *
-from .common_func import GetFirstUpperLetters, GetUserKmNe, format_tool_set
-from .globals import gt_blender4, dict_typeSkToBlid
+from .globals import dict_typeSkToBlid, dict_vlHhTranslations
+from .common_func import GetFirstUpperLetters, GetUserKmNe, format_tool_set, sk_label_or_name
 from .VoronoiTool import VoronoiToolRoot, VoronoiToolPairSk
 from .VoronoiLinkerTool import VoronoiLinkerTool
 from .VoronoiMixerTool import VoronoiMixerTool
@@ -53,13 +50,12 @@ from .Rot_or_Mat_Converter import Rot_or_Mat_Converter, Pie_MT_Converter_To_Rota
 from .common_class import TryAndPass
 from .关于sold的函数 import SolderClsToolNames, RegisterSolderings, UnregisterSolderings
 from .关于翻译的函数 import GetAnnotFromCls, VlTrMapForKey
+from .关于节点的函数 import sk_type_to_idname
 from .draw_in_view import TestDraw
+
 
 dict_classes = {} # 所有需要注册的类都放在这里. 使用字典是为了 smart_add_to_reg_and_kmiDefs() 函数, 同时还能保持顺序.
 dict_vtClasses = {} # 只存放 V*T (Voronoi Tool) 工具.
-
-# list_classes = []
-# list_toolClasses = []
 
 # todo0: 需要搞清楚插件标题, 插件名称, 文件名, 模块名 (可能还有包名) 之间的区别; 并且还要在已安装插件列表里查看一下.
 voronoiAddonName = __package__
@@ -74,12 +70,6 @@ def smart_add_to_reg_and_kmiDefs(cls, txt, dict_props={}):
     dict_classes[cls] = True
     dict_vtClasses[cls] = True
     list_kmiDefs.append( (cls.bl_idname, dict_numToKey.get(txt[4:], txt[4:]), txt[0]=="S", txt[1]=="C", txt[2]=="A", txt[3]=="+", dict_props) )
-
-
-gt_blender4 = bpy.app.version[0]>=4 
-# 用于支持在旧版本中工作. 这样在被迫切换到旧版本时, 心里能舒坦点, 不用那么紧张,
-# 还能因为插件能在不同API的不同版本中运行而获得额外的内啡肽. 😎
-#Todo0VV: 尽可能地向更低版本兼容. 目前能保证的是: b4.0 和 b4.1? 🤔
 
 voronoiAnchorCnName = "Voronoi_Anchor"           # 不支持翻译, 就这样一起吧.
 voronoiAnchorDtName = "Voronoi_Anchor_Dist"      # 不支持翻译! 请参考相关的拓扑结构.
@@ -114,9 +104,6 @@ class ToTimeNs(): # 我投降了. 🤷‍ 我不知道为什么在大型节点�
         dict_timeOutside[self.name] = tpcn
 
 # todo1v6: 当工具处于活动状态时, 按下 PrtScr 会在控制台刷屏 `WARN ... pyrna_enum_to_py: ... '171' matches no enum in 'Event'`.
-
-
-dict_vlHhTranslations = {}
 
 dict_vlHhTranslations['ru_RU'] = {'author':"ugorek",    'vl':(5,0,0), 'created':"2024.02.29", 'trans':{'a':{}, 'Op':{}}} # 作者本人
 dict_vlHhTranslations['zh_CN'] = {'author':"chenpaner", 'vl':(4,0,0), 'created':"2023.12.15", 'trans':{'a':{}, 'Op':{}}} # https://github.com/ugorek000/VoronoiLinker/issues/21
@@ -293,52 +280,6 @@ def SetPieData(self, toolData, prefs, col):
     toolData.prefs = prefs
     prefs.vaDecorColSkBack = col # 这句在 vaDecorColSk 之前很重要; 参见 VaUpdateDecorColSk().
     prefs.vaDecorColSk = col
-
-
-def GetOpKmi(self, event): # Todo00: 有没有更正确的设计或方法?
-    # 操作符可以有多种调用组合, 所有这些组合在 `keymap_items` 中的键都相同, 所以我们手动遍历所有
-    blid = getattr(bpy.types, self.bl_idname).bl_idname
-    for li in GetUserKmNe().keymap_items:
-        if li.idname==blid:
-            # 注意: 也要按键本身是否匹配来搜索, 因为多个调用方式的修饰键也可能相同.
-            if (li.type==event.type)and(li.shift_ui==event.shift)and(li.ctrl_ui==event.ctrl)and(li.alt_ui==event.alt):
-                # 注意: 也可能有两个完全相同的调用热键, 但Blender只会执行其中一个 (至少对VL是这样), 即列表中排在前面的那个.
-                return li # 这个函数也只返回列表中的第一个.
-def GetSetOfKeysFromEvent(event, isSide=False):
-    set_keys = {event.type}
-    if event.shift:
-        set_keys.add('RIGHT_SHIFT' if isSide else 'LEFT_SHIFT')
-    if event.ctrl:
-        set_keys.add('RIGHT_CTRL' if isSide else 'LEFT_CTRL')
-    if event.alt:
-        set_keys.add('RIGHT_ALT' if isSide else 'LEFT_ALT')
-    if event.oskey:
-        set_keys.add('OSKEY' if isSide else 'OSKEY')
-    return set_keys
-
-def MinFromFtgs(ftg1, ftg2):
-    # print(type(ftg1))   # <class Fotago>
-    if (ftg1)or(ftg2): # 如果至少有一个存在.
-        if not ftg2: # 如果其中一个不存在,
-            return ftg1
-        elif not ftg1: # 那么另一个就是唯一的选择.
-            return ftg2
-        else: # 否则选择最近的那个.
-            return ftg1 if ftg1.dist<ftg2.dist else ftg2
-    return None
-
-def FindAnySk(nd, list_ftgSksIn, list_ftgSksOut): # Todo0NA: 需要泛化!, 用 lambda. 并且外部循环遍历列表, 而不是两个循环.
-    ftgSkOut, ftgSkIn = None, None
-    for ftg in list_ftgSksOut:
-        if (ftg.blid!='NodeSocketVirtual')and(Equestrian.IsSimRepCorrectSk(nd, ftg.tar)): # todo1v6: 这个函数到处都和 !=NodeSocketVirtual 一起使用, 需要重做拓扑.
-            ftgSkOut = ftg
-            break
-    for ftg in list_ftgSksIn:
-        if (ftg.blid!='NodeSocketVirtual')and(Equestrian.IsSimRepCorrectSk(nd, ftg.tar)):
-            ftgSkIn = ftg
-            break
-    return MinFromFtgs(ftgSkOut, ftgSkIn)
-
 
 class LyAddQuickInactiveCol():
     def __init__(self, where: UILayout, att='row', align=True, active=False):
@@ -792,154 +733,7 @@ def VlnstUpdateLastExecError(self, _context):
 class VoronoiAddonPrefs(VoronoiAddonPrefs):
     vlnstLastExecError: bpy.props.StringProperty(name="Last exec error", default="", update=VlnstUpdateLastExecError)
 
-# 突然发现, 我以前对"懒人延续"工具的想法被封装在了这个工具里. 真是出乎意料.
-# 这个工具, 和 ^ (其中插槽和节点明确决定了下一个节点) 一样, 只不过是针对两个插槽的; 而且可能性更多!
 
-lzAny = '!any'
-class LazyKey():
-    def __init__(self, fnb, fst, fsn, fsg, snb=lzAny, sst=lzAny, ssn=lzAny, ssg=lzAny):
-        self.firstNdBlid = fnb
-        self.firstSkBlid = dict_typeSkToBlid.get(fst, fst)
-        self.firstSkName = fsn
-        self.firstSkGend = fsg
-        self.secondNdBlid = snb
-        self.secondSkBlid = dict_typeSkToBlid.get(sst, sst)
-        self.secondSkName = ssn
-        self.secondSkGend = ssg
-class LazyNode():
-    # 黑魔法警告! 🧙‍ 如果在 __init__ 中使用 list_props=[] 作为默认参数, 那么在一个实例上使用 nd.list_props += [..] 会修改所有实例的 lzSt. 这简直是黑魔法; 保证让你做噩梦.
-    def __init__(self, blid, list_props, ofsPos=(0,0), hhoSk=0, hhiSk=0):
-        self.blid = blid
-        # list_props 也包含对插槽的处理.
-        # 指向插槽 (在 list_props 和 lzHh_Sk 中) -- 索引+1, 符号表示方向; => 0 不使用.
-        self.list_props = list_props
-        self.lzHhOutSk = hhoSk
-        self.lzHhInSk = hhiSk
-        self.locloc = Vec2(ofsPos) # "Local location"; 以及离世界中心的偏移.
-class LazyStencil():
-    def __init__(self, key, csn=2, name="", prior=0.0):
-        self.lzkey = key
-        self.prior = prior # 越高越重要.
-        self.name = name
-        self.trees = {} # 这也像是密钥的一部分.
-        self.isTwoSkNeeded = csn==2
-        self.list_nodes = []
-        self.list_links = [] # 序号节点 / 插槽, 以及同样的输入.
-        self.isSameLink = False
-        self.txt_exec = ""
-
-list_vlnstDataPool = []
-
-# 数据库:
-lzSt = LazyStencil(LazyKey(lzAny,'RGBA','Color',True, lzAny,'VECTOR','Normal',False), 2, "Fast Color NormalMap")
-lzSt.trees = {'ShaderNodeTree'}
-lzSt.list_nodes.append( LazyNode('ShaderNodeNormalMap', [], hhiSk=-2, hhoSk=1) )
-lzSt.txt_exec = "skFirst.node.image.colorspace_settings.name = prefs.vlnstNonColorName"
-list_vlnstDataPool.append(lzSt)
-##
-lzSt = LazyStencil(LazyKey(lzAny,'RGBA','Color',True, lzAny,'VALUE',lzAny,False), 2, "Lazy Non-Color data to float socket")
-lzSt.trees = {'ShaderNodeTree'}
-lzSt.isSameLink = True
-lzSt.txt_exec = "skFirst.node.image.colorspace_settings.name = prefs.vlnstNonColorName"
-list_vlnstDataPool.append(lzSt)
-##
-lzSt = LazyStencil(LazyKey(lzAny,'RGBA','Color',False), 1, "NW TexCord Parody")
-lzSt.trees = {'ShaderNodeTree'}
-lzSt.list_nodes.append( LazyNode('ShaderNodeTexImage', [(2,'hide',True)], hhoSk=-1) )
-lzSt.list_nodes.append( LazyNode('ShaderNodeMapping', [(-1,'hide_value',True)], ofsPos=(-180,0)) )
-lzSt.list_nodes.append( LazyNode('ShaderNodeUVMap', [('width',140)], ofsPos=(-360,0)) )
-lzSt.list_links += [ (1,0,0,0),(2,0,1,0) ]
-list_vlnstDataPool.append(lzSt)
-lzSt = copy.deepcopy(lzSt)
-lzSt.lzkey.firstSkName = "Base Color"
-list_vlnstDataPool.append(lzSt)
-##
-lzSt = LazyStencil(LazyKey(lzAny,'VECTOR','Vector',False), 1, "NW TexCord Parody Half")
-lzSt.trees = {'ShaderNodeTree'}
-lzSt.list_nodes.append( LazyNode('ShaderNodeMapping', [(-1,'hide_value',True)], hhoSk=-1, ofsPos=(-180,0)) )
-lzSt.list_nodes.append( LazyNode('ShaderNodeUVMap', [('width',140)], ofsPos=(-360,0)) )
-lzSt.list_links += [ (1,0,0,0) ]
-list_vlnstDataPool.append(lzSt)
-##
-lzSt = LazyStencil(LazyKey(lzAny,'RGBA',lzAny,True, lzAny,'SHADER',lzAny,False), 2, "Insert Emission")
-lzSt.trees = {'ShaderNodeTree'}
-lzSt.list_nodes.append( LazyNode('ShaderNodeEmission', [], hhiSk=-1, hhoSk=1) )
-list_vlnstDataPool.append(lzSt)
-##
-lzSt = LazyStencil(LazyKey('ShaderNodeBackground','RGBA','Color',False), 1, "World env texture", prior=1.0)
-lzSt.trees = {'ShaderNodeTree'}
-lzSt.list_nodes.append( LazyNode('ShaderNodeTexEnvironment', [], hhoSk=-1) )
-lzSt.list_nodes.append( LazyNode('ShaderNodeMapping', [(-1,'hide_value',True)], ofsPos=(-180,0)) )
-lzSt.list_nodes.append( LazyNode('ShaderNodeTexCoord', [('show_options',False)], ofsPos=(-360,0)) )
-lzSt.list_links += [ (1,0,0,0),(2,3,1,0) ]
-list_vlnstDataPool.append(lzSt)
-##
-
-list_vlnstDataPool.sort(key=lambda a:a.prior, reverse=True)
-
-def DoLazyStencil(tree, skFirst, skSecond, lzSten):
-    list_result = []
-    firstCenter = None
-    for li in lzSten.list_nodes:
-        nd = tree.nodes.new(li.blid)
-        nd.location += li.locloc
-        list_result.append(nd)
-        for pr in li.list_props:
-            if length(pr)==2:
-                setattr(nd, pr[0], pr[1])
-            else:
-                setattr( (nd.outputs if pr[0]>0 else nd.inputs)[abs(pr[0])-1], pr[1], pr[2] )
-        if li.lzHhOutSk:
-            tree.links.new(nd.outputs[abs(li.lzHhOutSk)-1], skFirst if li.lzHhOutSk<0 else skSecond)
-        if li.lzHhInSk:
-            tree.links.new(skFirst if li.lzHhInSk<0 else skSecond, nd.inputs[abs(li.lzHhInSk)-1])
-    # 对于单个节点还行, 但考虑到多样性和灵活性, 最好还是不用 NewLinkHhAndRemember(), 直接原生连接.
-    for li in lzSten.list_links:
-        tree.links.new(list_result[li[0]].outputs[li[1]], list_result[li[2]].inputs[li[3]])
-    if lzSten.isSameLink:
-        tree.links.new(skFirst, skSecond)
-    return list_result
-def LzCompare(a, b):
-    return (a==b)or(a==lzAny)
-def LzNodeDoubleCheck(zk, a, b): return LzCompare(zk.firstNdBlid,            a.bl_idname if a else "") and LzCompare(zk.secondNdBlid,            b.bl_idname if b else "")
-def LzTypeDoubleCheck(zk, a, b): return LzCompare(zk.firstSkBlid, sk_type_to_idname(a) if a else "") and LzCompare(zk.secondSkBlid, sk_type_to_idname(b) if b else "") # 不是'type', 而是blid's; 用于插件节点树.
-def LzNameDoubleCheck(zk, a, b): return LzCompare(zk.firstSkName,      sk_label_or_name(a) if a else "") and LzCompare(zk.secondSkName,      sk_label_or_name(b) if b else "")
-def LzGendDoubleCheck(zk, a, b): return LzCompare(zk.firstSkGend,            a.is_output if a else "") and LzCompare(zk.secondSkGend,            b.is_output if b else "")
-def LzLazyStencil(prefs, tree, skFirst, skSecond):
-    if not skFirst:
-        return []
-    ndOut = skFirst.node
-    ndIn = skSecond.node if skSecond else None
-    for li in list_vlnstDataPool:
-        if (li.isTwoSkNeeded)^(not skSecond): # 对于单插槽情况必须没有第二个, 对于双插槽情况必须有.
-            if (not li.trees)or(tree.bl_idname in li.trees): # 必须支持节点树类型.
-                zk = li.lzkey
-                if LzNodeDoubleCheck(zk, ndOut, ndIn): # 节点匹配.
-                    for cyc in (False, True):
-                        skF = skFirst
-                        skS = skSecond
-                        if cyc: # 两个输出和两个输入, 但不同的性别顺序可能不同. 但交换对 txt_exec 的内容有影响.
-                            skF, skS = skSecond, skFirst
-                        if LzTypeDoubleCheck(zk, skF, skS): # 插槽的Blid匹配.
-                            if LzNameDoubleCheck(zk, skF, skS): # 插槽的名称/标签匹配.
-                                if LzGendDoubleCheck(zk, skF, skS): # 性别匹配.
-                                    result = DoLazyStencil(tree, skF, skS, li)
-                                    if li.txt_exec:
-                                        try:
-                                            exec(li.txt_exec) # 警报!1, 哦不.. 别慌, 这是内部的. 一切仍然安全.
-                                        except Exception as ex:
-                                            VlnstData.lastLastExecError = str(ex)
-                                            prefs.vlnstLastExecError = VlnstData.lastLastExecError
-                                    return result
-def VlnstLazyTemplate(prefs, tree, skFirst, skSecond, cursorLoc):
-    list_nodes = LzLazyStencil(prefs, tree, skFirst, skSecond)
-    if list_nodes:
-        bpy.ops.node.select_all(action='DESELECT')
-        firstOffset = cursorLoc-list_nodes[0].location
-        for nd in list_nodes:
-            nd.select = True
-            nd.location += firstOffset
-        bpy.ops.node.translate_attach('INVOKE_DEFAULT')
 
 
 smart_add_to_reg_and_kmiDefs(VoronoiResetNodeTool, "###_BACK_SPACE")

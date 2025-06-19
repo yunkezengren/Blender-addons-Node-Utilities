@@ -1,6 +1,7 @@
 from .common_func import DisplayMessage
 from .关于翻译的函数 import GetAnnotFromCls, VlTrMapForKey
 from .VoronoiTool import VoronoiToolNd
+from bpy.app.translations import pgettext_iface as TranslateIface
 
 
 class VoronoiRantoTool(VoronoiToolNd): #完成了.

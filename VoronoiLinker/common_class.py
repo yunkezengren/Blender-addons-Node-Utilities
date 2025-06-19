@@ -1,7 +1,8 @@
 import bpy
 from builtins import len as length
 from bpy.types import (NodeSocket, UILayout)
-from .关于节点的函数 import index_switch_add_input, sk_label_or_name
+# from .common_func import sk_label_or_name, index_switch_add_input
+from .common_func import *
 
 class Equestrian():
     set_equestrianNodeTypes = {'GROUP', 'GROUP_INPUT', 'GROUP_OUTPUT', 
@@ -267,6 +268,22 @@ class Equestrian():
                 if not ndEq.node_tree:
                     raise Exception(f"Tree for nodegroup `{ndEq.path_from_id()}` not found, from `{snkd.path_from_id()}`")
                 self.skfa = ndEq.node_tree.interface.items_tree
+
+class Fotago(): # Found Target Goal (找到的目标), "剩下的你们自己看着办".
+    #def __getattr__(self, att): # 天才. 仅次于 '(*args): return Vector((args))'.
+    #    return getattr(self.target, att) # 但要小心, 它的速度慢了大约5倍.
+    def __init__(self, target: NodeSocket, *, dist=0.0, pos=Vec2((0.0, 0.0)), dir=0, boxHeiBound=(0.0, 0.0), text=""):
+        #self.target = target
+        self.tar = target
+        #self.sk = target #Fotago.sk = property(lambda a:a.target)
+        #self.nd = target #Fotago.nd = property(lambda a:a.target)
+        self.blid: str = target.bl_idname  #Fotago.blid = property(lambda a:a.target.bl_idname)
+        self.dist = dist
+        self.pos = pos
+        # 下面的仅用于插槽.
+        self.dir = dir
+        self.boxHeiBound = boxHeiBound
+        self.soldText = text # 用于支持其他语言的翻译. 每次绘制时都获取翻译太不方便了, 所以直接"焊接"上去.
 
 class PieRootData:
     isSpeedPie = False

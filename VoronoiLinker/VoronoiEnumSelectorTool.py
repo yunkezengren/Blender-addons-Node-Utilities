@@ -1,5 +1,7 @@
 from .关于翻译的函数 import GetAnnotFromCls, VlTrMapForKey
 from .VoronoiTool import VoronoiOpTool, VoronoiToolNd
+from bpy.app.translations import pgettext_iface as TranslateIface
+
 
 domain_en = [
     'POINT',

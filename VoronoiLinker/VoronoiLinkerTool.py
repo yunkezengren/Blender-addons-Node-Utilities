@@ -1,4 +1,4 @@
-from .VoronoiTool import VoronoiToolPairSk
+from .VoronoiTool import VoronoiToolPairSk, CheckUncollapseNodeAndReNext
 
 def is_unlink_route(node):
     if node.type == 'REROUTE' and (not (node.inputs[0].links or node.outputs[0].links)):

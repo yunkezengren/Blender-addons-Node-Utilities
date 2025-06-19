@@ -1,6 +1,6 @@
 from .VoronoiTool import VoronoiOpTool
 from .关于颜色的函数 import power_color4, get_sk_color
-from .globals import gt_blender4
+from .globals import is_blender4plus
 
 
 
@@ -32,7 +32,7 @@ def DoQuickMath(event, tree, operation, isCombo=False):
         # if VqmtData.qmSkType=='VECTOR':
         #     aNd.inputs[0].hide_value = True
         #使用event.shift的想法很棒。最初是为了单个连接到第二个接口，但由于下面的可视化搜索，它也可以交换两个连接。
-        bl4ofs = 2*gt_blender4*(tree.bl_idname in {'ShaderNodeTree','GeometryNodeTree'})
+        bl4ofs = 2*is_blender4plus*(tree.bl_idname in {'ShaderNodeTree','GeometryNodeTree'})
         skInx = aNd.inputs[0] if VqmtData.qmSkType!='RGBA' else aNd.inputs[-2-bl4ofs] #"Inx"，因为它是对整数“index”的模仿，但后来我意识到可以直接使用socket进行后续连接。
         if event.shift:
             for sk in aNd.inputs:

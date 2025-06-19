@@ -1,7 +1,8 @@
-from .关于节点的函数 import SolderSkLinks, RestoreCollapsedNodes
+from .关于节点的函数 import RestoreCollapsedNodes
+from .关于sold的函数 import SolderSkLinks
 from .关于颜色的函数 import get_sk_color_safe, Color4
 from .关于翻译的函数 import GetAnnotFromCls, VlTrMapForKey
-from .VoronoiTool import VoronoiToolSk
+from .VoronoiTool import VoronoiToolSk, CheckUncollapseNodeAndReNext
 
 def VptPreviewFromSk(self, prefs, skTar):
     if not(skTar and skTar.is_output):

@@ -5,7 +5,7 @@ from bpy.types import (NodeSocket, UILayout)
 from .Rot_or_Mat_Converter import Convert_Data, Pie_MT_Converter_To_Rotation, Pie_MT_Combine_Matrix
 from .globals import Cursor_X_Offset
 from .draw_in_view import TemplateDrawSksToolHh
-from .VoronoiTool import VoronoiToolTripleSk
+from .VoronoiTool import VoronoiToolTripleSk, CheckUncollapseNodeAndReNext
 
 class VoronoiQuickConstant(VoronoiToolTripleSk):
     bl_idname = 'node.voronoi_quick_constant'

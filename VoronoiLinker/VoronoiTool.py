@@ -3,15 +3,26 @@ import bpy
 from mathutils import Vector as Vec2
 
 from pprint import pprint
-from bpy.types import (NodeSocket, UILayout, View2D, Area)
+from bpy.types import (Node, UILayout, View2D, Area)
 
-from .关于节点的函数 import GetNearestSocketsFtg, GetNearestNodesFtg, RestoreCollapsedNodes, SolderSkLinks
+from .关于节点的函数 import GetNearestSocketsFtg, GetNearestNodesFtg, RestoreCollapsedNodes
+from .关于sold的函数 import SolderSkLinks
 from .draw_in_view import DrawDebug, TemplateDrawNodeFull, TemplateDrawSksToolHh
 from .C_Structure import RectBase
 from .common_class import TryAndPass, Prefs
-from .draw_in_view import TemplateDrawSksToolHh
 from .globals import set_utilTypeSkFields
 
+
+def GetOpKmi(self, event): 
+    # Todo00: 有没有更正确的设计或方法?
+    # 操作符可以有多种调用组合, 所有这些组合在 `keymap_items` 中的键都相同, 所以我们手动遍历所有
+    blid = getattr(bpy.types, self.bl_idname).bl_idname
+    for li in GetUserKmNe().keymap_items:
+        if li.idname==blid:
+            # 注意: 也要按键本身是否匹配来搜索, 因为多个调用方式的修饰键也可能相同.
+            if (li.type==event.type)and(li.shift_ui==event.shift)and(li.ctrl_ui==event.ctrl)and(li.alt_ui==event.alt):
+                # 注意: 也可能有两个完全相同的调用热键, 但Blender只会执行其中一个 (至少对VL是这样), 即列表中排在前面的那个.
+                return li # 这个函数也只返回列表中的第一个.
 
 class VoronoiOpTool(bpy.types.Operator):
     bl_options = {'UNDO'} # 手动创建的链接可以撤销, 所以在 VL 中也应如此. 对所有工具都一样.
@@ -211,6 +222,14 @@ class VoronoiToolAny(VoronoiToolSk, VoronoiToolNd): #2
     def InitToolPre(self, event):
         self.fotagoAny = None
 
+def CheckUncollapseNodeAndReNext(nd: Node, self: VoronoiToolRoot, *, cond: bool, flag=None): # 我是多么鄙视折叠起来的节点啊.
+    if nd.hide and cond:
+        nd.hide = False
+        # 注意: 在 NextAssignmentTool 的拓扑结构中要小心无限循环.
+        # 警告! type='DRAW_WIN' 会导致某些罕见的带有折叠节点的节点树崩溃! 如果知道如何重现, 最好能报个bug.
+        bpy.ops.wm.redraw_timer(type='DRAW', iterations=0)
+        # todo0: 如果连续展开了多个节点, 应该只重绘一次; 但没必要. 如果发生了这种情况, 说明这个工具的搜索拓扑很糟糕.
+        self.NextAssignmentRoot(flag)
 
 class EdgePanData:
     area: Area = None # 本应是 'context', 但它总是 None.
@@ -257,3 +276,4 @@ def EdgePanInit(self: VoronoiToolRoot, area: Area):
     EdgePanData.zoomFac = 1.0-self.prefs.vEdgePanFac
     EdgePanData.speed = self.prefs.vEdgePanSpeed
     bpy.app.timers.register(EdgePanTimer, first_interval=0.0)
+

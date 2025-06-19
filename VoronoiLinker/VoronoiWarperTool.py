@@ -1,5 +1,18 @@
 from .关于翻译的函数 import GetAnnotFromCls, VlTrMapForKey
-from .VoronoiTool import VoronoiToolSk
+from .VoronoiTool import VoronoiToolSk, CheckUncollapseNodeAndReNext
+
+
+def GetSetOfKeysFromEvent(event, isSide=False):
+    set_keys = {event.type}
+    if event.shift:
+        set_keys.add('RIGHT_SHIFT' if isSide else 'LEFT_SHIFT')
+    if event.ctrl:
+        set_keys.add('RIGHT_CTRL' if isSide else 'LEFT_CTRL')
+    if event.alt:
+        set_keys.add('RIGHT_ALT' if isSide else 'LEFT_ALT')
+    if event.oskey:
+        set_keys.add('OSKEY' if isSide else 'OSKEY')
+    return set_keys
 
 
 class VoronoiWarperTool(VoronoiToolSk):

@@ -2,7 +2,9 @@
 from .关于颜色的函数 import power_color4, get_sk_color_safe
 from .common_func import DisplayMessage
 from .关于翻译的函数 import GetAnnotFromCls, VlTrMapForKey
-from .VoronoiTool import VoronoiToolTripleSk
+from .VoronoiTool import VoronoiToolTripleSk, CheckUncollapseNodeAndReNext
+from bpy.app.translations import pgettext_iface as TranslateIface
+
 
 set_vqmtSkTypeFields = {'VALUE', 'RGBA', 'VECTOR', 'INT', 'BOOLEAN', 'ROTATION', 'MATRIX'}
 fitVqmtRloDescr = "Bypassing the pie call, activates the last used operation for the selected socket type.\n"+\

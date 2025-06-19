@@ -1,7 +1,7 @@
 import ctypes
 import bpy
 from bpy.types import NodeSocket
-from .globals import isWin, gt_blender4
+from .globals import isWin, is_blender4plus
 # from typing import cast
 
 
@@ -66,7 +66,7 @@ class BNodeSocket(StructBase):
     _pad                  : ctypes.c_char*4
     label                 : ctypes.c_char*64
     description           : ctypes.c_char*64
-    if (gt_blender4) and (bpy.app.version_string != '4.0.0 Alpha'):
+    if (is_blender4plus) and (bpy.app.version_string != '4.0.0 Alpha'):
         short_label       : ctypes.c_char*64
     default_attribute_name: ctypes.POINTER(ctypes.c_char)
     to_index              : ctypes.c_int

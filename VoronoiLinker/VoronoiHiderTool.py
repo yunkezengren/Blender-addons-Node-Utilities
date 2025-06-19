@@ -1,6 +1,6 @@
-from .关于节点的函数 import sk_label_or_name
+from .common_func import sk_label_or_name
 from .关于翻译的函数 import GetAnnotFromCls, VlTrMapForKey
-from .VoronoiTool import VoronoiToolAny
+from .VoronoiTool import VoronoiToolAny, CheckUncollapseNodeAndReNext
 
 def HideFromNode(prefs, ndTarget, lastResult, isCanDo=False): # 最初是我个人的实用工具, 在 VL 之前就创建了.
     set_equestrianHideVirtual = {'GROUP_INPUT','SIMULATION_INPUT','SIMULATION_OUTPUT','REPEAT_INPUT','REPEAT_OUTPUT'}

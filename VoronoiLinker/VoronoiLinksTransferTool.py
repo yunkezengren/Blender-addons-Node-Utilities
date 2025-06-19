@@ -1,5 +1,5 @@
-from .关于节点的函数 import SolderSkLinks
-from .关于节点的函数 import sk_label_or_name
+from .关于sold的函数 import SolderSkLinks
+from .common_func import sk_label_or_name
 from .关于翻译的函数 import GetAnnotFromCls, VlTrMapForKey
 
 

@@ -1,4 +1,5 @@
-from .VoronoiTool import VoronoiToolAny
+import bpy
+from .VoronoiTool import VoronoiToolAny, CheckUncollapseNodeAndReNext
 
 
 class VoronoiCallNodePie(VoronoiToolAny):

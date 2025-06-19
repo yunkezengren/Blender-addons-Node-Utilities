@@ -1,5 +1,5 @@
 from .关于翻译的函数 import GetAnnotFromCls, VlTrMapForKey
-from .VoronoiTool import VoronoiToolRoot
+from .VoronoiTool import VoronoiToolRoot, CheckUncollapseNodeAndReNext
 
 
 #"批量链接器" -- 就像链接器一样, 只是一次性处理多个 (显而易见).

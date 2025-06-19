@@ -1,8 +1,8 @@
 from .关于节点的函数 import DoLinkHh
 from .关于颜色的函数 import get_sk_color_safe, Color4
-from .关于节点的函数 import sk_label_or_name
+from .common_func import sk_label_or_name
 from .关于翻译的函数 import GetAnnotFromCls, VlTrMapForKey
-from .VoronoiTool import VoronoiToolPairSk
+from .VoronoiTool import VoronoiToolPairSk, CheckUncollapseNodeAndReNext
 
 
 fitVitModeItems = ( ('COPY',   "Copy",   "Copy a socket name to clipboard"),

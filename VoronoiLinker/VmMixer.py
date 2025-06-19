@@ -2,6 +2,7 @@ from .VoronoiTool import VoronoiOpTool
 from .common_class import VmtData
 from .关于节点的函数 import DoLinkHh
 from .关于颜色的函数 import get_sk_color
+from bpy.app.translations import pgettext_iface as TranslateIface
 
 
 

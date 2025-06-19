@@ -1,7 +1,6 @@
 from .关于节点的函数 import node_abs_loc
-from .关于颜色的函数 import (power_color4, clamp_color4, opaque_color4, get_color_black_alpha,
+from .关于颜色的函数 import (Color4, power_color4, clamp_color4, opaque_color4, get_color_black_alpha,
                       get_sk_color_safe, get_sk_color)
-
 tup_whiteCol4 = (1.0, 1.0, 1.0, 1.0)
 
 class VlDrawData():
@@ -33,8 +32,8 @@ class VlDrawData():
     def DrawRing(self, pos, rad, *, wid, resl=16, col=tup_whiteCol4, spin=0.0):
         vpos = tuple( ( rad*cos(cyc*2*pi/resl+spin)+pos[0], rad*sin(cyc*2*pi/resl+spin)+pos[1] ) for cyc in range(resl+1) )
         self.DrawPathLL(vpos, (col,)*(resl+1), wid=wid)
-    def DrawWidePoint(self, loc, *, radHh, col1=Col4(tup_whiteCol4), col2=tup_whiteCol4, resl=54):
-        colFacOut = Col4((0.5, 0.5, 0.5, 0.4))
+    def DrawWidePoint(self, loc, *, radHh, col1=Color4(tup_whiteCol4), col2=tup_whiteCol4, resl=54):
+        colFacOut = Color4((0.5, 0.5, 0.5, 0.4))
         self.DrawCircle(loc, radHh+3.0, resl=resl, col=col1*colFacOut)
         self.DrawCircle(loc, radHh,     resl=resl, col=col1*colFacOut)
         self.DrawCircle(loc, radHh/1.5, resl=resl, col=col2)
@@ -60,9 +59,9 @@ class VlDrawData():
             case 'SIMPLIFIED': self.dsFrameDisplayType = 1
             case 'ONLY_TEXT':  self.dsFrameDisplayType = 0
         ##
-        self.dsUniformColor = Col4(power_color4(self.dsUniformColor))
-        self.dsUniformNodeColor = Col4(power_color4(self.dsUniformNodeColor))
-        self.dsCursorColor = Col4(power_color4(self.dsCursorColor))
+        self.dsUniformColor = Color4(power_color4(self.dsUniformColor))
+        self.dsUniformNodeColor = Color4(power_color4(self.dsUniformNodeColor))
+        self.dsCursorColor = Color4(power_color4(self.dsCursorColor))
 
 def DrawWorldStick(drata, pos1, pos2, col1, col2):
     drata.DrawPathLL( (drata.VecUiViewToReg(pos1), drata.VecUiViewToReg(pos2)), (col1, col2), wid=drata.dsLineWidth )
@@ -75,7 +74,7 @@ def DrawVlSocketArea(drata, sk, bou, col):
     else:
         col = drata.dsUniformColor
     drata.DrawRectangle(pos1, pos2, col)
-def DrawVlWidePoint(drata, loc, *, col1=Col4(tup_whiteCol4), col2=tup_whiteCol4, resl=54, forciblyCol=False): #"forciblyCol" 只用于 DrawDebug.
+def DrawVlWidePoint(drata, loc, *, col1=Color4(tup_whiteCol4), col2=tup_whiteCol4, resl=54, forciblyCol=False): #"forciblyCol" 只用于 DrawDebug.
     if not(drata.dsIsColoredPoint or forciblyCol):
         col1 = col2 = drata.dsUniformColor
     drata.DrawWidePoint(drata.VecUiViewToReg(loc), radHh=( (6*drata.dsPointScale*drata.worldZoom)**2+10 )**0.5, col1=col1, col2=col2, resl=resl)
@@ -196,7 +195,7 @@ def DrawDebug(self, drata):
     DebugTextDraw(drata.VecUiViewToReg(drata.cursorLoc), "Cursor position here.", 1, 1, 1)
     if not self.tree:
         return
-    col = Col4((1.0, 0.5, 0.5, 1.0))
+    col = Color4((1.0, 0.5, 0.5, 1.0))
     list_ftgNodes = self.ToolGetNearestNodes(cur_x_off=0)
     if not list_ftgNodes:
         return
@@ -206,11 +205,11 @@ def DrawDebug(self, drata):
         DebugTextDraw(drata.VecUiViewToReg(li.pos), str(cyc)+" Node goal here", col.x, col.y, col.z)
     list_ftgSksIn, list_ftgSksOut = self.ToolGetNearestSockets(list_ftgNodes[0].tar)
     if list_ftgSksIn:
-        col = Col4((0.5, 1, 0.5, 1))
+        col = Color4((0.5, 1, 0.5, 1))
         DrawVlWidePoint(drata, list_ftgSksIn[0].pos, col1=col, col2=col, resl=4, forciblyCol=True)
         DebugTextDraw(drata.VecUiViewToReg(list_ftgSksIn[0].pos), "Nearest socketIn here", 0.5, 1, 0.5)
     if list_ftgSksOut:
-        col = Col4((0.5, 0.5, 1, 1))
+        col = Color4((0.5, 0.5, 1, 1))
         DrawVlWidePoint(drata, list_ftgSksOut[0].pos, col1=col, col2=col, resl=4, forciblyCol=True)
         DebugTextDraw(drata.VecUiViewToReg(list_ftgSksOut[0].pos), "Nearest socketOut here", 0.75, 0.75, 1)
 
@@ -253,7 +252,7 @@ def TemplateDrawNodeFull(drata, ftgNd, *, side=1, tool_name=""): # 模板重新�
             # DrawWorldText(drata, drata.cursorLoc, (0, 1), tool_name, colText=colTx, colBg=colTx)
     elif drata.dsIsDrawPoint:
         col = tup_whiteCol4 # 唯一剩下的未定义颜色. 'dsCursorColor' 在这里按设计不适合 (整个插件都是为了套接字, 对吧?).
-        DrawVlWidePoint(drata, drata.cursorLoc, col1=Col4(col), col2=col)
+        DrawVlWidePoint(drata, drata.cursorLoc, col1=Color4(col), col2=col)
 
 # 高级套接字绘制模板. 现在名称中有“Sk”, 因为节点已完全进入 VL.
 # 在旧版本中的硬核之后, 使用这个模板简直是享受 (甚至不要看那里, 那里简直是地狱).
@@ -303,9 +302,9 @@ def TemplateDrawSksToolHh(drata, *args_ftgSks, sideMarkHh=1, isDrawText=True,
                 col1 = col2 = drata.dsUniformColor
             DrawWorldStick(drata, GetPosFromFtg(ftg), cursorLoc, col1, col2)
         if drata.dsIsDrawSkArea:
-            DrawVlSocketArea(drata, ftg.tar, ftg.boxHeiBound, Col4(get_sk_color_safe(ftg.tar)))
+            DrawVlSocketArea(drata, ftg.tar, ftg.boxHeiBound, Color4(get_sk_color_safe(ftg.tar)))
         if drata.dsIsDrawPoint:
-            DrawVlWidePoint(drata, GetPosFromFtg(ftg), col1=Col4(clamp_color4(get_sk_color(ftg.tar))), col2=Col4(get_sk_color_safe(ftg.tar)))
+            DrawVlWidePoint(drata, GetPosFromFtg(ftg), col1=Color4(clamp_color4(get_sk_color(ftg.tar))), col2=Color4(get_sk_color_safe(ftg.tar)))
     # 文本
     if isDrawText: # 文本应该在所有其他 ^ 之上.
         list_ftgSksIn = [ftg for ftg in list_ftgSks if ftg.dir<0]
@@ -386,7 +385,7 @@ class TestDraw:
                     ofs5y = 0.5*cyc5
                     drata.DrawPathLL(( (100+ofs5x,100+ofsWid+ofsAl+ofs5y),(165+ofs5x,100+ofsWid+ofsAl+ofs5y) ), (col, col), wid=0.5*(1+cycWid))
         ##
-        col = Col4(cls.state)
+        col = Color4(cls.state)
         drata.cursorLoc = context.space_data.cursor_location
         cursorReg = drata.VecUiViewToReg(drata.cursorLoc)
         vec = cursorReg-Vec2((500,500))
@@ -416,8 +415,8 @@ class TestDraw:
         DrawMarker(drata, center+Vec2((-150,-60)), col, style=2)
         drata.DrawPathLL( (center+Vec2((0,-60)), center+Vec2((100,-60))), (opaque_color4(col), opaque_color4(col)), wid=drata.dsLineWidth )
         drata.DrawPathLL( (center+Vec2((100,-60)), center+Vec2((200,-60))), (opaque_color4(col), opaque_color4(col, al=0.0)), wid=drata.dsLineWidth )
-        drata.DrawWidePoint(center+Vec2((0,-60)), radHh=( (6*drata.dsPointScale+1)**2+10 )**0.5, col1=Col4(opaque_color4(col)), col2=Col4(opaque_color4(col)))
-        drata.DrawWidePoint(center+Vec2((100,-60)), radHh=( (6*drata.dsPointScale+1)**2+10 )**0.5, col1=col, col2=Col4(opaque_color4(col)))
+        drata.DrawWidePoint(center+Vec2((0,-60)), radHh=( (6*drata.dsPointScale+1)**2+10 )**0.5, col1=Color4(opaque_color4(col)), col2=Color4(opaque_color4(col)))
+        drata.DrawWidePoint(center+Vec2((100,-60)), radHh=( (6*drata.dsPointScale+1)**2+10 )**0.5, col1=col, col2=Color4(opaque_color4(col)))
         import gpu_extras.presets; gpu_extras.presets.draw_circle_2d((256,256),(1,1,1,1),10)
         ##
         cls.time += 0.01
