@@ -1,7 +1,7 @@
 from .C_Structure import BNode
 from .globals import *
 from .关于颜色的函数 import Color4, opaque_color4, power_color4
-from .common_func import GetFirstUpperLetters
+from .一些前向func import GetFirstUpperLetters
 from mathutils import Vector as Vec
 import bpy
 # from .C_Structure import bpy.types.NodeSocket

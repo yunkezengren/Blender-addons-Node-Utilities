@@ -10,7 +10,7 @@ from .关于节点的函数 import GetNearestSocketsFtg, GetNearestNodesFtg, Res
 from .关于sold的函数 import SolderSkLinks
 from .关于绘制的函数 import DrawDebug, TemplateDrawNodeFull, TemplateDrawSksToolHh
 from .C_Structure import RectBase
-from .common_class import TryAndPass
+from .一些前向class import TryAndPass
 from .globals import set_utilTypeSkFields
 
 from .关于翻译的函数 import *
@@ -20,8 +20,8 @@ from .关于颜色的函数 import *
 from .VoronoiTool import *
 from .关于sold的函数 import *
 from .globals import *
-from .common_class import *
-from .common_func import *
+from .一些前向class import *
+from .一些前向func import *
 from .关于绘制的函数 import *
 
 

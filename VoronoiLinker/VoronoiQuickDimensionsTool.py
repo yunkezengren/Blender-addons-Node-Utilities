@@ -6,11 +6,11 @@ from .关于颜色的函数 import *
 from .VoronoiTool import *
 from .关于sold的函数 import *
 from .globals import *
-from .common_class import *
-from .common_func import *
+from .一些前向class import *
+from .一些前向func import *
 from .关于绘制的函数 import *
 from .VoronoiTool import VoronoiToolTripleSk
-from .common_func import *
+from .一些前向func import *
 from .关于节点的函数 import GetListOfNdEnums, NewLinkHhAndRemember, FtgGetTargetOrNone
 from .Rot_or_Mat_Converter import Convert_Data, Pie_MT_Converter_Rotation_To, Pie_MT_Separate_Matrix
 from .globals import Cursor_X_Offset

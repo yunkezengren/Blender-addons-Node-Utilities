@@ -46,7 +46,7 @@ from .Rot_or_Mat_Converter import Rot_or_Mat_Converter, Pie_MT_Converter_To_Rota
 
 from .globals import *
 from .globals import dict_vlHhTranslations
-from .common_func import GetFirstUpperLetters, GetUserKmNe, format_tool_set
+from .一些前向func import GetFirstUpperLetters, GetUserKmNe, format_tool_set
 from .关于翻译的函数 import *
 from .关于节点的函数 import *
 from .关于ui的函数 import *
@@ -54,11 +54,11 @@ from .关于颜色的函数 import *
 from .VoronoiTool import *
 from .关于sold的函数 import *
 from .globals import *
-from .common_class import *
-from .common_func import *
+from .一些前向class import *
+from .一些前向func import *
 from .关于绘制的函数 import *
-from .common_func import Prefs
-from .common_class import TryAndPass
+from .一些前向func import Prefs
+from .一些前向class import TryAndPass
 from .关于sold的函数 import SolderClsToolNames, RegisterSolderings, UnregisterSolderings
 from .关于翻译的函数 import GetAnnotFromCls, VlTrMapForKey
 from .关于绘制的函数 import TestDraw
