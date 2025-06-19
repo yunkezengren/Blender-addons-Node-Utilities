@@ -1,24 +1,30 @@
+from .VoronoiTool import VoronoiOpTool
+from .common_class import VmtData
 
-Rotation_Data = VmtData()
+import bpy
+from bpy.types import Context, NodeTree
 
-def Do_Rot_or_Mat_Converter(context, isS, isA, node_type):
-    tree = context.space_data.edit_tree
+
+Convert_Data = VmtData()
+
+def Do_Rot_or_Mat_Converter(context: Context, isS: bool, isA: bool, node_type: str):
+    tree: NodeTree = context.space_data.edit_tree
     if not tree:
         return
     bpy.ops.node.add_node('INVOKE_DEFAULT', type=node_type, use_transform=True)
     aNd = context.active_node
-    sk0 = Rotation_Data.sk0
-    sk1 = Rotation_Data.sk1
-    sk2 = Rotation_Data.sk2
+    sk0 = Convert_Data.sk0
+    sk1 = Convert_Data.sk1
+    sk2 = Convert_Data.sk2
     # if "ToRotation" in aNd.bl_idname:
     if not sk0.is_output:
         # print("." * 70)
-        # print(f"{Rotation_Data.__dict__ = }")
-        # pprint(Rotation_Data.__dict__)
+        # print(f"{Convert_Data.__dict__ = }")
+        # pprint(Convert_Data.__dict__)
         skIn = aNd.outputs[0]
         tree.links.new(skIn, sk0)
         if sk1:
-            if sk1.type == sk0.type:     # 解决矩阵和旋转接口共用 Rotation_Data 问题
+            if sk1.type == sk0.type:     # 解决矩阵和旋转接口共用 Convert_Data 问题
                 tree.links.new(skIn, sk1)
                 if sk2:
                     tree.links.new(skIn, sk2)
@@ -38,7 +44,7 @@ def Do_Rot_or_Mat_Converter(context, isS, isA, node_type):
     # if "RotationTo" in aNd.bl_idname:
         skOut = aNd.inputs[0]
         tree.links.new(sk0, skOut)
-        # if Rotation_Data.sk1:     tree.links.new(Rotation_Data.sk1, skOut)    # 只有sk0,旋转节口不会触发更多
+        # if Convert_Data.sk1:     tree.links.new(Convert_Data.sk1, skOut)    # 只有sk0,旋转节口不会触发更多
 
 class rot_or_mat_converter(VoronoiOpTool):
     bl_idname = 'node.rot_or_mat_converter'

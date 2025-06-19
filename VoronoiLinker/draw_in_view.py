@@ -1,3 +1,6 @@
+from .关于节点的函数 import node_abs_loc
+
+
 tup_whiteCol4 = (1.0, 1.0, 1.0, 1.0)
 
 class VlDrawData():
@@ -10,27 +13,7 @@ class VlDrawData():
         self.shaderLine.uniform_float('lineWidth', wid)
         self.shaderLine.uniform_float('viewportSize', gpu.state.viewport_get()[2:4])
         gpu_extras.batch.batch_for_shader(self.shaderLine, type='LINE_STRIP', content={'pos':vpos, 'color':vcol}).draw(self.shaderLine)
-        # 绘制直线失效,4.4某些每日版(blender的bug吧)
-        # # print("测试" +  "-" * 20)
-        # # pprint(vpos)
-        # # vpos = [
-        # #     (vpos[0][0], vpos[0][1]),      # 第一个顶点的位置
-        # #     (vpos[1][0], vpos[1][1]),      # 第二个顶点的位置
-        # # ]
-        # # pprint(vpos)
-        # # fmt = GPUVertFormat()
-        # # pos_id = fmt.attr_add(id="pos", comp_type='F32', len=len(vpos), fetch_mode='FLOAT')
-        # # # print(pos_id)
-        # # gpu_extras.batch.batch_for_shader(self.shaderLine, type='LINE_STRIP', 
-        # #                                     content={pos_id:vpos, 'color':vcol}).draw(self.shaderLine)
-        # try:
-        #     gpu_extras.batch.batch_for_shader(self.shaderLine, type='LINES', 
-        #                                       content={'pos':vpos, 'color':vcol}).draw(self.shaderLine)
-        #     # gpu_extras.batch.batch_for_shader(self.shaderLine, type='GPU_PRIM_LINE_STRIP', 
-        #     #                                   content={'pos':vpos, 'color':vcol}).draw(self.shaderLine)
-        # except Exception as e:
-        #     print(e)
-        #     # print(f"An error occurred: {e}")
+
     def DrawAreaFanLL(self, vpos, col):
         gpu.state.blend_set('ALPHA')
         self.shaderArea.bind()
@@ -83,7 +66,7 @@ class VlDrawData():
 def DrawWorldStick(drata, pos1, pos2, col1, col2):
     drata.DrawPathLL( (drata.VecUiViewToReg(pos1), drata.VecUiViewToReg(pos2)), (col1, col2), wid=drata.dsLineWidth )
 def DrawVlSocketArea(drata, sk, bou, col):
-    loc = RecrGetNodeFinalLoc(sk.node)
+    loc = node_abs_loc(sk.node)
     pos1 = drata.VecUiViewToReg(Vec2( (loc.x,               bou[0]) ))
     pos2 = drata.VecUiViewToReg(Vec2( (loc.x+sk.node.width, bou[1]) ))
     if drata.dsIsColoredSkArea:
@@ -197,7 +180,7 @@ def DrawVlSkText(drata, pos, ofsHh, ftg, *, fontSizeOverwrite=0): # 注意: `pos
     if not drata.dsIsDrawText:
         return (1, 0) #'1' 需要用于保存标记位置的方向信息.
     if drata.dsIsColoredText:
-        colText = GetSkColSafeTup4(ftg.tar)
+        colText = GetSkColorSafeTup4(ftg.tar)
         colBg = MaxCol4Tup4(GetSkColorRaw(ftg.tar))
     else:
         colText = colBg = drata.dsUniformColor
@@ -297,8 +280,8 @@ def TemplateDrawSksToolHh(drata, *args_ftgSks, sideMarkHh=1, isDrawText=True,
         ftg2 = list_ftgSks[1]
         if ftg1.dir*ftg2.dir<0: # 对于 VMLT, 为了不为它的两个套接字绘制, 它们在同一侧.
             if drata.dsIsColoredLine:
-                col1 = GetSkColSafeTup4(ftg1.tar)
-                col2 = GetSkColSafeTup4(ftg2.tar)
+                col1 = GetSkColorSafeTup4(ftg1.tar)
+                col2 = GetSkColorSafeTup4(ftg2.tar)
             else:
                 col1 = col2 = drata.dsUniformColor
             DrawWorldStick(drata, GetPosFromFtg(ftg1), GetPosFromFtg(ftg2), col1, col2)
@@ -313,15 +296,15 @@ def TemplateDrawSksToolHh(drata, *args_ftgSks, sideMarkHh=1, isDrawText=True,
         # pprint(ftg.__dict__)      # ftg.pos 这是接口的位置
         if (drata.dsIsDrawLine)and( (not isClassicFlow)or(isOne and drata.dsIsAlwaysLine) ):
             if drata.dsIsColoredLine:
-                col1 = GetSkColSafeTup4(ftg.tar)
+                col1 = GetSkColorSafeTup4(ftg.tar)
                 col2 = drata.dsCursorColor if (isOne+(drata.dsCursorColorAvailability-1))>0 else col1
             else:
                 col1 = col2 = drata.dsUniformColor
             DrawWorldStick(drata, GetPosFromFtg(ftg), cursorLoc, col1, col2)
         if drata.dsIsDrawSkArea:
-            DrawVlSocketArea(drata, ftg.tar, ftg.boxHeiBound, Col4(GetSkColSafeTup4(ftg.tar)))
+            DrawVlSocketArea(drata, ftg.tar, ftg.boxHeiBound, Col4(GetSkColorSafeTup4(ftg.tar)))
         if drata.dsIsDrawPoint:
-            DrawVlWidePoint(drata, GetPosFromFtg(ftg), col1=Col4(MaxCol4Tup4(GetSkColorRaw(ftg.tar))), col2=Col4(GetSkColSafeTup4(ftg.tar)))
+            DrawVlWidePoint(drata, GetPosFromFtg(ftg), col1=Col4(MaxCol4Tup4(GetSkColorRaw(ftg.tar))), col2=Col4(GetSkColorSafeTup4(ftg.tar)))
     # 文本
     if isDrawText: # 文本应该在所有其他 ^ 之上.
         list_ftgSksIn = [ftg for ftg in list_ftgSks if ftg.dir<0]
@@ -336,7 +319,7 @@ def TemplateDrawSksToolHh(drata, *args_ftgSks, sideMarkHh=1, isDrawText=True,
                 x_offset = drata.dsDistFromCursor*dir
                 frameDim = DrawVlSkText(drata, cursorLoc, (drata.dsDistFromCursor*dir, ofsY-0.5), ftg)
                 if (drata.dsIsDrawMarker)and( (ftg.tar.vl_sold_is_final_linked_cou)and(not isDrawMarkersMoreTharOne)or(ftg.tar.vl_sold_is_final_linked_cou>1) ):
-                    DrawVlMarker(drata, cursorLoc, ofsHh=(frameDim[0]*dir, frameDim[1]*ofsY), col=GetSkColSafeTup4(ftg.tar))
+                    DrawVlMarker(drata, cursorLoc, ofsHh=(frameDim[0]*dir, frameDim[1]*ofsY), col=GetSkColorSafeTup4(ftg.tar))
             # 绘制工具提示
             ftg_show_name = copy.copy(ftg)
             ftg_show_name.soldText = tool_name.capitalize()

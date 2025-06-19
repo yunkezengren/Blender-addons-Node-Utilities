@@ -2,8 +2,7 @@ import bpy
 from pprint import pprint
 from bpy.types import (NodeSocket, UILayout)
 
-
-from .Rot_or_Mat_Converter import Rot_or_Mat_Converter, Pie_MT_Converter_To_Rotation, Pie_MT_Converter_Rotation_To, Pie_MT_Separate_Matrix, Pie_MT_Combine_Matrix
+from .Rot_or_Mat_Converter import Convert_Data, Pie_MT_Converter_To_Rotation, Pie_MT_Combine_Matrix
 from .globals import Cursor_X_Offset
 from .draw_in_view import TemplateDrawSksToolHh
 from .VoronoiTool import VoronoiToolTripleSk
@@ -74,18 +73,18 @@ class VoronoiQuickConstant(VoronoiToolTripleSk):
         skIn0 = self.fotagoSk0.tar
         dict_qDM = dict_vqdtQuickConstantMain.get(tree.bl_idname, None)
         if skIn0.type in ["ROTATION", "MATRIX"]:
-            Rotation_Data.sk0 = skIn0
+            Convert_Data.sk0 = skIn0
             if self.fotagoSk1:
-                Rotation_Data.sk1 = self.fotagoSk1.tar
+                Convert_Data.sk1 = self.fotagoSk1.tar
             if self.fotagoSk2:
-                Rotation_Data.sk2 = self.fotagoSk2.tar
+                Convert_Data.sk2 = self.fotagoSk2.tar
             if skIn0.type == "ROTATION":
                 if hasattr(skIn0, "default_value"):
-                    bpy.ops.wm.call_menu_pie(name="Converter_To_Rotation")
+                    bpy.ops.wm.call_menu_pie(name=Pie_MT_Converter_To_Rotation.bl_idname)
                 # return {'FINISHED'}       # 想松开按键确认
                 # a_node.width = 200   # md这里不行，运行ops后立马运行下面的了？放在Rotation_Converter里的invoke就行了？ (那里放好这里忘删了找了半天错误)
             if skIn0.type == "MATRIX":
-                bpy.ops.wm.call_menu_pie(name="Combine_Matrix")
+                bpy.ops.wm.call_menu_pie(name=Pie_MT_Combine_Matrix.bl_idname)
         else:
             node_type = dict_qDM[skIn0.type]
             bpy.ops.node.add_node('INVOKE_DEFAULT', type=node_type, use_transform=not self.isPlaceImmediately)

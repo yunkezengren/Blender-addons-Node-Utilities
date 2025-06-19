@@ -129,9 +129,6 @@ class BNode(StructBase):     # 用于VRT.
 # 'Blender 4.0 alpha' 的一团乱麻真是把我逼到墙角了.结果这事儿用Python就搞定了, 难道官方提供一个API就那么难吗? 🤷
 # P.S.为陨落的英雄们默哀一分钟 🙏, https://projects.blender.org/blender/blender/pulls/117809.
 
-def SkGetLocVec(sk):
-    return Vec2(BNodeSocket.GetFields(sk).runtime.contents.location[:]) if (sk.enabled) and (not sk.hide) else Vec2((0, 0))
-
 # 好了, 最难的部分已经过去了. 距离技术上支持折叠节点仅一步之遥了. 🚀
 # 那些渴望这个功能的人会面无表情地快速来到这里, 拿走他们需要的东西, 然后自己去修改. 😎
 # 致第一个实现这个功能的人: "干得漂亮, 兄弟! 👍 现在你可以连接到折叠节点的插槽了. 希望你幸福得合不拢腿." 😂

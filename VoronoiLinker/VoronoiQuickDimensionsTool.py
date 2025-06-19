@@ -1,9 +1,8 @@
-from .Rot_or_Mat_Converter import Rotation_Data, Rot_or_Mat_Converter, Pie_MT_Converter_To_Rotation, Pie_MT_Converter_Rotation_To, Pie_MT_Separate_Matrix, Pie_MT_Combine_Matrix
 
 from .VoronoiTool import VoronoiToolTripleSk
-from .common_func import CheckUncollapseNodeAndReNext, FtgGetTargetOrNone
-from .关于节点的函数 import GetListOfNdEnums, NewLinkHhAndRemember
-from .Rot_or_Mat_Converter import Rot_or_Mat_Converter, Pie_MT_Converter_To_Rotation, Pie_MT_Converter_Rotation_To, Pie_MT_Separate_Matrix, Pie_MT_Combine_Matrix
+from .common_func import *
+from .关于节点的函数 import GetListOfNdEnums, NewLinkHhAndRemember, CheckUncollapseNodeAndReNext, FtgGetTargetOrNone
+from .Rot_or_Mat_Converter import Convert_Data, Pie_MT_Converter_Rotation_To, Pie_MT_Separate_Matrix
 from .globals import Cursor_X_Offset
 from .draw_in_view import TemplateDrawSksToolHh
 
@@ -75,19 +74,19 @@ class VoronoiQuickDimensionsTool(VoronoiToolTripleSk):
         isOutNdQuat = (isGeoTree)and(skOut0.node.bl_idname==dict_qDM['ROTATION'][0])
         #Добавить:
         if skOut0.type == "ROTATION":        # 小王-Alt D 旋转接口
-            Rotation_Data.sk0 = skOut0
+            Convert_Data.sk0 = skOut0
             if self.fotagoSk1:
-                Rotation_Data.sk1 = self.fotagoSk1.tar
+                Convert_Data.sk1 = self.fotagoSk1.tar
             if self.fotagoSk2:
-                Rotation_Data.sk2 = self.fotagoSk2.tar
-            bpy.ops.wm.call_menu_pie(name="Converter_Rotation_To")
+                Convert_Data.sk2 = self.fotagoSk2.tar
+            bpy.ops.wm.call_menu_pie(name=Pie_MT_Converter_Rotation_To.bl_idname)
         elif skOut0.type == "MATRIX":        # 小王-Alt D 矩阵接口
-            Rotation_Data.sk0 = skOut0
+            Convert_Data.sk0 = skOut0
             if self.fotagoSk1:
-                Rotation_Data.sk1 = self.fotagoSk1.tar
+                Convert_Data.sk1 = self.fotagoSk1.tar
             if self.fotagoSk2:
-                Rotation_Data.sk2 = self.fotagoSk2.tar
-            bpy.ops.wm.call_menu_pie(name="Separate_Matrix")
+                Convert_Data.sk2 = self.fotagoSk2.tar
+            bpy.ops.wm.call_menu_pie(name=Pie_MT_Separate_Matrix.bl_idname)
         else:
             bpy.ops.node.add_node('INVOKE_DEFAULT', type=dict_qDM[skOut0.type][isOutNdCol if not isOutNdQuat else 2], use_transform=not self.isPlaceImmediately)
             aNd = tree.nodes.active

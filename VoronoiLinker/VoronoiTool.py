@@ -1,51 +1,19 @@
-from .关于节点的函数 import GetNearestSocketsFtg
+from time import perf_counter, perf_counter_ns
+from builtins import len as length # 我超爱三个字母的变量名.没有像"len"这样的名字, 我会感到非常伤心和孤独... 😭 还有 'Vector.length' 也是.
+import bpy, ctypes, rna_keymap_ui, bl_keymap_utils
+import blf, gpu, gpu_extras.batch
+from math import pi, cos, sin
+from mathutils import Vector as Vec
+Vec2 = Color4 = Vec
 
+from time import perf_counter, perf_counter_ns
+from pprint import pprint
+from bpy.types import (NodeSocket, UILayout, View2D, Area)
 
-class EdgePanData:
-    area = None # 本应是 'context', 但它总是 None.
-    ctCur = None
-    # 快速凑合的:
-    isWorking = False
-    view2d = None
-    cursorPos = Vec2((0,0))
-    uiScale = 1.0
-    center = Vec2((0,0))
-    delta = 0.0 # 哦, 这些增量.
-    zoomFac = 0.5
-    speed = 1.0
-
-def EdgePanTimer():
-    delta = perf_counter()-EdgePanData.delta
-    vec = EdgePanData.cursorPos*EdgePanData.uiScale
-    field0 = Vec2(EdgePanData.view2d.view_to_region(vec.x, vec.y, clip=False))
-    zoomWorld = (EdgePanData.view2d.view_to_region(vec.x+1000, vec.y, clip=False)[0]-field0.x)/1000
-    # 再来点光线步进:
-    field1 = field0-EdgePanData.center
-    field2 = Vec2(( abs(field1.x), abs(field1.y) ))
-    field2 = field2-EdgePanData.center+Vec2((10, 10)) # 稍微减小光标紧贴屏幕边缘的边界.
-    field2 = Vec2(( max(field2.x, 0), max(field2.y, 0) ))
-    ##
-    xi, yi, xa, ya = EdgePanData.ctCur.GetRaw()
-    speedZoomSize = Vec2((xa-xi, ya-yi))/2.5*delta # 没有 delta 时是 125.
-    field1 = field1.normalized()*speedZoomSize*((zoomWorld-1)/1.5+1)*EdgePanData.speed*EdgePanData.uiScale
-    if (field2.x!=0)or(field2.y!=0):
-        EdgePanData.ctCur.TranslateScaleFac((field1.x, field1.y), fac=EdgePanData.zoomFac)
-    EdgePanData.delta = perf_counter() # 在下一次进入前 "发送到未知处".
-    EdgePanData.area.tag_redraw()
-    return 0.0 if EdgePanData.isWorking else None
-
-def EdgePanInit(self, area):
-    EdgePanData.area = area
-    EdgePanData.ctCur = self.ctView2d.cur
-    EdgePanData.isWorking = True
-    EdgePanData.cursorPos = self.cursorLoc
-    EdgePanData.uiScale = self.uiScale
-    EdgePanData.view2d = self.region.view2d
-    EdgePanData.center = Vec2((self.region.width/2, self.region.height/2))
-    EdgePanData.delta = perf_counter() #..还有 "轻微边界".
-    EdgePanData.zoomFac = 1.0-self.prefs.vEdgePanFac
-    EdgePanData.speed = self.prefs.vEdgePanSpeed
-    bpy.app.timers.register(EdgePanTimer, first_interval=0.0)
+from .关于节点的函数 import GetNearestSocketsFtg, GetNearestNodesFtg, RestoreCollapsedNodes, SolderSkLinks
+from .draw_in_view import DrawDebug, TemplateDrawNodeFull
+from .C_Structure import RectBase
+from .common_class import TryAndPass
 
 
 class VoronoiOpTool(bpy.types.Operator):
@@ -71,6 +39,7 @@ class VoronoiToolFillers: #-1
     def LyDrawInAddonDiscl(col, prefs): pass
     @classmethod
     def BringTranslations(cls): pass
+
 class VoronoiToolRoot(VoronoiOpTool, VoronoiToolFillers): #0
     usefulnessForUndefTree = False
     usefulnessForNoneTree = False
@@ -163,7 +132,7 @@ class VoronoiToolRoot(VoronoiOpTool, VoronoiToolFillers): #0
         ##
         self.prefs = Prefs() # "原来是这么简单".
         self.uiScale = context.preferences.system.dpi/72
-        self.cursorLoc = context.space_data.cursor_location # 这是 class Vector, 通过引用复制; 所以可以在这里设置(绑定)一次, 就不用担心了.
+        self.cursorLoc: Vec2 = context.space_data.cursor_location # 这是 class Vector, 通过引用复制; 所以可以在这里设置(绑定)一次, 就不用担心了.
         self.drata = VlDrawData(context, self.cursorLoc, self.uiScale, self.prefs)
         SolderThemeCols(context.preferences.themes[0].node_editor) # 和 fontId 一样; 虽然在大多数情况下主题在整个会话期间不会改变.
         self.region = context.region
@@ -244,3 +213,50 @@ class VoronoiToolAny(VoronoiToolSk, VoronoiToolNd): #2
         return self.fotagoAny
     def InitToolPre(self, event):
         self.fotagoAny = None
+
+
+class EdgePanData:
+    area: Area = None # 本应是 'context', 但它总是 None.
+    ctCur: RectBase = None
+    # 快速凑合的:
+    isWorking = False
+    view2d: View2D = None
+    cursorPos: Vec2 = Vec2((0,0))
+    uiScale = 1.0
+    center: Vec2 = Vec2((0,0))
+    delta = 0.0   # 哦, 这些增量.
+    zoomFac = 0.5
+    speed = 1.0
+
+def EdgePanTimer():
+    delta = perf_counter()-EdgePanData.delta
+    vec = EdgePanData.cursorPos*EdgePanData.uiScale
+    field0 = Vec2(EdgePanData.view2d.view_to_region(vec.x, vec.y, clip=False))
+    zoomWorld = (EdgePanData.view2d.view_to_region(vec.x+1000, vec.y, clip=False)[0]-field0.x)/1000
+    # 再来点光线步进:
+    field1 = field0-EdgePanData.center
+    field2 = Vec2(( abs(field1.x), abs(field1.y) ))
+    field2 = field2-EdgePanData.center+Vec2((10, 10)) # 稍微减小光标紧贴屏幕边缘的边界.
+    field2 = Vec2(( max(field2.x, 0), max(field2.y, 0) ))
+    ##
+    xi, yi, xa, ya = EdgePanData.ctCur.GetRaw()
+    speedZoomSize = Vec2((xa-xi, ya-yi))/2.5*delta # 没有 delta 时是 125.
+    field1 = field1.normalized()*speedZoomSize*((zoomWorld-1)/1.5+1)*EdgePanData.speed*EdgePanData.uiScale
+    if (field2.x!=0)or(field2.y!=0):
+        EdgePanData.ctCur.TranslateScaleFac((field1.x, field1.y), fac=EdgePanData.zoomFac)
+    EdgePanData.delta = perf_counter() # 在下一次进入前 "发送到未知处".
+    EdgePanData.area.tag_redraw()
+    return 0.0 if EdgePanData.isWorking else None
+
+def EdgePanInit(self: VoronoiToolRoot, area: Area):
+    EdgePanData.area = area
+    EdgePanData.ctCur = self.ctView2d.cur
+    EdgePanData.isWorking = True
+    EdgePanData.cursorPos = self.cursorLoc
+    EdgePanData.uiScale = self.uiScale
+    EdgePanData.view2d = self.region.view2d
+    EdgePanData.center = Vec2((self.region.width/2, self.region.height/2))
+    EdgePanData.delta = perf_counter() #..还有 "轻微边界".
+    EdgePanData.zoomFac = 1.0-self.prefs.vEdgePanFac
+    EdgePanData.speed = self.prefs.vEdgePanSpeed
+    bpy.app.timers.register(EdgePanTimer, first_interval=0.0)

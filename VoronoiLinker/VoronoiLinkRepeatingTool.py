@@ -1,3 +1,8 @@
+from .关于节点的函数 import SolderSkLinks, DoLinkHh
+
+
+
+
 fitVlrtModeItems = ( ('SOCKET', "For socket", "Using the last link created by some from the tools, create the same for the specified socket"),
                      ('NODE',   "For node",   "Using name of the last socket, find and connect for a selected node") )
 class VoronoiLinkRepeatingTool(VoronoiToolAny): # 分离成单独的工具, 以免用意大利面条代码玷污神圣的地方 (最初只用于 VLT).

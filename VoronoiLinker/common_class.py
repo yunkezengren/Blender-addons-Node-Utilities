@@ -322,8 +322,8 @@ class VmtData(PieRootData):
 
 class VqmtData(PieRootData):
     list_speedPieDisplayItems = []
-    sk0 = None
-    sk1 = None
+    sk0: NodeSocket = None
+    sk1: NodeSocket = None
     depth = 0
     qmSkType = ''
     qmTrueSkType = ''
@@ -345,3 +345,20 @@ class VestData:
     isDarkStyle = False
     isDisplayLabels = False
     isPieChoice = False
+
+
+
+class TryAndPass():
+    def __enter__(self):
+        pass
+    def __exit__(self, *_):
+        return True
+
+
+
+
+
+
+
+
+

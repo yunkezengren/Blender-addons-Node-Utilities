@@ -157,8 +157,8 @@ class VoronoiQuickMathTool(VoronoiToolTripleSk):
                 # case 'INT':     opr = self.quickOprInt
             return DoQuickMath(event, tree, opr)
         # print('这里只在绘制连线时调用一次,切换饼菜单不会刷新这里')
-        # self.VqmSetPieData(prefs, PowerArr4(GetSkColSafeTup4(VqmtData.sk0), pw=2.2))
-        self.VqmSetPieData(prefs, PowerArr4(GetSkColSafeTup4(VqmtData.sk0), pw=2.2))
+        # self.VqmSetPieData(prefs, PowerArr4(GetSkColorSafeTup4(VqmtData.sk0), pw=2.2))
+        self.VqmSetPieData(prefs, PowerArr4(GetSkColorSafeTup4(VqmtData.sk0), pw=2.2))
         if self.int_default_float:     # 整数接口浮点饼
             color = PowerArr4(float_int_color["VALUE"], pw=2.2)
             pref().vaDecorColSkBack = color
@@ -177,7 +177,7 @@ class VoronoiQuickMathTool(VoronoiToolTripleSk):
             if not can:
                 DisplayMessage(self.bl_label, txt_vqmtThereIsNothing)
                 return {'CANCELLED'}
-            VqmtData.sk0 = None #为了完整性和 GetSkCol 而清空.
+            VqmtData.sk0 = None #为了完整性和 GetSkColor 而清空.
             VqmtData.sk1 = None
             VqmtData.sk2 = None
             VqmtData.qmSkType = ('VALUE','VECTOR','BOOLEAN','RGBA', 'INT')[self.justPieCall-1]

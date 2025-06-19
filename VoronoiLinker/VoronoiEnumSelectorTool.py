@@ -1,34 +1,32 @@
+from .VoronoiTool import VoronoiOpTool
+
+
 domain_en = [
-        'POINT',
-        'EDGE',
-        'FACE',
-        'CORNER',
-        'CURVE',
-        'INSTANCE',
-        'LAYER',
-        ]
+    'POINT',
+    'EDGE',
+    'FACE',
+    'CORNER',
+    'CURVE',
+    'INSTANCE',
+    'LAYER',
+]
 domain_ch = [
-        '点',
-        '边',
-        '面',
-        '面拐',
-        '样条线',
-        '实例',
-        '层',
-        ]
+    '点',
+    '边',
+    '面',
+    '面拐',
+    '样条线',
+    '实例',
+    '层',
+]
 
 mesh_domain_en = [
-        'VERTICES',
-        'EDGES',
-        'FACES',
-        'CORNERS',
-        ]
-mesh_domain_ch = [
-        '顶点',
-        '边',
-        '面',
-        '拐角'
-        ]
+    'VERTICES',
+    'EDGES',
+    'FACES',
+    'CORNERS',
+]
+mesh_domain_ch = ['顶点', '边', '面', '拐角']
 get_domain_cn = {k: v for k, v in zip(domain_en, domain_ch)}
 get_mesh_domain_cn = {k: v for k, v in zip(mesh_domain_en, mesh_domain_ch)}
 
@@ -195,7 +193,7 @@ class VoronoiEnumSelectorTool(VoronoiToolNd):
                 continue
             # if nd.bl_idname in set_utilEquestrianPortalBlids:    # 注释掉
             #     continue
-            # have_options = ["GeometryNodeBake", "GeometryNodeGroup", 
+            # have_options = ["GeometryNodeBake", "GeometryNodeGroup",
             #                 "GeometryNodeForeachGeometryElementInput", "ShaderNodeTexCoord"]
             # if nd.bl_idname not in have_options:
             #     if not GetListOfNdEnums(nd):    # 想只对有下拉列表选项的节点绘制-导致节点组、bake、serpens里很多节点的 隐藏选项失效
@@ -269,7 +267,7 @@ class VoronoiEnumSelectorTool(VoronoiToolNd):
                 bpy.ops.node.voronoi_enum_selector_box('INVOKE_DEFAULT')
             # ops运行唤出菜单后生效,再更改选项不生效，不是实时更改name
             # # rename_node_based_option(ndTar)         # 显示节点选项优化-根据选项重命名节点-domain
-                
+
             return True # 用于 modal(), 返回成功.
     def MatterPurposeTool(self, event, prefs, tree):
         if self.isToggleOptions:
@@ -322,8 +320,8 @@ class VoronoiEnumSelectorTool(VoronoiToolNd):
         with VlTrMapForKey(GetAnnotFromCls(cls,'isSelectNode').description) as dm:
             dm["ru_RU"] = "0 – Не выделять.\n1 – Выделять.\n2 – и центрировать.\n3 – и приближать"
 #            dm["zh_CN"] = ""
-        ##
-        #* vestIsToggleNodesOnDrag 的翻译已在 VHT 中 *
+##
+#* vestIsToggleNodesOnDrag 的翻译已在 VHT 中 *
         with VlTrMapForKey(GetPrefsRnaProp('vestBoxScale').name) as dm:
             dm["ru_RU"] = "Масштаб панели"
             dm["zh_CN"] = "下拉列表面板大小"
