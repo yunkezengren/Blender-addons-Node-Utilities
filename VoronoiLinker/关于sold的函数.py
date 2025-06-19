@@ -1,7 +1,10 @@
+from .C_Structure import BNode
 from .globals import *
 from .关于颜色的函数 import Color4, opaque_color4, power_color4
 from .common_func import GetFirstUpperLetters
 from mathutils import Vector as Vec
+import bpy
+# from .C_Structure import bpy.types.NodeSocket
 
 
 dict_solderedSkLinksFinal = {}
@@ -91,14 +94,14 @@ def SolderClsToolNames(class_dict: dict):
 
 def RegisterSolderings():
     txtDoc = "Property from and only for VoronoiLinker addon."
-    #NodeSocket.vl_sold_links_raw = property(SkGetSolderedLinksRaw)
-    NodeSocket.vl_sold_links_final = property(SkGetSolderedLinksFinal)
-    NodeSocket.vl_sold_is_final_linked_cou = property(SkGetSolderedIsFinalLinkedCount)
-    #NodeSocket.vl_sold_links_raw.__doc__ = txtDoc
-    NodeSocket.vl_sold_links_final.__doc__ = txtDoc
-    NodeSocket.vl_sold_is_final_linked_cou.__doc__ = txtDoc
+    #bpy.types.NodeSocket.vl_sold_links_raw = property(SkGetSolderedLinksRaw)
+    bpy.types.NodeSocket.vl_sold_links_final = property(SkGetSolderedLinksFinal)
+    bpy.types.NodeSocket.vl_sold_is_final_linked_cou = property(SkGetSolderedIsFinalLinkedCount)
+    #bpy.types.NodeSocket.vl_sold_links_raw.__doc__ = txtDoc
+    bpy.types.NodeSocket.vl_sold_links_final.__doc__ = txtDoc
+    bpy.types.NodeSocket.vl_sold_is_final_linked_cou.__doc__ = txtDoc
 
 def UnregisterSolderings():
-    #del NodeSocket.vl_sold_links_raw
-    del NodeSocket.vl_sold_links_final
-    del NodeSocket.vl_sold_is_final_linked_cou
+    #del bpy.types.NodeSocket.vl_sold_links_raw
+    del bpy.types.NodeSocket.vl_sold_links_final
+    del bpy.types.NodeSocket.vl_sold_is_final_linked_cou

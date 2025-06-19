@@ -3,14 +3,27 @@ import bpy
 from mathutils import Vector as Vec2
 
 from pprint import pprint
-from bpy.types import (Node, UILayout, View2D, Area)
+from bpy.types import Node, Area
+from bpy.types import View2D as View2d
 
 from .关于节点的函数 import GetNearestSocketsFtg, GetNearestNodesFtg, RestoreCollapsedNodes
 from .关于sold的函数 import SolderSkLinks
 from .draw_in_view import DrawDebug, TemplateDrawNodeFull, TemplateDrawSksToolHh
 from .C_Structure import RectBase
-from .common_class import TryAndPass, Prefs
+from .common_class import TryAndPass
 from .globals import set_utilTypeSkFields
+
+from .关于翻译的函数 import *
+from .关于节点的函数 import *
+from .关于ui的函数 import *
+from .关于颜色的函数 import *
+from .VoronoiTool import *
+from .关于sold的函数 import *
+from .globals import *
+from .common_class import *
+from .common_func import *
+from .draw_in_view import *
+
 
 
 def GetOpKmi(self, event): 
@@ -236,7 +249,7 @@ class EdgePanData:
     ctCur: RectBase = None
     # 快速凑合的:
     isWorking = False
-    view2d: View2D = None
+    view2d: View2d = None
     cursorPos: Vec2 = Vec2((0,0))
     uiScale = 1.0
     center: Vec2 = Vec2((0,0))

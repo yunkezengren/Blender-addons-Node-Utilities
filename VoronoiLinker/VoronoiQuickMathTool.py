@@ -2,7 +2,17 @@
 from .关于颜色的函数 import power_color4, get_sk_color_safe
 from .common_func import DisplayMessage
 from .关于翻译的函数 import GetAnnotFromCls, VlTrMapForKey
-from .VoronoiTool import VoronoiToolTripleSk, CheckUncollapseNodeAndReNext
+from .关于翻译的函数 import *
+from .关于节点的函数 import *
+from .关于ui的函数 import *
+from .关于颜色的函数 import *
+from .VoronoiTool import *
+from .关于sold的函数 import *
+from .globals import *
+from .common_class import *
+from .common_func import *
+from .draw_in_view import *
+from .VoronoiTool import VoronoiToolTripleSk
 from bpy.app.translations import pgettext_iface as TranslateIface
 
 
@@ -166,8 +176,8 @@ class VoronoiQuickMathTool(VoronoiToolTripleSk):
         self.VqmSetPieData(prefs, power_color4(get_sk_color_safe(VqmtData.sk0), pw=2.2))
         if self.int_default_float:     # 整数接口浮点饼
             color = power_color4(float_int_color["VALUE"], pw=2.2)
-            pref().vaDecorColSkBack = color
-            pref().vaDecorColSk = color
+            Prefs().vaDecorColSkBack = color
+            Prefs().vaDecorColSk = color
         VqmtData.isJustPie = False
         VqmtData.canProcHideSks = True
         bpy.ops.node.voronoi_quick_math_main('INVOKE_DEFAULT')
@@ -180,6 +190,7 @@ class VoronoiQuickMathTool(VoronoiToolTripleSk):
                 case 'GeometryNodeTree': can = True
                 case 'CompositorNodeTree'|'TextureNodeTree': can = self.justPieCall in {1,4}
             if not can:
+                txt_vqmtThereIsNothing = "There is nothing"  # ! 草
                 DisplayMessage(self.bl_label, txt_vqmtThereIsNothing)
                 return {'CANCELLED'}
             VqmtData.sk0 = None #为了完整性和 GetSkColor 而清空.

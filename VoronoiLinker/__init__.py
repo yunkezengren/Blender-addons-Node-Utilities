@@ -23,6 +23,17 @@ from .common_class import Equestrian
 from .globals import *
 from .globals import dict_typeSkToBlid, dict_vlHhTranslations
 from .common_func import GetFirstUpperLetters, GetUserKmNe, format_tool_set, sk_label_or_name
+from .关于翻译的函数 import *
+from .关于节点的函数 import *
+from .关于ui的函数 import *
+from .关于颜色的函数 import *
+from .VoronoiTool import *
+from .关于sold的函数 import *
+from .globals import *
+from .common_class import *
+from .common_func import *
+from .draw_in_view import *
+from .common_func import Prefs
 from .VoronoiTool import VoronoiToolRoot, VoronoiToolPairSk
 from .VoronoiLinkerTool import VoronoiLinkerTool
 from .VoronoiMixerTool import VoronoiMixerTool
@@ -50,7 +61,6 @@ from .Rot_or_Mat_Converter import Rot_or_Mat_Converter, Pie_MT_Converter_To_Rota
 from .common_class import TryAndPass
 from .关于sold的函数 import SolderClsToolNames, RegisterSolderings, UnregisterSolderings
 from .关于翻译的函数 import GetAnnotFromCls, VlTrMapForKey
-from .关于节点的函数 import sk_type_to_idname
 from .draw_in_view import TestDraw
 
 
@@ -70,11 +80,6 @@ def smart_add_to_reg_and_kmiDefs(cls, txt, dict_props={}):
     dict_classes[cls] = True
     dict_vtClasses[cls] = True
     list_kmiDefs.append( (cls.bl_idname, dict_numToKey.get(txt[4:], txt[4:]), txt[0]=="S", txt[1]=="C", txt[2]=="A", txt[3]=="+", dict_props) )
-
-voronoiAnchorCnName = "Voronoi_Anchor"           # 不支持翻译, 就这样一起吧.
-voronoiAnchorDtName = "Voronoi_Anchor_Dist"      # 不支持翻译! 请参考相关的拓扑结构.
-voronoiSkPreviewName = "voronoi_preview"         # 不支持翻译, 不想每次读取都用 TranslateIface() 包裹一下.
-voronoiPreviewResultNdName = "SavePreviewResult" # 不支持翻译, 就这样一起吧.
 
 #Todo0VV: 处理 n^3 种组合: space_data.tree_type 和 space_data.edit_tree.bl_idname; 包括经典的, 丢失的和插件的; 绑定和未绑定到编辑器的.
 # ^ 然后检查所有工具在这些组合中的可用性. 之后在现有节点树中检查所有工具与丢失节点的丢失插槽的交互情况.
@@ -234,10 +239,10 @@ with VlTrMapForKey("Special") as dm:
 with VlTrMapForKey("Customization") as dm:
     dm["ru_RU"] = "Кастомизация"
 
-prefsTran = None
-def GetPrefsRnaProp(att, inx=-1):
-    prop = prefsTran.rna_type.properties[att]
-    return prop if inx==-1 else getattr(prop,'enum_items')[inx]
+# # prefsTran = None
+# def GetPrefsRnaProp(att, inx=-1):
+#     prop = prefsTran.rna_type.properties[att]
+#     return prop if inx==-1 else getattr(prop,'enum_items')[inx]
 
 def CollectTranslationDict(): # 为了方便翻译那些需要注册属性的文本. 请参阅 BringTranslations 系列函数.
     global prefsTran
@@ -265,113 +270,6 @@ def CollectTranslationDict(): # 为了方便翻译那些需要注册属性的文
         if (cls, 'zh_CN') in dict_toolLangSpecifDataPool:
             dict_toolLangSpecifDataPool[cls, 'zh_HANS'] = dict_toolLangSpecifDataPool[cls, 'zh_CN']
 
-dict_toolLangSpecifDataPool = {}
-
-def SetPieData(self, toolData, prefs, col):
-    def GetPiePref(name):
-        return getattr(prefs, self.vlTripleName.lower()+name)
-    toolData.isSpeedPie = GetPiePref("PieType")=='SPEED'
-    # todo1v6: 已经有 toolData.prefs 了, 所以可以干掉这个; 并且把这一切都做得更优雅些. 还有 SolderClsToolNames() 里的注释.
-    toolData.pieScale = GetPiePref("PieScale") 
-    toolData.pieDisplaySocketTypeInfo = GetPiePref("PieSocketDisplayType")
-    toolData.pieDisplaySocketColor = GetPiePref("PieDisplaySocketColor")
-    toolData.pieAlignment = GetPiePref("PieAlignment")
-    toolData.uiScale = self.uiScale
-    toolData.prefs = prefs
-    prefs.vaDecorColSkBack = col # 这句在 vaDecorColSk 之前很重要; 参见 VaUpdateDecorColSk().
-    prefs.vaDecorColSk = col
-
-class LyAddQuickInactiveCol():
-    def __init__(self, where: UILayout, att='row', align=True, active=False):
-        self.ly = getattr(where, att)(align=align)
-        self.ly.active = active
-    def __enter__(self):
-        return self.ly
-    def __exit__(self, *_):
-        pass
-
-def LyAddLeftProp(where: UILayout, who, att, active=True):
-    #where.prop(who, att); return
-    row = where.row()
-    row.alignment = 'LEFT'
-    row.prop(who, att)
-    row.active = active
-
-def LyAddDisclosureProp(where: UILayout, who, att, *, txt=None, active=True, isWide=False): # 注意: 如果 where 是 row, 它不能占满整个宽度.
-    tgl = getattr(who, att)
-    rowMain = where.row(align=True)
-    rowProp = rowMain.row(align=True)
-    rowProp.alignment = 'LEFT'
-    txt = txt if txt else None #+":"*tgl
-    rowProp.prop(who, att, text=txt, icon='DISCLOSURE_TRI_DOWN' if tgl else 'DISCLOSURE_TRI_RIGHT', emboss=False)
-    rowProp.active = active
-    if isWide:
-        rowPad = rowMain.row(align=True)
-        rowPad.prop(who, att, text=" ", emboss=False)
-    return tgl
-
-def LyAddNoneBox(where: UILayout):
-    box = where.box()
-    box.label()
-    box.scale_y = 0.5
-def LyAddHandSplitProp(where: UILayout, who, att, *, text=None, active=True, returnAsLy=False, forceBoolean=0):
-    spl = where.row().split(factor=0.42, align=True)
-    spl.active = active
-    row = spl.row(align=True)
-    row.alignment = 'RIGHT'
-    pr = who.rna_type.properties[att]
-    isNotBool = pr.type!='BOOLEAN'
-    isForceBoolean = not not forceBoolean
-    row.label(text=pr.name*(isNotBool^isForceBoolean) if not text else text)
-    if (not active)and(pr.type=='FLOAT')and(pr.subtype=='COLOR'):
-        LyAddNoneBox(spl)
-    else:
-        if not returnAsLy:
-            txt = "" if forceBoolean!=2 else ("True" if getattr(who, att) else "False")
-            spl.prop(who, att, text=txt if isNotBool^isForceBoolean else None)
-        else:
-            return spl
-
-def LyAddNiceColorProp(where: UILayout, who, att, align=False, txt="", ico='NONE', decor=3):
-    rowCol = where.row(align=align)
-    rowLabel = rowCol.row()
-    rowLabel.alignment = 'LEFT'
-    rowLabel.label(text=txt if txt else TranslateIface(who.rna_type.properties[att].name)+":")
-    rowLabel.active = decor%2
-    rowProp = rowCol.row()
-    rowProp.alignment = 'EXPAND'
-    rowProp.prop(who, att, text="", icon=ico)
-    rowProp.active = decor//2%2
-
-def LyAddKeyTxtProp(where: UILayout, prefs, att):
-    rowProp = where.row(align=True)
-    LyAddNiceColorProp(rowProp, prefs, att)
-    # Todo0: 我还是没搞懂你们的 prop event 怎么用, 太吓人了. 需要外部帮助.
-    with LyAddQuickInactiveCol(rowProp) as row:
-        row.operator('wm.url_open', text="", icon='URL').url="https://docs.blender.org/api/current/bpy_types_enum_items/event_type_items.html#:~:text="+getattr(prefs, att)
-
-def LyAddLabeledBoxCol(where: UILayout, *, text="", active=False, scale=1.0, align=True):
-    colMain = where.column(align=True)
-    box = colMain.box()
-    box.scale_y = 0.5
-    row = box.row(align=True)
-    row.alignment = 'CENTER'
-    row.label(text=text)
-    row.active = active
-    box = colMain.box()
-    box.scale_y = scale
-    return box.column(align=align)
-
-def LyAddTxtAsEtb(where: UILayout, txt: str):
-    row = where.row(align=True)
-    row.label(icon='ERROR')
-    col = row.column(align=True)
-    for li in txt.split("\n")[:-1]:
-        col.label(text=li, translate=False)
-def LyAddEtb(where: UILayout): # "你们修复bug吗? 不, 我们只发现bug."
-    import traceback
-    LyAddTxtAsEtb(where, traceback.format_exc())
-
 smart_add_to_reg_and_kmiDefs(VoronoiLinkerTool, "##A_RIGHTMOUSE") # "##A_RIGHTMOUSE"?
 dict_setKmiCats['grt'].add(VoronoiLinkerTool.bl_idname)
 
@@ -388,6 +286,9 @@ with VlTrMapForKey(VoronoiLinkerTool.bl_label) as dm:
 with VlTrMapForKey(format_tool_set(VoronoiLinkerTool)) as dm:
     dm["ru_RU"] = f"Настройки инструмента {VoronoiLinkerTool.bl_label}:"
     dm["zh_CN"] = f"{VoronoiLinkerTool.bl_label}快速连接设置:"
+
+
+dict_toolLangSpecifDataPool = {}
 
 dict_toolLangSpecifDataPool[VoronoiLinkerTool, "ru_RU"] = "Священный инструмент. Ради этого был создан весь аддон.\nМинута молчания в честь NodeWrangler'a-прародителя-первоисточника."
 
@@ -413,9 +314,6 @@ with VlTrMapForKey(format_tool_set(VoronoiPreviewTool)) as dm:
     dm["zh_CN"] = f"{VoronoiPreviewTool.bl_label}快速预览设置:"
 
 dict_toolLangSpecifDataPool[VoronoiPreviewTool, "ru_RU"] = "Канонический инструмент для мгновенного перенаправления явного вывода дерева.\nЕщё более полезен при использовании совместно с VPAT."
-
-class VptData:
-    reprSkAnchor = ""
 
 
 smart_add_to_reg_and_kmiDefs(VoronoiPreviewAnchorTool, "SC#_RIGHTMOUSE")
@@ -524,16 +422,6 @@ with VlTrMapForKey(format_tool_set(VoronoiRantoTool)) as dm:
 
 dict_toolLangSpecifDataPool[VoronoiRantoTool, "ru_RU"] = "Сейчас этот инструмент не более чем пустышка.\nСтанет доступным, когда VL стяжет свои заслуженные(?) лавры популярности."
 
-# 现在 RANTO 已经集成到 VL 中了. 连我自己都感到意外.
-# 参见原版: https://github.com/ugorek000/RANTO
-
-class RantoData():
-    def __init__(self, isOnlySelected=0, widthNd=140, isUniWid=False, indentX=40, indentY=30, isIncludeMutedLinks=False, isIncludeNonValidLinks=False, isFixIslands=True):
-        self.kapibara = ""
-        self.dict_ndTopoWorking = {}
-
-def VrtDoRecursiveAutomaticNodeTopologyOrganization(rada, ndRoot):
-    rada.kapibara = "kapibara"
 
 
 smart_add_to_reg_and_kmiDefs(VoronoiSwapperTool, "S##_S", {'toolMode':'SWAP'})
@@ -715,21 +603,22 @@ dict_toolLangSpecifDataPool[VoronoiLazyNodeStencilsTool, "ru_RU"] = """Мощь.
 NodeWrangler'а, и никогда не реализованный 'VoronoiLazyNodeContinuationTool'. """ #"Больше лени богу лени!"
 dict_toolLangSpecifDataPool[VoronoiLazyNodeStencilsTool, "zh_CN"] = "代替NodeWrangler的ctrl+t"
 
-class VlnstData:
-    lastLastExecError = "" # 用于用户编辑 vlnstLastExecError, 不能添加或修改, 但可以删除.
-    isUpdateWorking = False
-def VlnstUpdateLastExecError(self, _context):
-    if VlnstData.isUpdateWorking:
-        return
-    VlnstData.isUpdateWorking = True
-    if not VlnstData.lastLastExecError:
-        self.vlnstLastExecError = ""
-    elif self.vlnstLastExecError:
-        if self.vlnstLastExecError!=VlnstData.lastLastExecError: # 注意: 谨防堆栈溢出.
-            self.vlnstLastExecError = VlnstData.lastLastExecError
-    else:
-        VlnstData.lastLastExecError = ""
-    VlnstData.isUpdateWorking = False
+# class VlnstData:
+#     lastLastExecError = "" # 用于用户编辑 vlnstLastExecError, 不能添加或修改, 但可以删除.
+#     isUpdateWorking = False
+# def VlnstUpdateLastExecError(self, _context):
+#     if VlnstData.isUpdateWorking:
+#         return
+#     VlnstData.isUpdateWorking = True
+#     if not VlnstData.lastLastExecError:
+#         self.vlnstLastExecError = ""
+#     elif self.vlnstLastExecError:
+#         if self.vlnstLastExecError!=VlnstData.lastLastExecError: # 注意: 谨防堆栈溢出.
+#             self.vlnstLastExecError = VlnstData.lastLastExecError
+#     else:
+#         VlnstData.lastLastExecError = ""
+#     VlnstData.isUpdateWorking = False
+
 class VoronoiAddonPrefs(VoronoiAddonPrefs):
     vlnstLastExecError: bpy.props.StringProperty(name="Last exec error", default="", update=VlnstUpdateLastExecError)
 
@@ -913,8 +802,6 @@ class VoronoiAddonPrefs(VoronoiAddonPrefs):
 # 在这里留下我的个人"愿望清单"的一小部分 (按集成时间顺序), 这些是从我其他的个人插件移植到 VL 的:
 # Hider, QuckMath 和 JustMathPie, Warper, RANTO
 
-from .common_func import Prefs
-
 
 class VoronoiOpAddonTabs(bpy.types.Operator):
     bl_idname = 'node.voronoi_addon_tabs'
@@ -970,9 +857,6 @@ class VoronoiAddonPrefs(VoronoiAddonPrefs):
     vaDecorLy:        bpy.props.FloatVectorProperty(name="DecorForLayout",   default=(0.01, 0.01, 0.01),   min=0, max=1, size=3, subtype='COLOR')
     vaDecorColSk:     bpy.props.FloatVectorProperty(name="DecorForColSk",    default=(1.0, 1.0, 1.0, 1.0), min=0, max=1, size=4, subtype='COLOR', update=VaUpdateDecorColSk)
     vaDecorColSkBack: bpy.props.FloatVectorProperty(name="vaDecorColSkBack", default=(1.0, 1.0, 1.0, 1.0), min = 0, max=1, size=4, subtype='COLOR')
-
-def pref():
-    return bpy.context.preferences.addons[__name__].preferences
 
 class VoronoiAddonPrefs(VoronoiAddonPrefs):
     dsIsDrawText:   bpy.props.BoolProperty(name="Text",        default=True) # 考虑到 VHT 和 VEST, 这更多是用于框架中的文本, 而不是来自插槽的文本.
@@ -1566,8 +1450,12 @@ def register():
     for blid, key, shift, ctrl, alt, repeat, dict_props in list_kmiDefs:
         kmi = kmANe.keymap_items.new(idname=blid, type=key, value='PRESS', shift=shift, ctrl=ctrl, alt=alt, repeat=repeat)
         kmi.active = blid!='node.voronoi_dummy'
+        print("=" * 50)
+        pprint(kmi.properties)
+        pprint(dict_props)
         if dict_props:
             for dk, dv in dict_props.items():
+                # print(dk, dv)
                 setattr(kmi.properties, dk, dv)
         list_addonKeymaps.append(kmi)
     ##

@@ -1,5 +1,17 @@
 from .关于翻译的函数 import GetAnnotFromCls, VlTrMapForKey
 
+from .关于翻译的函数 import *
+from .关于节点的函数 import *
+from .关于ui的函数 import *
+from .关于颜色的函数 import *
+from .VoronoiTool import *
+from .关于sold的函数 import *
+from .globals import *
+from .common_class import *
+from .common_func import *
+from .draw_in_view import *
+from .VoronoiTool import *
+
 
 class VoronoiPreviewAnchorTool(VoronoiToolSk): #嗯, 现在这是一个完整的工具了; 甚至可能需要在布局中为其创建一个新的独立类别.
     bl_idname = 'node.voronoi_preview_anchor'

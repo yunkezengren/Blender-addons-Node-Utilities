@@ -2,15 +2,25 @@ from math import pi, cos, sin
 import platform
 import bpy
 
+prefsTran = None
 dict_vlHhTranslations = {}      # 再多个文件配合使用
+
 Color_Bar_Width = 0.015     # 小王 饼菜单颜色条宽度
 Cursor_X_Offset = -50       # 小王 这样更舒服,在输入或输出接口方面加强
 
 isWin = platform.system() == 'Windows'
 #isLinux = platform.system()=='Linux'
 
+voronoiAnchorCnName = "Voronoi_Anchor"           # 不支持翻译, 就这样一起吧.
+voronoiAnchorDtName = "Voronoi_Anchor_Dist"      # 不支持翻译! 请参考相关的拓扑结构.
+voronoiSkPreviewName = "voronoi_preview"         # 不支持翻译, 不想每次读取都用 TranslateIface() 包裹一下.
+voronoiPreviewResultNdName = "SavePreviewResult" # 不支持翻译, 就这样一起吧.
 
 
+
+
+float_int_color = {"INT": (0.35, 0.55, 0.36, 1), "VALUE": (0.63, 0.63, 0.63, 1)}
+floatIntColorInverse = {"INT": (0.63, 0.63, 0.63, 1), "VALUE": (0.35, 0.55, 0.36, 1)}
 
 # 用于支持在旧版本中工作. 这样在被迫切换到旧版本时, 心里能舒坦点, 不用那么紧张,
 # 还能因为插件能在不同API的不同版本中运行而获得额外的内啡肽. 😎

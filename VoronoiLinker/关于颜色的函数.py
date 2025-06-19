@@ -6,7 +6,7 @@ const_float4 = tuple[float, float, float, float]
 
 def power_color4(arr: const_float4, *, pw=1/2.2) -> const_float4:
     # return (arr[0]**pw, arr[1]**pw, arr[2]**pw, arr[3]**pw)  ||  map(lambda a: a**pw, arr)
-    return (i**pw for i in arr)
+    return tuple(i**pw for i in arr)
 
 def opaque_color4(c, *, alpha=1.0) -> const_float4:
     return (c[0], c[1], c[2], alpha)

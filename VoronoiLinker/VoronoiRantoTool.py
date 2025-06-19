@@ -1,7 +1,29 @@
 from .common_func import DisplayMessage
 from .关于翻译的函数 import GetAnnotFromCls, VlTrMapForKey
+from .关于翻译的函数 import *
+from .关于节点的函数 import *
+from .关于ui的函数 import *
+from .关于颜色的函数 import *
+from .VoronoiTool import *
+from .关于sold的函数 import *
+from .globals import *
+from .common_class import *
+from .common_func import *
+from .draw_in_view import *
 from .VoronoiTool import VoronoiToolNd
 from bpy.app.translations import pgettext_iface as TranslateIface
+
+
+# 现在 RANTO 已经集成到 VL 中了. 连我自己都感到意外.
+# 参见原版: https://github.com/ugorek000/RANTO
+
+class RantoData():
+    def __init__(self, isOnlySelected=0, widthNd=140, isUniWid=False, indentX=40, indentY=30, isIncludeMutedLinks=False, isIncludeNonValidLinks=False, isFixIslands=True):
+        self.kapibara = ""
+        self.dict_ndTopoWorking = {}
+
+def VrtDoRecursiveAutomaticNodeTopologyOrganization(rada, ndRoot):
+    rada.kapibara = "kapibara"
 
 
 class VoronoiRantoTool(VoronoiToolNd): #完成了.

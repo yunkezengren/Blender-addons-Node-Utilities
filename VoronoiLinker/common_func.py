@@ -1,8 +1,10 @@
 import bpy
 from pprint import pprint
+from mathutils import Vector as Vec2
 from bpy.types import (Node, NodeSocket, UILayout)
+from .globals import *
 
-def Prefs():
+def Prefs():        # 很多局部变量也是prefs 还是改大写好点
     return bpy.context.preferences.addons[__package__].preferences
 
 def GetUserKmNe():
@@ -30,6 +32,14 @@ def format_tool_set(cls: bpy.types.Operator):
 def sk_label_or_name(sk: NodeSocket):
     return sk.label if sk.label else sk.name
 
+def sk_type_to_idname(sk: NodeSocket):
+    return dict_typeSkToBlid.get(sk.type, "Vl_Unknow")
+
+def is_builtin_tree_idname(blid):
+    set_quartetClassicTreeBlids = {'ShaderNodeTree','GeometryNodeTree','CompositorNodeTree','TextureNodeTree'}
+    return blid in set_quartetClassicTreeBlids
+
+
 # 放在这避免循环导入
 def index_switch_add_input(nodes, index_switch_node):
     old_active = nodes.active
@@ -39,3 +49,17 @@ def index_switch_add_input(nodes, index_switch_node):
     return index_switch_node.inputs[-2]
 
 
+
+def SetPieData(self, toolData, prefs, col):
+    def GetPiePref(name):
+        return getattr(prefs, self.vlTripleName.lower()+name)
+    toolData.isSpeedPie = GetPiePref("PieType")=='SPEED'
+    # todo1v6: 已经有 toolData.prefs 了, 所以可以干掉这个; 并且把这一切都做得更优雅些. 还有 SolderClsToolNames() 里的注释.
+    toolData.pieScale = GetPiePref("PieScale") 
+    toolData.pieDisplaySocketTypeInfo = GetPiePref("PieSocketDisplayType")
+    toolData.pieDisplaySocketColor = GetPiePref("PieDisplaySocketColor")
+    toolData.pieAlignment = GetPiePref("PieAlignment")
+    toolData.uiScale = self.uiScale
+    toolData.prefs = prefs
+    prefs.vaDecorColSkBack = col # 这句在 vaDecorColSk 之前很重要; 参见 VaUpdateDecorColSk().
+    prefs.vaDecorColSk = col

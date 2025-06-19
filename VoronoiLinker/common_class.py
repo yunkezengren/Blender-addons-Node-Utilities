@@ -326,6 +326,9 @@ class VestData:
     isDisplayLabels = False
     isPieChoice = False
 
+class VptData:
+    reprSkAnchor = ""
+
 class TryAndPass():
     def __enter__(self):
         pass
@@ -333,9 +336,21 @@ class TryAndPass():
         return True
 
 
-
-
-
+class VlnstData:
+    lastLastExecError = "" # 用于用户编辑 vlnstLastExecError, 不能添加或修改, 但可以删除.
+    isUpdateWorking = False
+def VlnstUpdateLastExecError(self, _context):
+    if VlnstData.isUpdateWorking:
+        return
+    VlnstData.isUpdateWorking = True
+    if not VlnstData.lastLastExecError:
+        self.vlnstLastExecError = ""
+    elif self.vlnstLastExecError:
+        if self.vlnstLastExecError!=VlnstData.lastLastExecError: # 注意: 谨防堆栈溢出.
+            self.vlnstLastExecError = VlnstData.lastLastExecError
+    else:
+        VlnstData.lastLastExecError = ""
+    VlnstData.isUpdateWorking = False
 
 
 

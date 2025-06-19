@@ -2,7 +2,149 @@ from .关于节点的函数 import RestoreCollapsedNodes
 from .关于sold的函数 import SolderSkLinks
 from .关于颜色的函数 import get_sk_color_safe, Color4
 from .关于翻译的函数 import GetAnnotFromCls, VlTrMapForKey
-from .VoronoiTool import VoronoiToolSk, CheckUncollapseNodeAndReNext
+from .关于翻译的函数 import *
+from .关于节点的函数 import *
+from .关于ui的函数 import *
+from .关于颜色的函数 import *
+from .VoronoiTool import *
+from .关于sold的函数 import *
+from .globals import *
+from .common_class import *
+from .common_func import *
+from .draw_in_view import *
+from .VoronoiTool import VoronoiToolSk
+
+
+viaverSkfMethod = -1 # 用于成功交互方法的切换开关. 本可以按版本分布到映射表中, 但"根据实际情况"尝试有其独特的美学魅力.
+
+# 注意: ViaVer'ы 尚未更新.
+def ViaVerNewSkf(tree, isSide, ess, name):
+    if is_blender4plus: # Todo1VV: 重新思考拓扑结构; 使用全局函数和方法, 以及一个指向成功方法的全局变量, 实现"完全锁定".
+        global viaverSkfMethod
+        if viaverSkfMethod==-1:
+            viaverSkfMethod = 1+hasattr(tree.interface,'items_tree')
+        socketType = ess if type(ess)==str else sk_type_to_idname(ess)
+        match viaverSkfMethod:
+            case 1: skf = tree.interface.new_socket(name, in_out={'OUTPUT' if isSide else 'INPUT'}, socket_type=socketType)
+            case 2: skf = tree.interface.new_socket(name, in_out='OUTPUT' if isSide else 'INPUT', socket_type=socketType)
+    else:
+        skf = (tree.outputs if isSide else tree.inputs).new(ess if type(ess)==str else ess.bl_idname, name)
+    return skf
+
+def ViaVerGetSkfa(tree, isSide):
+    if is_blender4plus:
+        global viaverSkfMethod
+        if viaverSkfMethod==-1:
+            viaverSkfMethod = 1+hasattr(tree.interface,'items_tree')
+        match viaverSkfMethod:
+            case 1: return tree.interface.ui_items
+            case 2: return tree.interface.items_tree
+    else:
+        return (tree.outputs if isSide else tree.inputs)
+
+def ViaVerGetSkf(tree, isSide, name):
+    return ViaVerGetSkfa(tree, isSide).get(name)
+
+def ViaVerSkfRemove(tree, isSide, name):
+    if is_blender4plus:
+        tree.interface.remove(name)
+    else:
+        (tree.outputs if isSide else tree.inputs).remove(name)
+
+
+
+
+
+class VptWayTree():
+    def __init__(self, tree=None, nd=None):
+        self.tree = tree
+        self.nd = nd
+        self.isUseExtAndSkPr = None # 为清理操作做的优化.
+        self.finalLink = None # 为了在RvEe中更合理地组织.
+
+def VptGetTreesPath(nd):
+    list_path = [VptWayTree(pt.node_tree, pt.node_tree.nodes.active) for pt in bpy.context.space_data.path]
+    # 据我判断, 节点编辑器的实现本身并不存储用户进入节点组时所通过的>节点<(但这不确定).
+    # 因此, 如果活动节点不是节点组, 就用第一个找到的-按组的-节点替换它 (如果找不到, 则为无).
+    for curWy, upWy in zip(list_path, list_path[1:]):
+        if (not curWy.nd)or(curWy.nd.type!='GROUP')or(curWy.nd.node_tree!=upWy.tree): # 确定深度之间的连接缺失.
+            curWy.nd = None # 摆脱当前不正确的节点. 最好是没有.
+            for nd in curWy.tree.nodes:
+                if (nd.type=='GROUP')and(nd.node_tree==upWy.tree): # 如果在当前深度中存在一个带有不正确节点的, 但其节点组是正确的节点组节点.
+                    curWy.nd = nd
+                    break # 这个深度的修复成功完成.
+    return list_path
+
+def VptGetGeoViewerFromTree(tree):
+    #Todo1PR: 对于后续深度, 立即重新连接到查看器也很重要, 但请参见|1|, 当前的逻辑流程不适合这样做.
+    # 因此不再支持, 因为只"解决"了一半. 所以老朋友锚点来帮忙.
+    nameView = ""
+    for win in bpy.context.window_manager.windows:
+        for area in win.screen.areas:
+            if area.type=='SPREADSHEET':
+                for space in area.spaces:
+                    if space.type=='SPREADSHEET':
+                        nameView = space.viewer_path.path[-1].ui_name #todo0VV
+                        break
+    if nameView:
+        nd = tree.nodes.get(nameView)
+    else:
+        for nd in reversed(tree.nodes):
+            if nd.type=='VIEWER':
+                break # 只需要第一个遇到的查看器, 否则行为会不方便.
+    if nd:
+        if any(True for sk in nd.inputs[1:] if sk.vl_sold_is_final_linked_cou): # Todo1PR: 也许这需要一个选项. 总的来说, 这个查看器这里一团糟.
+            return nd # 仅当查看器有用于查看字段的链接时才选择它.
+    return None
+
+def VptGetRootNd(tree):
+    match tree.bl_idname:
+        case 'ShaderNodeTree':
+            for nd in tree.nodes:
+                if (nd.type in {'OUTPUT_MATERIAL','OUTPUT_WORLD', 'OUTPUT_LIGHT', 'OUTPUT_LINESTYLE',
+                                'OUTPUT'}) and (nd.is_active_output):
+                    return nd
+                if nd.type == 'NPR_OUTPUT':  # 小王-npr预览
+                    return nd
+        case 'GeometryNodeTree':
+            if nd:=VptGetGeoViewerFromTree(tree):
+                return nd
+            for nd in tree.nodes:
+                if (nd.type=='GROUP_OUTPUT')and(nd.is_active_output):
+                    for sk in nd.inputs:
+                        if sk.type=='GEOMETRY':
+                            return nd
+        case 'CompositorNodeTree':
+            for nd in tree.nodes:
+                if nd.type=='VIEWER':
+                    return nd
+            for nd in tree.nodes:
+                if nd.type=='COMPOSITE':
+                    return nd
+        case 'TextureNodeTree':
+            for nd in tree.nodes:
+                if nd.type=='OUTPUT':
+                    return nd
+    return None
+
+def VptGetRootSk(tree, ndRoot, skTar):
+    match tree.bl_idname:
+        case 'ShaderNodeTree':
+            inx = 0
+            if ndRoot.type in {'OUTPUT_MATERIAL','OUTPUT_WORLD'}:
+            # if ndRoot.type in {'OUTPUT_MATERIAL','OUTPUT_WORLD', 'NPR_OUTPUT'}:   # 小王-npr预览
+                inx =  (skTar.name=="Volume")or(ndRoot.inputs[0].hide)
+            else:
+                for node in tree.nodes:
+                    if node.type == 'NPR_OUTPUT':
+                        return node.inputs[0]
+            return ndRoot.inputs[inx]
+        case 'GeometryNodeTree':
+            for sk in ndRoot.inputs:
+                if sk.type=='GEOMETRY':
+                    return sk
+    return ndRoot.inputs[0] # 注意: 这里也会接收到上面 GeometryNodeTree 的失败情况.
+
 
 def VptPreviewFromSk(self, prefs, skTar):
     if not(skTar and skTar.is_output):

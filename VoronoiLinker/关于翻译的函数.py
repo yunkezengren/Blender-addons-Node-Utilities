@@ -1,4 +1,7 @@
 from .globals import dict_vlHhTranslations
+from .globals import *
+from .common_func import Prefs
+
 
 class TranClsItemsUtil():
     def __init__(self, tup_items):
@@ -40,3 +43,8 @@ class VlTrMapForKey():
         for dk, dv in self.data.items():
             dict_vlHhTranslations[dk]['trans'][self.tc][self.key] = dv
 
+
+def GetPrefsRnaProp(att, inx=-1):
+    prefsTran = Prefs()
+    prop = prefsTran.rna_type.properties[att]
+    return prop if inx==-1 else getattr(prop,'enum_items')[inx]
