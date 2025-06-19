@@ -1,7 +1,6 @@
 from .关于节点的函数 import node_abs_loc
 from .关于颜色的函数 import (power_color4, clamp_color4, opaque_color4, get_color_black_alpha,
                       get_sk_color_safe, get_sk_color)
-from .common_func import Prefs
 
 tup_whiteCol4 = (1.0, 1.0, 1.0, 1.0)
 

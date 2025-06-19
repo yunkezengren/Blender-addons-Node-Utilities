@@ -1,3 +1,4 @@
+from .VoronoiTool import VoronoiToolAny
 
 
 class VoronoiCallNodePie(VoronoiToolAny):

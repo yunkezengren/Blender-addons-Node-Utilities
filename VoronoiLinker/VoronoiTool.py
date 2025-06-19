@@ -103,7 +103,7 @@ class VoronoiToolRoot(VoronoiOpTool, VoronoiToolFillers): #0
         tree = context.space_data.edit_tree
         self.tree = tree
         editorBlid = context.space_data.tree_type # 无需 `self.`?.
-        self.isInvokeInClassicTree = IsClassicTreeBlid(editorBlid)
+        self.isInvokeInClassicTree = is_builtin_tree_idname(editorBlid)
         if not(self.usefulnessForCustomTree or self.isInvokeInClassicTree):
             return {'PASS_THROUGH'} #'CANCELLED'?.
         if (not self.usefulnessForUndefTree)and(editorBlid=='NodeTreeUndefined'):

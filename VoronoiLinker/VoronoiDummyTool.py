@@ -1,3 +1,4 @@
+from .VoronoiTool import VoronoiToolSk
 
 
 class VoronoiDummyTool(VoronoiToolSk):   # 快速便捷地添加新工具的模板

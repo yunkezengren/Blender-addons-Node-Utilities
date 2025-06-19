@@ -1,7 +1,8 @@
-from .common_class import TryAndPass, VoronoiToolNd
+from .common_class import TryAndPass
 from .关于节点的函数 import SolderSkLinks
 from .draw_in_view import TemplateDrawNodeFull
-
+from .关于翻译的函数 import GetAnnotFromCls, VlTrMapForKey
+from .VoronoiTool import VoronoiToolNd
 
 class VoronoiResetNodeTool(VoronoiToolNd):
     bl_idname = 'node.voronoi_reset_node'

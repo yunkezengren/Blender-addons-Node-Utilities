@@ -1,4 +1,5 @@
-
+from .关于翻译的函数 import GetAnnotFromCls, VlTrMapForKey
+from .VoronoiTool import VoronoiToolRoot
 
 
 #"批量链接器" -- 就像链接器一样, 只是一次性处理多个 (显而易见).
@@ -111,4 +112,4 @@ class VoronoiMassLinkerTool(VoronoiToolRoot): #"猫狗合体", 既不是节点, 
         ##
         with VlTrMapForKey(GetPrefsRnaProp('vmltIgnoreCase').name) as dm:
             dm["ru_RU"] = "Игнорировать регистр"
-            dm["zh_CN"] = "忽略端口名称的大小写"
+            dm["zh_CN"] = "忽略接口名称的大小写"

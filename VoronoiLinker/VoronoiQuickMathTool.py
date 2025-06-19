@@ -1,6 +1,8 @@
 
 from .关于颜色的函数 import power_color4, get_sk_color_safe
-
+from .common_func import DisplayMessage
+from .关于翻译的函数 import GetAnnotFromCls, VlTrMapForKey
+from .VoronoiTool import VoronoiToolTripleSk
 
 set_vqmtSkTypeFields = {'VALUE', 'RGBA', 'VECTOR', 'INT', 'BOOLEAN', 'ROTATION', 'MATRIX'}
 fitVqmtRloDescr = "Bypassing the pie call, activates the last used operation for the selected socket type.\n"+\
@@ -242,7 +244,7 @@ class VoronoiQuickMathTool(VoronoiToolTripleSk):
         ##
         with VlTrMapForKey(GetPrefsRnaProp('vqmtIncludeThirdSk').name) as dm:
             dm["ru_RU"] = "Разрешить третий сокет"
-            dm["zh_CN"] = "包括第三个端口"
+            dm["zh_CN"] = "包括第三个接口"
         with VlTrMapForKey(GetPrefsRnaProp('vqmtIncludeQuickPresets').name) as dm:
             dm["ru_RU"] = "Включить быстрые пресеты"
 #            dm["zh_CN"] = ""

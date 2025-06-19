@@ -1,7 +1,8 @@
 from .C_Structure import BNode, BNodeSocket
+from .globals import gt_blender4, set_classicSocketsBlid, dict_typeSkToBlid
 from .common_class import Equestrian
 from bpy.types import (Node, NodeSocket, UILayout)
-
+import bpy
 from mathutils import Vector as Vec2
 
 def sk_loc(sk):
@@ -19,6 +20,13 @@ def SaveCollapsedNodes(nodes):
     for nd in nodes:
         dict_collapsedNodes[nd] = nd.hide
 
+def index_switch_add_input(nodes, index_switch_node):
+    old_active = nodes.active
+    nodes.active = index_switch_node
+    bpy.ops.node.index_switch_item_add()
+    nodes.active = old_active
+    return index_switch_node.inputs[-2]
+
 # 我没有只展开最近的节点, 而是做了一个"痕迹".
 # 为了不让这一切变成混乱的, 不断"抽搐"的场面, 而是可以引导, 展开, 冷静下来, 看到"当前情况", 分析, 然后 спокойно 地连接需要的东西.
 def RestoreCollapsedNodes(nodes):
@@ -29,12 +37,12 @@ def RestoreCollapsedNodes(nodes):
 class Fotago(): # Found Target Goal (找到的目标), "剩下的你们自己看着办".
     #def __getattr__(self, att): # 天才. 仅次于 '(*args): return Vector((args))'.
     #    return getattr(self.target, att) # 但要小心, 它的速度慢了大约5倍.
-    def __init__(self, target, *, dist=0.0, pos=Vec2((0.0, 0.0)), dir=0, boxHeiBound=(0.0, 0.0), text=""):
+    def __init__(self, target: NodeSocket, *, dist=0.0, pos=Vec2((0.0, 0.0)), dir=0, boxHeiBound=(0.0, 0.0), text=""):
         #self.target = target
         self.tar = target
         #self.sk = target #Fotago.sk = property(lambda a:a.target)
         #self.nd = target #Fotago.nd = property(lambda a:a.target)
-        self.blid = target.bl_idname #Fotago.blid = property(lambda a:a.target.bl_idname)
+        self.blid: str = target.bl_idname  #Fotago.blid = property(lambda a:a.target.bl_idname)
         self.dist = dist
         self.pos = pos
         # 下面的仅用于插槽.
@@ -42,8 +50,8 @@ class Fotago(): # Found Target Goal (找到的目标), "剩下的你们自己看
         self.boxHeiBound = boxHeiBound
         self.soldText = text # 用于支持其他语言的翻译. 每次绘制时都获取翻译太不方便了, 所以直接"焊接"上去.
 
-def GenFtgFromNd(nd, pos, uiScale): # 从 GetNearestNodesFtg 中提取出来, 本来没必要, 但 VLTT 逼我这么做.
-    def DistanceField(field0, boxbou): # 感谢 RayMarching, 没有它我不会想到这个.
+def GenFtgFromNd(nd, pos: Vec2, uiScale: float): # 从 GetNearestNodesFtg 中提取出来, 本来没必要, 但 VLTT 逼我这么做.
+    def DistanceField(field0: Vec2, boxbou: Vec2): # 感谢 RayMarching, 没有它我不会想到这个.
         field1 = Vec2(( (field0.x>0)*2-1, (field0.y>0)*2-1 ))
         field0 = Vec2(( abs(field0.x), abs(field0.y) ))-boxbou/2
         field2 = Vec2(( max(field0.x, 0.0), max(field0.y, 0.0) ))
@@ -81,7 +89,7 @@ def GenFtgsFromPuts(nd, isSide, samplePos, uiScale): # 为 vptRvEeSksHighlightin
         if not sk.is_linked:
             return True
         return (sk.vl_sold_is_final_linked_cou)and(sk.vl_sold_links_final[0].is_muted)
-    list_result = []
+    results: list[Fotago] = []
     ndDim = Vec2(nd.dimensions/uiScale) # "nd.dimensions" 已经包含了界面缩放的校正, 所以把它返回到世界坐标系.
     for sk in nd.outputs if isSide else reversed(nd.inputs):
         # 忽略禁用和隐藏的
@@ -95,9 +103,9 @@ def GenFtgsFromPuts(nd, isSide, samplePos, uiScale): # 为 vptRvEeSksHighlightin
                 elif not( (nd.type in ('BSDF_PRINCIPLED','SUBSURFACE_SCATTERING'))and(not gt_blender4) )or( not(sk.name in ("Subsurface Radius","Radius"))):
                     hei = 3
             boxHeiBound = (pos.y-11-hei*20,  pos.y+11+max(sk.vl_sold_is_final_linked_cou-2,0)*5*(not isSide))
-            txt = TranslateIface(GetSkLabelName(sk)) if sk.bl_idname!='NodeSocketVirtual' else TranslateIface("Virtual" if not sk.name else GetSkLabelName(sk))
-            list_result.append(Fotago(sk, dist=(samplePos-pos).length, pos=pos, dir= 1 if sk.is_output else -1 , boxHeiBound=boxHeiBound, text=txt))
-    return list_result
+            txt = TranslateIface(sk_label_or_name(sk)) if sk.bl_idname!='NodeSocketVirtual' else TranslateIface("Virtual" if not sk.name else sk_label_or_name(sk))
+            results.append(Fotago(sk, dist=(samplePos-pos).length, pos=pos, dir= 1 if sk.is_output else -1 , boxHeiBound=boxHeiBound, text=txt))
+    return results
 
 def GetNearestSocketsFtg(nd, samplePos, uiScale): # 返回"最近的插槽"列表. 真实的 Voronoi 图单元距离场. 没错, 这个插件就是因此得名的.
     # 如果是重路由节点, 那么情况很简单, 不需要计算; 输入和输出都只有一个, 插槽的位置就是它本身.
@@ -105,11 +113,11 @@ def GetNearestSocketsFtg(nd, samplePos, uiScale): # 返回"最近的插槽"列�
         loc = node_abs_loc(nd)
         L = lambda a: Fotago(a, dist=(samplePos-loc).length, pos=loc, dir=1 if a.is_output else -1, boxHeiBound=(-1, -1), text=nd.label if nd.label else TranslateIface(a.name))
         return [L(nd.inputs[0])], [L(nd.outputs[0])]
-    list_ftgSksIn = GenFtgsFromPuts(nd, False, samplePos, uiScale)
-    list_ftgSksOut = GenFtgsFromPuts(nd, True, samplePos, uiScale)
-    list_ftgSksIn.sort(key=lambda a:a.dist)
-    list_ftgSksOut.sort(key=lambda a:a.dist)
-    return list_ftgSksIn, list_ftgSksOut
+    l_ftg_sk_in = GenFtgsFromPuts(nd, False, samplePos, uiScale)
+    l_ftg_sk_out = GenFtgsFromPuts(nd, True, samplePos, uiScale)
+    l_ftg_sk_in.sort(key=lambda a:a.dist)
+    l_ftg_sk_out.sort(key=lambda a:a.dist)
+    return l_ftg_sk_in, l_ftg_sk_out
 
 def GetListOfNdEnums(node):   # 小王-判断节点是否有下拉列表
     enum_l = []
@@ -162,7 +170,7 @@ def DoLinkHh(sko, ski, *, isReroutesToAnyType=True, isCanBetweenField=True, isCa
         if not( (sko.bl_idname==ski.bl_idname)or( (isCanBetweenField)and(isSkoField)and(ski.type in set_utilTypeSkFields) ) ): # blid 相同或在字段之间.
             if not( (isCanFieldToShader)and(isSkoField)and(ski.type=='SHADER') ): # 字段到 shader.
                 if not(isSkoVirtual or isSkiVirtual): # 它们中有一个是虚拟的 (用于接口).
-                    if (not IsClassicTreeBlid(tree.bl_idname))or( IsClassicSk(sko)==IsClassicSk(ski) ): # 经典树中的插件套接字; 参见 VLT.
+                    if (not is_builtin_tree_idname(tree.bl_idname))or( IsClassicSk(sko)==IsClassicSk(ski) ): # 经典树中的插件套接字; 参见 VLT.
                         return None # 当前类型之间不允许.
     # 不正确的筛选完成. 现在是接口:
     ndo = sko.node
@@ -217,16 +225,16 @@ def DoLinkHh(sko, ski, *, isReroutesToAnyType=True, isCanBetweenField=True, isCa
                 skf = equr.NewSkfFromSk(skTar)
                 skNew = equr.GetSkFromSkf(skf, isOut=skf.in_out!='OUTPUT') # * 痛苦的声音 *
             case 2|3:       # [-2]  -1是扩展接口,-2是新添加的接口
-                _skf = (ndEq.state_items if typeEq==2 else ndEq.repeat_items).new({'VALUE':'FLOAT'}.get(skTar.type,skTar.type), GetSkLabelName(skTar))
+                _skf = (ndEq.state_items if typeEq==2 else ndEq.repeat_items).new({'VALUE':'FLOAT'}.get(skTar.type,skTar.type), sk_label_or_name(skTar))
                 if True: # SimRep 的重新选择是微不足道的; 因为它们没有面板, 所有新套接字都出现在底部.
                     skNew = ski.node.inputs[-2] if isSkiVirtual else sko.node.outputs[-2]
                 else:
                     skNew = Equestrian(ski if isSkiVirtual else sko).GetSkFromSkf(_skf, isOut=isSkoVirtual)
             case 4:       # 新建接口-菜单切换
-                _skf = ndEq.enum_items.new(GetSkLabelName(skTar))
+                _skf = ndEq.enum_items.new(sk_label_or_name(skTar))
                 skNew = ski.node.inputs[-2] if isSkiVirtual else sko.node.outputs[-2]
             case 5|6:       # 新建接口-捕捉属性 烘焙
-                _skf = (ndEq.bake_items if typeEq==5 else ndEq.capture_items).new({'VALUE':'FLOAT'}.get(skTar.type,skTar.type), GetSkLabelName(skTar))
+                _skf = (ndEq.bake_items if typeEq==5 else ndEq.capture_items).new({'VALUE':'FLOAT'}.get(skTar.type,skTar.type), sk_label_or_name(skTar))
                 skNew = ski.node.inputs[-2] if isSkiVirtual else sko.node.outputs[-2]
             case 7:         # 新建接口-编号切换
                 nodes = ski.node.id_data.nodes  # id_data是group/tree
@@ -243,8 +251,6 @@ def DoLinkHh(sko, ski, *, isReroutesToAnyType=True, isCanBetweenField=True, isCa
     return DoLinkLL(tree, sko, ski)
     # 注意: 从 b3.5 版本开始, 虚拟输入现在可以直接像多输入一样接收.
     # 它们甚至可以相互多次连接, 太棒了. 开发者可以说“放手了”, 让它自由发展.
-
-
 
 def VlrtRememberLastSockets(sko, ski):
     if sko:
@@ -270,3 +276,39 @@ def CheckUncollapseNodeAndReNext(nd: Node, self, *, cond: bool, flag=None): # �
 def FtgGetTargetOrNone(ftg) -> NodeSocket:
     return ftg.tar if ftg else None
 
+def sk_label_or_name(sk):
+    return sk.label if sk.label else sk.name
+
+def is_builtin_tree_idname(blid):
+    set_quartetClassicTreeBlids = {'ShaderNodeTree','GeometryNodeTree','CompositorNodeTree','TextureNodeTree'}
+    return blid in set_quartetClassicTreeBlids
+
+def sk_type_to_idname(sk):
+    return dict_typeSkToBlid.get(sk.type, "Vl_Unknow")
+
+def IsClassicSk(sk):
+    if sk.bl_idname=='NodeSocketVirtual':
+        return True
+    else:
+        return sk_type_to_idname(sk) in set_classicSocketsBlid
+
+def CompareSkLabelName(sk1, sk2, ignore_upper_lower=False):
+    if isIgnoreCase:
+        return sk_label_or_name(sk1).upper()==sk_label_or_name(sk2).upper()
+    else:
+        return sk_label_or_name(sk1)==sk_label_or_name(sk2)
+
+def get_node_domain_item_list(node):
+    enum_list = []
+    for p in node.rna_type.properties:
+        if p.type == 'ENUM' and p.identifier == "domain":
+            enum_list = [item for item in p.enum_items]
+            # enum_list = [item.identifier for item in p.enum_items]
+            # enum_list = [[item.name, item.identifier] for item in p.enum_items]
+    return enum_list
+
+def SelectAndActiveNdOnly(ndTar):
+    for nd in ndTar.id_data.nodes:
+        nd.select = False
+    ndTar.id_data.nodes.active = ndTar
+    ndTar.select = True

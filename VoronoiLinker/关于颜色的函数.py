@@ -1,4 +1,6 @@
 from mathutils import Vector as Color4
+from bpy.types import NodeSocket
+
 const_float4 = tuple[float, float, float, float]
 
 def power_color4(arr: const_float4, *, pw=1/2.2) -> const_float4:
@@ -10,6 +12,11 @@ def opaque_color4(c, *, alpha=1.0) -> const_float4:
 
 def clamp_color4(c) -> const_float4:
     return (max(c[0], 0), max(c[1], 0), max(c[2], 0), max(c[3], 0))
+
+def get_color_black_alpha(c: Color4, *, pw: float) -> float:
+    # (R, G, B)最大值通常代表了它的亮度, 亮 转 暗
+    # return ( 1.0 - max(max(c[0], c[1]), c[2]) )**pw
+    return ( 1 - max(c[:3]) )**pw
 
 def get_sk_color(sk: NodeSocket):
     if sk.bl_idname=='NodeSocketUndefined':
@@ -24,7 +31,3 @@ def get_sk_color(sk: NodeSocket):
 
 def get_sk_color_safe(sk: NodeSocket) -> const_float4:   # 不从插槽获取透明度; 并去掉插槽可能存在的负值.
     return opaque_color4(clamp_color4(get_sk_color(sk)))
-
-def get_color_black_alpha(c: Color4, *, pw: float) -> float:
-    # return ( 1.0 - max(max(c[0], c[1]), c[2]) )**pw
-    return ( 1 - max(c[:3]) )**pw

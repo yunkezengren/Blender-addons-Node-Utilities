@@ -1,4 +1,5 @@
-
+from .关于翻译的函数 import GetAnnotFromCls, VlTrMapForKey
+from .VoronoiTool import VoronoiToolPairSk
 
 
 fitVstModeItems = ( ('SWAP', "Swap",     "All links from the first socket will be on the second, from the second on the first"),
@@ -38,7 +39,7 @@ class VoronoiSwapperTool(VoronoiToolPairSk):
                     if ftg.blid!='NodeSocketVirtual':
                         ftgSkIn = ftg
                         break
-                #也允许对输入端口使用“添加”功能，但仅限于多输入端口，因为这很明显
+                #也允许对输入接口使用“添加”功能，但仅限于多输入接口，因为这很明显
                 if (self.toolMode=='ADD')and(ftgSkIn):
                     #按类型检查，而不是按'is_multi_input'，这样就可以从常规输入添加到多输入.
                     if (ftgSkIn.blid not in ('NodeSocketGeometry','NodeSocketString')):#or(not ftgSkIn.tar.is_multi_input): #没有第二个条件可能性更多.
@@ -79,7 +80,7 @@ class VoronoiSwapperTool(VoronoiToolPairSk):
                     for lk in skIo1.vl_sold_links_final:
                         if lk.to_node!=skIo0.node: # T 0  ^
                             tree.links.new(skIo0, lk.to_socket)
-                            if lk.to_socket.is_multi_input: #对于多输入端口则删除.
+                            if lk.to_socket.is_multi_input: #对于多输入接口则删除.
                                 tree.links.remove(lk)
                     for li in list_memSks:
                         tree.links.new(skIo1, li)
@@ -106,7 +107,7 @@ class VoronoiSwapperTool(VoronoiToolPairSk):
                             tree.links.new(skIo1, lk.to_socket)
                             if lk.to_socket.is_multi_input: #没有这个，lk仍然会指向“已添加”的连接，从而被删除。因此需要对多输入进行显式检查.
                                 tree.links.remove(lk)
-                else: #为了多输入端口而添加.
+                else: #为了多输入接口而添加.
                     for lk in skIo0.vl_sold_links_final:
                         if lk.from_node!=skIo1.node: # F 1  ^
                             tree.links.new(lk.from_socket, skIo1)

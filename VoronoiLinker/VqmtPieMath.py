@@ -1,5 +1,6 @@
 from .VoronoiTool import VoronoiOpTool
 from .关于颜色的函数 import power_color4, get_sk_color
+from .globals import gt_blender4
 
 
 
@@ -86,6 +87,7 @@ def DoQuickMath(event, tree, operation, isCombo=False):
                 sk.hide = True
     aNd.show_options = not VqmtData.isHideOptions
     return {'FINISHED'}
+
 class VqmtOpMain(VoronoiOpTool):
     bl_idname = 'node.voronoi_quick_math_main'
     bl_label = "Quick Math"

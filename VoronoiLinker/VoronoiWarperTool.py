@@ -1,3 +1,7 @@
+from .关于翻译的函数 import GetAnnotFromCls, VlTrMapForKey
+from .VoronoiTool import VoronoiToolSk
+
+
 class VoronoiWarperTool(VoronoiToolSk):
     bl_idname = 'node.voronoi_warper'
     bl_label = "Voronoi Warper"

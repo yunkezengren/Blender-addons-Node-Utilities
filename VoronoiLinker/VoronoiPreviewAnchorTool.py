@@ -1,3 +1,4 @@
+from .关于翻译的函数 import GetAnnotFromCls, VlTrMapForKey
 
 
 class VoronoiPreviewAnchorTool(VoronoiToolSk): #嗯, 现在这是一个完整的工具了; 甚至可能需要在布局中为其创建一个新的独立类别.

@@ -22,8 +22,10 @@ from bpy.types import (NodeSocket, UILayout)
 from bpy.app.translations import pgettext_iface as TranslateIface
 
 from .C_Structure import BNode
-from .common_class import Equestrian, VmtData, VqmtData
+from .common_class import Equestrian
 from .globals import *
+from .common_func import GetFirstUpperLetters, GetUserKmNe, format_tool_set
+from .globals import gt_blender4, dict_typeSkToBlid
 from .VoronoiTool import VoronoiToolRoot, VoronoiToolPairSk
 from .VoronoiLinkerTool import VoronoiLinkerTool
 from .VoronoiMixerTool import VoronoiMixerTool
@@ -48,9 +50,9 @@ from .VqmtPieMath import VqmtOpMain, VqmtPieMath
 from .VmMixer import VmtOpMixer, VmtPieMixer
 from .VoronoiCallNodePie import VoronoiCallNodePie
 from .Rot_or_Mat_Converter import Rot_or_Mat_Converter, Pie_MT_Converter_To_Rotation, Pie_MT_Converter_Rotation_To, Pie_MT_Separate_Matrix, Pie_MT_Combine_Matrix
-
 from .common_class import TryAndPass
-from .关于sold的函数 import RegisterSolderings, UnregisterSolderings
+from .关于sold的函数 import SolderClsToolNames, RegisterSolderings, UnregisterSolderings
+from .关于翻译的函数 import GetAnnotFromCls, VlTrMapForKey
 from .draw_in_view import TestDraw
 
 dict_classes = {} # 所有需要注册的类都放在这里. 使用字典是为了 smart_add_to_reg_and_kmiDefs() 函数, 同时还能保持顺序.
@@ -73,21 +75,16 @@ def smart_add_to_reg_and_kmiDefs(cls, txt, dict_props={}):
     dict_vtClasses[cls] = True
     list_kmiDefs.append( (cls.bl_idname, dict_numToKey.get(txt[4:], txt[4:]), txt[0]=="S", txt[1]=="C", txt[2]=="A", txt[3]=="+", dict_props) )
 
-isWin = platform.system()=='Windows'
-#isLinux = platform.system()=='Linux'
 
 gt_blender4 = bpy.app.version[0]>=4 
 # 用于支持在旧版本中工作. 这样在被迫切换到旧版本时, 心里能舒坦点, 不用那么紧张,
 # 还能因为插件能在不同API的不同版本中运行而获得额外的内啡肽. 😎
 #Todo0VV: 尽可能地向更低版本兼容. 目前能保证的是: b4.0 和 b4.1? 🤔
 
-voronoiAnchorCnName = "Voronoi_Anchor" # 不支持翻译, 就这样一起吧.
-voronoiAnchorDtName = "Voronoi_Anchor_Dist" # 不支持翻译! 请参考相关的拓扑结构.
-voronoiSkPreviewName = "voronoi_preview" # 不支持翻译, 不想每次读取都用 TranslateIface() 包裹一下.
+voronoiAnchorCnName = "Voronoi_Anchor"           # 不支持翻译, 就这样一起吧.
+voronoiAnchorDtName = "Voronoi_Anchor_Dist"      # 不支持翻译! 请参考相关的拓扑结构.
+voronoiSkPreviewName = "voronoi_preview"         # 不支持翻译, 不想每次读取都用 TranslateIface() 包裹一下.
 voronoiPreviewResultNdName = "SavePreviewResult" # 不支持翻译, 就这样一起吧.
-
-def GetUserKmNe():
-    return bpy.context.window_manager.keyconfigs.user.keymaps['Node Editor']
 
 #Todo0VV: 处理 n^3 种组合: space_data.tree_type 和 space_data.edit_tree.bl_idname; 包括经典的, 丢失的和插件的; 绑定和未绑定到编辑器的.
 # ^ 然后检查所有工具在这些组合中的可用性. 之后在现有节点树中检查所有工具与丢失节点的丢失插槽的交互情况.
@@ -127,20 +124,6 @@ dict_vlHhTranslations['zh_CN'] = {'author':"chenpaner", 'vl':(4,0,0), 'created':
 
 for dk in dict_vlHhTranslations:
     exec(dk+f" = '{dk}'") # 等什么时候出现带 @variantcode 的语言 (大概永远不会有), 才需要担心这个问题.
-
-class VlTrMapForKey():
-    def __init__(self, key: str, *, tc='a'):
-        self.key = key
-        self.data = {}
-        self.tc = tc
-    def __enter__(self):
-        return self.data
-    def __exit__(self, *_):
-        for dk, dv in self.data.items():
-            dict_vlHhTranslations[dk]['trans'][self.tc][self.key] = dv
-
-def TxtClsBlabToolSett(cls):
-    return cls.bl_label+" tool settings"
 
 class TranslationHelper():
     def __init__(self, dict_trans={}, lang=''):
@@ -265,34 +248,6 @@ with VlTrMapForKey("Customization") as dm:
     dm["ru_RU"] = "Кастомизация"
 
 prefsTran = None
-
-class TranClsItemsUtil():
-    def __init__(self, tup_items):
-        if type(tup_items[0])==tuple:
-            self.data = dict([(li[0], li[1:]) for li in tup_items])
-        else:
-            self.data = tup_items
-    def __getattr__(self, att):
-        if type(self.data)==tuple:
-            match att:
-                case 'name':
-                    return self.data[0]
-                case 'description':
-                    return self.data[1]
-            assert False
-        else:
-            return TranClsItemsUtil(self.data[att]) #`toolProp.ENUM1.name`
-    def __getitem__(self, key):
-        return TranClsItemsUtil(self.data[key]) #`toolProp['ENUM1'].name`
-class TranAnnotFromCls():
-    def __init__(self, annot):
-        self.annot = annot
-    def __getattr__(self, att):
-        result = self.annot.keywords[att]
-        return result if att!='items' else TranClsItemsUtil(result)
-def GetAnnotFromCls(cls, key): # 原来它们藏在这里, 在注解(annotations)里. 我都快放弃希望了, 以为必须手动一个个写了. 😂
-    return TranAnnotFromCls(cls.__annotations__[key])
-
 def GetPrefsRnaProp(att, inx=-1):
     prop = prefsTran.rna_type.properties[att]
     return prop if inx==-1 else getattr(prop,'enum_items')[inx]
@@ -300,24 +255,24 @@ def GetPrefsRnaProp(att, inx=-1):
 def CollectTranslationDict(): # 为了方便翻译那些需要注册属性的文本. 请参阅 BringTranslations 系列函数.
     global prefsTran
     prefsTran = Prefs()
-    ##
+
     for cls in dict_vtClasses:
         cls.BringTranslations()
     VoronoiAddonPrefs.BringTranslations()
-    ##
+
     with VlTrMapForKey(GetAnnotFromCls(VoronoiToolRoot,'isPassThrough').name) as dm:
         dm["ru_RU"] = "Пропускать через выделение нода"
-        dm["zh_CN"] = "单击输出端口预览(而不是自动根据鼠标位置自动预览)"
+        dm["zh_CN"] = "单击输出接口预览(而不是自动根据鼠标位置自动预览)"
     with VlTrMapForKey(GetAnnotFromCls(VoronoiToolRoot,'isPassThrough').description) as dm:
         dm["ru_RU"] = "Клик над нодом активирует выделение, а не инструмент"
-        dm["zh_CN"] = "单击输出端口才连接预览而不是根据鼠标位置动态预览"
+        dm["zh_CN"] = "单击输出接口才连接预览而不是根据鼠标位置动态预览"
     with VlTrMapForKey(GetAnnotFromCls(VoronoiToolPairSk,'isCanBetweenFields').name) as dm:
         dm["ru_RU"] = "Может между полями"
-        dm["zh_CN"] = "端口类型可以不一样"
+        dm["zh_CN"] = "接口类型可以不一样"
     with VlTrMapForKey(GetAnnotFromCls(VoronoiToolPairSk,'isCanBetweenFields').description) as dm:
         dm["ru_RU"] = "Инструмент может искать сокеты между различными типами полей"
-#        dm["zh_CN"] = "工具可以连接不同类型的端口"?
-    ##
+        dm["zh_CN"] = "工具可以连接不同类型的接口"
+
     dict_vlHhTranslations['zh_HANS'] = dict_vlHhTranslations['zh_CN']
     for cls in dict_vtClasses:
         if (cls, 'zh_CN') in dict_toolLangSpecifDataPool:
@@ -325,53 +280,12 @@ def CollectTranslationDict(): # 为了方便翻译那些需要注册属性的文
 
 dict_toolLangSpecifDataPool = {}
 
-def DisplayMessage(title, text, icon='NONE'):
-    def PopupMessage(self, _context):
-        self.layout.label(text=text, icon=icon, translate=False)
-    bpy.context.window_manager.popup_menu(PopupMessage, title=title, icon='NONE')
-
-def GetSkLabelName(sk):
-    return sk.label if sk.label else sk.name
-
-def CompareSkLabelName(sk1, sk2, isIgnoreCase=False):
-    if isIgnoreCase:
-        return GetSkLabelName(sk1).upper()==GetSkLabelName(sk2).upper()
-    else:
-        return GetSkLabelName(sk1)==GetSkLabelName(sk2)
-
-
-def get_node_domain_item_list(node):
-    enum_list = []
-    for p in node.rna_type.properties:
-        if p.type == 'ENUM' and p.identifier == "domain":
-            enum_list = [item for item in p.enum_items]
-            # enum_list = [item.identifier for item in p.enum_items]
-            # enum_list = [[item.name, item.identifier] for item in p.enum_items]
-    return enum_list
-
-def SelectAndActiveNdOnly(ndTar):
-    for nd in ndTar.id_data.nodes:
-        nd.select = False
-    ndTar.id_data.nodes.active = ndTar
-    ndTar.select = True
-
-def SkConvertTypeToBlid(sk):
-    return dict_typeSkToBlid.get(sk.type, "Vl_Unknow")
-
-def IsClassicSk(sk):
-    if sk.bl_idname=='NodeSocketVirtual':
-        return True
-    else:
-        return SkConvertTypeToBlid(sk) in set_classicSocketsBlid
-
-def IsClassicTreeBlid(blid):
-    return blid in set_quartetClassicTreeBlids
-
 def SetPieData(self, toolData, prefs, col):
     def GetPiePref(name):
         return getattr(prefs, self.vlTripleName.lower()+name)
     toolData.isSpeedPie = GetPiePref("PieType")=='SPEED'
-    toolData.pieScale = GetPiePref("PieScale") # todo1v6: 已经有 toolData.prefs 了, 所以可以干掉这个; 并且把这一切都做得更优雅些. 还有 SolderClsToolNames() 里的注释.
+    # todo1v6: 已经有 toolData.prefs 了, 所以可以干掉这个; 并且把这一切都做得更优雅些. 还有 SolderClsToolNames() 里的注释.
+    toolData.pieScale = GetPiePref("PieScale") 
     toolData.pieDisplaySocketTypeInfo = GetPiePref("PieSocketDisplayType")
     toolData.pieDisplaySocketColor = GetPiePref("PieDisplaySocketColor")
     toolData.pieAlignment = GetPiePref("PieAlignment")
@@ -517,47 +431,6 @@ def LyAddEtb(where: UILayout): # "你们修复bug吗? 不, 我们只发现bug."
     import traceback
     LyAddTxtAsEtb(where, traceback.format_exc())
 
-
-viaverSkfMethod = -1 # 用于成功交互方法的切换开关. 本可以按版本分布到映射表中, 但"根据实际情况"尝试有其独特的美学魅力.
-
-# 注意: ViaVer'ы 尚未更新.
-def ViaVerNewSkf(tree, isSide, ess, name):
-    if gt_blender4: # Todo1VV: 重新思考拓扑结构; 使用全局函数和方法, 以及一个指向成功方法的全局变量, 实现"完全锁定".
-        global viaverSkfMethod
-        if viaverSkfMethod==-1:
-            viaverSkfMethod = 1+hasattr(tree.interface,'items_tree')
-        socketType = ess if type(ess)==str else SkConvertTypeToBlid(ess)
-        match viaverSkfMethod:
-            case 1: skf = tree.interface.new_socket(name, in_out={'OUTPUT' if isSide else 'INPUT'}, socket_type=socketType)
-            case 2: skf = tree.interface.new_socket(name, in_out='OUTPUT' if isSide else 'INPUT', socket_type=socketType)
-    else:
-        skf = (tree.outputs if isSide else tree.inputs).new(ess if type(ess)==str else ess.bl_idname, name)
-    return skf
-def ViaVerGetSkfa(tree, isSide):
-    if gt_blender4:
-        global viaverSkfMethod
-        if viaverSkfMethod==-1:
-            viaverSkfMethod = 1+hasattr(tree.interface,'items_tree')
-        match viaverSkfMethod:
-            case 1: return tree.interface.ui_items
-            case 2: return tree.interface.items_tree
-    else:
-        return (tree.outputs if isSide else tree.inputs)
-def ViaVerGetSkf(tree, isSide, name):
-    return ViaVerGetSkfa(tree, isSide).get(name)
-def ViaVerSkfRemove(tree, isSide, name):
-    if gt_blender4:
-        tree.interface.remove(name)
-    else:
-        (tree.outputs if isSide else tree.inputs).remove(name)
-
-def index_switch_add_input(nodes, index_switch_node):
-    old_active = nodes.active
-    nodes.active = index_switch_node
-    bpy.ops.node.index_switch_item_add()
-    nodes.active = old_active
-    return index_switch_node.inputs[-2]
-
 smart_add_to_reg_and_kmiDefs(VoronoiLinkerTool, "##A_RIGHTMOUSE") # "##A_RIGHTMOUSE"?
 dict_setKmiCats['grt'].add(VoronoiLinkerTool.bl_idname)
 
@@ -571,7 +444,7 @@ class VoronoiAddonPrefs(VoronoiAddonPrefs):
 
 with VlTrMapForKey(VoronoiLinkerTool.bl_label) as dm:
     dm["zh_CN"] = "Voronoi快速连接"
-with VlTrMapForKey(TxtClsBlabToolSett(VoronoiLinkerTool)) as dm:
+with VlTrMapForKey(format_tool_set(VoronoiLinkerTool)) as dm:
     dm["ru_RU"] = f"Настройки инструмента {VoronoiLinkerTool.bl_label}:"
     dm["zh_CN"] = f"{VoronoiLinkerTool.bl_label}快速连接设置:"
 
@@ -594,7 +467,7 @@ class VoronoiAddonPrefs(VoronoiAddonPrefs):
 
 with VlTrMapForKey(VoronoiPreviewTool.bl_label) as dm:
     dm["zh_CN"] = "Voronoi快速预览"
-with VlTrMapForKey(TxtClsBlabToolSett(VoronoiPreviewTool)) as dm:
+with VlTrMapForKey(format_tool_set(VoronoiPreviewTool)) as dm:
     dm["ru_RU"] = f"Настройки инструмента {VoronoiPreviewTool.bl_label}:"
     dm["zh_CN"] = f"{VoronoiPreviewTool.bl_label}快速预览设置:"
 
@@ -630,7 +503,7 @@ class VoronoiAddonPrefs(VoronoiAddonPrefs):
 
 with VlTrMapForKey(VoronoiMixerTool.bl_label) as dm:
     dm["zh_CN"] = "Voronoi快速混合"
-with VlTrMapForKey(TxtClsBlabToolSett(VoronoiMixerTool)) as dm:
+with VlTrMapForKey(format_tool_set(VoronoiMixerTool)) as dm:
     dm["ru_RU"] = f"Настройки инструмента {VoronoiMixerTool.bl_label}:"
     dm["zh_CN"] = f"{VoronoiMixerTool.bl_label}快速混合设置:"
 
@@ -680,7 +553,7 @@ class VoronoiAddonPrefs(VoronoiAddonPrefs):
 
 with VlTrMapForKey(VoronoiQuickMathTool.bl_label) as dm:
     dm["zh_CN"] = "Voronoi快速数学运算"
-with VlTrMapForKey(TxtClsBlabToolSett(VoronoiQuickMathTool)) as dm:
+with VlTrMapForKey(format_tool_set(VoronoiQuickMathTool)) as dm:
     dm["ru_RU"] = f"Настройки инструмента {VoronoiQuickMathTool.bl_label}:"
     dm["zh_CN"] = f"{VoronoiQuickMathTool.bl_label}快速数学运算设置:"
 
@@ -704,7 +577,7 @@ class VoronoiAddonPrefs(VoronoiAddonPrefs):
 
 with VlTrMapForKey(VoronoiRantoTool.bl_label) as dm:
     dm["zh_CN"] = "Voronoi节点自动排布对齐"
-with VlTrMapForKey(TxtClsBlabToolSett(VoronoiRantoTool)) as dm:
+with VlTrMapForKey(format_tool_set(VoronoiRantoTool)) as dm:
     dm["ru_RU"] = f"Настройки инструмента {VoronoiRantoTool.bl_label}:"
     dm["zh_CN"] = f"{VoronoiRantoTool.bl_label}节点自动排布对齐工具设置:"
 
@@ -728,11 +601,11 @@ smart_add_to_reg_and_kmiDefs(VoronoiSwapperTool, "S#A_S", {'toolMode':'TRAN'})
 dict_setKmiCats['oth'].add(VoronoiSwapperTool.bl_idname)
 
 with VlTrMapForKey(VoronoiSwapperTool.bl_label) as dm:
-    dm["zh_CN"] = "Voronoi快速替换端口"
+    dm["zh_CN"] = "Voronoi快速替换接口"
 
 dict_toolLangSpecifDataPool[VoronoiSwapperTool, "ru_RU"] = """Инструмент для обмена линков у двух сокетов, или добавления их к одному из них.
 Для линка обмена не будет, если в итоге он окажется исходящим из своего же нода."""
-dict_toolLangSpecifDataPool[VoronoiSwapperTool, "zh_CN"] = "Alt是批量替换输出端口,Shift是互换端口"
+dict_toolLangSpecifDataPool[VoronoiSwapperTool, "zh_CN"] = "Alt是批量替换输出接口,Shift是互换接口"
 
 
 smart_add_to_reg_and_kmiDefs(VoronoiHiderTool, "S##_E", {'toolMode':'SOCKET'})
@@ -756,100 +629,12 @@ class VoronoiAddonPrefs(VoronoiAddonPrefs):
 
 with VlTrMapForKey(VoronoiHiderTool.bl_label) as dm:
     dm["zh_CN"] = "Voronoi快速隐藏"
-with VlTrMapForKey(TxtClsBlabToolSett(VoronoiHiderTool)) as dm:
+with VlTrMapForKey(format_tool_set(VoronoiHiderTool)) as dm:
     dm["ru_RU"] = f"Настройки инструмента {VoronoiHiderTool.bl_label}:"
-    dm["zh_CN"] = f"{VoronoiHiderTool.bl_label}快速隐藏端口设置:"
+    dm["zh_CN"] = f"{VoronoiHiderTool.bl_label}快速隐藏接口设置:"
 
 dict_toolLangSpecifDataPool[VoronoiHiderTool, "ru_RU"] = "Инструмент для наведения порядка и эстетики в дереве.\nСкорее всего 90% уйдёт на использование автоматического сокрытия нодов."
-dict_toolLangSpecifDataPool[VoronoiHiderTool, "zh_CN"] = "Shift是自动隐藏数值为0/颜色纯黑/未连接的端口,Ctrl是单个隐藏端口"
-
-def HideFromNode(prefs, ndTarget, lastResult, isCanDo=False): # 最初是我个人的实用工具, 在 VL 之前就创建了.
-    set_equestrianHideVirtual = {'GROUP_INPUT','SIMULATION_INPUT','SIMULATION_OUTPUT','REPEAT_INPUT','REPEAT_OUTPUT'}
-    scoGeoSks = 0 # 用于 CheckSkZeroDefaultValue().
-    def CheckSkZeroDefaultValue(sk): # Shader 和 Virtual 总是 True, Geometry 取决于插件设置.
-        match sk.type: # 按复杂性降序排序.
-            case 'GEOMETRY':
-                match prefs.vhtNeverHideGeometry: # 也曾考虑用于 out, 但有点懒, 还有 `GeometryNodeBoundBox`, 所以...
-                    case 'FALSE': return True
-                    case 'TRUE': return False
-                    case 'ONLY_FIRST':
-                        nonlocal scoGeoSks
-                        scoGeoSks += 1
-                        return scoGeoSks!=1
-            case 'VALUE':
-                # Todo1v6: 当需要时, 或者无事可做时 -- 添加一个可配置的点状隐藏列表, 通过 Python 进行评估.
-                # ^ 字典[插槽blid]:{名称集合}. 还要想办法传递 default_value.
-                if (GetSkLabelName(sk) in {'Alpha', 'Factor'})and(sk.default_value==1): # 对于某些 float 插槽, 进行点状检查也不错.
-                    return True
-                return sk.default_value==0
-            case 'VECTOR':
-                if (GetSkLabelName(sk)=='Scale')and(sk.default_value[0]==1)and(sk.default_value[1]==1)and(sk.default_value[2]==1):
-                    return True # 'GeometryNodeTransform' 经常让我烦恼, 有一天终于受不了了..
-                return (sk.default_value[0]==0)and(sk.default_value[1]==0)and(sk.default_value[2]==0) # 注意: `sk.default_value==(0,0,0)` 是行不通的.
-            case 'BOOLEAN':
-                if not sk.hide_value: # 懒得焊接, 直接处理.
-                    match prefs.vhtHideBoolSocket:
-                        case 'ALWAYS':   return True
-                        case 'NEVER':    return False
-                        case 'IF_TRUE':  return sk.default_value
-                        case 'IF_FALSE': return not sk.default_value
-                else:
-                    match prefs.vhtHideHiddenBoolSocket:
-                        case 'ALWAYS':   return True
-                        case 'NEVER':    return False
-                        case 'IF_TRUE':  return sk.default_value
-                        case 'IF_FALSE': return not sk.default_value
-            case 'RGBA':
-                return (sk.default_value[0]==0)and(sk.default_value[1]==0)and(sk.default_value[2]==0) # 第4个分量被忽略, 可以是任何值.
-            case 'INT':
-                return sk.default_value==0
-            case 'STRING'|'OBJECT'|'MATERIAL'|'COLLECTION'|'TEXTURE'|'IMAGE': # 注意: STRING 与其他不同, 但处理方式相同.
-                return not sk.default_value
-            # 小王-自动隐藏接口优化-旋转接口
-            case 'ROTATION':
-                euler = sk.default_value
-                return euler[0] == 0 and euler[1] == 0 and euler[2] == 0
-            # 小王-自动隐藏接口优化-inline
-            case _:
-                return True
-    if lastResult: # 上次分析的结果, 是否有插槽的状态会改变. 'isCanDo' 需要.
-        def CheckAndDoForIo(puts, LMainCheck):
-            success = False
-            for sk in puts:
-                if (sk.enabled)and(not sk.hide)and(not sk.vl_sold_is_final_linked_cou)and(LMainCheck(sk)): # 隐藏的核心在这里, 在前两个检查中.
-                    success |= not sk.hide # 在这里 success 表示它是否会被隐藏.
-                    if isCanDo:
-                        sk.hide = True
-            return success
-        # 如果虚拟节点是手动创建的, 就不要隐藏它们. 因为就是这样. 但如果组的输入不止一个, 还是要隐藏.
-        # LVirtual 的最初意思是 "LCheckOver" -- "上层"检查, 点状的附加条件. 但后来只积累了虚拟节点的条件, 所以改了名.
-        isMoreNgInputs = False if ndTarget.type!='GROUP_INPUT' else length([True for nd in ndTarget.id_data.nodes if nd.type=='GROUP_INPUT'])>1
-        LVirtual = lambda sk: not( (sk.bl_idname=='NodeSocketVirtual')and # 这个 Labmda 的意思是, 对于那些虚拟的,
-                                   (sk.node.type in {'GROUP_INPUT','GROUP_OUTPUT'})and # 在 io-骑士节点上的,
-                                   (sk!=( sk.node.outputs if sk.is_output else sk.node.inputs )[-1])and # 并且不是最后一个的 (这才是重点),
-                                   (not isMoreNgInputs) ) # 并且树中只有一个 GROUP_INPUT.
-        # 核心在下面的三行代码中:
-        success = CheckAndDoForIo(ndTarget.inputs, lambda sk: CheckSkZeroDefaultValue(sk)and(LVirtual(sk)) ) # 对于输入, 是主流的值检查, 外加虚拟节点的检查.
-        a = [True for sk in ndTarget.outputs if (sk.enabled)and(sk.vl_sold_is_final_linked_cou)]
-        if any(True for sk in ndTarget.outputs if (sk.enabled)and(sk.vl_sold_is_final_linked_cou)): # 如果至少有一个输出插槽连接到外部
-            success |= CheckAndDoForIo(ndTarget.outputs, lambda sk: LVirtual(sk) ) # 对于输出, 只有当它们的节点是骑士时, 虚拟节点的检查才有效.
-        else:
-            # 即使没有外部连接, 也要切换最后一个虚拟节点.
-            if ndTarget.type in set_equestrianHideVirtual: # 注意: 'GROUP_OUTPUT' 没用, 它的一切都按值隐藏.
-                if ndTarget.outputs: # 代替 for, 以便从最后一个读取.
-                    sk = ndTarget.outputs[-1]
-                    if sk.bl_idname=='NodeSocketVirtual':
-                        success |= not sk.hide # 与 CheckAndDoForIo() 中一样.
-                        if isCanDo:
-                            sk.hide = True
-        return success # 来自两个 CheckAndDoForIo() 内部的收获.
-    elif isCanDo: # 否则展开全部.
-        success = False
-        for puts in [ndTarget.inputs, ndTarget.outputs]:
-            for sk in puts:
-                success |= sk.hide # 在这里 success 表示它是否会被展开.
-                sk.hide = (sk.bl_idname=='NodeSocketVirtual')and(not prefs.vhtIsUnhideVirtual)
-        return success
+dict_toolLangSpecifDataPool[VoronoiHiderTool, "zh_CN"] = "Shift是自动隐藏数值为0/颜色纯黑/未连接的接口,Ctrl是单个隐藏接口"
 
 
 smart_add_to_reg_and_kmiDefs(VoronoiMassLinkerTool, "SCA_LEFTMOUSE")
@@ -860,10 +645,10 @@ class VoronoiAddonPrefs(VoronoiAddonPrefs):
     vmltIgnoreCase: bpy.props.BoolProperty(name="Ignore case", default=True)
 
 with VlTrMapForKey(VoronoiMassLinkerTool.bl_label) as dm:
-    dm["zh_CN"] = "Voronoi根据端口名批量快速连接"
-with VlTrMapForKey(TxtClsBlabToolSett(VoronoiMassLinkerTool)) as dm:
+    dm["zh_CN"] = "Voronoi根据接口名批量快速连接"
+with VlTrMapForKey(format_tool_set(VoronoiMassLinkerTool)) as dm:
     dm["ru_RU"] = f"Настройки инструмента {VoronoiMassLinkerTool.bl_label}:"
-    dm["zh_CN"] = f"{VoronoiMassLinkerTool.bl_label}根据端口名批量连接设置:"
+    dm["zh_CN"] = f"{VoronoiMassLinkerTool.bl_label}根据接口名批量连接设置:"
 
 dict_toolLangSpecifDataPool[VoronoiMassLinkerTool, "ru_RU"] = """"Малыш котопёс", не ноды, не сокеты. Создан ради редких точечных спец-ускорений.
 VLT на максималках. В связи со своим принципом работы, по своему божественен."""
@@ -885,7 +670,7 @@ class VoronoiAddonPrefs(VoronoiAddonPrefs):
 
 with VlTrMapForKey(VoronoiEnumSelectorTool.bl_label) as dm:
     dm["zh_CN"] = "Voronoi快速切换节点内部下拉列表"
-with VlTrMapForKey(TxtClsBlabToolSett(VoronoiEnumSelectorTool)) as dm:
+with VlTrMapForKey(format_tool_set(VoronoiEnumSelectorTool)) as dm:
     dm["ru_RU"] = f"Настройки инструмента {VoronoiEnumSelectorTool.bl_label}:"
     dm["zh_CN"] = f"{VoronoiEnumSelectorTool.bl_label}快速显示节点里下拉列表设置:"
 
@@ -946,7 +731,7 @@ class VoronoiAddonPrefs(VoronoiAddonPrefs):
     vitPasteToAnySocket: bpy.props.BoolProperty(name="Allow paste to any socket", default=False)
 
 with VlTrMapForKey(VoronoiInterfacerTool.bl_label) as dm:
-    dm["zh_CN"] = "Voronoi在节点组里快速复制粘贴端口名给节点组输入输出端"
+    dm["zh_CN"] = "Voronoi在节点组里快速复制粘贴接口名给节点组输入输出端"
 
 dict_toolLangSpecifDataPool[VoronoiInterfacerTool, "ru_RU"] = """Инструмент на уровне "The Great Trio". Ответвление от VLT ради удобного ускорения
 процесса создания и спец-манипуляций с интерфейсами. "Менеджер интерфейсов"."""
@@ -956,7 +741,7 @@ smart_add_to_reg_and_kmiDefs(VoronoiLinksTransferTool, "S##_T", {'isByIndexes':T
 dict_setKmiCats['spc'].add(VoronoiLinksTransferTool.bl_idname)
 
 with VlTrMapForKey(VoronoiLinksTransferTool.bl_label) as dm:
-    dm["zh_CN"] = "Voronoi链接按输入端类型切换到别的端口"
+    dm["zh_CN"] = "Voronoi链接按输入端类型切换到别的接口"
 
 dict_toolLangSpecifDataPool[VoronoiLinksTransferTool, "ru_RU"] = "Инструмент для редких нужд переноса всех линков с одного нода на другой.\nВ будущем скорее всего будет слито с VST."
 
@@ -981,7 +766,7 @@ class VoronoiAddonPrefs(VoronoiAddonPrefs):
 
 with VlTrMapForKey(VoronoiLazyNodeStencilsTool.bl_label) as dm:
     dm["zh_CN"] = "Voronoi在输入端快速节点"
-with VlTrMapForKey(TxtClsBlabToolSett(VoronoiLazyNodeStencilsTool)) as dm:
+with VlTrMapForKey(format_tool_set(VoronoiLazyNodeStencilsTool)) as dm:
     dm["ru_RU"] = f"Настройки инструмента {VoronoiLazyNodeStencilsTool.bl_label}:"
     dm["zh_CN"] = f"{VoronoiLazyNodeStencilsTool.bl_label}快速添加纹理设置:"
 
@@ -1117,8 +902,8 @@ def DoLazyStencil(tree, skFirst, skSecond, lzSten):
 def LzCompare(a, b):
     return (a==b)or(a==lzAny)
 def LzNodeDoubleCheck(zk, a, b): return LzCompare(zk.firstNdBlid,            a.bl_idname if a else "") and LzCompare(zk.secondNdBlid,            b.bl_idname if b else "")
-def LzTypeDoubleCheck(zk, a, b): return LzCompare(zk.firstSkBlid, SkConvertTypeToBlid(a) if a else "") and LzCompare(zk.secondSkBlid, SkConvertTypeToBlid(b) if b else "") # 不是'type', 而是blid's; 用于插件节点树.
-def LzNameDoubleCheck(zk, a, b): return LzCompare(zk.firstSkName,      GetSkLabelName(a) if a else "") and LzCompare(zk.secondSkName,      GetSkLabelName(b) if b else "")
+def LzTypeDoubleCheck(zk, a, b): return LzCompare(zk.firstSkBlid, sk_type_to_idname(a) if a else "") and LzCompare(zk.secondSkBlid, sk_type_to_idname(b) if b else "") # 不是'type', 而是blid's; 用于插件节点树.
+def LzNameDoubleCheck(zk, a, b): return LzCompare(zk.firstSkName,      sk_label_or_name(a) if a else "") and LzCompare(zk.secondSkName,      sk_label_or_name(b) if b else "")
 def LzGendDoubleCheck(zk, a, b): return LzCompare(zk.firstSkGend,            a.is_output if a else "") and LzCompare(zk.secondSkGend,            b.is_output if b else "")
 def LzLazyStencil(prefs, tree, skFirst, skSecond):
     if not skFirst:
@@ -1312,14 +1097,7 @@ def GetVaSettAsPy(prefs):
     # 不得不等待那个英雄来修复这一切.
     return txt_vasp
 
-def GetFirstUpperLetters(txt):
-    txtUppers = "ABCDEFGHIJKLMNOPQRSTUVWXYZ" #"".join([chr(cyc) for cyc in range(65, 91)])
-    list_result = []
-    for ch1, ch2 in zip(" "+txt, txt):
-        if (ch1 not in txtUppers)and(ch2 in txtUppers): #/(?<=[^A-Z])[A-Z]/
-            list_result.append(ch2)
-    return "".join(list_result)
-
+SolderClsToolNames(dict_vtClasses)
 
 for cls in dict_vtClasses:
     exec(f"class VoronoiAddonPrefs(VoronoiAddonPrefs): {cls.disclBoxPropName}: bpy.props.BoolProperty(name=\"\", default=False)")
@@ -1479,7 +1257,7 @@ class VoronoiAddonPrefs(VoronoiAddonPrefs):
         #== Draw ==
         with VlTrMapForKey(GetPrefsRnaProp('dsUniformColor').name) as dm:
             dm["ru_RU"] = "Альтернативный постоянный цвет"
-            dm["zh_CN"] = "自定义轮选时端口的颜色"    
+            dm["zh_CN"] = "自定义轮选时接口的颜色"    
         with VlTrMapForKey(GetPrefsRnaProp('dsUniformNodeColor').name) as dm:
             dm["ru_RU"] = "Альтернативный цвет нодов"
             dm["zh_CN"] = "动态选择节点时标识的颜色(显示下拉列表时)"
@@ -1494,7 +1272,7 @@ class VoronoiAddonPrefs(VoronoiAddonPrefs):
 #            dm["zh_CN"] = ""
         with VlTrMapForKey(GetPrefsRnaProp('dsSocketAreaAlpha').name) as dm:
             dm["ru_RU"] = "Прозрачность области сокета"
-            dm["zh_CN"] = "端口区域的透明度"
+            dm["zh_CN"] = "接口区域的透明度"
         with VlTrMapForKey(GetPrefsRnaProp('dsFontFile').name) as dm:
             dm["ru_RU"] = "Файл шрифта"
             dm["zh_CN"] = "字体文件"
@@ -1518,7 +1296,7 @@ class VoronoiAddonPrefs(VoronoiAddonPrefs):
 #            dm["zh_CN"] = ""
         with VlTrMapForKey(GetPrefsRnaProp('dsIsDrawSkArea').name) as dm:
             dm["ru_RU"] = "Область сокета"
-            dm["zh_CN"] = "高亮显示选中端口"
+            dm["zh_CN"] = "高亮显示选中接口"
         with VlTrMapForKey(GetPrefsRnaProp('dsDisplayStyle').name) as dm:
             dm["ru_RU"] = "Стиль отображения рамки"
             dm["zh_CN"] = "边框显示样式"
@@ -1542,7 +1320,7 @@ class VoronoiAddonPrefs(VoronoiAddonPrefs):
             dm["zh_CN"] = "始终绘制线条"
         with VlTrMapForKey(GetPrefsRnaProp('dsIsAlwaysLine').description) as dm:
             dm["ru_RU"] = "Рисовать линию к курсору даже от одного выбранного сокета"
-            dm["zh_CN"] = "在鼠标移动到移动到已有连接端口的时是否还显示连线"
+            dm["zh_CN"] = "在鼠标移动到移动到已有连接接口的时是否还显示连线"
         with VlTrMapForKey(GetPrefsRnaProp('dsIsSlideOnNodes').name) as dm:
             dm["ru_RU"] = "Скользить по нодам"
             dm["zh_CN"] = "在节点上滑动"
@@ -1594,7 +1372,7 @@ class VoronoiAddonPrefs(VoronoiAddonPrefs):
         LyAddThinSep(colMain, 0.1)
         for cls in dict_vtClasses:
             if cls.canDrawInAddonDiscl:
-                if colDiscl:=LyAddAddonBoxDiscl(colMain, self, cls.disclBoxPropName, txt=TxtClsBlabToolSett(cls), align=True):
+                if colDiscl:=LyAddAddonBoxDiscl(colMain, self, cls.disclBoxPropName, txt=format_tool_set(cls), align=True):
                     cls.LyDrawInAddonDiscl(colDiscl, self)
     def LyDrawTabAppearance(self, where):
         colMain = where.column()
@@ -1973,8 +1751,8 @@ dict_classes[VoronoiOpAddonTabs] = True
 dict_classes[VoronoiAddonPrefs] = True
 
 list_addonKeymaps = []
-
 isRegisterFromMain = False
+
 def register():
     for dk in dict_classes:
         bpy.utils.register_class(dk)
@@ -2001,6 +1779,7 @@ def register():
     ##
     RegisterTranslations()
     RegisterSolderings()
+
 def unregister():
     UnregisterSolderings()
     UnregisterTranslations()
@@ -2026,7 +1805,8 @@ def DisableKmis(): # 用于重复运行脚本. 在第一次"恢复"之前有效.
             if li==kmiCon.idname:
                 kmiCon.active = False # 这会删除重复项. 是个 hack 吗?
                 kmiCon.active = True # 如果是原始的, 就恢复.
-if __name__=="__main__":
+
+if __name__ == "__main__":
     DisableKmis() # 似乎在添加热键之前或之后调用都无所谓.
     isRegisterFromMain = True
     register()

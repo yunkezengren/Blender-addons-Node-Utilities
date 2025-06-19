@@ -1,6 +1,8 @@
 from .关于节点的函数 import DoLinkHh
 from .关于颜色的函数 import get_sk_color_safe, Color4
-
+from .关于节点的函数 import sk_label_or_name
+from .关于翻译的函数 import GetAnnotFromCls, VlTrMapForKey
+from .VoronoiTool import VoronoiToolPairSk
 
 
 fitVitModeItems = ( ('COPY',   "Copy",   "Copy a socket name to clipboard"),
@@ -193,7 +195,7 @@ class VoronoiInterfacerTool(VoronoiToolPairSk):
     def MatterPurposeTool(self, event, prefs, tree):
         match self.toolMode:
             case 'COPY':
-                self.clipboard = GetSkLabelName(self.fotagoSkMain.tar)
+                self.clipboard = sk_label_or_name(self.fotagoSkMain.tar)
             case 'PASTE':
                 #tovo1v6 添加一个按键, 按下后会“取消”--不进行粘贴; 因为此模式保证会粘附 (参见选项) 到任何套接字, 需要某种方式来“退后一步”.
                 skMain = self.fotagoSkMain.tar

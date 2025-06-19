@@ -1,42 +1,7 @@
 import bpy
 from builtins import len as length
 from bpy.types import (NodeSocket, UILayout)
-
-dict_typeSkToBlid = {
-        'SHADER':    'NodeSocketShader',
-        'RGBA':      'NodeSocketColor',
-        'VECTOR':    'NodeSocketVector',
-        'VALUE':     'NodeSocketFloat',
-        'STRING':    'NodeSocketString',
-        'INT':       'NodeSocketInt',
-        'BOOLEAN':   'NodeSocketBool',
-        'ROTATION':  'NodeSocketRotation',
-        'GEOMETRY':  'NodeSocketGeometry',
-        'OBJECT':    'NodeSocketObject',
-        'COLLECTION':'NodeSocketCollection',
-        'MATERIAL':  'NodeSocketMaterial',
-        'TEXTURE':   'NodeSocketTexture',
-        'IMAGE':     'NodeSocketImage',
-        'MATRIX':    'NodeSocketMatrix',
-        'CUSTOM':    'NodeSocketVirtual',
-        }
-
-def GetSkLabelName(sk):
-    return sk.label if sk.label else sk.name
-
-def index_switch_add_input(nodes, index_switch_node):
-    old_active = nodes.active
-    nodes.active = index_switch_node
-    bpy.ops.node.index_switch_item_add()
-    nodes.active = old_active
-    return index_switch_node.inputs[-2]
-
-def IsClassicTreeBlid(blid):
-    set_quartetClassicTreeBlids = {'ShaderNodeTree','GeometryNodeTree','CompositorNodeTree','TextureNodeTree'}
-    return blid in set_quartetClassicTreeBlids
-
-def SkConvertTypeToBlid(sk):
-    return dict_typeSkToBlid.get(sk.type, "Vl_Unknow")
+from .关于节点的函数 import index_switch_add_input, sk_label_or_name
 
 class Equestrian():
     set_equestrianNodeTypes = {'GROUP', 'GROUP_INPUT', 'GROUP_OUTPUT', 
@@ -136,7 +101,7 @@ class Equestrian():
                 raise Exception(f"`Socket for node side not found: {skfTar}`")
 
     def NewSkfFromSk(self, skTar, isFlipSide=False):
-        newName = GetSkLabelName(skTar)
+        newName = sk_label_or_name(skTar)
         match self.type:
             case 'SIM':
                 if skTar.type not in {'VALUE','INT','BOOLEAN','VECTOR','ROTATION', 'MATRIX','STRING','RGBA','GEOMETRY'}: # TODO1v6 最好是能反向找到它们在哪里，而不是硬编码。
@@ -157,7 +122,7 @@ class Equestrian():
                 input_soc = index_switch_add_input(self.tree.nodes, index_switch_node=self.node)
                 return input_soc
             case 'CLASSIC'|'GROUP':
-                skfNew = self.skfa.data.new_socket(newName, socket_type=SkConvertTypeToBlid(skTar), in_out='OUTPUT' if (skTar.is_output^isFlipSide) else 'INPUT')
+                skfNew = self.skfa.data.new_socket(newName, socket_type=sk_type_to_idname(skTar), in_out='OUTPUT' if (skTar.is_output^isFlipSide) else 'INPUT')
                 skfNew.hide_value = skTar.hide_value
                 if hasattr(skfNew,'default_value'):
                     skfNew.default_value = skTar.default_value
@@ -177,7 +142,7 @@ class Equestrian():
                                     if sk.identifier==skfNew.identifier:
                                         sk.default_value = skTar.default_value
                     for ng in bpy.data.node_groups:
-                        if IsClassicTreeBlid(ng.bl_idname):
+                        if is_builtin_tree_idname(ng.bl_idname):
                             FixInTree(ng)
                     for att in ('materials','scenes','worlds','textures','lights','linestyles'): # 是这些，还是我忘了某个？
                         for dt in getattr(bpy.data, att):
@@ -303,7 +268,6 @@ class Equestrian():
                     raise Exception(f"Tree for nodegroup `{ndEq.path_from_id()}` not found, from `{snkd.path_from_id()}`")
                 self.skfa = ndEq.node_tree.interface.items_tree
 
-
 class PieRootData:
     isSpeedPie = False
     pieScale = 0
@@ -336,7 +300,6 @@ class VqmtData(PieRootData):
     dict_existingValues = {}
     test_bool = False
 
-
 class VestData:
     list_enumProps = [] # 用于焊接，并在调用前检查是否存在。
     domain_item_list = []
@@ -345,8 +308,6 @@ class VestData:
     isDarkStyle = False
     isDisplayLabels = False
     isPieChoice = False
-
-
 
 class TryAndPass():
     def __enter__(self):

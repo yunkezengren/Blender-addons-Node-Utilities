@@ -1,4 +1,6 @@
 from .关于节点的函数 import SolderSkLinks
+from .关于节点的函数 import sk_label_or_name
+from .关于翻译的函数 import GetAnnotFromCls, VlTrMapForKey
 
 
 
@@ -59,7 +61,7 @@ class VoronoiLinksTransferTool(VoronoiToolPairNd): #Todo2v6 与 VST 合并并变
                 for sk in putsFrom:
                     for lk in sk.vl_sold_links_final:
                         if not lk.is_muted:
-                            skTar = putsTo.get(GetSkLabelName(sk))
+                            skTar = putsTo.get(sk_label_or_name(sk))
                             if skTar:
                                 NewLink(skTar, lk)
         else:

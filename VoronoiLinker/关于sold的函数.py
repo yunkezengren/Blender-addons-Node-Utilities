@@ -1,5 +1,7 @@
 from .globals import *
 from .关于颜色的函数 import opaque_color4, power_color4
+from .common_func import GetFirstUpperLetters
+
 
 
 dict_solderedSkLinksFinal = {}
@@ -52,7 +54,6 @@ def SolderThemeCols(themeNe):
     #     dnf = pr.identifier
     #     if dnf.endswith("_node"):
     #         print(f"{dnf = }")
-
     # themeNe 是 context.preferences.themes[0].node_editor
     # print("." * 50)
     for pr in themeNe.bl_rna.properties:
@@ -82,12 +83,11 @@ def GetNdThemeNclassCol(ndTar):
         # 小王
         return getattr(SoldThemeCols, SoldThemeCols.dict_mapNcAtt.get(BNode.GetFields(ndTar).typeinfo.contents.nclass, 'node_backdrop')+"4pw")
 
-def SolderClsToolNames():
-    for cls in dict_vtClasses:
+def SolderClsToolNames(class_dict: dict):
+    for cls in class_dict:
         cls.vlTripleName = GetFirstUpperLetters(cls.bl_label)+"T" # 最初创建是"因为好玩", 但现在需要了; 参见 SetPieData().
         cls.disclBoxPropName = cls.vlTripleName[:-1].lower()+"BoxDiscl"
         cls.disclBoxPropNameInfo = cls.disclBoxPropName+"Info"
-SolderClsToolNames()
 
 def RegisterSolderings():
     txtDoc = "Property from and only for VoronoiLinker addon."

@@ -1,14 +1,9 @@
 import ctypes
-from mathutils import Vector
-import platform
 import bpy
 from bpy.types import NodeSocket
+from .globals import isWin, gt_blender4
 # from typing import cast
 
-Vec2 = Vector
-isWin = platform.system() == 'Windows'
-isBlender4 = bpy.app.version[0] == 4
-gt_blender4 = bpy.app.version[0] >= 4
 
 class StructBase(ctypes.Structure):
     _subclasses = []

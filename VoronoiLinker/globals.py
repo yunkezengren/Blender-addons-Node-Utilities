@@ -1,8 +1,14 @@
 from math import pi, cos, sin
+import platform
+import bpy
 
 Color_Bar_Width = 0.015     # 小王 饼菜单颜色条宽度
 Cursor_X_Offset = -50       # 小王 这样更舒服,在输入或输出接口方面加强
 
+isWin = platform.system() == 'Windows'
+#isLinux = platform.system()=='Linux'
+
+gt_blender4 = bpy.app.version[0] >= 4
 
 dict_typeSkToBlid = {
     'SHADER':    'NodeSocketShader',
@@ -26,8 +32,8 @@ dict_typeSkToBlid = {
 set_utilTypeSkFields = {'VALUE', 'RGBA', 'VECTOR', 'INT', 'BOOLEAN', 'ROTATION', 'STRING', 'MATRIX'}       # Alt D 等多个操作 支持的接口
 
 set_classicSocketsBlid = {'NodeSocketShader',  'NodeSocketColor',   'NodeSocketVector','NodeSocketFloat',     'NodeSocketString',  'NodeSocketInt',    'NodeSocketBool',
-                            'NodeSocketRotation','NodeSocketGeometry','NodeSocketObject','NodeSocketCollection','NodeSocketMaterial','NodeSocketTexture','NodeSocketImage',
-                            'NodeSocketMatrix'}
+                          'NodeSocketRotation','NodeSocketGeometry','NodeSocketObject','NodeSocketCollection','NodeSocketMaterial','NodeSocketTexture','NodeSocketImage',
+                          'NodeSocketMatrix'}
 
 # 新建接口-用到了
 set_utilEquestrianPortalBlids = {'NodeGroupInput', 'NodeGroupOutput', 
@@ -42,8 +48,6 @@ inline_socket_node_list = [ # 自动隐藏接口优化-inline
                             'GeometryNodeForeachGeometryElementInput', 'GeometryNodeForeachGeometryElementOutput', 
                             'GeometryNodeCaptureAttribute',
                             ]
-
-set_quartetClassicTreeBlids = {'ShaderNodeTree','GeometryNodeTree','CompositorNodeTree','TextureNodeTree'}
 
 dict_skTypeHandSolderingColor = { # 用于 VQMT.
     'BOOLEAN':    (0.800000011920929,   0.6499999761581421,  0.8399999737739563,  1.0),

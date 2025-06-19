@@ -1,5 +1,5 @@
-from .VoronoiTool import VoronoiOpTool
-
+from .关于翻译的函数 import GetAnnotFromCls, VlTrMapForKey
+from .VoronoiTool import VoronoiOpTool, VoronoiToolNd
 
 domain_en = [
     'POINT',
@@ -331,8 +331,6 @@ class VoronoiEnumSelectorTool(VoronoiToolNd):
         with VlTrMapForKey(GetPrefsRnaProp('vestDarkStyle').name) as dm:
             dm["ru_RU"] = "Тёмный стиль"
             dm["zh_CN"] = "暗色风格"
-
-
 
 
 # 显示节点选项优化-根据选项重命名节点-不好用-自定义ops,单击按钮立即运行(缺点：按钮文本居中对齐，按钮上文本翻译有问题)
