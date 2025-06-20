@@ -1,7 +1,7 @@
 import bpy
 from pprint import pprint
 from mathutils import Vector as Vec2
-from bpy.types import (Node, NodeSocket, UILayout)
+from bpy.types import (Nodes, Node, NodeSocket, UILayout)
 from .globals import *
 
 def Prefs():        # 很多局部变量也是prefs 还是改大写好点
@@ -32,18 +32,25 @@ def sk_label_or_name(sk: NodeSocket):
     return sk.label if sk.label else sk.name
 
 def sk_type_to_idname(sk: NodeSocket):
+    """ 接口.label 是'',有特例吗? """
     return dict_typeSkToBlid.get(sk.type, "Vl_Unknow")
 
 def is_builtin_tree_idname(blid):
     set_quartetClassicTreeBlids = {'ShaderNodeTree','GeometryNodeTree','CompositorNodeTree','TextureNodeTree'}
     return blid in set_quartetClassicTreeBlids
 
-def index_switch_add_input(nodes, index_switch_node):
+def add_item_for_index_switch(node: Node):
+    nodes = node.id_data.nodes
     old_active = nodes.active
-    nodes.active = index_switch_node
+    nodes.active = node
     bpy.ops.node.index_switch_item_add()
     nodes.active = old_active
-    return index_switch_node.inputs[-2]
+    return node.inputs[-2]
+    # old_active = nodes.active
+    # nodes.active = index_switch_node
+    # bpy.ops.node.index_switch_item_add()
+    # nodes.active = old_active
+    # return index_switch_node.inputs[-2]
 
 # ========================================
 

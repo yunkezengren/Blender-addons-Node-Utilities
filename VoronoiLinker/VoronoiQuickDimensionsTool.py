@@ -11,7 +11,7 @@ from .common_forward_func import *
 from .utils_drawing import *
 from .VoronoiTool import VoronoiToolTripleSk
 from .common_forward_func import *
-from .utils_node import GetListOfNdEnums, NewLinkHhAndRemember, FtgGetTargetOrNone
+from .utils_node import GetListOfNdEnums, NewLinkHhAndRemember, optional_ftg_sk
 from .Rot_or_Mat_Converter import Convert_Data, Pie_MT_Converter_Rotation_To, Pie_MT_Separate_Matrix
 from .globals import Cursor_X_Offset
 from .utils_drawing import TemplateDrawSksToolHh
@@ -45,7 +45,7 @@ class VoronoiQuickDimensionsTool(VoronoiToolTripleSk):
                 CheckUncollapseNodeAndReNext(nd, self, cond=True, flag=True)
                 break
             CheckUncollapseNodeAndReNext(nd, self, cond=self.fotagoSk1, flag=False)
-            skOut0 = FtgGetTargetOrNone(self.fotagoSk0)
+            skOut0 = optional_ftg_sk(self.fotagoSk0)
             if skOut0:
                 if skOut0.type not in {'VALUE','INT','BOOLEAN'}:
                     break
@@ -61,7 +61,7 @@ class VoronoiQuickDimensionsTool(VoronoiToolTripleSk):
                     if self.fotagoSk1:
                         break
                 else:
-                    skOut1 = FtgGetTargetOrNone(self.fotagoSk1)
+                    skOut1 = optional_ftg_sk(self.fotagoSk1)
                     for ftg in list_ftgSksOut:
                         if ftg.tar.type==skOut0.type:
                             self.fotagoSk2 = ftg

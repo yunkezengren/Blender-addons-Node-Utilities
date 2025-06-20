@@ -6,7 +6,7 @@ from .common_forward_class import *
 from bpy.types import (Node, NodeSocket, UILayout)
 import bpy
 from mathutils import Vector as Vec2
-from .common_forward_func import sk_label_or_name, index_switch_add_input
+from .common_forward_func import sk_label_or_name, add_item_for_index_switch
 from .common_forward_func import *
 from bpy.app.translations import pgettext_iface as TranslateIface
 
@@ -123,7 +123,7 @@ class VlrtData:
     reprLastSkOut = ""
     reprLastSkIn = ""
 
-def FtgGetTargetOrNone(ftg) -> NodeSocket:
+def optional_ftg_sk(ftg: Fotago) -> NodeSocket:
     return ftg.tar if ftg else None
 
 def IsClassicSk(sk: NodeSocket):
@@ -273,8 +273,7 @@ def DoLinkHh(sko, ski, *, isReroutesToAnyType=True, isCanBetweenField=True, isCa
                 _skf = (ndEq.bake_items if typeEq==5 else ndEq.capture_items).new({'VALUE':'FLOAT'}.get(skTar.type,skTar.type), sk_label_or_name(skTar))
                 skNew = ski.node.inputs[-2] if isSkiVirtual else sko.node.outputs[-2]
             case 7:         # 新建接口-编号切换
-                nodes = ski.node.id_data.nodes  # id_data是group/tree
-                skNew = index_switch_add_input(nodes, ski.node)
+                skNew = add_item_for_index_switch(ski.node)
 
         # 重新选择新出现的套接字
         if isSkiVirtual:

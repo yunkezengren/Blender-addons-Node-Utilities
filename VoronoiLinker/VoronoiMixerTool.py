@@ -10,7 +10,7 @@ from .globals import *
 from .common_forward_class import *
 from .common_forward_func import *
 from .utils_drawing import *
-from .VoronoiTool import VoronoiToolPairSk
+from .VoronoiTool import VoronoiToolPairSk, VoronoiToolTripleSk
 from .utils_color import power_color4, get_sk_color_safe
 from .utils_translate import GetAnnotFromCls, VlTrMapForKey
 from bpy.app.translations import pgettext_iface as TranslateIface
@@ -18,7 +18,7 @@ from bpy.app.translations import pgettext_iface as TranslateIface
 from .VmMixer import *
 
 
-class VoronoiMixerTool(VoronoiToolPairSk):
+class VoronoiMixerTool(VoronoiToolTripleSk):
     bl_idname = 'node.voronoi_mixer'
     bl_label = "Voronoi Mixer"
     usefulnessForCustomTree = False
@@ -26,10 +26,13 @@ class VoronoiMixerTool(VoronoiToolPairSk):
     isCanFromOne:       bpy.props.BoolProperty(name="Can from one socket", default=True) #放在第一位, 以便在 kmi 中与 VQMT 类似.
     isHideOptions:      bpy.props.BoolProperty(name="Hide node options",   default=False)
     isPlaceImmediately: bpy.props.BoolProperty(name="Place immediately",   default=False)
+    def CallbackDrawTool(self, drata):
+        TemplateDrawSksToolHh(drata, self.fotagoSk0, self.fotagoSk1, self.fotagoSk2, tool_name="Quick Mix")
     def NextAssignmentTool(self, isFirstActivation, prefs, tree):
         if isFirstActivation:
             self.fotagoSk0 = None #需要清空, 因为下面有两个 continue.
-        self.fotagoSk1 = None
+        if not self.canPickThird:
+            self.fotagoSk1 = None
         soldReroutesCanInAnyType = prefs.vmtReroutesCanInAnyType
         for ftgNd in self.ToolGetNearestNodes(cur_x_off=Cursor_X_Offset):
             nd = ftgNd.tar
@@ -42,26 +45,42 @@ class VoronoiMixerTool(VoronoiToolPairSk):
             if isFirstActivation:
                 self.fotagoSk0 = list_ftgSksOut[0] if list_ftgSksOut else None
             #对于第二个, 根据条件:
-            skOut0 = FtgGetTargetOrNone(self.fotagoSk0)
+            skOut0 = optional_ftg_sk(self.fotagoSk0)
+            # todo 做一些接口类型判断,比如 一个是 geometry 剩下的也要是
             if skOut0:
-                for ftg in list_ftgSksOut:
-                    skOut1 = ftg.tar
-                    if skOut0==skOut1:
+                if not self.canPickThird:
+                    for ftg in list_ftgSksOut:
+                        skOut1 = ftg.tar
+                        if skOut0 == skOut1:
+                            break
+                        orV = (skOut1.bl_idname == 'NodeSocketVirtual') or (skOut0.bl_idname == 'NodeSocketVirtual')
+                        #现在 VMT 又可以连接到虚拟接口了
+                        tgl = (skOut1.bl_idname == 'NodeSocketVirtual') ^ (skOut0.bl_idname == 'NodeSocketVirtual')
+                        tgl = tgl or (self.SkBetweenFieldsCheck(skOut0, skOut1) or ((skOut1.bl_idname == skOut0.bl_idname) and (not orV)))
+                        tgl = tgl or ((skOut0.node.type == 'REROUTE') or (skOut1.node.type == 'REROUTE')) and (soldReroutesCanInAnyType)
+                        if tgl:
+                            self.fotagoSk1 = ftg
+                            break
+                    if (self.fotagoSk1) and (skOut0 == self.fotagoSk1.tar): #检查是否是自我复制.
+                        self.fotagoSk1 = None
+                    CheckUncollapseNodeAndReNext(nd, self, cond=self.fotagoSk1, flag=False)
+                    if self.fotagoSk1:
                         break
-                    orV = (skOut1.bl_idname=='NodeSocketVirtual')or(skOut0.bl_idname=='NodeSocketVirtual')
-                    #现在 VMT 又可以连接到虚拟接口了
-                    tgl = (skOut1.bl_idname=='NodeSocketVirtual')^(skOut0.bl_idname=='NodeSocketVirtual')
-                    tgl = (tgl)or( self.SkBetweenFieldsCheck(skOut0, skOut1)or( (skOut1.bl_idname==skOut0.bl_idname)and(not orV) ) )
-                    tgl = (tgl)or( (skOut0.node.type=='REROUTE')or(skOut1.node.type=='REROUTE') )and(soldReroutesCanInAnyType)
-                    if tgl:
-                        self.fotagoSk1 = ftg
+                else:
+                    # print("\ncanPickThird==================================")
+                    skOut1 = optional_ftg_sk(self.fotagoSk1)
+                    for ftg in list_ftgSksOut:
+                        # if ftg.tar.type == skOut0.type:
+                        self.fotagoSk2 = ftg
+                        if (ftg.tar == skOut0) or (ftg.tar == skOut1):
+                            self.fotagoSk2 = None
                         break
-                if (self.fotagoSk1)and(skOut0==self.fotagoSk1.tar): #检查是否是自我复制.
-                    self.fotagoSk1 = None
-                CheckUncollapseNodeAndReNext(nd, self, cond=self.fotagoSk1, flag=False)
+                    CheckUncollapseNodeAndReNext(nd, self, cond=self.fotagoSk2, flag=False)
+                    if self.fotagoSk2:
+                        break
             #尽管节点过滤器没有必要, 并且在第一个遇到的节点上工作得很好, 但如果第一个接口没有找到, 仍然需要继续搜索.
             #因为如果第一个(最近的)节点搜索结果失败, 循环将结束, 工具将不会选择任何东西, 即使旁边有合适的.
-            if self.fotagoSk0: #在使用现在不存在的 isCanReOut 时尤其明显; 如果没有这个, 结果会根据光标位置成功/不成功地选择.
+            if self.fotagoSk0:  # 在使用现在不存在的 isCanReOut 时尤其明显; 如果没有这个, 结果会根据光标位置成功/不成功地选择.
                 break
     def MatterPurposePoll(self):
         if not self.fotagoSk0:
@@ -72,9 +91,10 @@ class VoronoiMixerTool(VoronoiToolPairSk):
             return self.fotagoSk1
     def MatterPurposeTool(self, event, prefs, tree):
         VmtData.sk0 = self.fotagoSk0.tar
-        socket1 = FtgGetTargetOrNone(self.fotagoSk1)
+        socket1 = optional_ftg_sk(self.fotagoSk1)
         VmtData.sk1 = socket1
         #对虚拟接口的支持已关闭; 只从第一个读取
+        VmtData.sk2 = optional_ftg_sk(self.fotagoSk2)
         VmtData.skType = VmtData.sk0.type if VmtData.sk0.bl_idname!='NodeSocketVirtual' else socket1.type
         VmtData.isHideOptions = self.isHideOptions
         VmtData.isPlaceImmediately = self.isPlaceImmediately
@@ -152,5 +172,3 @@ class VoronoiMixerTool(VoronoiToolPairSk):
         with VlTrMapForKey(GetPrefsRnaProp('vmtPieDisplaySocketColor').description) as dm:
             dm["ru_RU"] = "Знак – сторона цвета. Значение – ширина цвета"
             # dm["zh_CN"] = ""
-
-

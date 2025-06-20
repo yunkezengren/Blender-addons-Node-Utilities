@@ -116,7 +116,7 @@ class VoronoiInterfacerTool(VoronoiToolPairSk):
             if isFirstActivation:
                 self.fotagoSkRosw = FindAnySk(nd, list_ftgSksIn, list_ftgSksOut)
             CheckUncollapseNodeAndReNext(nd, self, cond=self.fotagoSkRosw, flag=True)
-            skRosw = FtgGetTargetOrNone(self.fotagoSkRosw)
+            skRosw = optional_ftg_sk(self.fotagoSkRosw)
             if skRosw:
                 for ftg in list_ftgSksOut if skRosw.is_output else list_ftgSksIn:
                     if (ftg.blid!='NodeSocketVirtual')and(Node_Items_Manager.IsSimRepCorrectSk(nd, ftg.tar)):
@@ -142,7 +142,7 @@ class VoronoiInterfacerTool(VoronoiToolPairSk):
                             self.tglCrossVirt = ftg.blid=='NodeSocketVirtual'
                             break
                         CheckUncollapseNodeAndReNext(nd, self, cond=self.fotagoSkRosw, flag=True)
-                    skRosw = FtgGetTargetOrNone(self.fotagoSkRosw)
+                    skRosw = optional_ftg_sk(self.fotagoSkRosw)
                     if skRosw:
                         for ftg in list_ftgSksIn:
                             if (ftg.blid=='NodeSocketVirtual')^self.tglCrossVirt:
@@ -164,7 +164,7 @@ class VoronoiInterfacerTool(VoronoiToolPairSk):
                                 break
                         self.fotagoSkMain = MinFromFtgs(ftgSkOut, ftgSkIn)
                     self.fotagoNdTar = None
-                    skMain = FtgGetTargetOrNone(self.fotagoSkMain)
+                    skMain = optional_ftg_sk(self.fotagoSkMain)
                     if skMain:
                         if nd==skMain.node: # 也可以允许来自自己的节点, 但也许最好不要.
                             break

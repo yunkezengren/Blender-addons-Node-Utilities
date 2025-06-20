@@ -45,7 +45,7 @@ class VoronoiLinkerTool(VoronoiToolPairSk): # 神圣中的神圣. 它存在的�
                         break
             self.isFirstCling = True
             # 根据条件获取输入:
-            skOut = FtgGetTargetOrNone(self.fotagoSkOut)
+            skOut = optional_ftg_sk(self.fotagoSkOut)
             if skOut: # 第一次进入总是 isFirstActivation==True, 但节点可能没有输出.
                 # 注意: 工具激活套接字的节点 (isFirstActivation==True) 无论如何都需要展开.
                 # 折叠对于 reroute 是有效的, 尽管在视觉上不显示; 但现在不需要处理了, 因为已经引入了对折叠的支持.

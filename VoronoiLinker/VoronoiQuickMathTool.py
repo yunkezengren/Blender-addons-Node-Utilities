@@ -80,7 +80,7 @@ class VoronoiQuickMathTool(VoronoiToolTripleSk):
                 #对于下一个 `continue`, 因为如果接下来激活 continue 失败, 将会重新选择 isFirstActivation
                 isFirstActivation = False #但考虑到当前的选择拓扑, 这没有必要.
             CheckUncollapseNodeAndReNext(nd, self, cond=self.fotagoSk0, flag=True) #todo0NA 参见上面一行, 这个 'cond' 不应该来自 isFirstActivation.
-            skOut0 = FtgGetTargetOrNone(self.fotagoSk0)
+            skOut0 = optional_ftg_sk(self.fotagoSk0)
             if isNotCanPickThird:
                 #对于第二个, 根据条件:
                 if skOut0:
@@ -96,7 +96,7 @@ class VoronoiQuickMathTool(VoronoiToolTripleSk):
             else:
                 self.fotagoSk2 = None #为了方便高级取消而清空.
                 #对于第三个, 如果不是前两个的节点.
-                skOut1 = FtgGetTargetOrNone(self.fotagoSk1)
+                skOut1 = optional_ftg_sk(self.fotagoSk1)
                 for ftg in list_ftgSksIn:
                     skIn = ftg.tar
                     if skIn.type in set_vqmtSkTypeFields:
@@ -134,8 +134,8 @@ class VoronoiQuickMathTool(VoronoiToolTripleSk):
         return (self.fotagoSk0)and(self.isCanFromOne or self.fotagoSk1)
     def MatterPurposeTool(self, event, prefs, tree):
         VqmtData.sk0 = self.fotagoSk0.tar
-        VqmtData.sk1 = FtgGetTargetOrNone(self.fotagoSk1)
-        VqmtData.sk2 = FtgGetTargetOrNone(self.fotagoSk2)
+        VqmtData.sk1 = optional_ftg_sk(self.fotagoSk1)
+        VqmtData.sk2 = optional_ftg_sk(self.fotagoSk2)
         VqmtData.qmSkType = VqmtData.sk0.type #注意: 只有字段套接字是更高级别的问题.
         VqmtData.qmTrueSkType = VqmtData.qmSkType #这个信息对于“最后的操作”是必需的.
         self.int_default_float = False

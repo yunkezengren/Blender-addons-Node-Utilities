@@ -10,14 +10,6 @@ bl_info = {'name': "Voronoi Linker",
            'wiki_url': "https://github.com/ugorek000/VoronoiLinker/wiki", 
            'tracker_url': "https://github.com/ugorek000/VoronoiLinker/issues"}
 
-from builtins import len as length       # 我超爱三个字母的变量名.没有像"len"这样的名字, 我会感到非常伤心和孤独... 😭 还有 'Vector.length' 也是.
-import bpy, rna_keymap_ui, bl_keymap_utils
-
-from time import perf_counter_ns
-from pprint import pprint
-from bpy.types import UILayout
-from bpy.app.translations import pgettext_iface as TranslateIface
-
 from .VoronoiTool import VoronoiToolRoot, VoronoiToolPairSk
 from .VoronoiLinkerTool import VoronoiLinkerTool
 from .VoronoiMixerTool import VoronoiMixerTool
@@ -43,7 +35,6 @@ from .VmMixer import VmtOpMixer, VmtPieMixer
 from .VoronoiCallNodePie import VoronoiCallNodePie
 from .Rot_or_Mat_Converter import Rot_or_Mat_Converter, Pie_MT_Converter_To_Rotation, Pie_MT_Converter_Rotation_To, Pie_MT_Separate_Matrix, Pie_MT_Combine_Matrix
 
-
 from .globals import *
 from .globals import dict_vlHhTranslations
 from .common_forward_func import GetFirstUpperLetters, GetUserKmNe, format_tool_set
@@ -62,6 +53,13 @@ from .common_forward_class import TryAndPass
 from .utils_solder import SolderClsToolNames, RegisterSolderings, UnregisterSolderings
 from .utils_translate import GetAnnotFromCls, VlTrMapForKey
 from .utils_drawing import TestDraw
+
+from builtins import len as length       # 我超爱三个字母的变量名.没有像"len"这样的名字, 我会感到非常伤心和孤独... 😭 还有 'Vector.length' 也是.
+import bpy, rna_keymap_ui, bl_keymap_utils
+from time import perf_counter_ns
+from pprint import pprint
+from bpy.types import UILayout
+from bpy.app.translations import pgettext_iface as TranslateIface
 
 
 dict_classes = {} # 所有需要注册的类都放在这里. 使用字典是为了 smart_add_to_reg_and_kmiDefs() 函数, 同时还能保持顺序.
@@ -212,9 +210,7 @@ txt_ColorQuickMode = "Color Quick Mode"
 with VlTrMapForKey(txt_ColorQuickMode) as dm:
     dm["zh_CN"] = "快速颜色运算"
 
-# 译者注: 以下词汇在您的语言中可能已经被Blender官方翻译了.
-# 注意: 保留这些是为了支持没有内置这些翻译的旧版本.
-
+# 译者注: 以下词汇在您的语言中可能已经被Blender官方翻译了. 保留这些是为了支持没有内置这些翻译的旧版本.
 with VlTrMapForKey("Virtual") as dm:
     dm["ru_RU"] = "Виртуальный"
     dm["zh_CN"] = "虚拟"
@@ -222,7 +218,7 @@ with VlTrMapForKey("Restore", tc='Op') as dm:
     dm["ru_RU"] = "Восстановить"
     dm["zh_CN"] = "恢复"
 with VlTrMapForKey("Add New", tc='Op') as dm:
-    dm["ru_RU"] = "Добавить" # 不带"新的"这个词; 它放不下, 太挤了.
+    dm["ru_RU"] = "Добавить"
     dm["zh_CN"] = "添加"
 with VlTrMapForKey("Mode") as dm:
     dm["ru_RU"] = "Режим"
@@ -239,10 +235,6 @@ with VlTrMapForKey("Special") as dm:
 with VlTrMapForKey("Customization") as dm:
     dm["ru_RU"] = "Кастомизация"
 
-# # prefsTran = None
-# def GetPrefsRnaProp(att, inx=-1):
-#     prop = prefsTran.rna_type.properties[att]
-#     return prop if inx==-1 else getattr(prop,'enum_items')[inx]
 
 def CollectTranslationDict(): # 为了方便翻译那些需要注册属性的文本. 请参阅 BringTranslations 系列函数.
     global prefsTran
@@ -356,10 +348,6 @@ with VlTrMapForKey("Compare  ") as dm:
     dm["ru_RU"] = "Сравнение"
 
 
-dict_classes[VmtOpMixer] = True
-dict_classes[VmtPieMixer] = True
-
-
 smart_add_to_reg_and_kmiDefs(VoronoiQuickMathTool, "S#A_RIGHTMOUSE") # 留在了右键, 以免在'Speed Pie'类型的饼菜单下三击左键时抓狂.
 smart_add_to_reg_and_kmiDefs(VoronoiQuickMathTool, "##A_ACCENT_GRAVE", {'isRepeatLastOperation':True})
 # 快速数学运算的快速操作列表("x2 组合"):
@@ -398,11 +386,6 @@ with VlTrMapForKey(format_tool_set(VoronoiQuickMathTool)) as dm:
 
 dict_toolLangSpecifDataPool[VoronoiQuickMathTool, "ru_RU"] = """Полноценное ответвление от VMT. Быстрая и быстрая быстрая математика на спидах.
 Имеет дополнительный мини-функционал. Также см. \"Quick quick math\" в раскладе."""
-
-
-dict_classes[VqmtOpMain] = True
-dict_classes[VqmtPieMath] = True
-
 
 smart_add_to_reg_and_kmiDefs(VoronoiRantoTool, "###_R")
 smart_add_to_reg_and_kmiDefs(VoronoiRantoTool, "S##_R", {'isAccumulate':True})
@@ -504,11 +487,6 @@ with VlTrMapForKey(format_tool_set(VoronoiEnumSelectorTool)) as dm:
 dict_toolLangSpecifDataPool[VoronoiEnumSelectorTool, "ru_RU"] = """Инструмент для удобно-ленивого переключения свойств перечисления.
 Избавляет от прицеливания мышкой, клика, а потом ещё одного прицеливания и клика."""
 
-dict_classes[SNA_OT_Change_Node_Domain_And_Name] = True
-
-dict_classes[VestOpBox] = True
-dict_classes[VestPieBox] = True
-
 # 参见: VlrtData, VlrtRememberLastSockets() 和 NewLinkHhAndRemember().
 smart_add_to_reg_and_kmiDefs(VoronoiLinkRepeatingTool, "###_V", {'toolMode':'SOCKET'})
 smart_add_to_reg_and_kmiDefs(VoronoiLinkRepeatingTool, "S##_V", {'toolMode':'NODE'})
@@ -527,12 +505,6 @@ with VlTrMapForKey(VoronoiQuickDimensionsTool.bl_label) as dm:
     dm["zh_CN"] = "Voronoi快速分离/合并 矢量/颜色"
 
 dict_toolLangSpecifDataPool[VoronoiQuickDimensionsTool, "ru_RU"] = "Инструмент для ускорения нужд разделения и объединения векторов (и цвета).\nА ещё может разделить геометрию на составляющие."
-
-dict_classes[Rot_or_Mat_Converter] = True
-dict_classes[Pie_MT_Converter_To_Rotation] = True
-dict_classes[Pie_MT_Converter_Rotation_To] = True
-dict_classes[Pie_MT_Separate_Matrix] = True
-dict_classes[Pie_MT_Combine_Matrix] = True
 
 smart_add_to_reg_and_kmiDefs(VoronoiQuickConstant, "##A_C")
 dict_setKmiCats['spc'].add(VoronoiQuickConstant.bl_idname)
@@ -1393,19 +1365,38 @@ class VoronoiAddonPrefs(VoronoiAddonPrefs):
         except Exception as ex:
             LyAddEtb(colMain) # colMain.label(text=str(ex), icon='ERROR', translate=False)
 
-dict_classes[VoronoiOpAddonTabs] = True
-dict_classes[VoronoiAddonPrefs] = True
+
+_classes = [
+    VmtOpMixer,
+    VmtPieMixer,
+    VqmtOpMain,
+    VqmtPieMath,
+    VqmtOpMain,
+    VqmtPieMath,
+    VestOpBox,
+    VestPieBox,
+    SNA_OT_Change_Node_Domain_And_Name,
+    Rot_or_Mat_Converter,
+    Pie_MT_Converter_To_Rotation,
+    Pie_MT_Converter_Rotation_To,
+    Pie_MT_Separate_Matrix,
+    Pie_MT_Combine_Matrix,
+    VoronoiOpAddonTabs,
+    VoronoiAddonPrefs,
+]
+for i in _classes:
+    dict_classes[i] = True
 
 list_addonKeymaps = []
-isRegisterFromMain = False
+register_from_main = False
 
 def register():
     for dk in dict_classes:
         bpy.utils.register_class(dk)
 
     prefs = Prefs()
-    if isRegisterFromMain:
-        if hasattr(bpy.types.SpaceNodeEditor,'handle'):
+    if register_from_main:
+        if hasattr(bpy.types.SpaceNodeEditor, 'handle'):
             bpy.types.SpaceNodeEditor.nsReg = perf_counter_ns()
     else:
         prefs.vlnstLastExecError = ""
@@ -1414,9 +1405,9 @@ def register():
             setattr(prefs, cls.disclBoxPropNameInfo, False)
         prefs.dsIsTestDrawing = False
 
-    kmANe = bpy.context.window_manager.keyconfigs.addon.keymaps.new(name="Node Editor", space_type='NODE_EDITOR')
+    km = bpy.context.window_manager.keyconfigs.addon.keymaps.new(name="Node Editor", space_type='NODE_EDITOR')
     for blid, key, shift, ctrl, alt, repeat, dict_props in list_kmiDefs:
-        kmi = kmANe.keymap_items.new(idname=blid, type=key, value='PRESS', shift=shift, ctrl=ctrl, alt=alt, repeat=repeat)
+        kmi = km.keymap_items.new(idname=blid, type=key, value='PRESS', shift=shift, ctrl=ctrl, alt=alt, repeat=repeat)
         kmi.active = blid!='node.voronoi_dummy'
         if dict_props:
             for dk, dv in dict_props.items():
@@ -1429,12 +1420,12 @@ def register():
 def unregister():
     UnregisterSolderings()
     UnregisterTranslations()
-    ##
-    kmANe = bpy.context.window_manager.keyconfigs.addon.keymaps["Node Editor"]
+
+    km = bpy.context.window_manager.keyconfigs.addon.keymaps["Node Editor"]
     for li in list_addonKeymaps:
-        kmANe.keymap_items.remove(li)
+        km.keymap_items.remove(li)
     list_addonKeymaps.clear()
-    ##
+
     for dk in dict_classes:
         bpy.utils.unregister_class(dk)
 
@@ -1448,5 +1439,5 @@ def DisableKmis(): # 用于重复运行脚本. 在第一次"恢复"之前有效.
 
 if __name__ == "__main__":
     DisableKmis() # 似乎在添加热键之前或之后调用都无所谓.
-    isRegisterFromMain = True
+    register_from_main = True
     register()

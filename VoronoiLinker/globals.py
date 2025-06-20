@@ -12,14 +12,14 @@ Cursor_X_Offset = -50       # 小王 这样更舒服,在输入或输出接口方
 isWin = platform.system() == 'Windows'
 #isLinux = platform.system()=='Linux'
 
-voronoiAnchorCnName = "Voronoi_Anchor"           # 不支持翻译, 就这样一起吧.
-voronoiAnchorDtName = "Voronoi_Anchor_Dist"      # 不支持翻译! 请参考相关的拓扑结构.
-voronoiSkPreviewName = "voronoi_preview"         # 不支持翻译, 不想每次读取都用 TranslateIface() 包裹一下.
-voronoiPreviewResultNdName = "SavePreviewResult" # 不支持翻译, 就这样一起吧.
+voronoiAnchorCnName = 'Voronoi_Anchor'           # 不支持翻译, 就这样一起吧.
+voronoiAnchorDtName = 'Voronoi_Anchor_Dist'      # 不支持翻译! 请参考相关的拓扑结构.
+voronoiSkPreviewName = 'voronoi_preview'         # 不支持翻译, 不想每次读取都用 TranslateIface() 包裹一下.
+voronoiPreviewResultNdName = 'SavePreviewResult' # 不支持翻译, 就这样一起吧.
 
 
-float_int_color = {"INT": (0.35, 0.55, 0.36, 1), "VALUE": (0.63, 0.63, 0.63, 1)}
-floatIntColorInverse = {"INT": (0.63, 0.63, 0.63, 1), "VALUE": (0.35, 0.55, 0.36, 1)}
+float_int_color = {'INT': (0.35, 0.55, 0.36, 1), 'VALUE': (0.63, 0.63, 0.63, 1)}
+floatIntColorInverse = {'INT': (0.63, 0.63, 0.63, 1), 'VALUE': (0.35, 0.55, 0.36, 1)}
 
 # 用于支持在旧版本中工作. 这样在被迫切换到旧版本时, 心里能舒坦点, 不用那么紧张,
 # 还能因为插件能在不同API的不同版本中运行而获得额外的内啡肽. 😎
@@ -47,8 +47,8 @@ dict_typeSkToBlid = {
 
 set_utilTypeSkFields = {'VALUE', 'RGBA', 'VECTOR', 'INT', 'BOOLEAN', 'ROTATION', 'STRING', 'MATRIX'}       # Alt D 等多个操作 支持的接口
 
-set_classicSocketsBlid = {'NodeSocketShader',  'NodeSocketColor',   'NodeSocketVector','NodeSocketFloat',     'NodeSocketString',  'NodeSocketInt',    'NodeSocketBool',
-                          'NodeSocketRotation','NodeSocketGeometry','NodeSocketObject','NodeSocketCollection','NodeSocketMaterial','NodeSocketTexture','NodeSocketImage',
+set_classicSocketsBlid = {'NodeSocketShader',  'NodeSocketColor',   'NodeSocketVector', 'NodeSocketFloat',     'NodeSocketString',  'NodeSocketInt',    'NodeSocketBool',
+                          'NodeSocketRotation', 'NodeSocketGeometry', 'NodeSocketObject', 'NodeSocketCollection', 'NodeSocketMaterial', 'NodeSocketTexture', 'NodeSocketImage',
                           'NodeSocketMatrix'}
 
 # 新建接口-用到了
@@ -82,82 +82,98 @@ dict_skTypeHandSolderingColor = { # 用于 VQMT.
     'VECTOR':     (0.38999998569488525, 0.38999998569488525, 0.7799999713897705,  1.0),
     'CUSTOM':     (0.20000000298023224, 0.20000000298023224, 0.20000000298023224, 1.0) }
 
+support_all_type = ('GeometryNodeSwitch', 'GeometryNodeIndexSwitch', 'GeometryNodeMenuSwitch')
+_support_data_type = support_all_type + ('FunctionNodeCompare', 'ShaderNodeMix')
 
-vmtSep = 'MixerItemsSeparator123'
+vmtSep = 'MixerItemsSeparator123'               # 字符串比较后当 separator()
 # 新接口类型的Mix饼菜单
-dict_vmtTupleMixerMain = { # 顺序很重要; 最常用的 (在此列表中) 优先显示 (MixRGB 除外).
-        'ShaderNodeTree':     {'SHADER':     ('ShaderNodeMixShader','ShaderNodeAddShader'),
-                               'VALUE':      ('ShaderNodeMixRGB',  'ShaderNodeMix',                      'ShaderNodeMath'),
-                               'RGBA':       ('ShaderNodeMixRGB',  'ShaderNodeMix'),
-                               'VECTOR':     ('ShaderNodeMixRGB',  'ShaderNodeMix',                                       'ShaderNodeVectorMath'),
-                               'INT':        ('ShaderNodeMixRGB',  'ShaderNodeMix',                      'ShaderNodeMath')},
-                               ##
-        'GeometryNodeTree':   {'VALUE':      ('GeometryNodeSwitch','ShaderNodeMix','FunctionNodeCompare','ShaderNodeMath'),
-                               'RGBA':       ('GeometryNodeSwitch','ShaderNodeMix','FunctionNodeCompare'),
-                               'VECTOR':     ('GeometryNodeSwitch','ShaderNodeMix','FunctionNodeCompare',                 'ShaderNodeVectorMath'),
-                               'STRING':     ('GeometryNodeSwitch',                'FunctionNodeCompare',
-                                              'GeometryNodeStringJoin',   # 字符串接口 Alt Shift 左键
-                                              "FunctionNodeStringLength", "FunctionNodeReplaceString", ),
-                               'INT':        ('GeometryNodeSwitch','ShaderNodeMix','FunctionNodeCompare','ShaderNodeMath'),
-                               'BOOLEAN':    ('GeometryNodeSwitch','ShaderNodeMix','FunctionNodeCompare','ShaderNodeMath',                       'FunctionNodeBooleanMath'),
-                               'ROTATION':   ('GeometryNodeSwitch','ShaderNodeMix'),
-                               'MATRIX':     ('GeometryNodeSwitch', 
-                                              "FunctionNodeMatrixMultiply", "FunctionNodeInvertMatrix", 
-                                              "FunctionNodeTransformPoint", "FunctionNodeTransformDirection", "FunctionNodeProjectPoint",
-                                              "FunctionNodeMatrixDeterminant",),
-                               'OBJECT':     ('GeometryNodeSwitch',),
-                               'MATERIAL':   ('GeometryNodeSwitch',),
-                               'COLLECTION': ('GeometryNodeSwitch',),
-                               'TEXTURE':    ('GeometryNodeSwitch',),
-                               'IMAGE':      ('GeometryNodeSwitch',),
-                               'GEOMETRY':   ('GeometryNodeSwitch','GeometryNodeJoinGeometry','GeometryNodeInstanceOnPoints','GeometryNodeCurveToMesh','GeometryNodeMeshBoolean','GeometryNodeGeometryToInstance')},
-                               ##
-        'CompositorNodeTree': {'VALUE':      ('CompositorNodeMath',     vmtSep,'CompositorNodeMixRGB','CompositorNodeSwitch','CompositorNodeSplitViewer','CompositorNodeSwitchView'),
-                               'RGBA':       ('CompositorNodeAlphaOver',vmtSep,'CompositorNodeMixRGB','CompositorNodeSwitch','CompositorNodeSplitViewer','CompositorNodeSwitchView'),
-                               'VECTOR':     (                          vmtSep,'CompositorNodeMixRGB','CompositorNodeSwitch','CompositorNodeSplitViewer','CompositorNodeSwitchView'),
-                               'INT':        ('CompositorNodeMath',     vmtSep,'CompositorNodeMixRGB','CompositorNodeSwitch','CompositorNodeSplitViewer','CompositorNodeSwitchView')},
-                               ##
-        'TextureNodeTree':    {'VALUE':      ('TextureNodeMixRGB','TextureNodeTexture','TextureNodeMath'),
-                               'RGBA':       ('TextureNodeMixRGB','TextureNodeTexture'),
-                               'VECTOR':     ('TextureNodeMixRGB',                                        'TextureNodeDistance'),
-                               'INT':        ('TextureNodeMixRGB','TextureNodeTexture','TextureNodeMath')}}
+# 顺序很重要; 最常用的 (在此列表中) 优先显示 (MixRGB 除外).
+dict_vmtTupleMixerMain: dict[str, dict[str, tuple[str]]] = {
+        'ShaderNodeTree':     { 
+                'SHADER':     ('ShaderNodeMixShader', 'ShaderNodeAddShader'),
+                'VALUE':      ('ShaderNodeCombineXYZ', 'ShaderNodeMixRGB',  'ShaderNodeMix',                      'ShaderNodeMath'),
+                'RGBA':       ('ShaderNodeMixRGB',  'ShaderNodeMix'),
+                'VECTOR':     ('ShaderNodeMixRGB',  'ShaderNodeMix',                                       'ShaderNodeVectorMath'),
+                'INT':        ('ShaderNodeCombineXYZ', 'ShaderNodeMixRGB',  'ShaderNodeMix',                      'ShaderNodeMath')},
+                ##
+        'GeometryNodeTree':   { 
+                'VALUE':      support_all_type + ( 'ShaderNodeMix', 'ShaderNodeCombineXYZ', 'FunctionNodeCompare', 'ShaderNodeMath'),
+                'RGBA':       _support_data_type,
+                'VECTOR':     _support_data_type+ ('ShaderNodeVectorMath', ),
+                'STRING':     support_all_type + ('FunctionNodeCompare', 'GeometryNodeStringJoin',
+                                                   'FunctionNodeStringLength', 'FunctionNodeReplaceString', ),
+                'INT':        support_all_type + ( 'ShaderNodeMix', 'ShaderNodeCombineXYZ', 'FunctionNodeCompare', 'ShaderNodeMath'),
+                'BOOLEAN':    _support_data_type+ ( 'ShaderNodeMath',                       'FunctionNodeBooleanMath'),
+                'ROTATION':   support_all_type + ( 'ShaderNodeMix', ),
+                'MATRIX':     support_all_type + ( 'FunctionNodeMatrixMultiply', 'FunctionNodeInvertMatrix', 
+                                'FunctionNodeTransformPoint', 'FunctionNodeTransformDirection', 'FunctionNodeProjectPoint',
+                                'FunctionNodeMatrixDeterminant', 'FunctionNodeSeparateTransform', 'FunctionNodeSeparateMatrix'),
+                'OBJECT':     support_all_type,
+                'MATERIAL':   support_all_type,
+                'COLLECTION': support_all_type,
+                'TEXTURE':    support_all_type,
+                'IMAGE':      support_all_type,
+                'GEOMETRY':   support_all_type + ('GeometryNodeJoinGeometry', 'GeometryNodeInstanceOnPoints', 'GeometryNodeCurveToMesh', 
+                                                   'GeometryNodeMeshBoolean', 'GeometryNodeGeometryToInstance')},
+                ##
+        'CompositorNodeTree': {
+                'VALUE':       ('ShaderNodeCombineXYZ' , 'CompositorNodeMath',      vmtSep, 'CompositorNodeMixRGB', 'CompositorNodeSwitch', 'CompositorNodeSplitViewer', 'CompositorNodeSwitchView'),
+                'RGBA':       ('CompositorNodeAlphaOver', vmtSep, 'CompositorNodeMixRGB', 'CompositorNodeSwitch', 'CompositorNodeSplitViewer', 'CompositorNodeSwitchView'),
+                'VECTOR':     (                           vmtSep, 'CompositorNodeMixRGB', 'CompositorNodeSwitch', 'CompositorNodeSplitViewer', 'CompositorNodeSwitchView'),
+                'INT':        ('ShaderNodeCombineXYZ', 'CompositorNodeMath',      vmtSep, 'CompositorNodeMixRGB', 'CompositorNodeSwitch', 'CompositorNodeSplitViewer', 'CompositorNodeSwitchView')},
+                                ##
+        'TextureNodeTree':    {
+                'VALUE':       ('ShaderNodeCombineXYZ' , 'TextureNodeMixRGB', 'TextureNodeTexture', 'TextureNodeMath'),
+                'RGBA':       ('TextureNodeMixRGB', 'TextureNodeTexture'),
+                'VECTOR':     ('TextureNodeMixRGB',                                        'TextureNodeDistance'),
+                'INT':        ('TextureNodeMixRGB', 'TextureNodeTexture', 'TextureNodeMath')}}
+# ! 混合饼菜单在这里加不如改进 VoronoiLinker和NodePie联动
+# 按一次Shift 多一个接口
 dict_vmtMixerNodesDefs = { # '-1' 表示这里的视觉标记，它们的连接套接字是自动计算的（参见 |2|），而不是在此列表中明确指定
-        # 按照上面“数据库”中的数量排序。
-        'GeometryNodeSwitch':             (-1, -1, "Switch  "),
-        'ShaderNodeMix':                  (-1, -1, "Mix  "),
-        'FunctionNodeCompare':            (-1, -1, "Compare  "),
-        'ShaderNodeMath':                 (0, 1, "Max Float "),
-        'ShaderNodeMixRGB':               (1, 2, "Mix RGB "),
-        'CompositorNodeMixRGB':           (1, 2, "Mix Col "),
-        'CompositorNodeSwitch':           (0, 1, "Switch "),
-        'CompositorNodeSplitViewer':      (0, 1, "Split Viewer "),
-        'CompositorNodeSwitchView':       (0, 1, "Switch View "),
-        'TextureNodeMixRGB':              (1, 2, "Mix Col "),
-        'TextureNodeTexture':             (0, 1, "Texture "),
-        'ShaderNodeVectorMath':           (0, 1, "Max Vector "),
-        'CompositorNodeMath':             (0, 1, "Max Float "),
-        'TextureNodeMath':                (0, 1, "Max Float "),
-        'ShaderNodeMixShader':            (1, 2, "Mix Shader "),
-        'ShaderNodeAddShader':            (0, 1, "Add Shader "),
+        # 按照上面“数据库”中的数量排序。        加空格是防止翻译的
+        'GeometryNodeSwitch':             (-1, -1, 'Switch  '),
+        'ShaderNodeMix':                  (-1, -1, 'Mix  '),
+        'FunctionNodeCompare':            (-1, -1, 'Compare  '),
+        'ShaderNodeMath':                 (0, 1, 'Max Float '),
+        'ShaderNodeMixRGB':               (1, 2, 'Mix RGB '),
+        'CompositorNodeMixRGB':           (1, 2, 'Mix Col '),
+        'CompositorNodeSwitch':           (0, 1, 'Switch '),
+        'CompositorNodeSplitViewer':      (0, 1, 'Split Viewer '),
+        'CompositorNodeSwitchView':       (0, 1, 'Switch View '),
+        'TextureNodeMixRGB':              (1, 2, 'Mix Col '),
+        'TextureNodeTexture':             (0, 1, 'Texture '),
+        'ShaderNodeVectorMath':           (0, 1, 'Max Vector '),
+        'CompositorNodeMath':             (0, 1, 'Max Float '),
+        'TextureNodeMath':                (0, 1, 'Max Float '),
+        'ShaderNodeMixShader':            (1, 2, 'Mix Shader '),
+        'ShaderNodeAddShader':            (0, 1, 'Add Shader '),
+        'GeometryNodeIndexSwitch':        (1, 2, 'Index Switch '),
+        'GeometryNodeMenuSwitch':         (1, 2, 'Menu Switch  '),
+        'ShaderNodeCombineXYZ':           (0, 1, '合并XYZ'),
         # 字符串接口 Alt Shift 左键
-        'GeometryNodeStringJoin':         (1, 1, "Join String "),
-        "FunctionNodeStringLength":       (0, 0, "String Length "),
-        "FunctionNodeReplaceString":      (0, 1, "Replace String "),
+        'GeometryNodeStringJoin':         (1, 1, 'Join String '),
+        'FunctionNodeStringLength':       (0, 0, 'String Length '),
+        'FunctionNodeReplaceString':      (0, 1, 'Replace String '),
         # .......................................
-        'FunctionNodeBooleanMath':        (0, 1, "Or "),
-        'CompositorNodeAlphaOver':        (1, 2, "Alpha Over "),
-        'TextureNodeDistance':            (0, 1, "Distance "),
-        'GeometryNodeJoinGeometry':       (0, 0, "Join "),
-        'GeometryNodeInstanceOnPoints':   (0, 2, "Instance on Points "),
-        'GeometryNodeCurveToMesh':        (0, 1, "Curve to Mesh "),
-        'GeometryNodeMeshBoolean':        (0, 1, "Boolean "),
-        'GeometryNodeGeometryToInstance': (0, 0, "To Instance "),
-        'FunctionNodeMatrixMultiply':     (0, 1, "Multiply"),
-        'FunctionNodeInvertMatrix':       (0, 0, "Invert"),
-        'FunctionNodeTransformPoint':     (1, 0, "Transform Point"),
-        'FunctionNodeTransformDirection': (1, 0, "Transform Direction"),
-        'FunctionNodeProjectPoint':       (1, 0, "Project Point"),
-        'FunctionNodeMatrixDeterminant':  (0, 0, "Determinant"),
+        'FunctionNodeBooleanMath':        (0, 1, 'Or '),
+        'CompositorNodeAlphaOver':        (1, 2, 'Alpha Over '),
+        'TextureNodeDistance':            (0, 1, 'Distance '),
+        'GeometryNodeJoinGeometry':       (0, 0, 'Join '),
+        'GeometryNodeInstanceOnPoints':   (0, 2, 'Instance on Points '),
+        'GeometryNodeCurveToMesh':        (0, 1, 'Curve to Mesh '),
+        'GeometryNodeMeshBoolean':        (0, 1, 'Boolean '),
+        'GeometryNodeGeometryToInstance': (0, 0, 'To Instance '),
+        'FunctionNodeMatrixMultiply':     (0, 1, 'Multiply'),
+        'FunctionNodeInvertMatrix':       (0, 0, 'Invert'),
+        'FunctionNodeTransformPoint':     (1, 0, 'Transform Point'),
+        'FunctionNodeTransformDirection': (1, 0, 'Transform Direction'),
+        'FunctionNodeProjectPoint':       (1, 0, 'Project Point'),
+        'FunctionNodeMatrixDeterminant':  (0, 0, 'Determinant'),
+        'FunctionNodeSeparateTransform':  (0, 0, 'Separate Transform'),
+        'FunctionNodeSeparateMatrix':     (0, 0, 'Separate Matrix'),
+        'FunctionNodeCombineTransform':   (0, 1, 'Combine Transform'),
+        'FunctionNodeCombineMatrix':      (0, 1, 'Combine Matrix'),
+        
         }
 
 
@@ -177,32 +193,32 @@ dict_vmtMixerNodesDefs = { # '-1' 表示这里的视觉标记，它们的连接�
 # 例如，length 比 distance 简单。所有其他不明显且非轴向的元素都随意放置。
 
 tup_vqmtQuickMathMapValue = (
-        ("Advanced ",              ('SQRT',       'POWER',        'EXPONENT',   'LOGARITHM',   'INVERSE_SQRT','PINGPONG',    'FLOORED_MODULO' )),
-        ("Compatible Primitives ", ('SUBTRACT',   'ADD',          'DIVIDE'   ,  'MULTIPLY',    'ABSOLUTE',    'MULTIPLY_ADD'                  )),
-        ("Rounding ",              ('SMOOTH_MIN', 'SMOOTH_MAX',   'LESS_THAN',  'GREATER_THAN','SIGN',        'COMPARE',     'TRUNC',  'ROUND')),
-        ("Compatible Vector ",     ('MINIMUM',    'MAXIMUM',      'FLOOR',      'FRACT',       'CEIL',        'MODULO',      'SNAP',   'WRAP' )),
-        ("", ()), # 重要的是重复和顺序，所以是列表而不是字典。
-        ("", ()),
-        ("", ()),
-        ("Other ",                 ('COSH',       'RADIANS',      'DEGREES',    'SINH',        'TANH'                                         )),
-        ("Trigonometric ",         ('SINE',       'COSINE',       'TANGENT',    'ARCTANGENT',  'ARCSINE',     'ARCCOSINE',   'ARCTAN2'        )) )
+        ('Advanced ',              ('SQRT',       'POWER',        'EXPONENT',   'LOGARITHM',   'INVERSE_SQRT', 'PINGPONG',    'FLOORED_MODULO' )),
+        ('Compatible Primitives ', ('SUBTRACT',   'ADD',          'DIVIDE'   ,  'MULTIPLY',    'ABSOLUTE',    'MULTIPLY_ADD'                  )),
+        ('Rounding ',              ('SMOOTH_MIN', 'SMOOTH_MAX',   'LESS_THAN',  'GREATER_THAN', 'SIGN',        'COMPARE',     'TRUNC',  'ROUND')),
+        ('Compatible Vector ',     ('MINIMUM',    'MAXIMUM',      'FLOOR',      'FRACT',       'CEIL',        'MODULO',      'SNAP',   'WRAP' )),
+        ('', ()), # 重要的是重复和顺序，所以是列表而不是字典。
+        ('', ()),
+        ('', ()),
+        ('Other ',                 ('COSH',       'RADIANS',      'DEGREES',    'SINH',        'TANH'                                         )),
+        ('Trigonometric ',         ('SINE',       'COSINE',       'TANGENT',    'ARCTANGENT',  'ARCSINE',     'ARCCOSINE',   'ARCTAN2'        )) )
 tup_vqmtQuickMathMapVector = (
-        ("Advanced ",              ('SCALE',      'NORMALIZE',    'LENGTH',     'DISTANCE',    'SINE',        'COSINE',      'TANGENT'        )),
-        ("Compatible Primitives ", ('SUBTRACT',   'ADD',          'DIVIDE',     'MULTIPLY',    'ABSOLUTE',    'MULTIPLY_ADD'                  )),
-        ("Rays ",                  ('DOT_PRODUCT','CROSS_PRODUCT','PROJECT',    'FACEFORWARD', 'REFRACT',     'REFLECT'                       )),
-        ("Compatible Vector ",     ('MINIMUM',    'MAXIMUM',      'FLOOR',      'FRACTION',    'CEIL',        'MODULO',      'SNAP',   'WRAP' )),
-        ("", ()),
-        ("", ()),
-        ("", ()),
-        ("", ()) )
+        ('Advanced ',              ('SCALE',      'NORMALIZE',    'LENGTH',     'DISTANCE',    'SINE',        'COSINE',      'TANGENT'        )),
+        ('Compatible Primitives ', ('SUBTRACT',   'ADD',          'DIVIDE',     'MULTIPLY',    'ABSOLUTE',    'MULTIPLY_ADD'                  )),
+        ('Rays ',                  ('DOT_PRODUCT', 'CROSS_PRODUCT', 'PROJECT',    'FACEFORWARD', 'REFRACT',     'REFLECT'                       )),
+        ('Compatible Vector ',     ('MINIMUM',    'MAXIMUM',      'FLOOR',      'FRACTION',    'CEIL',        'MODULO',      'SNAP',   'WRAP' )),
+        ('', ()),
+        ('', ()),
+        ('', ()),
+        ('', ()) )
 tup_vqmtQuickMathMapBoolean = (
-        ("High ",  ('NOR','NAND','XNOR','XOR','IMPLY','NIMPLY')),
-        ("Basic ", ('OR', 'AND', 'NOT'                        )) )
+        ('High ',  ('NOR', 'NAND', 'XNOR', 'XOR', 'IMPLY', 'NIMPLY')),
+        ('Basic ', ('OR', 'AND', 'NOT'                        )) )
 tup_vqmtQuickModeMapColor = (
         # 对于 'MIX' 操作，请使用 VMT。
-        ("Math ", ('SUBTRACT','ADD',       'DIVIDE','MULTIPLY','DIFFERENCE','EXCLUSION'                    )), #'EXCLUSION' 不适合放在 "Art" 里; 最好知道它的目的。
-        ("Art ",  ('DARKEN',  'LIGHTEN','   DODGE', 'SCREEN',  'SOFT_LIGHT','LINEAR_LIGHT','BURN','OVERLAY')),
-        ("Raw ",  ('VALUE',   'SATURATION','HUE',   'COLOR'                                                )) ) # 曾想改名为“Overwrite”，但改变了主意。
+        ('Math ', ('SUBTRACT', 'ADD',       'DIVIDE', 'MULTIPLY', 'DIFFERENCE', 'EXCLUSION'                    )), #'EXCLUSION' 不适合放在 'Art' 里; 最好知道它的目的。
+        ('Art ',  ('DARKEN',  'LIGHTEN', '   DODGE', 'SCREEN',  'SOFT_LIGHT', 'LINEAR_LIGHT', 'BURN', 'OVERLAY')),
+        ('Raw ',  ('VALUE',   'SATURATION', 'HUE',   'COLOR'                                                )) ) # 曾想改名为“Overwrite”，但改变了主意。
 dict_vqmtQuickMathMain = {
         'VALUE':   tup_vqmtQuickMathMapValue,
         'VECTOR':  tup_vqmtQuickMathMapVector,
@@ -265,34 +281,34 @@ dict_vqmtDefaultDefault = { # 可以保持不变，但我仍然将其归零。VQ
         'BOOLEAN': (False, False),
         'RGBA': ( (.25,.25,.25,1), (.5,.5,.5,1) ) }
 dict_vqmtQuickPresets = {
-        'VALUE': {"ADD|x|x": "x + x",
-                  "MULTIPLY|x|x": "x * x",
-                  "SUBTRACT|0|x": "-x", #"x * -1"
-                  "DIVIDE|1|x": "1 / x",
-                  "SUBTRACT|1|x": "1 - x",
-                  #"ADD|x|0.5": "x + 0.5",
-                  #"SUBTRACT|x|0.5": "x - 0.5",
-                  "ADD|x|6.283185307179586": "x + tau",
-                  "ADD|x|3.141592653589793": "x + pi",
-                  "ADD|x|1.5707963267948966": "x + pi/2"},
-        'VECTOR': {"ADD|x|x": "x + x",
-                   "MULTIPLY|x|x": "x * x",
-                   "SUBTRACT|0,0,0|x": "-x", #"x * -1"
-                   "DIVIDE|1,1,1|x": "1 / x",
-                   "SUBTRACT|x|0.5,0.5,0": "x - (0.5, 0.5)",
-                   "ADD|x|pi*2,pi*2,pi*2": "x + tau",
-                   "ADD|x|pi,pi,pi": "x + pi",
-                   "ADD|x|pi/2,pi/2,pi/2": "x + pi/2"} }
+        'VALUE': {'ADD|x|x': 'x + x',
+                  'MULTIPLY|x|x': 'x * x',
+                  'SUBTRACT|0|x': '-x', #'x * -1'
+                  'DIVIDE|1|x': '1 / x',
+                  'SUBTRACT|1|x': '1 - x',
+                  #'ADD|x|0.5': 'x + 0.5',
+                  #'SUBTRACT|x|0.5': 'x - 0.5',
+                  'ADD|x|6.283185307179586': 'x + tau',
+                  'ADD|x|3.141592653589793': 'x + pi',
+                  'ADD|x|1.5707963267948966': 'x + pi/2'},
+        'VECTOR': {'ADD|x|x': 'x + x',
+                   'MULTIPLY|x|x': 'x * x',
+                   'SUBTRACT|0,0,0|x': '-x', #'x * -1'
+                   'DIVIDE|1,1,1|x': '1 / x',
+                   'SUBTRACT|x|0.5,0.5,0': 'x - (0.5, 0.5)',
+                   'ADD|x|pi*2,pi*2,pi*2': 'x + tau',
+                   'ADD|x|pi,pi,pi': 'x + pi',
+                   'ADD|x|pi/2,pi/2,pi/2': 'x + pi/2'} }
 
 
 dict_vqdtQuickDimensionsMain = {
         'ShaderNodeTree':    {'VECTOR':   ('ShaderNodeSeparateXYZ',),
                               'RGBA':     ('ShaderNodeSeparateColor',),
-                              'VALUE':    ('ShaderNodeCombineXYZ','ShaderNodeCombineColor'),
+                              'VALUE':    ('ShaderNodeCombineXYZ', 'ShaderNodeCombineColor'),
                               'INT':      ('ShaderNodeCombineXYZ',)},
         'GeometryNodeTree':  {'VECTOR':   ('ShaderNodeSeparateXYZ',),
                               'RGBA':     ('FunctionNodeSeparateColor',),
-                              'VALUE':    ('ShaderNodeCombineXYZ','FunctionNodeCombineColor','FunctionNodeQuaternionToRotation'),
+                              'VALUE':    ('ShaderNodeCombineXYZ', 'FunctionNodeCombineColor', 'FunctionNodeQuaternionToRotation'),
                               'INT':      ('ShaderNodeCombineXYZ',),
                               'BOOLEAN':  ('ShaderNodeCombineXYZ',),
                               'STRING':   ('GeometryNodeStringToCurves',),   # Alt D 字符串接口
@@ -300,13 +316,13 @@ dict_vqdtQuickDimensionsMain = {
                               'ROTATION': ('FunctionNodeRotationToQuaternion',),
                               'GEOMETRY': ('GeometryNodeSeparateGeometry',)}, # 虽然意义相同。将其视为一个迷你彩蛋。
                             #   'GEOMETRY': ('GeometryNodeSeparateComponents',)}, # 虽然意义相同。将其视为一个迷你彩蛋。
-        'CompositorNodeTree':{'VECTOR':   ('CompositorNodeSeparateXYZ',),
+        'CompositorNodeTree':{'VECTOR':   ('ShaderNodeSeparateXYZ',),
                               'RGBA':     ('CompositorNodeSeparateColor',),
-                              'VALUE':    ('CompositorNodeCombineXYZ','CompositorNodeCombineColor'),
-                              'INT':      ('CompositorNodeCombineXYZ',)},
+                              'VALUE':    ('ShaderNodeCombineXYZ', 'CompositorNodeCombineColor'),
+                              'INT':      ('ShaderNodeCombineXYZ',)},
         'TextureNodeTree':   {'VECTOR':   ('TextureNodeSeparateColor',),
                               'RGBA':     ('TextureNodeSeparateColor',),
-                              'VALUE':    ('TextureNodeCombineColor',''), # 无法处理缺少第二个的情况，因此留空；参见 |3|。
+                              'VALUE':    ('TextureNodeCombineColor', ''), # 无法处理缺少第二个的情况，因此留空；参见 |3|。
                               'INT':      ('TextureNodeCombineColor',)}}
 
 dict_vqdtQuickConstantMain = {
@@ -318,15 +334,15 @@ dict_vqdtQuickConstantMain = {
                               'STRING':   'FunctionNodeInputString',
                               'MENU':     'GeometryNodeIndexSwitch',
                               'MATRIX':   'FunctionNodeCombineTransform',
-                              'ROTATION': ["FunctionNodeEulerToRotation", 
-                                           "FunctionNodeAxisAngleToRotation", 
-                                           "FunctionNodeQuaternionToRotation" ]
+                              'ROTATION': ['FunctionNodeEulerToRotation', 
+                                           'FunctionNodeAxisAngleToRotation', 
+                                           'FunctionNodeQuaternionToRotation' ]
                               }, 
         'ShaderNodeTree':    {'VALUE':    'ShaderNodeValue',
                               'VECTOR':   'ShaderNodeCombineXYZ',
                               'RGBA':     'ShaderNodeRGB'     },
         'CompositorNodeTree':{'VALUE':    'CompositorNodeValue',
-                              'VECTOR':   'CompositorNodeCombineXYZ',
+                              'VECTOR':   'ShaderNodeCombineXYZ',
                               'RGBA':     'CompositorNodeRGB'     },
         'TextureNodeTree':   { }
         }

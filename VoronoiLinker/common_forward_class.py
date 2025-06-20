@@ -1,7 +1,7 @@
 import bpy
 from builtins import len as length
 from bpy.types import (NodeSocket, UILayout)
-# from .common_func import sk_label_or_name, index_switch_add_input
+# from .common_func import sk_label_or_name, add_item_for_index_switch
 from .common_forward_func import *
 
 
@@ -124,7 +124,7 @@ class Node_Items_Manager():
             case 'MENU' :
                 return self.skfa.new(newName)
             case 'INDEX' :
-                input_soc = index_switch_add_input(self.tree.nodes, index_switch_node=self.node)
+                input_soc = add_item_for_index_switch(self.node)
                 return input_soc
             case 'CLASSIC'|'GROUP':
                 skfNew = self.skfa.data.new_socket(newName, socket_type=sk_type_to_idname(skTar), in_out='OUTPUT' if (skTar.is_output^isFlipSide) else 'INPUT')

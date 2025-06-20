@@ -48,10 +48,10 @@ class VoronoiQuickConstant(VoronoiToolTripleSk):
                 CheckUncollapseNodeAndReNext(nd, self, cond=True, flag=True)
                 break
             CheckUncollapseNodeAndReNext(nd, self, cond=self.fotagoSk1, flag=False)
-            skOut0 = FtgGetTargetOrNone(self.fotagoSk0)
+            skOut0 = optional_ftg_sk(self.fotagoSk0)
             if skOut0:
                 multiple_link = {'VALUE', 'RGBA', 'VECTOR', 'INT', 'STRING', 'BOOLEAN', 'ROTATION', 'MATRIX'}
-                if skOut0.type not in multiple_link:     # 小王 允许同时连接多个input 接口
+                if skOut0.type not in multiple_link:     # 小王 允许同时连到多个输入的 输出接口类型
                     break
                 if not self.canPickThird:
                     for ftg in list_ftgSksOut:
@@ -65,7 +65,7 @@ class VoronoiQuickConstant(VoronoiToolTripleSk):
                     if self.fotagoSk1:
                         break
                 else:
-                    skOut1 = FtgGetTargetOrNone(self.fotagoSk1)
+                    skOut1 = optional_ftg_sk(self.fotagoSk1)
                     for ftg in list_ftgSksOut:
                         if ftg.tar.type==skOut0.type:
                             self.fotagoSk2 = ftg
