@@ -1,12 +1,3 @@
-# https://github.com/neliut/VoronoiLinker/wiki
-# 感谢昵称为 "Oxicid" 的用户提供的这段关于 ctypes 的代码.  “什么,原来还能这样？”
-# 唉,这些开发者；不得不自己添加获取接口(socket)位置的功能. 'Blender 4.0 alpha' 的混乱把我逼得没办法,迫使我这么做. 
-# ..这竟然用 Python 就搞定了,难道提供(暴露)一个 API 就那么难吗？
-# 附言：为陨落的英雄们默哀一分钟,https://projects.blender.org/blender/blender/pulls/117809. 
-# 好吧,最难的部分已经过去了. 距离技术上能够支持折叠节点只有一步之遥了. 
-# 那些渴望这个功能的人会很快地板着扑克脸来到这里,拿走他们需要的东西,然后为自己修改. 
-# 第一个这样做的人,我给你的留言是：“好吧,干得不错. 现在你可以‘勾搭’上折叠节点的接口了. 希望你高兴得不得了”. 
-
 import ctypes, bpy, platform
 from mathutils import Vector as Vec2
 from bpy.types import NodeSocket
@@ -79,9 +70,9 @@ class BNodeSocket(StructBase):
 
 StructBase._init_structs()
 
-def SkGetLocVec(sk: NodeSocket):
-    """ 如果接口已启用且未隐藏,则返回 Vec2(位置),否则返回 Vec2((0, 0)) """
-    return Vec2(BNodeSocket.get_struct_instance_from_bpy_object(sk).runtime.contents.location[:]) if sk.enabled and (not sk.hide) else Vec2((0, 0))
+def sk_loc(sk: NodeSocket):
+    """ 如果接口已启用且未隐藏,则返回 Vec2(位置),否则返回 None """
+    if sk.enabled and (not sk.hide):
+        return Vec2(BNodeSocket.get_struct_instance_from_bpy_object(sk).runtime.contents.location[:])
+    return None
 
-# sk = bpy.data.node_groups["Geometry Nodes"].nodes["Math"].inputs[0]
-# print(SkGetLocVec(sk))
