@@ -1,0 +1,11 @@
+schema_version = "1.0.0"
+id = "node_socket_location"
+version = "2.7.1"
+name = "node_socket_location"
+tagline = "node_socket_location"
+maintainer = "W_Cloud(一尘不染)"
+type = "add-on"
+tags = ["Node"]
+blender_version_min = "4.2.0"
+license = ["SPDX:GPL-3.0-or-later"]
+website = "https://space.bilibili.com/1109241880"
