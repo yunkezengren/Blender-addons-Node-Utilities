@@ -57,6 +57,7 @@ def get_domain_list():
 
 def find_user_keyconfig(key):
     km, kmi = addon_keymaps[key]
+    pprint(addon_keymaps)
     for item in bpy.context.window_manager.keyconfigs.user.keymaps[km.name].keymap_items:
         found_item = False
         if kmi.idname == item.idname:
@@ -114,11 +115,11 @@ class ATTRLIST_AddonPrefs(AddonPreferences):
         split = layout.split(factor=0.5)
 
         split.label(text=tr('命名属性菜单快捷键: '))
-        split.prop(find_user_keyconfig('唤出菜单快捷键'), 'type', text='', full_event=True)
+        split.prop(find_user_keyconfig('命名属性菜单快捷键'), 'type', text='', full_event=True)
 
         split = layout.split(factor=0.5)
         split.label(text=tr('命名属性面板快捷键: '))
-        split.prop(find_user_keyconfig('ATTRLIST_PT_NPanel'), 'type', text='', full_event=True)
+        split.prop(find_user_keyconfig('命名属性面板快捷键'), 'type', text='', full_event=True)
 
         split = layout.split(factor=0.5)
         split.label(text=tr('添加活动存储属性节点对应属性节点: '))
@@ -853,12 +854,12 @@ def register():
 
     kmi = km.keymap_items.new('wm.call_menu', 'TWO', 'PRESS', ctrl=False, alt=False, shift=False, repeat=False)
     kmi.properties.name = 'ATTRLIST_MT_Menu'
-    addon_keymaps['唤出菜单快捷键'] = (km, kmi)
+    addon_keymaps['命名属性菜单快捷键'] = (km, kmi)
 
     kmi = km.keymap_items.new('wm.call_panel', 'TWO', 'PRESS', ctrl=False, alt=False, shift=True, repeat=False)
     kmi.properties.name = 'ATTRLIST_PT_NPanel'
     kmi.properties.keep_open = True
-    addon_keymaps['ATTRLIST_PT_NPanel'] = (km, kmi)
+    addon_keymaps['命名属性面板快捷键'] = (km, kmi)
 
     kmi = km.keymap_items.new('node.add_named_attribute_node', 'TWO', 'PRESS', ctrl=True, alt=False, shift=False, repeat=False)
     addon_keymaps['添加存储节点对应属性节点'] = (km, kmi)

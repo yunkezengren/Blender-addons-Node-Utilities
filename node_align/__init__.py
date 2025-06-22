@@ -9,6 +9,8 @@ import os
 import bpy
 from bpy.props import BoolProperty, IntProperty
 from bpy.types import AddonPreferences, Menu
+import bpy.utils.previews
+# import bpy 只会导入bpy下的一级module,直接用bpy.utils.previews 会报错,没报错可能是别的插件导入过了
 
 # TODO 对齐Frame
 # TODO 把我的 Alt+1 加上 Shift+x Shift+y

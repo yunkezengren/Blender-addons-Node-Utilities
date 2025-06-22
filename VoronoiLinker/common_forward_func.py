@@ -1,8 +1,10 @@
 import bpy
 from pprint import pprint
 from mathutils import Vector as Vec2
-from bpy.types import (Nodes, Node, NodeSocket, UILayout)
-from .globals import *
+from bpy.types import Node, NodeSocket
+
+# 从 globals.py 中明确导入
+from .globals import dict_typeSkToBlid
 
 def Prefs():        # 很多局部变量也是prefs 还是改大写好点
     return bpy.context.preferences.addons[__package__].preferences

@@ -1,9 +1,10 @@
 import bpy
 from builtins import len as length
-from bpy.types import (NodeSocket, UILayout)
-# from .common_func import sk_label_or_name, add_item_for_index_switch
-from .common_forward_func import *
-
+from mathutils import Vector as Vec2
+from bpy.types import NodeSocket
+# from .common_forward_func import *
+from .common_forward_func import (sk_label_or_name, add_item_for_index_switch, sk_type_to_idname, 
+                           is_builtin_tree_idname)
 
 # Equestrian 的意思是"骑手"或"马术的",取其驾驭、控制的寓意.似乎是专门用来操作管理有 item 的节点, 比如:
 # 这些节点都有一个共同点: 它们内部有自己的items, 可以动态地添加、删除、移动它们上面的插槽 (socket).
@@ -276,14 +277,13 @@ class Node_Items_Manager():
                 self.skfa = ndEq.node_tree.interface.items_tree
 
 class Fotago(): # Found Target Goal (找到的目标), "剩下的你们自己看着办".
-    #def __getattr__(self, att): # 天才. 仅次于 '(*args): return Vector((args))'.
+    # def __getattr__(self, att): # 天才. 仅次于 '(*args): return Vector((args))'.
     #    return getattr(self.target, att) # 但要小心, 它的速度慢了大约5倍.
     def __init__(self, target: NodeSocket, *, dist=0.0, pos=Vec2((0.0, 0.0)), dir=0, boxHeiBound=(0.0, 0.0), text=""):
-        #self.target = target
         self.tar = target
-        #self.sk = target #Fotago.sk = property(lambda a:a.target)
-        #self.nd = target #Fotago.nd = property(lambda a:a.target)
-        self.blid: str = target.bl_idname  #Fotago.blid = property(lambda a:a.target.bl_idname)
+        #self.sk = target                  # Fotago.sk = property(lambda a:a.target)
+        #self.nd = target                  # Fotago.nd = property(lambda a:a.target)
+        self.blid: str = target.bl_idname  # Fotago.blid = property(lambda a:a.target.bl_idname)
         self.dist = dist
         self.pos = pos
         # 下面的仅用于插槽.
