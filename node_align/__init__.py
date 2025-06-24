@@ -9,7 +9,8 @@ import os
 import bpy
 from bpy.props import BoolProperty, IntProperty
 from bpy.types import AddonPreferences, Menu
-import bpy.utils.previews
+# import bpy.utils.previews
+from bpy.utils import previews as bl_preview
 # import bpy 只会导入bpy下的一级module,直接用bpy.utils.previews 会报错,没报错可能是别的插件导入过了
 
 # TODO 对齐Frame
@@ -177,7 +178,7 @@ classes = [
 
 def register():
     global _icons
-    _icons = bpy.utils.previews.new()
+    _icons = bl_preview.new()
     for image in images:
         _icons.load(image, os.path.join(os.path.dirname(__file__), 'icons', image), "IMAGE")
 
@@ -199,7 +200,7 @@ def register():
 
 def unregister():
     global _icons
-    bpy.utils.previews.remove(_icons)
+    bl_preview.remove(_icons)
 
     for km, kmi in addon_keymaps.values():
         km.keymap_items.remove(kmi)
