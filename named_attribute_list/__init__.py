@@ -1,19 +1,17 @@
-import os
-import time
-from pprint import pprint
-from typing import Union
-if "bpy" in locals():   # 偏好设置重启插件(就是先unregister再register),只会重新执行__init__.py,所以重新加载需要更新的模块
-    import importlib
-    importlib.reload(my_dict)
-    importlib.reload(translator)
-from .my_dict import Attr_Info, Attr_Dict
-from .translator import i18n as tr
+# if "bpy" in locals():   # 偏好设置重启插件(就是先unregister再register),只会重新执行__init__.py,所以重新加载需要更新的模块
+#     import importlib
+#     importlib.reload(my_dict)
+#     importlib.reload(translator)
 
-import bpy
-from bpy import context
+import bpy, os, time
 import bpy.utils.previews
 from bpy.types import (Operator, Menu, Panel, AddonPreferences, Context, Object, NodeTree, Node, UILayout)
 from bpy.props import StringProperty, EnumProperty, BoolProperty
+from pprint import pprint
+from typing import Union
+
+from .my_dataclass import Attr_Info, Attr_Dict
+from .translator import i18n as tr
 
 # todo 重命名属性标签和接口
 # todo 添加个重命名属性名: 更改 存储属性和命名属性的 名称接口值
@@ -235,7 +233,7 @@ def get_tree_attrs_dict(
                                 group_node_name=temp1, group_name_parent=temp2, in_group=True)
     return attrs_dict
 
-# _ 为什么不是从 attrs_dict 的键里得到列表: attrs_dict因为未使用或组内等原因和 attrs_list 有时不同
+# + 为什么不是从 attrs_dict 的键里得到列表: attrs_dict因为未使用或组内等原因和 attrs_list 有时不同
 def get_tree_attrs_list(tree: NodeTree, all_tree_attr: list[str], stored_group) -> list[str]:
     """ 遍历节点得到的属性名称列表,省的被evaluated_obj_attrs里的同名,重存覆盖 """
     nodes = tree.nodes
@@ -261,7 +259,7 @@ def get_tree_attrs_list(tree: NodeTree, all_tree_attr: list[str], stored_group) 
 
     return all_tree_attr
 
-# _ 隐藏未使用属性不好用 可以用新的获取属性的查漏补缺
+# + 隐藏未使用属性不好用 可以用新的获取属性的查漏补缺
 def extend_dict_with_evaluated_obj_attrs(attrs_d: Attr_Dict, exclude_l: list[str], obj: Object, all_tree_attr: list[str]):
     exclude_l = exclude_l + [
                     "position", "sharp_face", "material_index",              # "id",
@@ -272,27 +270,43 @@ def extend_dict_with_evaluated_obj_attrs(attrs_d: Attr_Dict, exclude_l: list[str
                     "radius", "curve_type", "cyclic",
                     ]
     deps = bpy.context.view_layer.depsgraph
-    geo = deps.id_eval_get(obj).evaluated_geometry()
-    components = [geo.instances_pointcloud(), geo.mesh, geo.pointcloud, geo.curves, geo.grease_pencil]
-    # exclude_set = set(exclude_l) | set(all_tree_attr) # 集合的in查找操作的平均时间复杂度是 O(1)，而不是列表的 O(n), 性能提升不明显啊 0.02s 左右
+    obj = deps.id_eval_get(obj)
+    # box = bpy.context.evaluated_depsgraph_get()
+    # obj = obj.evaluated_get(box)
+    
     all_evaluated_attr: list[str] = []
-    for i, com in enumerate(components):
-        if not com: continue
-        for attr in com.attributes:
-            domain = attr.domain if i else "INSTANCE"  # 只有i是0时,这时虽然是点云,其实是实例
-            # todo gp 只有layer的 没点和线的
+    if hasattr(obj, "evaluated_geometry"):
+        geo = obj.evaluated_geometry()
+        components = [geo.instances_pointcloud(), geo.mesh, geo.pointcloud, geo.curves, geo.grease_pencil]
+        # exclude_set = set(exclude_l) | set(all_tree_attr) # 集合的in查找操作的平均时间复杂度是 O(1)，而不是列表的 O(n), 性能提升不明显啊 0.02s 左右
+        for i, component in enumerate(components):
+            if not component: continue
+            component.id_type.lower() == 'pointcloud'
+            for attr in component.attributes:
+                domain = attr.domain if i else "INSTANCE"  # 只有i是0时,这时虽然是点云,其实是实例
+                # todo gp 只有layer的 没点和线的
+                name = attr.name
+                all_evaluated_attr.append(name)      # [name, domain, attr.data_type] 暂时只用name应该就足够了
+                if name in exclude_l or name in all_tree_attr: continue   # 不覆盖 遍历节点得到有更多信息的属性,补上遍历漏的
+                if not domain: continue      # 5.0 为什么点云会存上其他域的,并且 domain 是空 ''
+                if name.startswith(".a_"): continue           # 匿名属性,噪音
+                if name not in attrs_d:
+                    attrs_d[name] = Attr_Info(data_type=attr.data_type, domain=[domain],
+                                            domain_info=[tr(get_domain_cn[domain])], group_name=[tr("不确定")])
+                else:
+                    info = attrs_d[name]
+                    info.domain.append(domain)
+                    info.domain_info.append(tr(get_domain_cn[domain]))
+                    info.group_name.append(tr("不确定"))
+    else:
+        attrs = obj.data.attributes
+        for attr in attrs:
             name = attr.name
-            all_evaluated_attr.append(name)      # [name, domain, attr.data_type] 暂时只用name应该就足够了
-            if name in exclude_l or name in all_tree_attr: continue   # 不覆盖 遍历节点得到有更多信息的属性,补上遍历漏的
-            if name.startswith(".a_"): continue           # 匿名属性,噪音
-            if name not in attrs_d:
-                attrs_d[name] = Attr_Info(data_type=attr.data_type, domain=[domain],
-                                        domain_info=[tr(get_domain_cn[domain])], group_name=[tr("不确定")])
-            else:
-                info = attrs_d[name]
-                info.domain.append(domain)
-                info.domain_info.append(tr(get_domain_cn[domain]))
-                info.group_name.append(tr("不确定"))
+            domain = attr.domain
+            if name in exclude_l or name in all_tree_attr: continue   # 用节点名称接口连了线的属性(第一种方法获取不到)
+            all_evaluated_attr.append(name)
+            attrs_d[name] = Attr_Info(data_type=attr.data_type, domain=[attr.domain],
+                                        domain_info=[tr(get_domain_cn[domain])], group_name=tr("不确定"))
     return all_evaluated_attr
 
 def extend_dict_with_obj_data_attrs(attrs_d: Attr_Dict, sub_attrs_d: Attr_Dict, all_tree_attr: list[str]):
