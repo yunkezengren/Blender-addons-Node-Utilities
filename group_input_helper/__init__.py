@@ -1,8 +1,3 @@
-# from translator import i18n
-from . import translator
-from pprint import pprint
-trans = translator.i18n
-
 bl_info = {
     "name" : "节点组输入助手(Group input helper)-添加拆分合并移动(Add Split Merge Move)",
     "author" : "一尘不染",
@@ -16,19 +11,19 @@ bl_info = {
     "category" : "Node"
 }
 
-# todo 显示组输入 是否灰显或隐藏
-
-import bpy
+import bpy, os
 from bpy.types import Operator, Menu, Panel, AddonPreferences
-
-from typing import List, Dict, Union
 from bpy.types import (NodeTree, NodeTreeInterfaceItem, NodeTreeInterfacePanel, NodeTreeInterfaceSocket, UILayout)
 from bpy.props import EnumProperty, BoolProperty, IntProperty, StringProperty
 from bpy.app.translations import pgettext_iface as iface_
-
 import bpy.utils.previews
 from mathutils import Vector
-import os
+
+from .translator import i18n as trans
+from pprint import pprint
+# from . import translator
+# trans = translator.i18n
+from typing import Union
 
 # _ 拆分后删除转接口
 # Todo 组输入移动后找个好位置
@@ -37,8 +32,8 @@ import os
 # Todo 看心情添加版本控制
 # ____ 百度网盘更新
 # Todo 合并组输入没活动节点时,新节点位置在左上角
-
 # Todo 合并组输入时适当重命名
+# todo 显示组输入 是否灰显或隐藏
 
 addon_keymaps = {}
 _icons = None
@@ -232,11 +227,11 @@ def count_panel_depth(item: NodeTreeInterfacePanel):
 def draw_none_socket(layout: UILayout):
     layout.separator()
     # text=trans('空')
-    op = layout.operator(NODE_OT_Add_Group_Input_Hide_Socket.bl_idname, text=" ", icon_value=_icons['空.png'].icon_id)
+    op = layout.operator(NODE_OT_Add_Hided_Socket_Group_Input.bl_idname, text=" ", icon_value=_icons['空.png'].icon_id)
     op.index_start = -1
     op.is_panel = False
 
-def draw_add_group_input_hide_socket(layout: UILayout):
+def draw_add_hided_socket_group_input(layout: UILayout):
     # 默认时并不会真正创建 Operator 实例,把每个菜单项的信息打包成一个轻量级的数据结构,菜单跳过invoke,面板不跳
     # 在“高效的快捷模式”和“功能完整的正式模式”之间进行切换。
     layout.operator_context = 'INVOKE_DEFAULT'
@@ -247,7 +242,7 @@ def draw_add_group_input_hide_socket(layout: UILayout):
     if bpy.app.version < (4, 0, 0):
         in_items = tree.inputs
     if bpy.app.version >= (4, 0, 0):
-        in_items: List[Dict[str, Union[NodeTreeInterfaceSocket, int]]] = []
+        in_items: list[dict[str, Union[NodeTreeInterfaceSocket, int]]] = []
         items = tree.interface.items_tree
         index = 0   # 只算接口的序号
         for item in items:
@@ -271,14 +266,14 @@ def draw_add_group_input_hide_socket(layout: UILayout):
             layout.separator()
             if prefs.show_panel_name:
                 panel_name = "●" * in_item["depth"] + item.name
-                op = layout.operator(NODE_OT_Add_Group_Input_Hide_Socket.bl_idname, text=iface_(panel_name), icon="DOWNARROW_HLT")
+                op = layout.operator(NODE_OT_Add_Hided_Socket_Group_Input.bl_idname, text=iface_(panel_name), icon="DOWNARROW_HLT")
                 op.panel_name = item.name
                 op.is_panel = True
         if item.item_type == 'SOCKET':
             socket_id = get_socket_idname(item.bl_socket_idname)
             input_png = inputs_png[socket_id]
             socket_name = item.name if item.name else " "  # 文本为空时,菜单里按钮不对齐
-            op = layout.operator(NODE_OT_Add_Group_Input_Hide_Socket.bl_idname, text=iface_(socket_name), icon_value=(_icons[input_png].icon_id ) )
+            op = layout.operator(NODE_OT_Add_Hided_Socket_Group_Input.bl_idname, text=iface_(socket_name), icon_value=(_icons[input_png].icon_id ) )
             in_panel = item.parent.index != -1
             op.is_panel = in_panel   # 不等于-1的话是面板内的接口
             if in_panel:
@@ -290,8 +285,8 @@ def draw_add_group_input_hide_socket(layout: UILayout):
     if panel_count == 0:
         draw_none_socket(layout)
 
-class NODE_OT_Add_Group_Input_Hide_Socket(Operator):
-    bl_idname = "node.add_group_input_hide_socket"
+class NODE_OT_Add_Hided_Socket_Group_Input(Operator):
+    bl_idname = "node.add_hided_socket_group_input"
     bl_label = trans("组输入隐藏节口")
     bl_options = {"REGISTER", "UNDO"}
     bl_description: StringProperty(name='btn_info', default="快捷键Shift 2 ")
@@ -342,10 +337,10 @@ class NODE_OT_Add_Group_Input_Hide_Socket(Operator):
 
 def add_group_input_helper_to_node_mt_editor_menus(self, context):
     layout = self.layout
-    layout.menu('NODE_MT_Add_Group_Input_Hide_Socket', text=trans('组输入'))
+    layout.menu('NODE_MT_Add_Hided_Socket_Group_Input', text=trans('组输入'))
 
-class NODE_MT_Add_Group_Input_Hide_Socket(Menu):
-    bl_idname = "NODE_MT_Add_Group_Input_Hide_Socket"
+class NODE_MT_Add_Hided_Socket_Group_Input(Menu):
+    bl_idname = "NODE_MT_Add_Hided_Socket_Group_Input"
     bl_label = trans("添加组输入")
 
     @classmethod
@@ -354,13 +349,13 @@ class NODE_MT_Add_Group_Input_Hide_Socket(Menu):
 
     def draw(self, context):
         layout = self.layout
-        draw_add_group_input_hide_socket(layout)
+        draw_add_hided_socket_group_input(layout)
 
-class NODE_PT_Add_Group_Input_Hide_Socket(Panel):
+class NODE_PT_Add_Hided_Socket_Group_Input(Panel):
     # bl_category = 'Group'
     bl_category = '节点树'
     bl_label = trans('组输入拆分')
-    bl_idname = 'NODE_PT_Add_Group_Input_Hide_Socket'
+    bl_idname = 'NODE_PT_Add_Hided_Socket_Group_Input'
     bl_space_type = 'NODE_EDITOR'
     bl_region_type = 'UI'
     bl_context = ''
@@ -374,7 +369,7 @@ class NODE_PT_Add_Group_Input_Hide_Socket(Panel):
 
     def draw(self, context):
         layout = self.layout
-        draw_add_group_input_hide_socket(layout)
+        draw_add_hided_socket_group_input(layout)
 
 # ----------------------------------------
 def draw_add_new_socket(layout, context):
@@ -953,9 +948,9 @@ class NODE_MT_Merge_Split_Move_Group_Input(Menu):
             layout.operator('node.hide_group_input_sockets', text=trans('隐藏未使用组输入接口'), icon="DECORATE")
 
 classes = [
-    NODE_OT_Add_Group_Input_Hide_Socket,
-    NODE_MT_Add_Group_Input_Hide_Socket,
-    NODE_PT_Add_Group_Input_Hide_Socket,
+    NODE_OT_Add_Hided_Socket_Group_Input,
+    NODE_MT_Add_Hided_Socket_Group_Input,
+    NODE_PT_Add_Hided_Socket_Group_Input,
     NODE_OT_Add_New_Group_Item,
     NODE_PT_Add_New_Group_Item,
     NODE_OT_Merge_Group_Input_Socket,
@@ -988,11 +983,11 @@ def register():
     km = kc.keymaps.new(name='Node Editor', space_type='NODE_EDITOR')
 
     kmi = km.keymap_items.new('wm.call_menu', 'ONE', 'PRESS', ctrl=False, alt=False, shift=False, repeat=False)
-    kmi.properties.name = 'NODE_MT_Add_Group_Input_Hide_Socket'
+    kmi.properties.name = 'NODE_MT_Add_Hided_Socket_Group_Input'
     addon_keymaps['key_MT_Add_Group_Input'] = (km, kmi)
 
     kmi = km.keymap_items.new('wm.call_panel', 'ONE', 'PRESS', ctrl=True, alt=True, shift=True, repeat=False)
-    kmi.properties.name = 'NODE_PT_Add_Group_Input_Hide_Socket'
+    kmi.properties.name = 'NODE_PT_Add_Hided_Socket_Group_Input'
     kmi.properties.keep_open = True
     addon_keymaps['key_PT_Add_Group_Input'] = (km, kmi)
 
