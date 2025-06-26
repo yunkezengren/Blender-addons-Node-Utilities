@@ -1,7 +1,6 @@
-
 # 😂 https://github.com/neliut/VoronoiLinker/
 # 😂 感谢昵称为 "Oxicid" 的用户贡献了这段关于 ctypes 的代码. "原来还可以这样操作吗?! 🤔".
-# 😂 唉, Blender的这些开发者啊 🤦; 我不得不自己动手添加获取节点插槽(socket)位置的功能. 
+# 😂 唉, Blender的这些开发者啊 🤦; 我不得不自己动手添加获取节点插槽(socket)位置的功能.
 # 😂 'Blender 4.0 alpha' 的一团乱麻真是把我逼到墙角了.结果这事儿用Python就搞定了, 难道官方提供一个API就那么难吗? 🤷
 # 😂 P.S.为陨落的英雄们默哀一分钟 🙏, https://projects.blender.org/blender/blender/pulls/117809.
 
@@ -24,7 +23,7 @@ is_bl4_plus = bpy.app.version[0] >= 4
 # 👊🏿 Blender 的 Python API (bpy.types) 和 C/C++ 底层数据之间,通过内存地址这个唯一的“ID”进行关联.(参考不能全信)
 # 👊🏿 ctypes 正是利用了这个关联,绕过了官方提供的有限的 API,直接通过内存地址去读取和解释 底层的,未经封装的原始数据.
 
-# 延迟初始化: ctypes 要求结构体的 _fields_ 属性必须在类定义时就确定. 
+# 延迟初始化: ctypes 要求结构体的 _fields_ 属性必须在类定义时就确定.
 # 但如果结构体之间有循环引用(A包含B的指针,B包含A的指针),直接定义会出错.
 # 1.定义: 先把所有字段定义存在 __annotations__, ctypes 还不知道这些是结构体字段, 所以不会报错.
 # 2.初始化: 调用StructBase._init_structs(),遍历所有子类的__annotations__字典,一次性为所有类创建真正的_fields_属性.
@@ -47,7 +46,8 @@ class StructBase(ctypes.Structure):
         # 🤢 print("="*50)
         for sub_cls in StructBase._subclasses:
             # fields: list[tuple] = []
-            fields: list[tuple[str, Type[ctypes._CData]]] = []
+            fields: list[tuple[str, type[ctypes._CData]]] = []
+            # fields: list[tuple[str, Type[ctypes._CData]]] = []
             # 🤢 print(sub_cls)
             # # print(type(sub_cls))
             # # pprint(sub_cls.__annotations__)     # pprint会输出给字典键排序后的
@@ -59,21 +59,22 @@ class StructBase(ctypes.Structure):
                 # print(f"{field:25}, {value}")
                 fields.append((field, value))
             if fields:
-                # _fields_ 向 ctypes 声明一个 Python Structure 类如何精确地映射到一段 C 语言的内存布局。
-                # 每个元组代表 C 结构体中的一个字段, ctypes 会严格按照 _fields_ 列表中的顺序来安排内存。
+                # _fields_ 向 ctypes 声明一个 Python Structure 类如何精确地映射到一段 C 语言的内存布局. 
+                # 每个元组代表 C 结构体中的一个字段, ctypes 会严格按照 _fields_ 列表中的顺序来安排内存. 
                 sub_cls._fields_ = fields
             sub_cls.__annotations__.clear()
         print("")
         StructBase._subclasses.clear()
     @classmethod
-    # 将“如何创建”的通用逻辑放在基类中,以实现代码复用和统一接口。
+    # 将“如何创建”的通用逻辑放在基类中,以实现代码复用和统一接口. 
     # Self@StructBase 是StructBase类或者子类的实例  type[X] 表示类 X 本身, 而不是它的实例
     def get_struct_instance_from_bpy_object(cls, socket: NodeSocket):
         """ 并没有 get 一个已有的 Python对象, 而是根据地址创建了新的 ctypes Python 对象来映射它 """
         # >>> print(sk)
         # <bpy_struct, NodeSocketInt("Seed") at 0x000001D1886333A0>
         # >>> hex(sk.as_pointer())                  '0x1d1886333a0'
-        # as_pointer() 返回的 int 是C结构体本身的地址吗?还是说是二级指针( #🤢令人疑惑).
+        #   as_pointer() 返回的 int 是C结构体本身的地址吗?还是说是二级指针( #🤢令人疑惑).
+        #🤢 可以理解为 as_pointer() 是指针,它的值是指针指向的地址 (其实返回值就是C结构体在内存里的首地址)
         return cls.from_address(socket.as_pointer())   # 用地址和结构体蓝图创建一个 ctypes 代理对象
 
 """ using bNodeSocketRuntimeHandle = blender::bke::bNodeSocketRuntime;
@@ -96,7 +97,7 @@ class bNodeSocketRuntime : NonCopyable, NonMovable {
 
 class BNodeSocketRuntimeHandle(StructBase): # \source\blender\blenkernel\BKE_node_runtime.hh -> bNodeSocketRuntime
     if is_win:
-        vptr    : ctypes.c_char*8     # vtable_pointer虚函数表指针
+        vptr    : ctypes.c_char*8     # vtable_pointer 虚函数表指针
     declaration : ctypes.c_void_p
     changed_flag: ctypes.c_uint32
     total_inputs: ctypes.c_short
@@ -117,41 +118,51 @@ class BNodeStack(StructBase):               # \source\blender\makesdna\DNA_node_
     _pad       : ctypes.c_char*4
 
 
-""" 三个地方不完全对应,c里都是8个字节"""
+""" 三个地方不完全对应,c里都是8个字节. # 😡代码能工作,是三次“漏掉的字节”被三次“对齐填充”奇迹般地一一对应地抵消的结果！"""
 """ typedef struct bNodeSocket {
   struct bNodeSocket *next, *prev;
   IDProperty *prop;
   char identifier[64];
   char name[64];
-  void *storage;
+  void *storage;      #👊🏿 152 + 8 = 160
   😡 ▼▼▼▼   in_out: c_short
-  short type;
-  short flag;
-  short limit;
-  short in_out;
+  + short type;
+  + short flag;
+  + short limit;
+  short in_out;       #👊🏿 160 + 2 = 162
   😡 ▲▲▲▲
-  bNodeSocketTypeHandle *typeinfo;
+  bNodeSocketTypeHandle *typeinfo;  #👊🏿 (162+6=168) + 8 = 170; 162不是8的倍数,插入6字节填充(正好补上漏的), 
   char idname[64];
   void *default_value;
   😡 ▼▼▼▼   _pad: c_char*4
-  short stack_index;
-  char display_shape;
-  char attribute_domain;
-  char _pad[4];
+  + short stack_index;
+  + char display_shape;
+  + char attribute_domain;
+  char _pad[4];                  #👊🏿 248 + 4 = 252
   😡 ▲▲▲▲
-  char label[64];
-  char short_label[64];
-  char description[64];
-  char *default_attribute_name;
+  char label[64];                #👊🏿 252 + 64 = 316; 252满足 char 的 1 字节对齐, 
+  char short_label[64];          #👊🏿 316 + 64 = 380
+  char description[64];          #👊🏿 380 + 64 = 444
+  char *default_attribute_name;  #👊🏿 (444+4=448) + 8 = 456; 444不是8的倍数,插入4字节填充;
   😡 ▼▼▼▼   to_index: c_int
-  int own_index DNA_DEPRECATED;
-  int to_index DNA_DEPRECATED;
+  + int own_index DNA_DEPRECATED;
+  int to_index DNA_DEPRECATED;   #👊🏿 456 + 4 = 460
   😡 ▲▲▲▲
-  struct bNodeLink *link;
+  struct bNodeLink *link;        #👊🏿 (460+4=464) + 8 = 472; 460不是8的倍数,插入4字节填充;
   bNodeStack ns DNA_DEPRECATED;
   bNodeSocketRuntimeHandle *runtime;
 } """
 # BNodeSocket 528字节, 但是输入/出接口列表里,接口起始地址偏移量部分是640
+
+# 👊🏿 一个数据类型的对齐要求 (alignof) 和它的大小 (sizeof) 是两个不同的概念. 对齐要求总是 2 的幂. 
+# 👊🏿 结构体的起始地址按其最大对齐要求对齐. 结构体的总长度被填充到其最大对齐要求的倍数. 
+# 👊🏿 char (1字节): 可以存放在任何地址. 
+# 👊🏿 short (2字节): 地址应该是 2 的倍数. 
+# 👊🏿 int, float (4字节): 地址应该是 4 的倍数. 
+# 👊🏿 long long, double, pointer (8字节): 地址应该是 8 的倍数. 
+# 👊🏿 普通成员的内存地址,应该是其对齐要求的整数倍.
+# 👊🏿 对于数组成员,对齐要求等于其单个元素的对齐要求
+# 👊🏿 对于结构体或类,对齐要求等于其所有成员中最大的那个对齐要求. 
 class BNodeSocket(StructBase):              # \source\blender\makesdna\DNA_node_types.h
     next                  : ctypes.c_void_p     # lambda: ctypes.POINTER(BNodeSocket)   ctypes.POINTER(BNodeSocket)在类里还没定义,但可以用lambda
     prev                  : ctypes.c_void_p     # lambda: ctypes.POINTER(BNodeSocket)
@@ -159,7 +170,7 @@ class BNodeSocket(StructBase):              # \source\blender\makesdna\DNA_node_
     identifier            : ctypes.c_char*64
     name                  : ctypes.c_char*64
     storage               : ctypes.c_void_p
-    in_out                : ctypes.c_short   *4   # 😡 虽然缺了点,但没事,会自动8字节对齐?
+    in_out                : ctypes.c_short   *4   # 😡 虽然缺了点,但没事,会自动8字节对齐? 不完全是
     typeinfo              : ctypes.c_void_p
     idname                : ctypes.c_char*64
     default_value         : ctypes.c_void_p
@@ -180,17 +191,18 @@ def sk_loc(sk: NodeSocket):
     """ 如果接口已启用且未隐藏, 则返回 Vec2(位置), 否则返回 None """
     # return Vec2(BNodeSocket.get_struct_instance_from_bpy_object(sk).runtime.contents.location[:]) if sk.enabled and (not sk.hide) else Vec2((0, 0))
     if sk.enabled and (not sk.hide):
-        print("----sk_loc:")
-        # print("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
-        
+        # print("="*50 + "sk_loc:")
+
         # print(f"    sk.as_pointer()        {hex(sk.as_pointer()):17} {sk.as_pointer()}")
-        b_sk = BNodeSocket.get_struct_instance_from_bpy_object(sk)
-        print(f"    id(b_sk)               {hex(id(b_sk)):17} {id(b_sk)}")
-        print(f"    id(b_sk.identifier)               {hex(id(b_sk.identifier)):17} {id(b_sk.identifier)}")
-        base_address = ctypes.addressof(b_sk)
-        print(f"    ctypes.addressof(b_sk) {hex(ctypes.addressof(b_sk)):17} {ctypes.addressof(b_sk)}")
-        print(f"    ctypes.addressof(b_sk.identifier) {hex(ctypes.addressof(b_sk.identifier)):17} {ctypes.addressof(b_sk.identifier)}")
-        
+        # b_sk = BNodeSocket.get_struct_instance_from_bpy_object(sk)
+        # base_address = ctypes.addressof(b_sk)
+        # print(f"    addressof(b_sk)           {hex(ctypes.addressof(b_sk)):17} {ctypes.addressof(b_sk)}")
+        # runtime_c = b_sk.runtime.contents
+        # print(f"    addressof(runtime_c)      {hex(ctypes.addressof(runtime_c)):17} {ctypes.addressof(runtime_c)}")
+        # print(b_sk.runtime)
+        # print(b_sk.runtime.contents)
+        # print(f"    addressof(runtime_c.location)      {hex(ctypes.addressof(runtime_c.location)):17} {ctypes.addressof(runtime_c.location)}")
+
         runtime_p: ctypes._Pointer[BNodeSocketRuntimeHandle] = BNodeSocket.get_struct_instance_from_bpy_object(sk).runtime
         # print(runtime_p)
         # print(runtime_p)
@@ -198,7 +210,6 @@ def sk_loc(sk: NodeSocket):
         # 解引用: 使用 contents 来获取指针"指向"的那个实际的 BNodeSocketRuntimeHandle 对象,[:]把ctypes数组转为Python列表(不转也行)
         return Vec2(runtime_p.contents.location[:])
     return None
-
 
 
 def print_struct_layout(struct_class: type[StructBase]):
@@ -209,16 +220,15 @@ def print_struct_layout(struct_class: type[StructBase]):
         # 通过 getattr 从类中获取字段描述符
         # field_name 是 str 不能直接.field_name  struct_class.field_name
         field_descriptor = getattr(struct_class, field_name)
-        
+
         offset = field_descriptor.offset
         size = field_descriptor.size
-        
+
         print(f"  - 字段: {field_name[0:15]:<25} | 偏移量: {offset:>4} | 大小: {size:>3} 字节")
-        
+
     total_size = ctypes.sizeof(struct_class)
     print("---------------------------------")
     print(f"结构体总大小: {total_size} 字节\n")
-
 
 
 if __name__ == "__main__":
@@ -242,6 +252,7 @@ if __name__ == "__main__":
     base_address = ctypes.addressof(b_sk)
     print(f"{base_address=}")
     # 😍 offset 是一个字段相对于其结构体起始位置的字节距离
+    next_offset       = BNodeSocket.aaa
     next_offset       = BNodeSocket.next.offset
     identifier_offset = BNodeSocket.identifier.offset
     identifier_offset = BNodeSocket.identifier.offset
