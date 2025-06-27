@@ -1,4 +1,4 @@
-bl_info = {'name': "Voronoi Linker", 
+bl_info2 = {'name': "Voronoi Linker", 
            'author': "ugorek",       # 同样感谢"Oxicid"为VL提供的关键帮助.
            'version': (5,1,2), 
            'blender': (4,0,2), 
@@ -7,68 +7,61 @@ bl_info = {'name': "Voronoi Linker",
            'description': "Various utilities for nodes connecting, based on distance field.", 'location':"Node Editor",  # 以前为了纪念这个插件的初衷, 这里写的是 'Node Editor > Alt + RMB'; 但现在 VL 已经"无处不在"了! 🚀
            'warning': "",  # 希望永远不要有需要在这里添加警告的那一天. 之前在Linux上无法使用的问题已经非常接近这个地步了. 😬
            'category': "Node",
-           'wiki_url': "https://github.com/ugorek000/VoronoiLinker/wiki", 
-           'tracker_url': "https://github.com/ugorek000/VoronoiLinker/issues"}
+           'wiki_url': "https://github.com/neliut/VoronoiLinker/wiki",  # bl_info 因为4.2吗? 相同的键会被 blender_manifest 覆盖,不同的删除
+           'tracker_url': "https://github.com/neliut/VoronoiLinker/issues"}
 
-from .VoronoiTool import VoronoiToolRoot, VoronoiToolPairSk
-from .VoronoiLinkerTool import VoronoiLinkerTool
-from .VoronoiMixerTool import VoronoiMixerTool
-from .VoronoiQuickMathTool import VoronoiQuickMathTool
-from .VoronoiHiderTool import VoronoiHiderTool
-from .VoronoiMassLinkerTool import VoronoiMassLinkerTool
-from .VoronoiEnumSelectorTool import VoronoiEnumSelectorTool, VestOpBox, VestPieBox, SNA_OT_Change_Node_Domain_And_Name
-from .VoronoiLinkRepeatingTool import VoronoiLinkRepeatingTool
-from .VoronoiPreviewTool import VoronoiPreviewTool
-from .VoronoiPreviewAnchorTool import VoronoiPreviewAnchorTool
-from .VoronoiRantoTool import VoronoiRantoTool
-from .VoronoiQuickDimensionsTool import VoronoiQuickDimensionsTool
-from .VoronoiInterfacerTool import VoronoiInterfacerTool
-from .VoronoiLinksTransferTool import VoronoiLinksTransferTool
-from .VoronoiWarperTool import VoronoiWarperTool
-from .VoronoiLazyNodeStencilsTool import VoronoiLazyNodeStencilsTool
-from .VoronoiResetNodeTool import VoronoiResetNodeTool
-from .VoronoiDummyTool import VoronoiDummyTool
-from .VoronoiQuickConstant import VoronoiQuickConstant
-from .VoronoiSwapperTool import VoronoiSwapperTool
-from .VqmtPieMath import VqmtOpMain, VqmtPieMath
-from .VmMixer import VmtOpMixer, VmtPieMixer
-from .VoronoiCallNodePie import VoronoiCallNodePie
-from .Rot_or_Mat_Converter import Rot_or_Mat_Converter, Pie_MT_Converter_To_Rotation, Pie_MT_Converter_Rotation_To, Pie_MT_Separate_Matrix, Pie_MT_Combine_Matrix
+from builtins import len as length       # 我超爱三个字母的变量名.没有像"len"这样的名字, 我会感到非常伤心和孤独... 😭 还有 'Vector.length' 也是.
+import bpy, rna_keymap_ui, bl_keymap_utils
+from bpy.types import UILayout
+from bpy.props import (BoolProperty, EnumProperty, FloatProperty, FloatVectorProperty, IntProperty, IntVectorProperty, StringProperty)
+from bpy.app.translations import pgettext_iface as TranslateIface
+from time import perf_counter_ns
+from pprint import pprint
 
+from .v_tool import *
 from .globals import *
-from .globals import dict_vlHhTranslations
-from .common_forward_func import GetFirstUpperLetters, GetUserKmNe, format_tool_set
-from .utils_translate import *
-from .utils_node import *
 from .utils_ui import *
+from .utils_node import *
 from .utils_color import *
-from .VoronoiTool import *
 from .utils_solder import *
-from .globals import *
-from .common_forward_class import *
-from .common_forward_func import *
 from .utils_drawing import *
-from .common_forward_func import Prefs
+from .utils_translate import *
+from .common_forward_func import *
+from .common_forward_class import *
+from .globals import dict_vlHhTranslations
+from .common_forward_func import GetFirstUpperLetters, GetUserKmNe, format_tool_set, Prefs
 from .common_forward_class import TryAndPass
 from .utils_solder import SolderClsToolNames, RegisterSolderings, UnregisterSolderings
 from .utils_translate import GetAnnotFromCls, VlTrMapForKey
 from .utils_drawing import TestDraw
 
-from builtins import len as length       # 我超爱三个字母的变量名.没有像"len"这样的名字, 我会感到非常伤心和孤独... 😭 还有 'Vector.length' 也是.
-import bpy, rna_keymap_ui, bl_keymap_utils
-from time import perf_counter_ns
-from pprint import pprint
-from bpy.types import UILayout
-from bpy.app.translations import pgettext_iface as TranslateIface
-
+from .v_tool import VoronoiToolRoot, VoronoiToolPairSk
+from .vm_Mixer import VmtOpMixer, VmtPieMixer
+from .vqmt_PieMath import VqmtOpMain, VqmtPieMath
+from .v_Dummy_tool import VoronoiDummyTool
+from .v_Hider_tool import VoronoiHiderTool
+from .v_Mixer_tool import VoronoiMixerTool
+from .v_Ranto_tool import VoronoiRantoTool
+from .v_CallNodePie import VoronoiCallNodePie
+from .v_Linker_tool import VoronoiLinkerTool
+from .v_Warper_tool import VoronoiWarperTool
+from .v_Preview_tool import VoronoiPreviewTool
+from .v_Swapper_tool import VoronoiSwapperTool
+from .v_QuickConstant import VoronoiQuickConstant
+from .v_QuickMath_tool import VoronoiQuickMathTool
+from .v_ResetNode_tool import VoronoiResetNodeTool
+from .v_MassLinker_tool import VoronoiMassLinkerTool
+from .v_Interfacer_tool import VoronoiInterfacerTool
+from .v_EnumSelector_tool import VoronoiEnumSelectorTool, VestOpBox, VestPieBox, SNA_OT_Change_Node_Domain_And_Name
+from .v_LinkRepeating_tool import VoronoiLinkRepeatingTool
+from .v_LinksTransfer_tool import VoronoiLinksTransferTool
+from .v_PreviewAnchor_tool import VoronoiPreviewAnchorTool
+from .v_QuickDimensions_tool import VoronoiQuickDimensionsTool
+from .v_LazyNodeStencils_tool import VoronoiLazyNodeStencilsTool
+from .rot_or_mat_convert import Rot_or_Mat_Convert, PIE_MT_Convert_To_Rotation, PIE_MT_Convert_Rotation_To, PIE_MT_Separate_Matrix, PIE_MT_Combine_Matrix
 
 dict_classes = {} # 所有需要注册的类都放在这里. 使用字典是为了 smart_add_to_reg_and_kmiDefs() 函数, 同时还能保持顺序.
 dict_vtClasses = {} # 只存放 V*T (Voronoi Tool) 工具.
-
-# todo0: 需要搞清楚插件标题, 插件名称, 文件名, 模块名 (可能还有包名) 之间的区别; 并且还要在已安装插件列表里查看一下.
-voronoiAddonName = __package__
-class VoronoiAddonPrefs(bpy.types.AddonPreferences):
-    bl_idname = __package__
 
 list_kmiDefs = []
 dict_setKmiCats = {'grt':set(), 'oth':set(), 'spc':set(), 'qqm':set(), 'cus':set()}
@@ -117,7 +110,7 @@ for dk in dict_vlHhTranslations:
 
 class TranslationHelper():
     def __init__(self, dict_trans={}, lang=''):
-        self.name = voronoiAddonName+"-"+lang
+        self.name = __package__+"-"+lang
         self.dict_translations = dict()
         for cyc, dict_data in enumerate(dict_trans.values()):
             for dk, dv in dict_data.items():
@@ -147,41 +140,35 @@ def UnregisterTranslations():
     for li in list_translationClasses:
         li.unregister()
 
-
-with VlTrMapForKey(bl_info['description']) as dm:
+with VlTrMapForKey(bl_info2['description']) as dm:
     dm["ru_RU"] = "Разнообразные помогалочки для соединения нодов, основанные на поле расстояний."
     dm["zh_CN"] = "基于距离场的多种节点连接辅助工具。"
 
-txtAddonVer = ".".join([str(v) for v in bl_info['version']])
-txt_addonVerDateCreated = f"Version {txtAddonVer} created {bl_info['created']}"
+txtAddonVer = ".".join([str(v) for v in bl_info2['version']])
+txt_addonVerDateCreated = f"Version {txtAddonVer} created {bl_info2['created']}"
 with VlTrMapForKey(txt_addonVerDateCreated) as dm:
-    dm["ru_RU"] = f"Версия {txtAddonVer} создана {bl_info['created']}"
-#    dm["zh_CN"] = f" {txtAddonVer}  {bl_info['created']}"
-txt_addonBlVerSupporting = f"For Blender versions: {bl_info['info_supported_blvers']}"
+    dm["ru_RU"] = f"Версия {txtAddonVer} создана {bl_info2['created']}"
+#    dm["zh_CN"] = f" {txtAddonVer}  {bl_info2['created']}"
+txt_addonBlVerSupporting = f"For Blender versions: {bl_info2['info_supported_blvers']}"
 with VlTrMapForKey(txt_addonBlVerSupporting) as dm:
-    dm["ru_RU"] = f"Для версий Блендера: {bl_info['info_supported_blvers']}"
-#    dm["zh_CN"] = f" {bl_info['info_supported_blvers']}"
-
+    dm["ru_RU"] = f"Для версий Блендера: {bl_info2['info_supported_blvers']}"
+#    dm["zh_CN"] = f" {bl_info2['info_supported_blvers']}"
 txt_onlyFontFormat = "Only .ttf or .otf format"
 with VlTrMapForKey(txt_onlyFontFormat) as dm:
     dm["ru_RU"] = "Только .ttf или .otf формат"
     dm["zh_CN"] = "只支持.ttf或.otf格式"
-
 txt_copySettAsPyScript = "Copy addon settings as .py script"
 with VlTrMapForKey(txt_copySettAsPyScript, tc='Op') as dm:
     dm["ru_RU"] = "Скопировать настройки аддона как '.py' скрипт"
     dm["zh_CN"] = "将插件设置复制为'.py'脚本,复制到粘贴板里"
-
-txt_сheckForUpdatesYourself = "Check for updates yourself"
-with VlTrMapForKey(txt_сheckForUpdatesYourself, tc='Op') as dm:
+txt_checkForUpdatesYourself = "Check for updates yourself"
+with VlTrMapForKey(txt_checkForUpdatesYourself, tc='Op') as dm:
     dm["ru_RU"] = "Проверяйте обновления самостоятельно"
 #    dm["zh_CN"] = ""
-
 txt_vmtNoMixingOptions = "No mixing options"
 with VlTrMapForKey(txt_vmtNoMixingOptions) as dm:
     dm["ru_RU"] = "Варианты смешивания отсутствуют"
     dm["zh_CN"] = "无混合选项"
-
 txt_vqmtThereIsNothing = "There is nothing"
 with VlTrMapForKey(txt_vqmtThereIsNothing) as dm:
     dm["ru_RU"] = "Ничего нет"
@@ -189,26 +176,28 @@ with VlTrMapForKey(txt_vqmtThereIsNothing) as dm:
 txt_FloatQuickMath = "Float Quick Math"
 with VlTrMapForKey(txt_FloatQuickMath) as dm:
     dm["zh_CN"] = "快速浮点运算"
-
 txt_VectorQuickMath = "Vector Quick Math"
 with VlTrMapForKey(txt_VectorQuickMath) as dm:
     dm["zh_CN"] = "快速矢量运算"
-
 txt_IntQuickMath = "Integer Quick Math"
 with VlTrMapForKey(txt_IntQuickMath) as dm:
     dm["zh_CN"] = "快速整数运算"
-
 txt_BooleanQuickMath = "Boolean Quick Math"
 with VlTrMapForKey(txt_BooleanQuickMath) as dm:
     dm["zh_CN"] = "快速布尔运算"
-
 txt_MatrixQuickMath = "Matrix Quick Math"
 with VlTrMapForKey(txt_MatrixQuickMath) as dm:
     dm["zh_CN"] = "快速矩阵运算"
-
 txt_ColorQuickMode = "Color Quick Mode"
 with VlTrMapForKey(txt_ColorQuickMode) as dm:
     dm["zh_CN"] = "快速颜色运算"
+
+with VlTrMapForKey("Switch  ") as dm:
+    dm["ru_RU"] = "Переключение"
+with VlTrMapForKey("Mix  ") as dm:
+    dm["ru_RU"] = "Смешивание"
+with VlTrMapForKey("Compare  ") as dm:
+    dm["ru_RU"] = "Сравнение"
 
 # 译者注: 以下词汇在您的语言中可能已经被Blender官方翻译了. 保留这些是为了支持没有内置这些翻译的旧版本.
 with VlTrMapForKey("Virtual") as dm:
@@ -262,91 +251,39 @@ def CollectTranslationDict(): # 为了方便翻译那些需要注册属性的文
         if (cls, 'zh_CN') in dict_toolLangSpecifDataPool:
             dict_toolLangSpecifDataPool[cls, 'zh_HANS'] = dict_toolLangSpecifDataPool[cls, 'zh_CN']
 
+dict_toolLangSpecifDataPool = {}
+
 smart_add_to_reg_and_kmiDefs(VoronoiLinkerTool, "##A_RIGHTMOUSE") # "##A_RIGHTMOUSE"?
-dict_setKmiCats['grt'].add(VoronoiLinkerTool.bl_idname)
-
-fitVltPiDescr = "High-level ignoring of \"annoying\" sockets during first search. (Currently, only the \"Alpha\" socket of the image nodes)"
-class VoronoiAddonPrefs(VoronoiAddonPrefs):
-    vltRepickKey:            bpy.props.StringProperty(name="Repick Key", default='LEFT_ALT')
-    vltReroutesCanInAnyType: bpy.props.BoolProperty(name="Reroutes can be connected to any type", default=True)
-    vltDeselectAllNodes:     bpy.props.BoolProperty(name="Deselect all nodes on activate",        default=False)
-    vltPriorityIgnoring:     bpy.props.BoolProperty(name="Priority ignoring",                     default=False, description=fitVltPiDescr)
-    vltSelectingInvolved:    bpy.props.BoolProperty(name="Selecting involved nodes",              default=False)
-
 with VlTrMapForKey(VoronoiLinkerTool.bl_label) as dm:
     dm["zh_CN"] = "Voronoi快速连接"
 with VlTrMapForKey(format_tool_set(VoronoiLinkerTool)) as dm:
     dm["ru_RU"] = f"Настройки инструмента {VoronoiLinkerTool.bl_label}:"
     dm["zh_CN"] = f"{VoronoiLinkerTool.bl_label}快速连接设置:"
-
-
-dict_toolLangSpecifDataPool = {}
-
 dict_toolLangSpecifDataPool[VoronoiLinkerTool, "ru_RU"] = "Священный инструмент. Ради этого был создан весь аддон.\nМинута молчания в честь NodeWrangler'a-прародителя-первоисточника."
 
-
 smart_add_to_reg_and_kmiDefs(VoronoiPreviewTool, "SC#_LEFTMOUSE")
-dict_setKmiCats['grt'].add(VoronoiPreviewTool.bl_idname)
-
-class VoronoiAddonPrefs(VoronoiAddonPrefs):
-    vptAllowClassicGeoViewer:        bpy.props.BoolProperty(name="Allow classic GeoNodes Viewer",   default=True,  description="Allow use of classic GeoNodes Viewer by clicking on node")
-    vptAllowClassicCompositorViewer: bpy.props.BoolProperty(name="Allow classic Compositor Viewer", default=False, description="Allow use of classic Compositor Viewer by clicking on node")
-    vptIsLivePreview:                bpy.props.BoolProperty(name="Live Preview",                    default=True,  description="Real-time preview")
-    vptRvEeIsColorOnionNodes:        bpy.props.BoolProperty(name="Node onion colors",               default=False, description="Coloring topologically connected nodes")
-    vptRvEeSksHighlighting:          bpy.props.BoolProperty(name="Topology connected highlighting", default=False, description="Display names of sockets whose links are connected to a node")
-    vptRvEeIsSavePreviewResults:     bpy.props.BoolProperty(name="Save preview results",            default=False, description="Create a preview through an additional node, convenient for copying")
-    vptOnionColorIn:  bpy.props.FloatVectorProperty(name="Onion color entrance", default=(0.55,  0.188, 0.188), min=0, max=1, size=3, subtype='COLOR')
-    vptOnionColorOut: bpy.props.FloatVectorProperty(name="Onion color exit",     default=(0.188, 0.188, 0.5),   min=0, max=1, size=3, subtype='COLOR')
-    vptHlTextScale:   bpy.props.FloatProperty(name="Text scale", default=1.0, min=0.5, max=5.0)
-
 with VlTrMapForKey(VoronoiPreviewTool.bl_label) as dm:
     dm["zh_CN"] = "Voronoi快速预览"
 with VlTrMapForKey(format_tool_set(VoronoiPreviewTool)) as dm:
     dm["ru_RU"] = f"Настройки инструмента {VoronoiPreviewTool.bl_label}:"
     dm["zh_CN"] = f"{VoronoiPreviewTool.bl_label}快速预览设置:"
-
 dict_toolLangSpecifDataPool[VoronoiPreviewTool, "ru_RU"] = "Канонический инструмент для мгновенного перенаправления явного вывода дерева.\nЕщё более полезен при использовании совместно с VPAT."
-
 
 smart_add_to_reg_and_kmiDefs(VoronoiPreviewAnchorTool, "SC#_RIGHTMOUSE")
 smart_add_to_reg_and_kmiDefs(VoronoiPreviewAnchorTool, "SC#_1", {'anchorType':1})
 smart_add_to_reg_and_kmiDefs(VoronoiPreviewAnchorTool, "SC#_2", {'anchorType':2})
 smart_add_to_reg_and_kmiDefs(VoronoiPreviewAnchorTool, "SC#_ACCENT_GRAVE", {'isDeleteNonCanonAnchors':2})
-dict_setKmiCats['oth'].add(VoronoiPreviewAnchorTool.bl_idname) # spc?
-
 with VlTrMapForKey(VoronoiPreviewAnchorTool.bl_label) as dm:
     dm["zh_CN"] = "Voronoi新建预览转接点"
-
 dict_toolLangSpecifDataPool[VoronoiPreviewAnchorTool, "ru_RU"] = "Вынужденное отделение от VPT, своеобразный \"менеджер-компаньон\" для VPT.\nЯвное указание сокета и создание рероут-якорей."
 
-
 smart_add_to_reg_and_kmiDefs(VoronoiMixerTool, "S#A_LEFTMOUSE") # 混合器移到了左键, 为 VQMT 减轻负担.
-dict_setKmiCats['grt'].add(VoronoiMixerTool.bl_idname)
-
-class VoronoiAddonPrefs(VoronoiAddonPrefs):
-    vmtReroutesCanInAnyType:  bpy.props.BoolProperty(name="Reroutes can be mixed to any type", default=True)
-    ##
-    vmtPieType:               bpy.props.EnumProperty( name="Pie Type", default='CONTROL', items=( ('CONTROL',"Control",""), ('SPEED',"Speed","") ))
-    vmtPieScale:              bpy.props.FloatProperty(name="Pie scale",                default=1.3, min=1.0, max=2.0, subtype="FACTOR")
-    vmtPieAlignment:          bpy.props.IntProperty(  name="Alignment between items",  default=1,   min=0,   max=2, description="0 – Flat.\n1 – Rounded docked.\n2 – Gap")
-    vmtPieSocketDisplayType:  bpy.props.IntProperty(  name="Display socket type info", default=1,   min=-1,  max=1, description="0 – Disable.\n1 – From above.\n-1 – From below (VMT)")
-    vmtPieDisplaySocketColor: bpy.props.IntProperty(  name="Display socket color",     default=-1,  min=-4,  max=4, description="The sign is side of a color. The magnitude is width of a color")
-
 with VlTrMapForKey(VoronoiMixerTool.bl_label) as dm:
     dm["zh_CN"] = "Voronoi快速混合"
 with VlTrMapForKey(format_tool_set(VoronoiMixerTool)) as dm:
     dm["ru_RU"] = f"Настройки инструмента {VoronoiMixerTool.bl_label}:"
     dm["zh_CN"] = f"{VoronoiMixerTool.bl_label}快速混合设置:"
-
 dict_toolLangSpecifDataPool[VoronoiMixerTool, "ru_RU"] = "Канонический инструмент для частых нужд смешивания.\nСкорее всего 70% уйдёт на использование \"Instance on Points\"."
-
-with VlTrMapForKey("Switch  ") as dm:
-    dm["ru_RU"] = "Переключение"
-with VlTrMapForKey("Mix  ") as dm:
-    dm["ru_RU"] = "Смешивание"
-with VlTrMapForKey("Compare  ") as dm:
-    dm["ru_RU"] = "Сравнение"
-
 
 smart_add_to_reg_and_kmiDefs(VoronoiQuickMathTool, "S#A_RIGHTMOUSE") # 留在了右键, 以免在'Speed Pie'类型的饼菜单下三击左键时抓狂.
 smart_add_to_reg_and_kmiDefs(VoronoiQuickMathTool, "##A_ACCENT_GRAVE", {'isRepeatLastOperation':True})
@@ -362,28 +299,11 @@ smart_add_to_reg_and_kmiDefs(VoronoiQuickMathTool, "S#A_2", {'justPieCall':2}) #
 smart_add_to_reg_and_kmiDefs(VoronoiQuickMathTool, "S#A_3", {'justPieCall':3}) # 所以必须通过光标位置来选择, 而不是点击.
 smart_add_to_reg_and_kmiDefs(VoronoiQuickMathTool, "S#A_4", {'justPieCall':4}) # 我原以为会不方便, 结果感觉还不错.
 smart_add_to_reg_and_kmiDefs(VoronoiQuickMathTool, "S#A_5", {'justPieCall':5}) # 整数饼菜单
-dict_setKmiCats['grt'].add(VoronoiQuickMathTool.bl_idname)
-
-class VoronoiAddonPrefs(VoronoiAddonPrefs):
-    vqmtDisplayIcons:          bpy.props.BoolProperty(name="Display icons",           default=True)
-    vqmtIncludeThirdSk:        bpy.props.BoolProperty(name="Include third socket",    default=True)
-    vqmtIncludeQuickPresets:   bpy.props.BoolProperty(name="Include quick presets",   default=False)
-    vqmtIncludeExistingValues: bpy.props.BoolProperty(name="Include existing values", default=False)
-    vqmtRepickKey: bpy.props.StringProperty(name="Repick Key", default='LEFT_ALT')
-    ##
-    vqmtPieType:               bpy.props.EnumProperty( name="Pie Type", default='CONTROL', items=( ('CONTROL',"Control",""), ('SPEED',"Speed","") ))
-    vqmtPieScale:              bpy.props.FloatProperty(name="Pie scale",                default=1.3,  min=1.0, max=2.0, subtype="FACTOR")
-    vqmtPieScaleExtra:         bpy.props.FloatProperty(name="Pie scale extra",          default=1.25, min=1.0, max=2.0, subtype="FACTOR")
-    vqmtPieAlignment:          bpy.props.IntProperty(  name="Alignment between items",  default=1,    min=0,   max=2, description="0 – Flat.\n1 – Rounded docked.\n2 – Gap")
-    vqmtPieSocketDisplayType:  bpy.props.IntProperty(  name="Display socket type info", default=1,    min=-1,  max=1, description="0 – Disable.\n1 – From above.\n-1 – From below (VMT)")
-    vqmtPieDisplaySocketColor: bpy.props.IntProperty(  name="Display socket color",     default=-1,   min=-4,  max=4, description="The sign is side of a color. The magnitude is width of a color")
-
 with VlTrMapForKey(VoronoiQuickMathTool.bl_label) as dm:
     dm["zh_CN"] = "Voronoi快速数学运算"
 with VlTrMapForKey(format_tool_set(VoronoiQuickMathTool)) as dm:
     dm["ru_RU"] = f"Настройки инструмента {VoronoiQuickMathTool.bl_label}:"
     dm["zh_CN"] = f"{VoronoiQuickMathTool.bl_label}快速数学运算设置:"
-
 dict_toolLangSpecifDataPool[VoronoiQuickMathTool, "ru_RU"] = """Полноценное ответвление от VMT. Быстрая и быстрая быстрая математика на спидах.
 Имеет дополнительный мини-функционал. Также см. \"Quick quick math\" в раскладе."""
 
@@ -391,27 +311,16 @@ smart_add_to_reg_and_kmiDefs(VoronoiRantoTool, "###_R")
 smart_add_to_reg_and_kmiDefs(VoronoiRantoTool, "S##_R", {'isAccumulate':True})
 smart_add_to_reg_and_kmiDefs(VoronoiRantoTool, "#C#_R", {'isOnlySelected':2})
 smart_add_to_reg_and_kmiDefs(VoronoiRantoTool, "#CA_R", {'isUniWid':True, 'isUncollapseNodes':True, 'isDeleteReroutes':True})
-dict_setKmiCats['spc'].add(VoronoiRantoTool.bl_idname)
-
-class VoronoiAddonPrefs(VoronoiAddonPrefs):
-    vrtIsLiveRanto:  bpy.props.BoolProperty(name="Live Ranto", default=True)
-    vrtIsFixIslands: bpy.props.BoolProperty(name="Fix islands", default=True)
-
 with VlTrMapForKey(VoronoiRantoTool.bl_label) as dm:
     dm["zh_CN"] = "Voronoi节点自动排布对齐"
 with VlTrMapForKey(format_tool_set(VoronoiRantoTool)) as dm:
     dm["ru_RU"] = f"Настройки инструмента {VoronoiRantoTool.bl_label}:"
     dm["zh_CN"] = f"{VoronoiRantoTool.bl_label}节点自动排布对齐工具设置:"
-
 dict_toolLangSpecifDataPool[VoronoiRantoTool, "ru_RU"] = "Сейчас этот инструмент не более чем пустышка.\nСтанет доступным, когда VL стяжет свои заслуженные(?) лавры популярности."
-
-
 
 smart_add_to_reg_and_kmiDefs(VoronoiSwapperTool, "S##_S", {'toolMode':'SWAP'})
 smart_add_to_reg_and_kmiDefs(VoronoiSwapperTool, "##A_S", {'toolMode':'ADD'})
 smart_add_to_reg_and_kmiDefs(VoronoiSwapperTool, "S#A_S", {'toolMode':'TRAN'})
-dict_setKmiCats['oth'].add(VoronoiSwapperTool.bl_idname)
-
 with VlTrMapForKey(VoronoiSwapperTool.bl_label) as dm:
     dm["zh_CN"] = "Voronoi快速替换接口"
 
@@ -419,49 +328,27 @@ dict_toolLangSpecifDataPool[VoronoiSwapperTool, "ru_RU"] = """Инструмен
 Для линка обмена не будет, если в итоге он окажется исходящим из своего же нода."""
 dict_toolLangSpecifDataPool[VoronoiSwapperTool, "zh_CN"] = "Alt是批量替换输出接口,Shift是互换接口"
 
+smart_add_to_reg_and_kmiDefs(VoronoiCallNodePie, "#C#_LEFTMOUSE")
 
 smart_add_to_reg_and_kmiDefs(VoronoiHiderTool, "S##_E", {'toolMode':'SOCKET'})
 smart_add_to_reg_and_kmiDefs(VoronoiHiderTool, "#CA_E", {'toolMode':'SOCKETVAL'})
 smart_add_to_reg_and_kmiDefs(VoronoiHiderTool, "SC#_E", {'toolMode':'NODE'})
-dict_setKmiCats['oth'].add(VoronoiHiderTool.bl_idname)
-
-
-smart_add_to_reg_and_kmiDefs(VoronoiCallNodePie, "#C#_LEFTMOUSE")
-dict_setKmiCats['oth'].add(VoronoiCallNodePie.bl_idname)
-
-
-list_itemsProcBoolSocket = [('ALWAYS',"Always","Always"), ('IF_FALSE',"If false","If false"), ('NEVER',"Never","Never"), ('IF_TRUE',"If true","If true")]
-
-class VoronoiAddonPrefs(VoronoiAddonPrefs):
-    vhtHideBoolSocket:       bpy.props.EnumProperty(name="Hide boolean sockets",             default='IF_FALSE', items=list_itemsProcBoolSocket)
-    vhtHideHiddenBoolSocket: bpy.props.EnumProperty(name="Hide hidden boolean sockets",      default='ALWAYS',   items=list_itemsProcBoolSocket)
-    vhtNeverHideGeometry:    bpy.props.EnumProperty(name="Never hide geometry input socket", default='FALSE',    items=( ('FALSE',"False",""), ('ONLY_FIRST',"Only first",""), ('TRUE',"True","") ))
-    vhtIsUnhideVirtual:      bpy.props.BoolProperty(name="Unhide virtual sockets",           default=True)
-    vhtIsToggleNodesOnDrag:  bpy.props.BoolProperty(name="Toggle nodes on drag",             default=True)
-
 with VlTrMapForKey(VoronoiHiderTool.bl_label) as dm:
     dm["zh_CN"] = "Voronoi快速隐藏"
 with VlTrMapForKey(format_tool_set(VoronoiHiderTool)) as dm:
     dm["ru_RU"] = f"Настройки инструмента {VoronoiHiderTool.bl_label}:"
     dm["zh_CN"] = f"{VoronoiHiderTool.bl_label}快速隐藏接口设置:"
-
 dict_toolLangSpecifDataPool[VoronoiHiderTool, "ru_RU"] = "Инструмент для наведения порядка и эстетики в дереве.\nСкорее всего 90% уйдёт на использование автоматического сокрытия нодов."
 dict_toolLangSpecifDataPool[VoronoiHiderTool, "zh_CN"] = "Shift是自动隐藏数值为0/颜色纯黑/未连接的接口,Ctrl是单个隐藏接口"
 
 
 smart_add_to_reg_and_kmiDefs(VoronoiMassLinkerTool, "SCA_LEFTMOUSE")
 smart_add_to_reg_and_kmiDefs(VoronoiMassLinkerTool, "SCA_RIGHTMOUSE", {'isIgnoreExistingLinks':True})
-dict_setKmiCats['oth'].add(VoronoiMassLinkerTool.bl_idname)
-
-class VoronoiAddonPrefs(VoronoiAddonPrefs):
-    vmltIgnoreCase: bpy.props.BoolProperty(name="Ignore case", default=True)
-
 with VlTrMapForKey(VoronoiMassLinkerTool.bl_label) as dm:
     dm["zh_CN"] = "Voronoi根据接口名批量快速连接"
 with VlTrMapForKey(format_tool_set(VoronoiMassLinkerTool)) as dm:
     dm["ru_RU"] = f"Настройки инструмента {VoronoiMassLinkerTool.bl_label}:"
     dm["zh_CN"] = f"{VoronoiMassLinkerTool.bl_label}根据接口名批量连接设置:"
-
 dict_toolLangSpecifDataPool[VoronoiMassLinkerTool, "ru_RU"] = """"Малыш котопёс", не ноды, не сокеты. Создан ради редких точечных спец-ускорений.
 VLT на максималках. В связи со своим принципом работы, по своему божественен."""
 
@@ -469,49 +356,31 @@ VLT на максималках. В связи со своим принципо�
 smart_add_to_reg_and_kmiDefs(VoronoiEnumSelectorTool, "#C#_R", {'isPieChoice':True, 'isSelectNode':3})
 smart_add_to_reg_and_kmiDefs(VoronoiEnumSelectorTool, "#C#_E", {'isInstantActivation':False})
 smart_add_to_reg_and_kmiDefs(VoronoiEnumSelectorTool, "##A_E", {'isToggleOptions':True})
-dict_setKmiCats['oth'].add(VoronoiEnumSelectorTool.bl_idname)
-
-class VoronoiAddonPrefs(VoronoiAddonPrefs):
-    vestIsToggleNodesOnDrag: bpy.props.BoolProperty(name="Toggle nodes on drag", default=True)
-    ##
-    vestBoxScale:            bpy.props.FloatProperty(name="Box scale",           default=1.3, min=1.0, max=2.0, subtype="FACTOR")
-    vestDisplayLabels:       bpy.props.BoolProperty(name="Display enum names",   default=True)
-    vestDarkStyle:           bpy.props.BoolProperty(name="Dark style",           default=False)
-
 with VlTrMapForKey(VoronoiEnumSelectorTool.bl_label) as dm:
     dm["zh_CN"] = "Voronoi快速切换节点内部下拉列表"
 with VlTrMapForKey(format_tool_set(VoronoiEnumSelectorTool)) as dm:
     dm["ru_RU"] = f"Настройки инструмента {VoronoiEnumSelectorTool.bl_label}:"
     dm["zh_CN"] = f"{VoronoiEnumSelectorTool.bl_label}快速显示节点里下拉列表设置:"
-
 dict_toolLangSpecifDataPool[VoronoiEnumSelectorTool, "ru_RU"] = """Инструмент для удобно-ленивого переключения свойств перечисления.
 Избавляет от прицеливания мышкой, клика, а потом ещё одного прицеливания и клика."""
 
 # 参见: VlrtData, VlrtRememberLastSockets() 和 NewLinkHhAndRemember().
 smart_add_to_reg_and_kmiDefs(VoronoiLinkRepeatingTool, "###_V", {'toolMode':'SOCKET'})
 smart_add_to_reg_and_kmiDefs(VoronoiLinkRepeatingTool, "S##_V", {'toolMode':'NODE'})
-dict_setKmiCats['oth'].add(VoronoiLinkRepeatingTool.bl_idname)
-
 with VlTrMapForKey(VoronoiLinkRepeatingTool.bl_label) as dm:
     dm["zh_CN"] = "Voronoi重复连接到上次用快速连接到的输出端" # dm["zh_CN"] = "Voronoi快速恢复连接"
-
 dict_toolLangSpecifDataPool[VoronoiLinkRepeatingTool, "ru_RU"] = """Полноценное ответвление от VLT, повторяет любой предыдущий линк от большинства
 других инструментов. Обеспечивает удобство соединения "один ко многим"."""
 
-smart_add_to_reg_and_kmiDefs(VoronoiQuickDimensionsTool, "##A_D")
-dict_setKmiCats['spc'].add(VoronoiQuickDimensionsTool.bl_idname)
 
+smart_add_to_reg_and_kmiDefs(VoronoiQuickDimensionsTool, "##A_D")
 with VlTrMapForKey(VoronoiQuickDimensionsTool.bl_label) as dm:
     dm["zh_CN"] = "Voronoi快速分离/合并 矢量/颜色"
-
 dict_toolLangSpecifDataPool[VoronoiQuickDimensionsTool, "ru_RU"] = "Инструмент для ускорения нужд разделения и объединения векторов (и цвета).\nА ещё может разделить геометрию на составляющие."
 
 smart_add_to_reg_and_kmiDefs(VoronoiQuickConstant, "##A_C")
-dict_setKmiCats['spc'].add(VoronoiQuickConstant.bl_idname)
-
 with VlTrMapForKey(VoronoiQuickConstant.bl_label) as dm:
     dm["zh_CN"] = "Voronoi快速常量"
-
 dict_toolLangSpecifDataPool[VoronoiQuickConstant, "ru_RU"] = "Инструмент для ускорения нужд разделения и объединения векторов (и цвета).\nА ещё может разделить геометрию на составляющие."
 
 smart_add_to_reg_and_kmiDefs(VoronoiInterfacerTool, "SC#_A", {'toolMode':'NEW'})
@@ -522,72 +391,64 @@ smart_add_to_reg_and_kmiDefs(VoronoiInterfacerTool, "S#A_X", {'toolMode':'SWAP'}
 smart_add_to_reg_and_kmiDefs(VoronoiInterfacerTool, "S#A_Z", {'toolMode':'FLIP'})
 # smart_add_to_reg_and_kmiDefs(VoronoiInterfacerTool, "S#A_Q", {'toolMode':'DELETE'})
 smart_add_to_reg_and_kmiDefs(VoronoiInterfacerTool, "S#A_E", {'toolMode':'SOC_TY'})
-dict_setKmiCats['spc'].add(VoronoiInterfacerTool.bl_idname)
-
-class VoronoiAddonPrefs(VoronoiAddonPrefs):
-    vitPasteToAnySocket: bpy.props.BoolProperty(name="Allow paste to any socket", default=False)
-
 with VlTrMapForKey(VoronoiInterfacerTool.bl_label) as dm:
     dm["zh_CN"] = "Voronoi在节点组里快速复制粘贴接口名给节点组输入输出端"
-
 dict_toolLangSpecifDataPool[VoronoiInterfacerTool, "ru_RU"] = """Инструмент на уровне "The Great Trio". Ответвление от VLT ради удобного ускорения
 процесса создания и спец-манипуляций с интерфейсами. "Менеджер интерфейсов"."""
 
 smart_add_to_reg_and_kmiDefs(VoronoiLinksTransferTool, "SC#_T")
 smart_add_to_reg_and_kmiDefs(VoronoiLinksTransferTool, "S##_T", {'isByIndexes':True})
-dict_setKmiCats['spc'].add(VoronoiLinksTransferTool.bl_idname)
-
 with VlTrMapForKey(VoronoiLinksTransferTool.bl_label) as dm:
     dm["zh_CN"] = "Voronoi链接按输入端类型切换到别的接口"
-
 dict_toolLangSpecifDataPool[VoronoiLinksTransferTool, "ru_RU"] = "Инструмент для редких нужд переноса всех линков с одного нода на другой.\nВ будущем скорее всего будет слито с VST."
 
 smart_add_to_reg_and_kmiDefs(VoronoiWarperTool, "##A_W")
 smart_add_to_reg_and_kmiDefs(VoronoiWarperTool, "S#A_W", {'isZoomedTo':False})
-dict_setKmiCats['spc'].add(VoronoiWarperTool.bl_idname)
-
-class VoronoiAddonPrefs(VoronoiAddonPrefs):
-    vwtSelectTargetKey: bpy.props.StringProperty(name="Select target Key", default='LEFT_ALT')
-
 with VlTrMapForKey(VoronoiWarperTool.bl_label) as dm:
     dm["zh_CN"] = "Voronoi快速聚焦某条连接"
-
 dict_toolLangSpecifDataPool[VoronoiWarperTool, "ru_RU"] = "Мини-ответвление реверс-инженеринга топологии, (как у VPT).\nИнструмент для \"точечных прыжков\" по сокетам."
 
 smart_add_to_reg_and_kmiDefs(VoronoiLazyNodeStencilsTool, "##A_Q")
-dict_setKmiCats['spc'].add(VoronoiLazyNodeStencilsTool.bl_idname)
-
-class VoronoiAddonPrefs(VoronoiAddonPrefs):
-    vlnstNonColorName:  bpy.props.StringProperty(name="Non-Color name",  default="Non-Color")
-
 with VlTrMapForKey(VoronoiLazyNodeStencilsTool.bl_label) as dm:
     dm["zh_CN"] = "Voronoi在输入端快速节点"
 with VlTrMapForKey(format_tool_set(VoronoiLazyNodeStencilsTool)) as dm:
     dm["ru_RU"] = f"Настройки инструмента {VoronoiLazyNodeStencilsTool.bl_label}:"
     dm["zh_CN"] = f"{VoronoiLazyNodeStencilsTool.bl_label}快速添加纹理设置:"
-
 dict_toolLangSpecifDataPool[VoronoiLazyNodeStencilsTool, "ru_RU"] = """Мощь. Три буквы на инструмент, дожили... Инкапсулирует Ctrl-T от
 NodeWrangler'а, и никогда не реализованный 'VoronoiLazyNodeContinuationTool'. """ #"Больше лени богу лени!"
 dict_toolLangSpecifDataPool[VoronoiLazyNodeStencilsTool, "zh_CN"] = "代替NodeWrangler的ctrl+t"
 
-class VoronoiAddonPrefs(VoronoiAddonPrefs):
-    vlnstLastExecError: bpy.props.StringProperty(name="Last exec error", default="", update=VlnstUpdateLastExecError)
-
 smart_add_to_reg_and_kmiDefs(VoronoiResetNodeTool, "###_BACK_SPACE")
 smart_add_to_reg_and_kmiDefs(VoronoiResetNodeTool, "S##_BACK_SPACE", {'isResetEnums':True})
-dict_setKmiCats['spc'].add(VoronoiResetNodeTool.bl_idname)
-
 with VlTrMapForKey(VoronoiResetNodeTool.bl_label) as dm:
     dm["zh_CN"] = "Voronoi快速恢复节点默认参数"
-
 dict_toolLangSpecifDataPool[VoronoiResetNodeTool, "ru_RU"] = """Инструмент для сброса нодов без нужды прицеливания, с удобствами ведения мышкой
 и игнорированием свойств перечислений. Был создан, потому что в NW было похожее."""
 
 #smart_add_to_reg_and_kmiDefs(VoronoiDummyTool, "###_D", {'isDummy':True})
-dict_setKmiCats['grt'].add(VoronoiDummyTool.bl_idname)
 
-class VoronoiAddonPrefs(VoronoiAddonPrefs):
-    vdtDummy: bpy.props.StringProperty(name="Dummy", default="Dummy")
+dict_setKmiCats['grt'].add(VoronoiDummyTool.bl_idname)
+dict_setKmiCats['grt'].add(VoronoiLinkerTool.bl_idname)
+dict_setKmiCats['grt'].add(VoronoiMixerTool.bl_idname)
+dict_setKmiCats['grt'].add(VoronoiPreviewTool.bl_idname)
+dict_setKmiCats['grt'].add(VoronoiQuickMathTool.bl_idname)
+
+dict_setKmiCats['oth'].add(VoronoiCallNodePie.bl_idname)
+dict_setKmiCats['oth'].add(VoronoiHiderTool.bl_idname)
+dict_setKmiCats['oth'].add(VoronoiEnumSelectorTool.bl_idname)
+dict_setKmiCats['oth'].add(VoronoiQuickConstant.bl_idname)
+dict_setKmiCats['oth'].add(VoronoiQuickDimensionsTool.bl_idname)
+dict_setKmiCats['oth'].add(VoronoiMassLinkerTool.bl_idname)         # 批量连线
+
+dict_setKmiCats['spc'].add(VoronoiLazyNodeStencilsTool.bl_idname)
+dict_setKmiCats['spc'].add(VoronoiPreviewAnchorTool.bl_idname)
+dict_setKmiCats['spc'].add(VoronoiSwapperTool.bl_idname)
+dict_setKmiCats['spc'].add(VoronoiInterfacerTool.bl_idname)
+dict_setKmiCats['spc'].add(VoronoiLinkRepeatingTool.bl_idname)
+dict_setKmiCats['spc'].add(VoronoiLinksTransferTool.bl_idname)
+dict_setKmiCats['spc'].add(VoronoiRantoTool.bl_idname)
+dict_setKmiCats['spc'].add(VoronoiResetNodeTool.bl_idname)
+dict_setKmiCats['spc'].add(VoronoiWarperTool.bl_idname)
 
 with VlTrMapForKey(VoronoiDummyTool.bl_label) as dm:
     dm["ru_RU"] = "Voronoi Болванка"
@@ -690,7 +551,7 @@ def GetVaSettAsPy(prefs):
     # 构建已更改的插件设置:
     txt_vasp += "\n"
     txt_vasp += "#Addon prefs:\n"
-    txt_vasp += f"prefs = bpy.context.preferences.addons['{voronoiAddonName}'].preferences"+"\n\n"
+    txt_vasp += f"prefs = bpy.context.preferences.addons['{__package__}'].preferences"+"\n\n"
     txt_vasp += "def SetProp(att, val):"+"\n"
     txt_vasp += "    if hasattr(prefs, att):"+"\n"
     txt_vasp += "        setattr(prefs, att, val)"+"\n\n"
@@ -727,31 +588,31 @@ def GetVaSettAsPy(prefs):
     # 不得不等待那个英雄来修复这一切.
     return txt_vasp
 
-SolderClsToolNames(dict_vtClasses)
-
-for cls in dict_vtClasses:
-    exec(f"class VoronoiAddonPrefs(VoronoiAddonPrefs): {cls.disclBoxPropName}: bpy.props.BoolProperty(name=\"\", default=False)")
-    exec(f"class VoronoiAddonPrefs(VoronoiAddonPrefs): {cls.disclBoxPropNameInfo}: bpy.props.BoolProperty(name=\"\", default=False)")
-
 list_langDebEnumItems = []
-for li in ["Free", "Special", "AddonPrefs"]+[cls.bl_label for cls in dict_vtClasses]:
+for li in ["Free", "Special", "AddonPrefs"] + [cls.bl_label for cls in dict_vtClasses]:
     list_langDebEnumItems.append( (li.upper(), GetFirstUpperLetters(li), "") )
+
+fitVltPiDescr = "High-level ignoring of \"annoying\" sockets during first search. (Currently, only the \"Alpha\" socket of the image nodes)"
+list_itemsProcBoolSocket = [('ALWAYS',"Always","Always"), ('IF_FALSE',"If false","If false"), ('NEVER',"Never","Never"), ('IF_TRUE',"If true","If true")]
 
 def VaUpdateTestDraw(self, context):
     TestDraw.Toggle(context, self.dsIsTestDrawing)
 
-class VoronoiAddonPrefs(VoronoiAddonPrefs):
-    vaLangDebDiscl: bpy.props.BoolProperty(name="Language bruteforce debug", default=False)
-    vaLangDebEnum: bpy.props.EnumProperty(name="LangDebEnum", default='FREE', items=list_langDebEnumItems)
-    dsIsFieldDebug: bpy.props.BoolProperty(name="Field debug", default=False)
-    dsIsTestDrawing: bpy.props.BoolProperty(name="Testing draw", default=False, update=VaUpdateTestDraw)
-    dsIncludeDev: bpy.props.BoolProperty(name="IncludeDev", default=False)
+vaUpdateSelfTgl = False
+def VaUpdateDecorColSk(self, _context):
+    global vaUpdateSelfTgl
+    if vaUpdateSelfTgl:
+        return
+    vaUpdateSelfTgl = True
+    self.vaDecorColSk = self.vaDecorColSkBack
+    vaUpdateSelfTgl = False
+fitTabItems = ( ('SETTINGS',"Settings",""), ('APPEARANCE',"Appearance",""), ('DRAW',"Draw",""), ('KEYMAP',"Keymap",""), ('INFO',"Info","") )#, ('DEV',"Dev","")
 
 class VoronoiOpAddonTabs(bpy.types.Operator):
     bl_idname = 'node.voronoi_addon_tabs'
     bl_label = "VL Addon Tabs"
     bl_description = "VL's addon tab" # todo1v6: 想办法为每个标签页翻译不同的内容.
-    opt: bpy.props.StringProperty()
+    opt  : StringProperty()
     def invoke(self, context, event):
         #if not self.opt: return {'CANCELLED'}
         prefs = Prefs()
@@ -764,94 +625,137 @@ class VoronoiOpAddonTabs(bpy.types.Operator):
                 prefs.vaUiTabs = self.opt
         return {'FINISHED'}
 
-class KmiCat():
-    def __init__(self, propName='', set_kmis=set(), set_idn=set()):
-        self.propName = propName
-        self.set_kmis = set_kmis
-        self.set_idn = set_idn
-        self.sco = 0
-
-class KmiCats:
-    pass
-
-vaUpdateSelfTgl = False
-def VaUpdateDecorColSk(self, _context):
-    global vaUpdateSelfTgl
-    if vaUpdateSelfTgl:
-        return
-    vaUpdateSelfTgl = True
-    self.vaDecorColSk = self.vaDecorColSkBack
-    vaUpdateSelfTgl = False
-
-fitTabItems = ( ('SETTINGS',"Settings",""), ('APPEARANCE',"Appearance",""), ('DRAW',"Draw",""), ('KEYMAP',"Keymap",""), ('INFO',"Info","") )#, ('DEV',"Dev","")
-class VoronoiAddonPrefs(VoronoiAddonPrefs):
-    vaUiTabs: bpy.props.EnumProperty(name="Addon Prefs Tabs", default='SETTINGS', items=fitTabItems)
-    vaInfoRestore:     bpy.props.BoolProperty(name="", description="This list is just a copy from the \"Preferences > Keymap\".\nResrore will restore everything \"Node Editor\", not just addon")
+class VoronoiAddonPrefs(bpy.types.AddonPreferences):
+    bl_idname = __package__
+    # --- VoronoiLinkerTool
+    vltRepickKey            : StringProperty(name="Repick Key", default='LEFT_ALT')
+    vltReroutesCanInAnyType : BoolProperty(name="Reroutes can be connected to any type", default=True)
+    vltDeselectAllNodes     : BoolProperty(name="Deselect all nodes on activate",        default=False)
+    vltPriorityIgnoring     : BoolProperty(name="Priority ignoring",                     default=False, description=fitVltPiDescr)
+    vltSelectingInvolved    : BoolProperty(name="Selecting involved nodes",              default=False)
+    # --- VoronoiPreviewTool
+    vptAllowClassicGeoViewer        : BoolProperty(name="Allow classic GeoNodes Viewer",   default=True,  description="Allow use of classic GeoNodes Viewer by clicking on node")
+    vptAllowClassicCompositorViewer : BoolProperty(name="Allow classic Compositor Viewer", default=False, description="Allow use of classic Compositor Viewer by clicking on node")
+    vptIsLivePreview                : BoolProperty(name="Live Preview",                    default=True,  description="Real-time preview")
+    vptRvEeIsColorOnionNodes        : BoolProperty(name="Node onion colors",               default=False, description="Coloring topologically connected nodes")
+    vptRvEeSksHighlighting          : BoolProperty(name="Topology connected highlighting", default=False, description="Display names of sockets whose links are connected to a node")
+    vptRvEeIsSavePreviewResults     : BoolProperty(name="Save preview results",            default=False, description="Create a preview through an additional node, convenient for copying")
+    vptOnionColorIn                 : FloatVectorProperty(name="Onion color entrance", default=(0.55,  0.188, 0.188), min=0, max=1, size=3, subtype='COLOR')
+    vptOnionColorOut                : FloatVectorProperty(name="Onion color exit",     default=(0.188, 0.188, 0.5),   min=0, max=1, size=3, subtype='COLOR')
+    vptHlTextScale                  : FloatProperty(name="Text scale", default=1.0, min=0.5, max=5.0)
+    # ------
+    vmtReroutesCanInAnyType  : BoolProperty(name="Reroutes can be mixed to any type", default=True)
+    ##
+    vmtPieType               : EnumProperty( name="Pie Type", default='CONTROL', items=( ('CONTROL',"Control",""), ('SPEED',"Speed","") ))
+    vmtPieScale              : FloatProperty(name="Pie scale",                default=1.3, min=1.0, max=2.0, subtype="FACTOR")
+    vmtPieAlignment          : IntProperty(  name="Alignment between items",  default=1,   min=0,   max=2, description="0 – Flat.\n1 – Rounded docked.\n2 – Gap")
+    vmtPieSocketDisplayType  : IntProperty(  name="Display socket type info", default=1,   min=-1,  max=1, description="0 – Disable.\n1 – From above.\n-1 – From below (VMT)")
+    vmtPieDisplaySocketColor : IntProperty(  name="Display socket color",     default=-1,  min=-4,  max=4, description="The sign is side of a color. The magnitude is width of a color")
+    # ------
+    vqmtDisplayIcons         : BoolProperty(name="Display icons",           default=True)
+    vqmtIncludeThirdSk       : BoolProperty(name="Include third socket",    default=True)
+    vqmtIncludeQuickPresets  : BoolProperty(name="Include quick presets",   default=False)
+    vqmtIncludeExistingValues: BoolProperty(name="Include existing values", default=False)
+    vqmtRepickKey            : StringProperty(name="Repick Key", default='LEFT_ALT')
+    ##
+    vqmtPieType              : EnumProperty( name="Pie Type", default='CONTROL', items=( ('CONTROL',"Control",""), ('SPEED',"Speed","") ))
+    vqmtPieScale             : FloatProperty(name="Pie scale",                default=1.3,  min=1.0, max=2.0, subtype="FACTOR")
+    vqmtPieScaleExtra        : FloatProperty(name="Pie scale extra",          default=1.25, min=1.0, max=2.0, subtype="FACTOR")
+    vqmtPieAlignment         : IntProperty(  name="Alignment between items",  default=1,    min=0,   max=2, description="0 – Flat.\n1 – Rounded docked.\n2 – Gap")
+    vqmtPieSocketDisplayType : IntProperty(  name="Display socket type info", default=1,    min=-1,  max=1, description="0 – Disable.\n1 – From above.\n-1 – From below (VMT)")
+    vqmtPieDisplaySocketColor: IntProperty(  name="Display socket color",     default=-1,   min=-4,  max=4, description="The sign is side of a color. The magnitude is width of a color")
+    # ------
+    vrtIsLiveRanto           : BoolProperty(name="Live Ranto", default=True)
+    vrtIsFixIslands          : BoolProperty(name="Fix islands", default=True)
+    # ------
+    vhtHideBoolSocket        : EnumProperty(name="Hide boolean sockets",             default='IF_FALSE', items=list_itemsProcBoolSocket)
+    vhtHideHiddenBoolSocket  : EnumProperty(name="Hide hidden boolean sockets",      default='ALWAYS',   items=list_itemsProcBoolSocket)
+    vhtNeverHideGeometry     : EnumProperty(name="Never hide geometry input socket", default='FALSE',    items=( ('FALSE',"False",""), ('ONLY_FIRST',"Only first",""), ('TRUE',"True","") ))
+    vhtIsUnhideVirtual       : BoolProperty(name="Unhide virtual sockets",           default=True)
+    vhtIsToggleNodesOnDrag   : BoolProperty(name="Toggle nodes on drag",             default=True)
+    # ------
+    vmltIgnoreCase           : BoolProperty(name="Ignore case", default=True)
+    # ------
+    vestIsToggleNodesOnDrag  : BoolProperty(name="Toggle nodes on drag", default=True)
+    ##
+    vestBoxScale             : FloatProperty(name="Box scale",           default=1.3, min=1.0, max=2.0, subtype="FACTOR")
+    vestDisplayLabels        : BoolProperty(name="Display enum names",   default=True)
+    vestDarkStyle            : BoolProperty(name="Dark style",           default=False)
+    vitPasteToAnySocket      : BoolProperty(name="Allow paste to any socket", default=False)
+    vwtSelectTargetKey       : StringProperty(name="Select target Key", default='LEFT_ALT')
+    vlnstNonColorName        : StringProperty(name="Non-Color name",  default="Non-Color")
+    vlnstLastExecError       : StringProperty(name="Last exec error", default="", update=VlnstUpdateLastExecError)
+    vdtDummy                 : StringProperty(name="Dummy", default="Dummy")
+    # ------
+    vaLangDebDiscl       : BoolProperty(name="Language bruteforce debug", default=False)
+    vaLangDebEnum        : EnumProperty(name="LangDebEnum", default='FREE', items=list_langDebEnumItems)
+    dsIsFieldDebug       : BoolProperty(name="Field debug", default=False)
+    dsIsTestDrawing      : BoolProperty(name="Testing draw", default=False, update=VaUpdateTestDraw)
+    dsIncludeDev         : BoolProperty(name="IncludeDev", default=False)
+    # ------
+    vaUiTabs             : EnumProperty(name="Addon Prefs Tabs", default='SETTINGS', items=fitTabItems)
+    vaInfoRestore        : BoolProperty(name="", description="This list is just a copy from the \"Preferences > Keymap\".\nResrore will restore everything \"Node Editor\", not just addon")
     # Box disclosures:
-    vaKmiMainstreamDiscl: bpy.props.BoolProperty(name="The Great Trio ", default=True) # 注意: 空格对翻译很重要.
-    vaKmiOtjersDiscl:     bpy.props.BoolProperty(name="Others ", default=False)
-    vaKmiSpecialDiscl:    bpy.props.BoolProperty(name="Specials ", default=False)
-    vaKmiQqmDiscl:        bpy.props.BoolProperty(name="Quick quick math ", default=False)
-    vaKmiCustomDiscl:     bpy.props.BoolProperty(name="Custom ", default=True)
+    vaKmiMainstreamDiscl : BoolProperty(name="The Great Trio ", default=True) # 注意: 空格对翻译很重要.
+    vaKmiOtjersDiscl     : BoolProperty(name="Others ", default=False)
+    vaKmiSpecialDiscl    : BoolProperty(name="Specials ", default=False)
+    vaKmiQqmDiscl        : BoolProperty(name="Quick quick math ", default=False)
+    vaKmiCustomDiscl     : BoolProperty(name="Custom ", default=True)
+    vaDecorLy            : FloatVectorProperty(name="DecorForLayout",   default=(0.01, 0.01, 0.01),   min=0, max=1, size=3, subtype='COLOR')
+    vaDecorColSk         : FloatVectorProperty(name="DecorForColSk",    default=(1.0, 1.0, 1.0, 1.0), min=0, max=1, size=4, subtype='COLOR', update=VaUpdateDecorColSk)
+    vaDecorColSkBack     : FloatVectorProperty(name="vaDecorColSkBack", default=(1.0, 1.0, 1.0, 1.0), min = 0, max=1, size=4, subtype='COLOR')
+    # ------
+    dsIsDrawText      : BoolProperty(name="Text",        default=True) # 考虑到 VHT 和 VEST, 这更多是用于框架中的文本, 而不是来自插槽的文本.
+    dsIsDrawMarker    : BoolProperty(name="Markers",     default=True)
+    dsIsDrawPoint     : BoolProperty(name="Points",      default=True)
+    dsIsDrawLine      : BoolProperty(name="Line",        default=True)
+    dsIsDrawSkArea    : BoolProperty(name="Socket area", default=True)
+    dsIsColoredText   : BoolProperty(name="Text",        default=True)
+    dsIsColoredMarker : BoolProperty(name="Markers",     default=True)
+    dsIsColoredPoint  : BoolProperty(name="Points",      default=True)
+    dsIsColoredLine   : BoolProperty(name="Line",        default=True)
+    dsIsColoredSkArea : BoolProperty(name="Socket area", default=True)
+    dsIsColoredNodes  : BoolProperty(name="Nodes",       default=True)
     ##
-    vaDecorLy:        bpy.props.FloatVectorProperty(name="DecorForLayout",   default=(0.01, 0.01, 0.01),   min=0, max=1, size=3, subtype='COLOR')
-    vaDecorColSk:     bpy.props.FloatVectorProperty(name="DecorForColSk",    default=(1.0, 1.0, 1.0, 1.0), min=0, max=1, size=4, subtype='COLOR', update=VaUpdateDecorColSk)
-    vaDecorColSkBack: bpy.props.FloatVectorProperty(name="vaDecorColSkBack", default=(1.0, 1.0, 1.0, 1.0), min = 0, max=1, size=4, subtype='COLOR')
-
-class VoronoiAddonPrefs(VoronoiAddonPrefs):
-    dsIsDrawText:   bpy.props.BoolProperty(name="Text",        default=True) # 考虑到 VHT 和 VEST, 这更多是用于框架中的文本, 而不是来自插槽的文本.
-    dsIsDrawMarker: bpy.props.BoolProperty(name="Markers",     default=True)
-    dsIsDrawPoint:  bpy.props.BoolProperty(name="Points",      default=True)
-    dsIsDrawLine:   bpy.props.BoolProperty(name="Line",        default=True)
-    dsIsDrawSkArea: bpy.props.BoolProperty(name="Socket area", default=True)
+    dsSocketAreaAlpha : FloatProperty(name="Socket area alpha", default=0.4, min=0.0, max=1.0, subtype="FACTOR")
     ##
-    dsIsColoredText:   bpy.props.BoolProperty(name="Text",        default=True)
-    dsIsColoredMarker: bpy.props.BoolProperty(name="Markers",     default=True)
-    dsIsColoredPoint:  bpy.props.BoolProperty(name="Points",      default=True)
-    dsIsColoredLine:   bpy.props.BoolProperty(name="Line",        default=True)
-    dsIsColoredSkArea: bpy.props.BoolProperty(name="Socket area", default=True)
-    dsIsColoredNodes:  bpy.props.BoolProperty(name="Nodes",       default=True)
+    dsUniformColor            : FloatVectorProperty(name="Alternative uniform color", default=(1, 0, 0, 0.9), min=0, max=1, size=4, subtype='COLOR') # 0.65, 0.65, 0.65, 1.0
+    dsUniformNodeColor        : FloatVectorProperty(name="Alternative nodes color",   default=(0, 1, 0, 0.9), min=0, max=1, size=4, subtype='COLOR') # 1.0, 1.0, 1.0, 0.9
+    dsCursorColor             : FloatVectorProperty(name="Cursor color",              default=(0, 0, 0, 1.0), min=0, max=1, size=4, subtype='COLOR') # 1.0, 1.0, 1.0, 1.0
+    dsCursorColorAvailability : IntProperty(name="Cursor color availability", default=2, min=0, max=2, 
+                                               description="If a line is drawn to the cursor, color part of it in the cursor color.\n0 – Disable.\n1 – For one line.\n2 – Always")
     ##
-    dsSocketAreaAlpha: bpy.props.FloatProperty(name="Socket area alpha", default=0.4, min=0.0, max=1.0, subtype="FACTOR")
+    dsDisplayStyle : EnumProperty(name="Display frame style", default='ONLY_TEXT', items=( ('CLASSIC',"Classic","Classic"), ('SIMPLIFIED',"Simplified","Simplified"), ('ONLY_TEXT',"Only text","Only text") ))
+    dsFontFile     : StringProperty(name="Font file",    default='C:\Windows\Fonts\consola.ttf', subtype='FILE_PATH') # "Linux 用户表示不满".
+    dsLineWidth    : FloatProperty( name="Line Width",   default=2, min=0.5, max=8.0, subtype="FACTOR")
+    dsPointScale   : FloatProperty( name="Point scale",  default=1.0, min=0.0, max=3.0)
+    dsFontSize     : IntProperty(   name="Font size",    default=32,  min=10,  max=48)
+    dsMarkerStyle  : IntProperty(   name="Marker Style", default=0,   min=0,   max=2)
     ##
-    dsUniformColor:     bpy.props.FloatVectorProperty(name="Alternative uniform color", default=(1, 0, 0, 0.9), min=0, max=1, size=4, subtype='COLOR') # 0.65, 0.65, 0.65, 1.0
-    dsUniformNodeColor: bpy.props.FloatVectorProperty(name="Alternative nodes color",   default=(0, 1, 0, 0.9), min=0, max=1, size=4, subtype='COLOR') # 1.0, 1.0, 1.0, 0.9
-    dsCursorColor:      bpy.props.FloatVectorProperty(name="Cursor color",              default=(0, 0, 0, 1.0), min=0, max=1, size=4, subtype='COLOR') # 1.0, 1.0, 1.0, 1.0
-    dsCursorColorAvailability: bpy.props.IntProperty(name="Cursor color availability", default=2, min=0, max=2, description="If a line is drawn to the cursor, color part of it in the cursor color.\n0 – Disable.\n1 – For one line.\n2 – Always")
+    # https://blender.stackexchange.com/questions/312413/blf-module-how-to-draw-text-in-the-center
+    dsManualAdjustment : FloatProperty(name="Manual adjustment",         default=-0.2, description="The Y-axis offset of text for this font") 
+    dsPointOffsetX     : FloatProperty(name="Point offset X axis",       default=20.0,   min=-50.0, max=50.0)
+    dsFrameOffset      : IntProperty(  name="Frame size",                default=0,      min=0,     max=24, subtype='FACTOR') # 注意: 这必须是 Int.
+    dsDistFromCursor   : FloatProperty(name="Text distance from cursor", default=25.0,   min=5.0,   max=50.0)
     ##
-    dsDisplayStyle: bpy.props.EnumProperty(name="Display frame style", default='ONLY_TEXT', items=( ('CLASSIC',"Classic","Classic"), ('SIMPLIFIED',"Simplified","Simplified"), ('ONLY_TEXT',"Only text","Only text") ))
-    dsFontFile:     bpy.props.StringProperty(name="Font file",    default='C:\Windows\Fonts\consola.ttf', subtype='FILE_PATH') # "Linux 用户表示不满".
-    dsLineWidth:    bpy.props.FloatProperty( name="Line Width",   default=2, min=0.5, max=8.0, subtype="FACTOR")
-    dsPointScale:   bpy.props.FloatProperty( name="Point scale",  default=1.0, min=0.0, max=3.0)
-    dsFontSize:     bpy.props.IntProperty(   name="Font size",    default=32,  min=10,  max=48)
-    dsMarkerStyle:  bpy.props.IntProperty(   name="Marker Style", default=0,   min=0,   max=2)
+    dsIsAlwaysLine        : BoolProperty(name="Always draw line",      default=True, description="Draw a line to the cursor even from a single selected socket")
+    dsIsSlideOnNodes      : BoolProperty(name="Slide on nodes",        default=False)
+    dsIsDrawNodeNameLabel : BoolProperty(name="Display text for node", default=True)
     ##
-    dsManualAdjustment: bpy.props.FloatProperty(name="Manual adjustment",         default=-0.2, description="The Y-axis offset of text for this font") # https://blender.stackexchange.com/questions/312413/blf-module-how-to-draw-text-in-the-center
-    dsPointOffsetX:     bpy.props.FloatProperty(name="Point offset X axis",       default=20.0,   min=-50.0, max=50.0)
-    dsFrameOffset:      bpy.props.IntProperty(  name="Frame size",                default=0,      min=0,     max=24, subtype='FACTOR') # 注意: 这必须是 Int.
-    dsDistFromCursor:   bpy.props.FloatProperty(name="Text distance from cursor", default=25.0,   min=5.0,   max=50.0)
-    ##
-    dsIsAlwaysLine:        bpy.props.BoolProperty(name="Always draw line",      default=True, description="Draw a line to the cursor even from a single selected socket")
-    dsIsSlideOnNodes:      bpy.props.BoolProperty(name="Slide on nodes",        default=False)
-    dsIsDrawNodeNameLabel: bpy.props.BoolProperty(name="Display text for node", default=True)
-    ##
-    dsIsAllowTextShadow: bpy.props.BoolProperty(       name="Enable text shadow", default=False)
-    dsShadowCol:         bpy.props.FloatVectorProperty(name="Shadow color",       default=(0.0, 0.0, 0.0, 0.5), min=0,   max=1,  size=4, subtype='COLOR')
-    dsShadowOffset:      bpy.props.IntVectorProperty(  name="Shadow offset",      default=(2,-2),               min=-20, max=20, size=2)
-    dsShadowBlur:        bpy.props.IntProperty(        name="Shadow blur",        default=2,                    min=0,   max=2)
-
-class VoronoiAddonPrefs(VoronoiAddonPrefs):
+    dsIsAllowTextShadow : BoolProperty(       name="Enable text shadow", default=False)
+    dsShadowCol         : FloatVectorProperty(name="Shadow color",       default=(0.0, 0.0, 0.0, 0.5), min=0,   max=1,  size=4, subtype='COLOR')
+    dsShadowOffset      : IntVectorProperty(  name="Shadow offset",      default=(2,-2),               min=-20, max=20, size=2)
+    dsShadowBlur        : IntProperty(        name="Shadow blur",        default=2,                    min=0,   max=2)
+    # ------
     # 我本想添加这个, 但后来觉得太懒了. 这需要把所有东西都改成"仅插槽", 而且获取节点的标准也不知道怎么弄.
-    # 而且收益也不确定, 除了美观. 所以算了吧. "能用就行, 别乱动".
-    # 而且"仅插槽"的实现可能会陷入潜在的兔子洞.
-    vSearchMethod: bpy.props.EnumProperty(name="Search method", default='SOCKET', items=( ('NODE_SOCKET',"Nearest node > nearest socket",""), ('SOCKET',"Only nearest socket","") )) # 没在任何地方使用; 似乎也永远不会用.
-    vEdgePanFac: bpy.props.FloatProperty(name="Edge pan zoom factor", default=0.33, min=0.0, max=1.0, description="0.0 – Shift only; 1.0 – Scale only")
-    vEdgePanSpeed: bpy.props.FloatProperty(name="Edge pan speed", default=1.0, min=0.0, max=2.5)
-    vIsOverwriteZoomLimits: bpy.props.BoolProperty(name="Overwriting zoom limits", default=False)
-    vOwZoomMin: bpy.props.FloatProperty(name="Zoom min", default=0.05,  min=0.0078125, max=1.0,  precision=3)
-    vOwZoomMax: bpy.props.FloatProperty(name="Zoom max", default=2.301, min=1.0,       max=16.0, precision=3)
-
-class VoronoiAddonPrefs(VoronoiAddonPrefs):
+    # 而且收益也不确定, 除了美观. 所以算了吧. "能用就行, 别乱动".而且"仅插槽"的实现可能会陷入潜在的兔子洞.
+    vSearchMethod          : EnumProperty(name="Search method", default='SOCKET', items=( ('NODE_SOCKET',"Nearest node > nearest socket",""), ('SOCKET',"Only nearest socket","") )) # 没在任何地方使用; 似乎也永远不会用.
+    vEdgePanFac            : FloatProperty(name="Edge pan zoom factor", default=0.33, min=0.0, max=1.0, description="0.0 – Shift only; 1.0 – Scale only")
+    vEdgePanSpeed          : FloatProperty(name="Edge pan speed", default=1.0, min=0.0, max=2.5)
+    vIsOverwriteZoomLimits : BoolProperty(name="Overwriting zoom limits", default=False)
+    vOwZoomMin             : FloatProperty(name="Zoom min", default=0.05,  min=0.0078125, max=1.0,  precision=3)
+    vOwZoomMax             : FloatProperty(name="Zoom max", default=2.301, min=1.0,       max=16.0, precision=3)
+    # ------
     @staticmethod
     def BringTranslations():
         with VlTrMapForKey(GetPrefsRnaProp('vaInfoRestore').description) as dm:
@@ -859,19 +763,19 @@ class VoronoiAddonPrefs(VoronoiAddonPrefs):
             dm["zh_CN"] = "危险:“恢复”按钮将恢复整个快捷键里“节点编辑器”类中的所有设置,而不仅仅是恢复此插件!下面只显示本插件的快捷键。"
         with VlTrMapForKey(GetPrefsRnaProp('vaKmiMainstreamDiscl').name) as dm:
             dm["ru_RU"] = "Великое трио"
-#            dm["zh_CN"] = ""
+            dm["zh_CN"] = "最有用"
         with VlTrMapForKey(GetPrefsRnaProp('vaKmiOtjersDiscl').name) as dm:
             dm["ru_RU"] = "Другие"
-#            dm["zh_CN"] = ""
+            dm["zh_CN"] = "很有用"
         with VlTrMapForKey(GetPrefsRnaProp('vaKmiSpecialDiscl').name) as dm:
             dm["ru_RU"] = "Специальные"
-#            dm["zh_CN"] = ""
+            dm["zh_CN"] = "不常用"
         with VlTrMapForKey(GetPrefsRnaProp('vaKmiQqmDiscl').name) as dm:
             dm["ru_RU"] = "Быстрая быстрая математика"
-#            dm["zh_CN"] = ""
+            dm["zh_CN"] = "数学运算饼菜单"
         with VlTrMapForKey(GetPrefsRnaProp('vaKmiCustomDiscl').name) as dm:
             dm["ru_RU"] = "Кастомные"
-#            dm["zh_CN"] = ""
+            dm["zh_CN"] = "自定义"
         #== Draw ==
         with VlTrMapForKey(GetPrefsRnaProp('dsUniformColor').name) as dm:
             dm["ru_RU"] = "Альтернативный постоянный цвет"
@@ -976,8 +880,7 @@ class VoronoiAddonPrefs(VoronoiAddonPrefs):
         with VlTrMapForKey(GetPrefsRnaProp('dsIsDrawNodeNameLabel').name) as dm:
             dm["ru_RU"] = "Показывать заголовок для нода"
             dm["zh_CN"] = "显示节点标签"
-
-class VoronoiAddonPrefs(VoronoiAddonPrefs):
+    # ------
     def LyDrawTabSettings(self, where):
         def LyAddAddonBoxDiscl(where: UILayout, who, att, *, txt=None, isWide=False, align=False):
             colBox = where.box().column(align=True)
@@ -1034,12 +937,12 @@ class VoronoiAddonPrefs(VoronoiAddonPrefs):
         with LyAddQuickInactiveCol(colCol, active=tgl) as row:
             row.prop(self,'dsIsColoredNodes')
         ##
-        colBox = LyAddLabeledBoxCol(colMain, text="Special")
+        colBox = LyAddLabeledBoxCol(colMain, text="Edge pan")
         #LyAddHandSplitProp(colBox, self,'dsIsDrawNodeNameLabel', active=self.dsIsDrawText)
         LyAddHandSplitProp(colBox, self,'dsIsAlwaysLine')
         LyAddHandSplitProp(colBox, self,'dsIsSlideOnNodes')
         ##
-        colBox = LyAddLabeledBoxCol(colMain, text="Colors")
+        colBox = LyAddLabeledBoxCol(colMain, text="Edge pan")
         LyAddHandSplitProp(colBox, self,'dsSocketAreaAlpha', active=self.dsIsDrawSkArea)
         tgl = ( (self.dsIsDrawText   and not self.dsIsColoredText  )or
                 (self.dsIsDrawMarker and not self.dsIsColoredMarker)or
@@ -1058,7 +961,7 @@ class VoronoiAddonPrefs(VoronoiAddonPrefs):
         LyAddHandSplitProp(colBox, self,'dsCursorColor', active=tgl1 or tgl2)
         LyAddHandSplitProp(colBox, self,'dsCursorColorAvailability', active=self.dsIsDrawLine and self.dsIsColoredLine)
         ##
-        colBox = LyAddLabeledBoxCol(colMain, text="Customization")
+        colBox = LyAddLabeledBoxCol(colMain, text="Edge pan")
         LyAddHandSplitProp(colBox, self,'dsDisplayStyle')
         LyAddHandSplitProp(colBox, self,'dsFontFile')
         if not self.dsFontFile.endswith((".ttf",".otf")):
@@ -1071,7 +974,7 @@ class VoronoiAddonPrefs(VoronoiAddonPrefs):
         LyAddHandSplitProp(colBox, self,'dsFontSize')
         LyAddHandSplitProp(colBox, self,'dsMarkerStyle')
         ##
-        colBox = LyAddLabeledBoxCol(colMain, text="Advanced")
+        colBox = LyAddLabeledBoxCol(colMain, text="Edge pan")
         LyAddHandSplitProp(colBox, self,'dsManualAdjustment')
         LyAddHandSplitProp(colBox, self,'dsPointOffsetX')
         LyAddHandSplitProp(colBox, self,'dsFrameOffset')
@@ -1106,10 +1009,10 @@ class VoronoiAddonPrefs(VoronoiAddonPrefs):
         ##
         kmiCats = KmiCats()
         kmiCats.cus = KmiCat('vaKmiCustomDiscl',     set())
-        kmiCats.qqm = KmiCat('vaKmiQqmDiscl',        set(), dict_setKmiCats['qqm'] )
-        kmiCats.grt = KmiCat('vaKmiMainstreamDiscl', set(), dict_setKmiCats['grt'] )
-        kmiCats.oth = KmiCat('vaKmiOtjersDiscl',     set(), dict_setKmiCats['oth'] )
-        kmiCats.spc = KmiCat('vaKmiSpecialDiscl',    set(), dict_setKmiCats['spc'] )
+        kmiCats.qqm = KmiCat('vaKmiQqmDiscl',        set(), dict_setKmiCats["qqm"] )
+        kmiCats.grt = KmiCat('vaKmiMainstreamDiscl', set(), dict_setKmiCats["grt"] )
+        kmiCats.oth = KmiCat('vaKmiOtjersDiscl',     set(), dict_setKmiCats["oth"] )
+        kmiCats.spc = KmiCat('vaKmiSpecialDiscl',    set(), dict_setKmiCats["spc"] )
         kmiCats.cus.LCond = lambda a: a.id<0 # 负id用于自定义? 好吧. 就当是识别标准了.
         kmiCats.qqm.LCond = lambda a: any(True for txt in {'quickOprFloat','quickOprVector','quickOprBool','quickOprColor','justPieCall','isRepeatLastOperation'} if getattr(a.properties, txt, None))
         kmiCats.grt.LCond = lambda a: a.idname in kmiCats.grt.set_idn
@@ -1154,7 +1057,6 @@ class VoronoiAddonPrefs(VoronoiAddonPrefs):
         LyAddKmisCategory(colList, kmiCats.spc)
         LyAddKmisCategory(colList, kmiCats.qqm)
         rowLabelPost.label(text=f"({scoAll})", translate=False)
-
     def LyDrawTabInfo(self, where):
         def LyAddUrlHl(where: UILayout, text, url, txtHl=""):
             row = where.row(align=True)
@@ -1170,7 +1072,7 @@ class VoronoiAddonPrefs(VoronoiAddonPrefs):
             row.label(text=txt_addonBlVerSupporting)
         colUrls = colMain.column()
         LyAddUrlHl(colUrls, "Check for updates yourself", "https://github.com/ugorek000/VoronoiLinker", txtHl="Latest%20version")
-        LyAddUrlHl(colUrls, "VL Wiki", bl_info['wiki_url'])
+        LyAddUrlHl(colUrls, "VL Wiki", bl_info2['wiki_url'])
         LyAddUrlHl(colUrls, "RANTO Git", "https://github.com/ugorek000/RANTO")
         colUrls.separator()
         LyAddUrlHl(colUrls, "Event Type Items", "https://docs.blender.org/api/current/bpy_types_enum_items/event_type_items.html")
@@ -1290,12 +1192,12 @@ class VoronoiAddonPrefs(VoronoiAddonPrefs):
                     col.label(text=txt_ColorQuickMode)
                     col.label(text=txt_vmtNoMixingOptions)
                     col.label(text=txt_vqmtThereIsNothing)
-                    col.label(text=bl_info['description'])
+                    col.label(text=bl_info2['description'])
                     col.label(text=txt_addonVerDateCreated)
                     col.label(text=txt_addonBlVerSupporting)
                     col.label(text=txt_onlyFontFormat)
                     col.label(text=txt_copySettAsPyScript)
-                    col.label(text=txt_сheckForUpdatesYourself)
+                    col.label(text=txt_checkForUpdatesYourself)
                 case 'SPECIAL':
                     txt = TranslateIface("Special")
                     col0 = LyAddAlertNested(colLangDebug, f"[{txt}]")
@@ -1327,8 +1229,7 @@ class VoronoiAddonPrefs(VoronoiAddonPrefs):
                         if pr.identifier not in set_alreadyDone:
                             LyAddTranDataForProp(rowLabel, pr)
                             set_alreadyDone.add(pr.identifier)
-
-class VoronoiAddonPrefs(VoronoiAddonPrefs):
+    # ------
     def draw(self, context):
         def LyAddDecorLyColRaw(where: UILayout, sy=0.05, sx=1.0, en=False):
             where.prop(self,'vaDecorLy', text="")
@@ -1365,22 +1266,29 @@ class VoronoiAddonPrefs(VoronoiAddonPrefs):
         except Exception as ex:
             LyAddEtb(colMain) # colMain.label(text=str(ex), icon='ERROR', translate=False)
 
+class KmiCat():
+    def __init__(self, propName='', set_kmis=set(), set_idn=set()):
+        self.propName = propName
+        self.set_kmis = set_kmis
+        self.set_idn = set_idn
+        self.sco = 0
+
+class KmiCats:
+    pass
 
 _classes = [
     VmtOpMixer,
     VmtPieMixer,
     VqmtOpMain,
     VqmtPieMath,
-    VqmtOpMain,
-    VqmtPieMath,
     VestOpBox,
     VestPieBox,
     SNA_OT_Change_Node_Domain_And_Name,
-    Rot_or_Mat_Converter,
-    Pie_MT_Converter_To_Rotation,
-    Pie_MT_Converter_Rotation_To,
-    Pie_MT_Separate_Matrix,
-    Pie_MT_Combine_Matrix,
+    Rot_or_Mat_Convert,
+    PIE_MT_Convert_To_Rotation,
+    PIE_MT_Convert_Rotation_To,
+    PIE_MT_Separate_Matrix,
+    PIE_MT_Combine_Matrix,
     VoronoiOpAddonTabs,
     VoronoiAddonPrefs,
 ]

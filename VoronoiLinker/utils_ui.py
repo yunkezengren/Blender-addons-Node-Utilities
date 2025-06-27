@@ -71,13 +71,13 @@ def LyAddKeyTxtProp(layout: UILayout, prefs, att):
     with LyAddQuickInactiveCol(rowProp) as row:
         row.operator('wm.url_open', text="", icon='URL').url="https://docs.blender.org/api/current/bpy_types_enum_items/event_type_items.html#:~:text="+getattr(prefs, att)
 
-def LyAddLabeledBoxCol(layout: UILayout, *, text="", active=False, scale=1.0, align=True):
+def LyAddLabeledBoxCol(layout: UILayout, *, text="", active=True, scale=1.0, align=True):
     colMain = layout.column(align=True)
     box = colMain.box()
     box.scale_y = 0.5
     row = box.row(align=True)
     row.alignment = 'CENTER'
-    row.label(text=text)
+    row.label(text="▶ ▶ ▶   "+text)
     row.active = active
     box = colMain.box()
     box.scale_y = scale

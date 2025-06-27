@@ -1,16 +1,15 @@
-from .utils_translate import *
-from .utils_node import *
-from .utils_ui import *
-from .utils_color import *
-from .VoronoiTool import *
-from .utils_solder import *
+from .v_tool import *
 from .globals import *
-from .common_forward_class import *
-from .common_forward_func import *
+from .utils_ui import *
+from .utils_node import *
+from .utils_color import *
+from .utils_solder import *
 from .utils_drawing import *
-from .VoronoiTool import VoronoiOpTool
+from .utils_translate import *
+from .common_forward_func import *
+from .common_forward_class import *
+from .v_tool import VoronoiOpTool
 from .utils_color import power_color4, get_sk_color
-from .globals import is_blender4plus
 
 
 class VqmtOpMain(VoronoiOpTool):
@@ -79,7 +78,7 @@ class VqmtPieMath(bpy.types.Menu):
     bl_idname = 'VL_MT_Voronoi_quick_math_pie'
     bl_label = "" #此处的文本将显示在饼菜单的中心。
     def draw(self, _context):
-        def LyVqmAddOp(where: UILayout, text: str, icon='NONE'):
+        def add_op(where: UILayout, text: str, icon='NONE'):
             #自动翻译已关闭，因为数学节点的原始操作也没有被翻译；至少对于俄语是这样。
             # label = text.replace("_"," ").capitalize()
             label = text.replace("_"," ").title()
@@ -90,7 +89,7 @@ class VqmtPieMath(bpy.types.Menu):
                 label = "To Degrees"
             where.operator(VqmtOpMain.bl_idname, text=label, icon=icon, translate=False).operation = text
         soldCanIcons = VqmtData.prefs.vqmtDisplayIcons
-        def LyVqmAddItem(where: UILayout, txt, ico='NONE'):
+        def add_item(where: UILayout, txt, ico='NONE'):
             ly = where.row(align=VqmtData.pieAlignment==0)
             soldPdsc = VqmtData.pieDisplaySocketColor# if not VqmtData.isJustPie else 0
             if soldPdsc:
@@ -98,7 +97,7 @@ class VqmtPieMath(bpy.types.Menu):
                 ly = ly.split(factor=Color_Bar_Width * VqmtData.uiScale, align=True)  # 小王 饼菜单颜色条宽度
             if soldPdsc<0:
                 ly.prop(VqmtData.prefs,'vaDecorColSk', text="")
-            LyVqmAddOp(ly, text=txt, icon=ico if soldCanIcons else 'NONE')
+            add_op(ly, text=txt, icon=ico if soldCanIcons else 'NONE')
             if soldPdsc>0:
                 ly.prop(VqmtData.prefs,'vaDecorColSk', text="")
         pie = self.layout.menu_pie()
@@ -107,18 +106,18 @@ class VqmtPieMath(bpy.types.Menu):
                 if not li: #用于快速饼菜单数据库中的空条目.
                     row = pie.row() #因为这样它虽然不显示任何东西，但仍会占用空间。
                     continue
-                LyVqmAddOp(pie, li)
+                add_op(pie, li)
         else:
             isGap = VqmtData.pieAlignment<2
             uiUnitsX = 5.75*((VqmtData.pieScale-1)/2+1)
-            def LyGetPieCol(where):
+            def get_pie_column(where: UILayout):
                 col = where.column(align=isGap)
                 col.ui_units_x = uiUnitsX
                 col.scale_y = VqmtData.pieScale
                 return col
-            colLeft = LyGetPieCol(pie)
-            colRight = LyGetPieCol(pie)
-            colCenter = LyGetPieCol(pie)
+            col_left = get_pie_column(pie)
+            col_right = get_pie_column(pie)
+            col_center = get_pie_column(pie)
             if VqmtData.pieDisplaySocketTypeInfo==1:
                 colLabel = pie.column()
                 box = colLabel.box()
@@ -134,15 +133,15 @@ class VqmtPieMath(bpy.types.Menu):
                         # print(VqmtData.qmSkType)
                         color = float_int_color[VqmtData.qmSkType]   # 只影响提示的接口颜色
                     else:
-                        color=get_sk_color(_sk0)       # 原先情况：整数接口浮点饼是整数的颜色
+                        color = get_sk_color(_sk0)       # 原先情况：整数接口浮点饼是整数的颜色
                     row.template_node_socket(color=color)
                 match VqmtData.qmSkType:
-                    case 'VALUE':   txt = "txt_FloatQuickMath"  # ! 草
-                    case 'INT':     txt = "txt_IntQuickMath"  # ! 草
-                    case 'VECTOR':  txt = "txt_VectorQuickMath"  # ! 草
-                    case 'BOOLEAN': txt = "txt_BooleanQuickMath"  # ! 草
-                    case 'RGBA':    txt = "txt_ColorQuickMode"  # ! 草
-                    case 'MATRIX':  txt = "txt_MatrixQuickMath"  # ! 草
+                    case 'VALUE':   txt = "快速浮点运算"
+                    case 'INT':     txt = "快速整数运算"
+                    case 'VECTOR':  txt = "快速矢量运算"
+                    case 'BOOLEAN': txt = "快速布尔运算"
+                    case 'RGBA':    txt = "快速颜色运算"
+                    case 'MATRIX':  txt = "快速矩阵运算"
                 row.label(text=txt)
                 row.alignment = 'CENTER'
                 
@@ -154,16 +153,16 @@ class VqmtPieMath(bpy.types.Menu):
                     row2.operator(VqmtOpMain.bl_idname, text="切换"+info).operation = "切换浮点/整数菜单"
                     box2.scale_y = 1.2
             ##
-            def DrawForValVec(isVec):
+            def draw_float_vector_math(is_vec):
                 if True:
-                    nonlocal colRight
+                    nonlocal col_right
                     dict_presets = dict_vqmtQuickPresets[VqmtData.qmSkType]
                     canPreset = (VqmtData.prefs.vqmtIncludeQuickPresets)and(dict_presets)
                     if canPreset:
-                        colRight.ui_units_x *= 1.55
-                    rowRigth = colRight.row()
-                    colRight = rowRigth.column(align=isGap)
-                    colRight.ui_units_x = uiUnitsX
+                        col_right.ui_units_x *= 1.55
+                    rowRigth = col_right.row()
+                    col_right = rowRigth.column(align=isGap)
+                    col_right.ui_units_x = uiUnitsX
                     if canPreset:
                         colRightQp = rowRigth.column(align=isGap)
                         colRightQp.ui_units_x = uiUnitsX/2
@@ -172,11 +171,11 @@ class VqmtPieMath(bpy.types.Menu):
                             ly = colRightQp.row() if VqmtData.pieAlignment else colRightQp
                             ly.operator(VqmtOpMain.bl_idname, text=dv.replace(" ",""), translate=False).operation = dk
                     ##
-                    nonlocal colLeft
+                    nonlocal col_left
                     canExist = (VqmtData.prefs.vqmtIncludeExistingValues)and(VqmtData.dict_existingValues)
                     if canExist:
-                        colLeft.ui_units_x *= 2.05
-                    rowLeft = colLeft.row()
+                        col_left.ui_units_x *= 2.05
+                    rowLeft = col_left.row()
                     if canExist:
                         colLeftExt = rowLeft.column(align=isGap)
                         colLeftExt.ui_units_x = uiUnitsX
@@ -206,95 +205,98 @@ class VqmtPieMath(bpy.types.Menu):
                                     rowProp.enabled = False
                             rowAdd.ui_units_x = 2
                             rowAdd.operator(VqmtOpMain.bl_idname, text=str(nd.operation)[:3]).operation = nd.operation+txt
-                    colLeft = rowLeft.column(align=isGap)
-                    colLeft.ui_units_x = uiUnitsX
+                    col_left = rowLeft.column(align=isGap)
+                    col_left.ui_units_x = uiUnitsX
                 ##
-                LyVqmAddItem(colRight,'ADD','ADD')
-                LyVqmAddItem(colRight,'SUBTRACT','REMOVE')
+                add_item(col_right,'ADD','ADD')
+                add_item(col_right,'SUBTRACT','REMOVE')
                 ##
-                LyVqmAddItem(colRight,'MULTIPLY','SORTBYEXT')
-                LyVqmAddItem(colRight,'DIVIDE','FIXED_SIZE') #ITALIC  FIXED_SIZE
+                add_item(col_right,'MULTIPLY','SORTBYEXT')
+                add_item(col_right,'DIVIDE','FIXED_SIZE') #ITALIC  FIXED_SIZE
                 ##
-                colRight.separator()
-                LyVqmAddItem(colRight, 'MULTIPLY_ADD')
-                LyVqmAddItem(colRight, 'ABSOLUTE')
-                colRight.separator()
+                col_right.separator()
+                add_item(col_right, 'MULTIPLY_ADD')
+                add_item(col_right, 'ABSOLUTE')
+                col_right.separator()
                 for li in ('SINE','COSINE','TANGENT'):
-                    LyVqmAddItem(colCenter, li, 'FORCE_HARMONIC')
-                if not isVec:
-                    for li in ('POWER','SQRT','EXPONENT','LOGARITHM','INVERSE_SQRT','PINGPONG'):
-                        LyVqmAddItem(colRight, li)
-                    colRight.separator()
-                    LyVqmAddItem(colRight, 'RADIANS')
-                    LyVqmAddItem(colRight, 'DEGREES')
-                    LyVqmAddItem(colLeft, 'FRACT', 'IPO_LINEAR')
+                    add_item(col_center, li, 'FORCE_HARMONIC')
+                if not is_vec:
+                    for li in ('SQRT','EXPONENT','LOGARITHM','INVERSE_SQRT','PINGPONG'):
+                        add_item(col_right, li)
+                    col_right.separator()
+                    add_item(col_right, 'RADIANS')
+                    add_item(col_right, 'DEGREES')
+                    add_item(col_left, 'FRACT', 'IPO_LINEAR')
                     for li in ('ARCTANGENT','ARCSINE','ARCCOSINE'):
-                        LyVqmAddItem(colCenter, li, 'RNA')
+                        add_item(col_center, li, 'RNA')
                     for li in ('ARCTAN2','SINH','COSH','TANH'):
-                        LyVqmAddItem(colCenter, li)
+                        add_item(col_center, li)
                 else:
                     for li in ('SCALE','NORMALIZE','LENGTH','DISTANCE'):
-                        LyVqmAddItem(colRight, li)
-                    colRight.separator()
-                    LyVqmAddItem(colLeft, 'FRACTION', 'IPO_LINEAR')
-                LyVqmAddItem(colLeft,'FLOOR','IPO_CONSTANT')
-                LyVqmAddItem(colLeft,'CEIL')
-                LyVqmAddItem(colLeft,'MAXIMUM','NONE') #SORT_DESC  TRIA_UP_BAR
-                LyVqmAddItem(colLeft,'MINIMUM','NONE') #SORT_ASC  TRIA_DOWN_BAR
+                        add_item(col_right, li)
+                    col_right.separator()
+                    add_item(col_left, 'FRACTION', 'IPO_LINEAR')
+                col_right.separator()
+                for li in ('POWER', 'SIGN'):
+                    add_item(col_right, li)
+                add_item(col_left,'FLOOR','IPO_CONSTANT')
+                add_item(col_left,'CEIL')
+                add_item(col_left,'MAXIMUM','NONE') #SORT_DESC  TRIA_UP_BAR
+                add_item(col_left,'MINIMUM','NONE') #SORT_ASC  TRIA_DOWN_BAR
                 for li in ('MODULO', 'FLOORED_MODULO', 'SNAP', 'WRAP'):
-                    LyVqmAddItem(colLeft, li)
-                colLeft.separator()
-                if not isVec:
-                    for li in ('GREATER_THAN','LESS_THAN','TRUNC','SIGN','SMOOTH_MAX','SMOOTH_MIN','ROUND','COMPARE'):
-                        LyVqmAddItem(colLeft, li)
+                    add_item(col_left, li)
+                col_left.separator()
+                if not is_vec:
+                    for li in ('GREATER_THAN','LESS_THAN','TRUNC','SMOOTH_MAX','SMOOTH_MIN','ROUND','COMPARE'):
+                        add_item(col_left, li)
                 else:
-                    LyVqmAddItem(colLeft,'DOT_PRODUCT',  'LAYER_ACTIVE')
-                    LyVqmAddItem(colLeft,'CROSS_PRODUCT','ORIENTATION_LOCAL') #OUTLINER_DATA_EMPTY  ORIENTATION_LOCAL  EMPTY_ARROWS
-                    LyVqmAddItem(colLeft,'PROJECT',      'CURVE_PATH') #SNAP_OFF  SNAP_ON  MOD_SIMPLIFY  CURVE_PATH
-                    LyVqmAddItem(colLeft,'FACEFORWARD',  'ORIENTATION_NORMAL')
-                    LyVqmAddItem(colLeft,'REFRACT',      'NODE_MATERIAL') #MOD_OFFSET  NODE_MATERIAL
-                    LyVqmAddItem(colLeft,'REFLECT',      'INDIRECT_ONLY_OFF') #INDIRECT_ONLY_OFF  INDIRECT_ONLY_ON
-            def DrawForBool():
-                LyVqmAddItem(colRight,'AND')
-                LyVqmAddItem(colRight,'OR')
-                LyVqmAddItem(colRight,'NOT')
-                LyVqmAddItem(colLeft,'NAND')
-                LyVqmAddItem(colLeft,'NOR')
-                LyVqmAddItem(colLeft,'XOR')
-                LyVqmAddItem(colLeft,'XNOR')
-                LyVqmAddItem(colCenter,'IMPLY')
-                LyVqmAddItem(colCenter,'NIMPLY')
-            def DrawForMatrix():
-                LyVqmAddItem(colRight,'FunctionNodeMatrixMultiply')
-                LyVqmAddItem(colRight,'FunctionNodeInvertMatrix')
-                LyVqmAddItem(colRight,'FunctionNodeMatrixDeterminant')
-                LyVqmAddItem(colLeft,'FunctionNodeTransformPoint')
-                LyVqmAddItem(colLeft,'FunctionNodeTransformDirection')
-                LyVqmAddItem(colLeft,'FunctionNodeProjectPoint')
-            def DrawForCol():
+                    add_item(col_left,'DOT_PRODUCT',  'LAYER_ACTIVE')
+                    add_item(col_left,'CROSS_PRODUCT','ORIENTATION_LOCAL') #OUTLINER_DATA_EMPTY  ORIENTATION_LOCAL  EMPTY_ARROWS
+                    add_item(col_left,'PROJECT',      'CURVE_PATH') #SNAP_OFF  SNAP_ON  MOD_SIMPLIFY  CURVE_PATH
+                    add_item(col_left,'FACEFORWARD',  'ORIENTATION_NORMAL')
+                    add_item(col_left,'REFRACT',      'NODE_MATERIAL') #MOD_OFFSET  NODE_MATERIAL
+                    add_item(col_left,'REFLECT',      'INDIRECT_ONLY_OFF') #INDIRECT_ONLY_OFF  INDIRECT_ONLY_ON
+            def draw_bool_math():
+                add_item(col_right,'AND')
+                add_item(col_right,'OR')
+                add_item(col_right,'NOT')
+                add_item(col_left,'NAND')
+                add_item(col_left,'NOR')
+                add_item(col_left,'XOR')
+                add_item(col_left,'XNOR')
+                add_item(col_center,'IMPLY')
+                add_item(col_center,'NIMPLY')
+            def draw_matrix_math():
+                add_item(col_right,'FunctionNodeMatrixMultiply')
+                add_item(col_right,'FunctionNodeInvertMatrix')
+                add_item(col_right,'FunctionNodeMatrixDeterminant')
+                add_item(col_left,'FunctionNodeTransformPoint')
+                add_item(col_left,'FunctionNodeTransformDirection')
+                add_item(col_left,'FunctionNodeProjectPoint')
+            def draw_color_mix():
                 for li in ('LIGHTEN','DARKEN','SCREEN','DODGE','LINEAR_LIGHT','SOFT_LIGHT','OVERLAY','BURN'):
-                    LyVqmAddItem(colRight, li)
+                    add_item(col_right, li)
                 for li in ('MIX', 'ADD','SUBTRACT','MULTIPLY','DIVIDE','DIFFERENCE','EXCLUSION'):
-                    LyVqmAddItem(colLeft, li)
+                    add_item(col_left, li)
                 for li in ('VALUE','SATURATION','HUE','COLOR'):
-                    LyVqmAddItem(colCenter, li)
-            def DrawForInt():
-                LyVqmAddItem(colRight,'ADD','ADD')
-                LyVqmAddItem(colRight,'SUBTRACT','REMOVE')
-                LyVqmAddItem(colRight,'MULTIPLY','SORTBYEXT')
-                LyVqmAddItem(colRight,'DIVIDE','FIXED_SIZE')
-                colRight.separator()
-                LyVqmAddItem(colRight, 'MULTIPLY_ADD')
-                LyVqmAddItem(colRight, 'ABSOLUTE')
+                    add_item(col_center, li)
+            def draw_int_math():
+                add_item(col_right,'ADD','ADD')
+                add_item(col_right,'SUBTRACT','REMOVE')
+                add_item(col_right,'MULTIPLY','SORTBYEXT')
+                add_item(col_right,'DIVIDE','FIXED_SIZE')
+                col_right.separator()
+                add_item(col_right, 'MULTIPLY_ADD')
+                add_item(col_right, 'ABSOLUTE')
                 for li in ("POWER", "NEGATE"):
-                    LyVqmAddItem(colRight, li)
+                    add_item(col_right, li)
                 for li in ("MODULO", "FLOORED_MODULO", "SIGN", "DIVIDE_FLOOR", "DIVIDE_CEIL", "DIVIDE_ROUND", "GCD", "LCM"):
-                    LyVqmAddItem(colLeft, li)
+                    add_item(col_left, li)
                 for li in ("MINIMUM", "MAXIMUM"):
-                    LyVqmAddItem(colCenter, li)
+                    add_item(col_center, li)
             match VqmtData.qmSkType:
-                case 'VALUE'|'VECTOR': DrawForValVec(VqmtData.qmSkType=='VECTOR')
-                case 'BOOLEAN': DrawForBool()
-                case 'RGBA': DrawForCol()
-                case 'INT':  DrawForInt()
-                case 'MATRIX': DrawForMatrix()
+                case 'VALUE'|'VECTOR': draw_float_vector_math(VqmtData.qmSkType=='VECTOR')
+                case 'BOOLEAN': draw_bool_math()
+                case 'RGBA': draw_color_mix()
+                case 'INT':  draw_int_math()
+                case 'MATRIX': draw_matrix_math()

@@ -4,8 +4,6 @@ from .utils_color import Color4, opaque_color4, power_color4
 from .common_forward_func import GetFirstUpperLetters
 from mathutils import Vector as Vec
 import bpy
-# from .C_Structure import bpy.types.NodeSocket
-
 
 dict_solderedSkLinksFinal = {}
 def SkGetSolderedLinksFinal(self): # .vl_sold_links_final
@@ -62,11 +60,6 @@ def SolderThemeCols(themeNe):
     for pr in themeNe.bl_rna.properties:
         dnf = pr.identifier
         if dnf.endswith("_node"):
-            # print(f"{dnf = }")
-            # print(f"{getattr(themeNe, dnf) = }")                            # type  Color
-            # print(f"{opaque_color4(getattr(themeNe, dnf)) = }")            # type  tuple
-            # print(f"{Color4(opaque_color4(getattr(themeNe, dnf))) = }")     # type  Vector
-            # print(f" 混合后 {col4 = }")
             # 和背景混合使得偏亮
             # col4 = MixThCol(SoldThemeCols.node_backdrop4, Color4(opaque_color4(getattr(themeNe, dnf))))
             col4 = Color4(opaque_color4(getattr(themeNe, dnf)))   # 小王 解决 Ctrl Shift E / Ctrl E / Alt E 等显示太浅

@@ -15,7 +15,7 @@ from .utils_solder import *
 from .globals import *
 from .common_forward_class import *
 from .common_forward_func import *
-from .VoronoiTool import *
+from .v_tool import *
 
 
 tup_whiteCol4 = (1.0, 1.0, 1.0, 1.0)
