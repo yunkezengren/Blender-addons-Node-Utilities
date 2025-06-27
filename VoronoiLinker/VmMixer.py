@@ -14,11 +14,12 @@ from .utils_node import DoLinkHh
 from .utils_color import get_sk_color
 from bpy.app.translations import pgettext_iface as TranslateIface
 
+from bpy.types import NodeTree, Node, GeometryNodeMenuSwitch, ShaderNodeCombineXYZ, FunctionNodeCompare
 
-
-def DoMix(tree, isShift, isAlt, type):
+def DoMix(tree: NodeTree, isShift: bool, isAlt: bool, type: str):
     bpy.ops.node.add_node('INVOKE_DEFAULT', type=type, use_transform=not VmtData.isPlaceImmediately)
     a_node = tree.nodes.active
+    # a_node: Node | GeometryNodeMenuSwitch = tree.nodes.active
     a_node.width = 140
     txtFix = {'VALUE':'FLOAT'}.get(VmtData.skType, VmtData.skType)
     # 两次 switch case -- 为了代码舒适和一点点节约.
@@ -42,21 +43,14 @@ def DoMix(tree, isShift, isAlt, type):
             a_node.data_type = {'INT':'FLOAT', 'BOOLEAN':'FLOAT'}.get(txtFix, txtFix)
     match a_node.bl_idname:
         case 'GeometryNodeIndexSwitch'|'GeometryNodeMenuSwitch'|"ShaderNodeCombineXYZ": 
-            if a_node.bl_idname == "GeometryNodeMenuSwitch":
-                a_node.enum_items[0].name = VmtData.sk0.name
-            NewLinkHhAndRemember(VmtData.sk0, a_node.inputs[1]) # 由于搜索方向, 也需要根据方向从列表中选择它们.
-            if VmtData.sk1:
-                if a_node.bl_idname == "GeometryNodeMenuSwitch":
-                    a_node.enum_items[1].name = VmtData.sk1.name
-                NewLinkHhAndRemember(VmtData.sk1, a_node.inputs[2])
-            if VmtData.sk2:
-                if a_node.bl_idname == "GeometryNodeMenuSwitch":
-                    a_node.enum_items.new(VmtData.sk2.name)
-                if a_node.bl_idname == "GeometryNodeIndexSwitch":
-                    add_item_for_index_switch(a_node)
-                NewLinkHhAndRemember(VmtData.sk2, a_node.inputs[3])
+            sks = [sk for sk in (VmtData.sk0, VmtData.sk1, VmtData.sk2) if sk]
+            sk_index_offset = not isinstance(a_node, ShaderNodeCombineXYZ)      # 编号/菜单切换的接口从第二个开始连
+            for i, sk in enumerate(sks):
+                if isinstance(a_node, GeometryNodeMenuSwitch):
+                    a_node.enum_items[i].name = sk.name
+                NewLinkHhAndRemember(sk, a_node.inputs[i+sk_index_offset])
         case 'GeometryNodeSwitch'|'FunctionNodeCompare'|'ShaderNodeMix': #|2|.
-            tgl = a_node.bl_idname!='FunctionNodeCompare'
+            tgl = isinstance(a_node, FunctionNodeCompare)
             txtFix = VmtData.skType
             match a_node.bl_idname:
                 case 'FunctionNodeCompare': txtFix = {'BOOLEAN':'INT'}.get(txtFix, txtFix)
