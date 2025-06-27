@@ -14,7 +14,7 @@ from .utils_node import DoLinkHh
 from .utils_color import get_sk_color
 from bpy.app.translations import pgettext_iface as TranslateIface
 
-from bpy.types import NodeTree, Node, GeometryNodeMenuSwitch, ShaderNodeCombineXYZ, FunctionNodeCompare
+from bpy.types import NodeTree, Node, GeometryNodeMenuSwitch, GeometryNodeIndexSwitch, ShaderNodeCombineXYZ, FunctionNodeCompare
 
 def DoMix(tree: NodeTree, isShift: bool, isAlt: bool, type: str):
     bpy.ops.node.add_node('INVOKE_DEFAULT', type=type, use_transform=not VmtData.isPlaceImmediately)
@@ -44,6 +44,11 @@ def DoMix(tree: NodeTree, isShift: bool, isAlt: bool, type: str):
     match a_node.bl_idname:
         case 'GeometryNodeIndexSwitch'|'GeometryNodeMenuSwitch'|"ShaderNodeCombineXYZ": 
             sks = [sk for sk in (VmtData.sk0, VmtData.sk1, VmtData.sk2) if sk]
+            if VmtData.sk2:
+                if isinstance(a_node, GeometryNodeMenuSwitch):
+                    a_node.enum_items.new(VmtData.sk2.name)
+                if isinstance(a_node, GeometryNodeIndexSwitch):
+                    a_node.index_switch_items.new()
             sk_index_offset = not isinstance(a_node, ShaderNodeCombineXYZ)      # 编号/菜单切换的接口从第二个开始连
             for i, sk in enumerate(sks):
                 if isinstance(a_node, GeometryNodeMenuSwitch):
