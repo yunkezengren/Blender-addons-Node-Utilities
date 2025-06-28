@@ -21,7 +21,7 @@ def DoMix(tree: NodeTree, isShift: bool, isAlt: bool, type: str):
     a_node = tree.nodes.active
     # a_node: Node | GeometryNodeMenuSwitch = tree.nodes.active
     a_node.width = 140
-    txtFix = {'VALUE':'FLOAT'}.get(VmtData.skType, VmtData.skType)
+    fix_type = {'VALUE':'FLOAT'}.get(VmtData.skType, VmtData.skType)
     # 两次 switch case -- 为了代码舒适和一点点节约.
     match a_node.bl_idname:
         case 'ShaderNodeMath'|'ShaderNodeVectorMath'|'CompositorNodeMath'|'TextureNodeMath':
@@ -31,16 +31,16 @@ def DoMix(tree: NodeTree, isShift: bool, isAlt: bool, type: str):
         case 'TextureNodeTexture':
             a_node.show_preview = False
         case 'GeometryNodeSwitch':
-            a_node.input_type = txtFix
+            a_node.input_type = fix_type
         case 'GeometryNodeIndexSwitch' :
-            a_node.data_type = txtFix
+            a_node.data_type = fix_type
         case 'GeometryNodeMenuSwitch':
-            a_node.data_type = txtFix
+            a_node.data_type = fix_type
         case 'FunctionNodeCompare':
-            a_node.data_type = {'BOOLEAN':'INT'}.get(txtFix, txtFix)
+            a_node.data_type = {'BOOLEAN':'INT'}.get(fix_type, fix_type)
             a_node.operation = 'EQUAL'
         case 'ShaderNodeMix':
-            a_node.data_type = {'INT':'FLOAT', 'BOOLEAN':'FLOAT'}.get(txtFix, txtFix)
+            a_node.data_type = {'INT':'FLOAT', 'BOOLEAN':'FLOAT'}.get(fix_type, fix_type)
     match a_node.bl_idname:
         case 'GeometryNodeIndexSwitch'|'GeometryNodeMenuSwitch'|"ShaderNodeCombineXYZ": 
             sks = [sk for sk in (VmtData.sk0, VmtData.sk1, VmtData.sk2) if sk]
@@ -55,16 +55,14 @@ def DoMix(tree: NodeTree, isShift: bool, isAlt: bool, type: str):
                     a_node.enum_items[i].name = sk.name
                 NewLinkHhAndRemember(sk, a_node.inputs[i+sk_index_offset])
         case 'GeometryNodeSwitch'|'FunctionNodeCompare'|'ShaderNodeMix': #|2|.
-            tgl = isinstance(a_node, FunctionNodeCompare)
-            txtFix = VmtData.skType
+            fix_type = VmtData.skType
             match a_node.bl_idname:
-                case 'FunctionNodeCompare': txtFix = {'BOOLEAN':'INT'}.get(txtFix, txtFix)
-                case 'ShaderNodeMix':       txtFix = {'INT':'VALUE', 'BOOLEAN':'VALUE'}.get(txtFix, txtFix)
-            # 对于混合和切换器, 从末尾搜索, 因为它们的切换套接字类型与某些搜索的类型相同. 比较节点则相反.
-            list_foundSk = [sk for sk in ( reversed(a_node.inputs) if tgl else a_node.inputs ) if sk.type==txtFix]
-            NewLinkHhAndRemember(VmtData.sk0, list_foundSk[tgl^isShift]) # 由于搜索方向, 也需要根据方向从列表中选择它们.
-            if VmtData.sk1:
-                NewLinkHhAndRemember(VmtData.sk1, list_foundSk[(not tgl)^isShift])
+                case 'FunctionNodeCompare': fix_type = {'BOOLEAN':'INT'}.get(fix_type, fix_type)
+                case 'ShaderNodeMix':       fix_type = {'INT':'VALUE', 'BOOLEAN':'VALUE'}.get(fix_type, fix_type)
+            tgl = isinstance(a_node, bpy.types.ShaderNodeMix) and a_node.data_type in {"FLOAT", "VECTOR"}
+            list_foundSk = [sk for sk in a_node.inputs if sk.type==fix_type][tgl:]    # mix三个浮点/矢量输入,第一个是非均匀模式的矢量Factor
+            for i, sk in enumerate(sk for sk in (VmtData.sk0, VmtData.sk1) if sk):
+                NewLinkHhAndRemember(sk, list_foundSk[i^isShift])
         case _:
             # 这种密集的处理是为了多输入 -- 需要改变连接顺序.
             Mix_item = dict_vmtMixerNodesDefs[a_node.bl_idname]
