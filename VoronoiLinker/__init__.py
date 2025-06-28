@@ -588,6 +588,8 @@ def GetVaSettAsPy(prefs):
     # 不得不等待那个英雄来修复这一切.
     return txt_vasp
 
+SolderClsToolNames(dict_vtClasses)
+
 list_langDebEnumItems = []
 for li in ["Free", "Special", "AddonPrefs"] + [cls.bl_label for cls in dict_vtClasses]:
     list_langDebEnumItems.append( (li.upper(), GetFirstUpperLetters(li), "") )
@@ -1265,6 +1267,10 @@ class VoronoiAddonPrefs(bpy.types.AddonPreferences):
                     self.LyDrawTabInfo(colMain)
         except Exception as ex:
             LyAddEtb(colMain) # colMain.label(text=str(ex), icon='ERROR', translate=False)
+
+for cls in dict_vtClasses:
+    exec(f"class VoronoiAddonPrefs(VoronoiAddonPrefs): {cls.disclBoxPropName}: bpy.props.BoolProperty(name=\"\", default=False)")
+    exec(f"class VoronoiAddonPrefs(VoronoiAddonPrefs): {cls.disclBoxPropNameInfo}: bpy.props.BoolProperty(name=\"\", default=False)")
 
 class KmiCat():
     def __init__(self, propName='', set_kmis=set(), set_idn=set()):
