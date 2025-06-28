@@ -1,6 +1,6 @@
-print("=" * 100)
-print("=" * 100)
-print("=" * 100)
+# print("=" * 100)
+# print("=" * 100)
+# print("=" * 100)
 
 import bpy, ctypes
 from bpy.types import Operator, NodeSocket
@@ -10,30 +10,30 @@ from .test_bpy import print_bpy
 # from mathutils import Vector
 
 
-a = 255
-print(f"{a:b}")
-print(f"{a:#b}")
-print(f"{a:#o}")
-print(f"{a:x}")
-print(f"{a:#X}")        # #会添加 0b 0o 0x 前缀
+# a = 255
+# print(f"{a:b}")
+# print(f"{a:#b}")
+# print(f"{a:#o}")
+# print(f"{a:x}")
+# print(f"{a:#X}")        # #会添加 0b 0o 0x 前缀
 
-print("[[fill]align][sign][#][0][width][,][.precision][type]")
-print("[[fill]align] 表示: align 是可选的，但 fill 只有在 align 存在的情况下才能使用")
+# print("[[fill]align][sign][#][0][width][,][.precision][type]")
+# print("[[fill]align] 表示: align 是可选的，但 fill 只有在 align 存在的情况下才能使用")
 
-print(f"{1024:#016b}")
-print(f"{1024:#016o}")
-print(f"{1024:#016X}")
+# print(f"{1024:#016b}")
+# print(f"{1024:#016o}")
+# print(f"{1024:#016X}")
 
-def group_string(s: str, group_size: int, separator: str = ' ') -> str:
-    """从右向左按指定大小分组字符串"""
-    if len(s) <= group_size: return s
-    s_reversed = s[::-1]
-    grouped = separator.join(s_reversed[i:i + group_size] for i in range(0, len(s_reversed), group_size))
-    return grouped[::-1]
+# def group_string(s: str, group_size: int, separator: str = ' ') -> str:
+#     """从右向左按指定大小分组字符串"""
+#     if len(s) <= group_size: return s
+#     s_reversed = s[::-1]
+#     grouped = separator.join(s_reversed[i:i + group_size] for i in range(0, len(s_reversed), group_size))
+#     return grouped[::-1]
 
-print(group_string(f"{1024:#018b}", 4))
-print(group_string(f"{1024:#018o}", 4))
-print(group_string(f"{1024:#018X}", 4))
+# print(group_string(f"{1024:#018b}", 4))
+# print(group_string(f"{1024:#018o}", 4))
+# print(group_string(f"{1024:#018X}", 4))
 
 
 def sk_loc2(socket: NodeSocket):

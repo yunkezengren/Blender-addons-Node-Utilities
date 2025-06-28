@@ -1,8 +1,3 @@
-# if "bpy" in locals():   # 偏好设置重启插件(就是先unregister再register),只会重新执行__init__.py,所以重新加载需要更新的模块
-#     import importlib
-#     importlib.reload(my_dict)
-#     importlib.reload(translator)
-
 import bpy, os, time
 import bpy.utils.previews
 from bpy.types import (Operator, Menu, Panel, AddonPreferences, Context, Object, NodeTree, Node, UILayout)
@@ -719,6 +714,7 @@ class ATTRLIST_PT_NPanel(Panel):
         # box4.operator('view2d.scroll_left', text="左移", icon="TRIA_LEFT")
         # box4.operator('view2d.scroll_right', text="右移", icon="TRIA_RIGHT")
 
+# -----------
 def exit_group_to_root():
     space = bpy.context.space_data
     tree_path = space.path.to_string.split("/")[1:]     # 只留下节点组的名字,不包括根名
@@ -801,6 +797,7 @@ class NODE_OT_View_Stored_Attribute_Node(Operator):
 
         return {'FINISHED'}
 
+# todo 复用代码 ATTRLIST_OT_Add_Node_Change_Name_Type_Hide
 class NODE_OT_Add_Named_Attribute(Operator):
     bl_idname = "node.add_named_attribute_node"
     bl_label = tr("快速添加命名属性节点")
@@ -813,6 +810,7 @@ class NODE_OT_Add_Named_Attribute(Operator):
         return context.area.ui_type == 'GeometryNodeTree'
 
     def execute(self, context):
+        print(1111111111111111111)
         active_node = context.active_node
         prefs = pref()
         if active_node and active_node.bl_idname == 'GeometryNodeStoreNamedAttribute':
