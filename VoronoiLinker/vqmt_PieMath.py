@@ -144,8 +144,8 @@ class VqmtPieMath(bpy.types.Menu):
                     case 'MATRIX':  txt = "快速矩阵运算"
                 row.label(text=txt)
                 row.alignment = 'CENTER'
-                
                 if float_or_int:
+                    # 切换浮点/整数饼菜单
                     info = "浮点" if _math_type == "INT" else "整数"
                     box2 = colLabel.box()
                     row2 = box2.row(align=True)
