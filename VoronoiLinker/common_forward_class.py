@@ -1,7 +1,7 @@
 import bpy
 from builtins import len as length
 from mathutils import Vector as Vec2
-from bpy.types import NodeSocket
+from bpy.types import NodeSocket, Node
 # from .common_forward_func import *
 from .common_forward_func import (sk_label_or_name, add_item_for_index_switch, sk_type_to_idname, 
                            is_builtin_tree_idname)
@@ -279,8 +279,8 @@ class Node_Items_Manager():
 class Fotago(): # Found Target Goal (找到的目标), "剩下的你们自己看着办".
     # def __getattr__(self, att): # 天才. 仅次于 '(*args): return Vector((args))'.
     #    return getattr(self.target, att) # 但要小心, 它的速度慢了大约5倍.
-    def __init__(self, target: NodeSocket, *, dist=0.0, pos=Vec2((0.0, 0.0)), dir=0, boxHeiBound=(0.0, 0.0), text=""):
-        self.tar = target
+    def __init__(self, target: Node|NodeSocket, *, dist=0.0, pos=Vec2((0.0, 0.0)), dir=0, boxHeiBound=(0.0, 0.0), text=""):
+        self.tar = target                  # 可能是 node 或 socket
         #self.sk = target                  # Fotago.sk = property(lambda a:a.target)
         #self.nd = target                  # Fotago.nd = property(lambda a:a.target)
         self.blid: str = target.bl_idname  # Fotago.blid = property(lambda a:a.target.bl_idname)

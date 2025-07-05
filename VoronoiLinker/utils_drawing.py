@@ -24,36 +24,43 @@ class VlDrawData():
     shaderLine = None
     shaderArea = None
     worldZoom = 0.0
+
     def DrawPathLL(self, vpos, vcol, *, wid):
         gpu.state.blend_set('ALPHA') # 绘制文本会重置 alpha 标记, 因此每次都设置.
         self.shaderLine.bind()
         self.shaderLine.uniform_float('lineWidth', wid)
         self.shaderLine.uniform_float('viewportSize', gpu.state.viewport_get()[2:4])
-        gpu_extras.batch.batch_for_shader(self.shaderLine, type='LINE_STRIP', content={'pos':vpos, 'color':vcol}).draw(self.shaderLine)
+        gpu_extras.batch.batch_for_shader(self.shaderLine, type='LINE_STRIP', content={'pos': vpos, 'color': vcol}).draw(self.shaderLine)
 
     def DrawAreaFanLL(self, vpos, col):
         gpu.state.blend_set('ALPHA')
         self.shaderArea.bind()
         self.shaderArea.uniform_float('color', col)
         #todo2v6 弄清楚如何为多边形也做平滑处理.
-        gpu_extras.batch.batch_for_shader(self.shaderArea, type='TRI_FAN', content={'pos':vpos}).draw(self.shaderArea)
+        gpu_extras.batch.batch_for_shader(self.shaderArea, type='TRI_FAN', content={'pos': vpos}).draw(self.shaderArea)
+
     def VecUiViewToReg(self, vec):
-        vec = vec*self.uiScale
-        return Vec2( self.view_to_region(vec.x, vec.y, clip=False) )
+        vec = vec * self.uiScale
+        return Vec2(self.view_to_region(vec.x, vec.y, clip=False))
 
     def DrawRectangle(self, bou1, bou2, col):
-        self.DrawAreaFanLL(( (bou1[0],bou1[1]), (bou2[0],bou1[1]), (bou2[0],bou2[1]), (bou1[0],bou2[1]) ), col)
+        self.DrawAreaFanLL(((bou1[0], bou1[1]), (bou2[0], bou1[1]), (bou2[0], bou2[1]), (bou1[0], bou2[1])), col)
+
     def DrawCircle(self, loc, rad, *, resl=54, col=tup_whiteCol4):
         #第一个顶点自豪地在中心, 其他顶点在圆周上. 需要平滑伪影朝向中心, 而不是斜向某个方向
-        self.DrawAreaFanLL(( (loc[0],loc[1]), *[ (loc[0]+rad*cos(cyc*2.0*pi/resl), loc[1]+rad*sin(cyc*2.0*pi/resl)) for cyc in range(resl+1) ] ), col)
+        self.DrawAreaFanLL(((loc[0], loc[1]), *[(loc[0] + rad * cos(cyc * 2.0 * pi / resl), loc[1] + rad * sin(cyc * 2.0 * pi / resl))
+                                                for cyc in range(resl + 1)]), col)
+
     def DrawRing(self, pos, rad, *, wid, resl=16, col=tup_whiteCol4, spin=0.0):
-        vpos = tuple( ( rad*cos(cyc*2*pi/resl+spin)+pos[0], rad*sin(cyc*2*pi/resl+spin)+pos[1] ) for cyc in range(resl+1) )
-        self.DrawPathLL(vpos, (col,)*(resl+1), wid=wid)
+        vpos = tuple((rad * cos(cyc*2*pi/resl + spin) + pos[0], rad * sin(cyc*2*pi/resl + spin) + pos[1]) for cyc in range(resl + 1))
+        self.DrawPathLL(vpos, (col, ) * (resl+1), wid=wid)
+
     def DrawWidePoint(self, loc, *, radHh, col1=Color4(tup_whiteCol4), col2=tup_whiteCol4, resl=54):
         colFacOut = Color4((0.5, 0.5, 0.5, 0.4))
-        self.DrawCircle(loc, radHh+3.0, resl=resl, col=col1*colFacOut)
-        self.DrawCircle(loc, radHh,     resl=resl, col=col1*colFacOut)
-        self.DrawCircle(loc, radHh/1.5, resl=resl, col=col2)
+        self.DrawCircle(loc, radHh + 3.0, resl=resl, col=col1 * colFacOut)
+        self.DrawCircle(loc, radHh, resl=resl, col=col1 * colFacOut)
+        self.DrawCircle(loc, radHh / 1.5, resl=resl, col=col2)
+
     def __init__(self, context, cursorLoc, uiScale, prefs):
         self.shaderLine = gpu.shader.from_builtin('POLYLINE_SMOOTH_COLOR')
         # POLYLINE_FLAT_COLOR, POLYLINE_SMOOTH_COLOR, POLYLINE_UNIFORM_COLOR, FLAT_COLOR, SMOOTH_COLOR, [UNIFORM_COLOR]
@@ -70,9 +77,12 @@ class VlDrawData():
             if pr.identifier.startswith("ds"):
                 setattr(self, pr.identifier, getattr(prefs, pr.identifier))
         match prefs.dsDisplayStyle:
-            case 'CLASSIC':    self.dsFrameDisplayType = 2
-            case 'SIMPLIFIED': self.dsFrameDisplayType = 1
-            case 'ONLY_TEXT':  self.dsFrameDisplayType = 0
+            case 'CLASSIC':
+                self.dsFrameDisplayType = 2
+            case 'SIMPLIFIED':
+                self.dsFrameDisplayType = 1
+            case 'ONLY_TEXT':
+                self.dsFrameDisplayType = 0
         ##
         self.dsUniformColor = Color4(power_color4(self.dsUniformColor))
         self.dsUniformNodeColor = Color4(power_color4(self.dsUniformNodeColor))
@@ -80,6 +90,7 @@ class VlDrawData():
 
 def DrawWorldStick(drata: VlDrawData, pos1, pos2, col1, col2):
     drata.DrawPathLL( (drata.VecUiViewToReg(pos1), drata.VecUiViewToReg(pos2)), (col1, col2), wid=drata.dsLineWidth )
+
 def DrawVlSocketArea(drata: VlDrawData, sk, bou, col):
     loc = node_abs_loc(sk.node)
     pos1 = drata.VecUiViewToReg(Vec2( (loc.x,               bou[0]) ))
@@ -89,10 +100,11 @@ def DrawVlSocketArea(drata: VlDrawData, sk, bou, col):
     else:
         col = drata.dsUniformColor
     drata.DrawRectangle(pos1, pos2, col)
+
 def DrawVlWidePoint(drata: VlDrawData, loc, *, col1=Color4(tup_whiteCol4), col2=tup_whiteCol4, resl=54, forciblyCol=False): #"forciblyCol" 只用于 DrawDebug.
     if not(drata.dsIsColoredPoint or forciblyCol):
         col1 = col2 = drata.dsUniformColor
-    drata.DrawWidePoint(drata.VecUiViewToReg(loc), radHh=( (6*drata.dsPointScale*drata.worldZoom)**2+10 )**0.5, col1=col1, col2=col2, resl=resl)
+    drata.DrawWidePoint(drata.VecUiViewToReg(loc), radHh=((6 * drata.dsPointScale * drata.worldZoom)**2 + 10)**0.5, col1=col1, col2=col2, resl=resl)
 
 def DrawMarker(drata: VlDrawData, loc, col, *, style):
     fac = get_color_black_alpha(col, pw=1.5)*0.625 #todo1v6 标记颜色在亮色和黑色之间看起来不美观; 需要想点办法.
@@ -111,6 +123,7 @@ def DrawMarker(drata: VlDrawData, loc, col, *, style):
     DrawMarkerBacklight(0.0,     colHl) # 但因此需要将白色描边的 alpha 减半。
     drata.DrawRing((loc[0],     loc[1]+5.0), 9.0, wid=1.0, resl=resl, col=colMt)
     drata.DrawRing((loc[0]-5.0, loc[1]-3.5), 9.0, wid=1.0, resl=resl, col=colMt)
+
 def DrawVlMarker(drata: VlDrawData, loc, *, ofsHh, col):
     vec = drata.VecUiViewToReg(loc)
     dir = 1 if ofsHh[0]>0 else -1
@@ -258,7 +271,7 @@ def TemplateDrawNodeFull(drata: VlDrawData, ftgNd, *, side=1, tool_name=""): # �
                 txt = ndTar.node_tree.name   # 优化-绘制节点组名字
             else:
                 txt = ndTar.label
-            
+
             DrawWorldText(drata, drata.cursorLoc, (drata.dsDistFromCursor*side, -0.5), txt, colText=colTx, colBg=colTx)
             DrawWorldText(drata, drata.cursorLoc, (drata.dsDistFromCursor*side, 1   ), tool_name, colText=colTx, colBg=colTx)
             # # 额外绘制
@@ -271,7 +284,7 @@ def TemplateDrawNodeFull(drata: VlDrawData, ftgNd, *, side=1, tool_name=""): # �
 
 # 高级套接字绘制模板. 现在名称中有“Sk”, 因为节点已完全进入 VL.
 # 在旧版本中的硬核之后, 使用这个模板简直是享受 (甚至不要看那里, 那里简直是地狱).
-def TemplateDrawSksToolHh(drata: VlDrawData, *args_ftgSks, sideMarkHh=1, isDrawText=True, 
+def TemplateDrawSksToolHh(drata: VlDrawData, *args_ftgSks, sideMarkHh=1, isDrawText=True,
                           isClassicFlow=False, isDrawMarkersMoreTharOne=False, tool_name=""): # 模板重新思考过了, 万岁. 感觉上并没有变得更好.
     def GetPosFromFtg(ftg):
         return ftg.pos+Vec2((drata.dsPointOffsetX*ftg.dir, 0.0))
@@ -302,7 +315,7 @@ def TemplateDrawSksToolHh(drata: VlDrawData, *args_ftgSks, sideMarkHh=1, isDrawT
             DrawWorldStick(drata, GetPosFromFtg(ftg1), GetPosFromFtg(ftg2), col1, col2)
     # 主要部分:
     isOne = length(list_ftgSks)==1
-    
+
     # print("." * 100)
     # print(list_ftgSks)
     for ftg in list_ftgSks:

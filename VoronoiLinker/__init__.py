@@ -60,6 +60,16 @@ from .v_QuickDimensions_tool import VoronoiQuickDimensionsTool
 from .v_LazyNodeStencils_tool import VoronoiLazyNodeStencilsTool
 from .rot_or_mat_convert import Rot_or_Mat_Convert, PIE_MT_Convert_To_Rotation, PIE_MT_Convert_Rotation_To, PIE_MT_Separate_Matrix, PIE_MT_Combine_Matrix
 
+try:
+    from rich import traceback
+    traceback.install(extra_lines=0, width=165, code_width=160, show_locals=False)
+    
+    # from rich.console import Console
+    # console = Console(width=160, log_time=False)
+    # print = console.log    # 带有 时间戳 源文件路径 行号
+except ImportError:
+    pass
+
 dict_classes = {} # 所有需要注册的类都放在这里. 使用字典是为了 smart_add_to_reg_and_kmiDefs() 函数, 同时还能保持顺序.
 dict_vtClasses = {} # 只存放 V*T (Voronoi Tool) 工具.
 
@@ -771,7 +781,7 @@ class VoronoiAddonPrefs(bpy.types.AddonPreferences):
             dm["zh_CN"] = "很有用"
         with VlTrMapForKey(GetPrefsRnaProp('vaKmiSpecialDiscl').name) as dm:
             dm["ru_RU"] = "Специальные"
-            dm["zh_CN"] = "不常用"
+            dm["zh_CN"] = "也有用"
         with VlTrMapForKey(GetPrefsRnaProp('vaKmiQqmDiscl').name) as dm:
             dm["ru_RU"] = "Быстрая быстрая математика"
             dm["zh_CN"] = "数学运算饼菜单"

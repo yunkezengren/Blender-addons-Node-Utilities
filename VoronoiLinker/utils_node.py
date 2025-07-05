@@ -14,7 +14,7 @@ from bpy.app.translations import pgettext_iface as TranslateIface
 def sk_loc(sk: NodeSocket):
     return Vec2(BNodeSocket.GetFields(sk).runtime.contents.location[:]) if (sk.enabled) and (not sk.hide) else Vec2((0, 0))
 
-def node_abs_loc(nd):
+def node_abs_loc(nd: Node) -> Vec2:
     return nd.location + node_abs_loc(nd.parent) if nd.parent else nd.location
 
 # 提供对折叠节点的支持:
@@ -93,16 +93,26 @@ def GenFtgsFromPuts(nd, isSide, samplePos, uiScale): # 为 vptRvEeSksHighlightin
     return results
 
 def GetNearestSocketsFtg(nd, samplePos, uiScale): # 返回"最近的插槽"列表. 真实的 Voronoi 图单元距离场. 没错, 这个插件就是因此得名的.
-    # 如果是重路由节点, 那么情况很简单, 不需要计算; 输入和输出都只有一个, 插槽的位置就是它本身.
-    if nd.type=='REROUTE':
-        loc = node_abs_loc(nd)
-        L = lambda a: Fotago(a, dist=(samplePos-loc).length, pos=loc, dir=1 if a.is_output else -1, boxHeiBound=(-1, -1), text=nd.label if nd.label else TranslateIface(a.name))
-        return [L(nd.inputs[0])], [L(nd.outputs[0])]
-    l_ftg_sk_in = GenFtgsFromPuts(nd, False, samplePos, uiScale)
-    l_ftg_sk_out = GenFtgsFromPuts(nd, True, samplePos, uiScale)
-    l_ftg_sk_in.sort(key=lambda a:a.dist)
-    l_ftg_sk_out.sort(key=lambda a:a.dist)
-    return l_ftg_sk_in, l_ftg_sk_out
+    if nd.type == 'REROUTE':
+        def ftg_route(sk: NodeSocket):
+            loc = node_abs_loc(nd)
+            # 这样的话 鼠标位置在转接点左是输入,在转接点有是输出
+            distance = (samplePos - loc - Vec2((sk.is_output, 0))).length
+            direction = 1 if sk.is_output else -1
+            label = nd.label or TranslateIface(sk.name)
+            return [Fotago(sk, dist=distance, pos=loc, dir=direction, boxHeiBound=(-1, -1), text=label)]
+        return ftg_route(nd.inputs[0]), ftg_route(nd.outputs[0])
+        # ftg_route = lambda sk: Fotago(sk, dist=(samplePos - loc - Vec2((sk.is_output, 0))).length, pos=loc, dir=1 if sk.is_output else -1, boxHeiBound=(-1, -1), text=nd.label if nd.label else TranslateIface(sk.name))
+        # return [ftg_route(nd.inputs[0])], [ftg_route(nd.outputs[0])]
+
+    ftg_sks_in = GenFtgsFromPuts(nd, False, samplePos, uiScale)
+    ftg_sks_out = GenFtgsFromPuts(nd, True, samplePos, uiScale)
+    ftg_sks_in.sort(key=lambda a: a.dist)
+    ftg_sks_out.sort(key=lambda a: a.dist)
+    return ftg_sks_in, ftg_sks_out
+
+
+
 
 def GetListOfNdEnums(node):   # 小王-判断节点是否有下拉列表
     enum_l = []
@@ -179,7 +189,7 @@ def FindAnySk(nd, list_ftgSksIn, list_ftgSksOut): # Todo0NA: 需要泛化!, 用 
 # 注意: DoLinkHh 现在有太多其他依赖项, 想要把它单独抽离出来会更困难.
 # P.s. "HH" -- 意思是 "High Level", 但我打错字母了 D:
 
-def DoLinkHh(sko, ski, *, isReroutesToAnyType=True, isCanBetweenField=True, isCanFieldToShader=True): 
+def DoLinkHh(sko, ski, *, isReroutesToAnyType=True, isCanBetweenField=True, isCanFieldToShader=True):
     # 多么意外的视觉巧合, 与 "sk0" 和 "sk1" 的序列号.
     # 既然我们现在是高级别的, 就得处理特殊情况:
     if not(sko and ski): # 它们必须存在.
@@ -240,17 +250,17 @@ def DoLinkHh(sko, ski, *, isReroutesToAnyType=True, isCanBetweenField=True, isCa
         # 不处理骑士不支持的类型:
         can = True
         match typeEq:
-            case 2: 
+            case 2:
                 can = skTar.type in {'VALUE','INT','BOOLEAN','VECTOR','ROTATION','STRING','RGBA','GEOMETRY'}
-            case 3: 
+            case 3:
                 can = skTar.type in {'VALUE','INT','BOOLEAN','VECTOR','ROTATION','STRING','RGBA','OBJECT','IMAGE','GEOMETRY','COLLECTION','MATERIAL'}
-            case 4: 
+            case 4:
                 can = skTar.type in {'VALUE','INT','BOOLEAN','VECTOR','ROTATION','STRING','RGBA','OBJECT','IMAGE','GEOMETRY','COLLECTION','MATERIAL','TEXTURE'}
-            case 5: 
+            case 5:
                 can = skTar.type in {'VALUE','INT','BOOLEAN','VECTOR','ROTATION','MATRIX','STRING','RGBA','GEOMETRY'}
-            case 6: 
+            case 6:
                 can = skTar.type in {'VALUE','INT','BOOLEAN','VECTOR','ROTATION','MATRIX','STRING','RGBA'}
-            case 7: 
+            case 7:
                 can = skTar.type in {'VALUE','INT','BOOLEAN','VECTOR','ROTATION','STRING','RGBA','OBJECT','IMAGE','GEOMETRY','COLLECTION','MATERIAL','TEXTURE','MENU'}
         if not can:
             return None

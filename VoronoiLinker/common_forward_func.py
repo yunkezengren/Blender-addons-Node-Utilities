@@ -6,6 +6,12 @@ from bpy.types import Node, NodeSocket
 # 从 globals.py 中明确导入
 from .globals import dict_typeSkToBlid
 
+try:
+    from rich.console import Console
+    print = Console(width=165, log_time=False).log    # 带有 时间戳 源文件路径 行号
+except ImportError:
+    pass
+
 def Prefs():        # 很多局部变量也是prefs 还是改大写好点
     return bpy.context.preferences.addons[__package__].preferences
 
