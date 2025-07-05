@@ -126,6 +126,7 @@ class ATTRLIST_AddonPrefs(AddonPreferences):
         box1.label(text=limit1)
         box1.label(text=limit2)
         box1.label(text=limit3)
+        box1.label(text="information outdated / 描述信息过时")
 
 def get_proper_obj():
     ui_type = bpy.context.area.ui_type
@@ -305,39 +306,41 @@ def extend_dict_with_evaluated_obj_attrs(attrs_d: Attr_Dict, exclude_l: list[str
     return all_evaluated_attr
 
 def extend_dict_with_obj_data_attrs(attrs_d: Attr_Dict, sub_attrs_d: Attr_Dict, all_tree_attr: list[str]):
+    exclude_l = []
     a_object = get_proper_obj()
-    vertex_groups = a_object.vertex_groups
-    uv_layers = a_object.data.uv_layers
-    color_attrs = a_object.data.color_attributes
-    exclude_l = [ _.name for _ in vertex_groups] + [
-                  _.name for _ in uv_layers] + [
-                  _.name for _ in color_attrs]
+    if a_object.type == "MESH":
+        vertex_groups = a_object.vertex_groups
+        uv_layers = a_object.data.uv_layers
+        color_attrs = a_object.data.color_attributes
+        exclude_l = [ _.name for _ in vertex_groups] + [
+                    _.name for _ in uv_layers] + [
+                    _.name for _ in color_attrs]
     prefs = pref()
     _dict = sub_attrs_d if prefs.hide_extra_attr else attrs_d
     
     # s_time = time.perf_counter()
     all_evaluated_attr = extend_dict_with_evaluated_obj_attrs(_dict, exclude_l, a_object, all_tree_attr)
     # print("总耗时: ", f"{time.perf_counter() - s_time:.6f}s\n")
-    
-    hideInSub = prefs.hide_vertex_group
-    for attr in vertex_groups:
-        if attrs_d.get(attr.name) and not hideInSub: continue        # 如果节点里又存了顶点组之类的,别覆盖
-        _attrs_d = sub_attrs_d if hideInSub else attrs_d
-        _attrs_d[attr.name] = Attr_Info(data_type='FLOAT', domain=["POINT"], domain_info=[tr('点')],
-                                    group_name=tr("物体属性"), info=tr("顶点组"))
-    hideInSub = prefs.hide_uv_map
-    for attr in uv_layers:
-        if attrs_d.get(attr.name) and not hideInSub: continue
-        _attrs_d = sub_attrs_d if hideInSub else attrs_d
-        _attrs_d[attr.name] = Attr_Info(data_type='FLOAT2', domain=["CORNER"], domain_info=[tr('面拐')],
-                                    group_name=tr("物体属性"), info=tr("UV贴图"))
-    hideInSub = prefs.hide_color_attr
-    for attr in color_attrs:
-        if attrs_d.get(attr.name) and not hideInSub: continue
-        _attrs_d = sub_attrs_d if hideInSub else attrs_d
-        _attrs_d[attr.name] = Attr_Info(data_type=attr.data_type, domain=[attr.domain],
-                                    domain_info=[tr(get_domain_cn[attr.domain])],
-                                    group_name=tr("物体属性"), info=tr("颜色属性"))
+    if a_object.type == "MESH":
+        hideInSub = prefs.hide_vertex_group
+        for attr in vertex_groups:
+            if attrs_d.get(attr.name) and not hideInSub: continue        # 如果节点里又存了顶点组之类的,别覆盖
+            _attrs_d = sub_attrs_d if hideInSub else attrs_d
+            _attrs_d[attr.name] = Attr_Info(data_type='FLOAT', domain=["POINT"], domain_info=[tr('点')],
+                                        group_name=tr("物体属性"), info=tr("顶点组"))
+        hideInSub = prefs.hide_uv_map
+        for attr in uv_layers:
+            if attrs_d.get(attr.name) and not hideInSub: continue
+            _attrs_d = sub_attrs_d if hideInSub else attrs_d
+            _attrs_d[attr.name] = Attr_Info(data_type='FLOAT2', domain=["CORNER"], domain_info=[tr('面拐')],
+                                        group_name=tr("物体属性"), info=tr("UV贴图"))
+        hideInSub = prefs.hide_color_attr
+        for attr in color_attrs:
+            if attrs_d.get(attr.name) and not hideInSub: continue
+            _attrs_d = sub_attrs_d if hideInSub else attrs_d
+            _attrs_d[attr.name] = Attr_Info(data_type=attr.data_type, domain=[attr.domain],
+                                        domain_info=[tr(get_domain_cn[attr.domain])],
+                                        group_name=tr("物体属性"), info=tr("颜色属性"))
     return all_evaluated_attr
 
 def move_by_prefix_or_unused(dict1: Attr_Dict, dict2: Attr_Dict, all_evaluated_attr: list):
