@@ -3,7 +3,7 @@ from .globals import is_blender4plus, set_classicSocketsBlid, dict_typeSkToBlid,
 from .globals import *
 from .common_forward_class import Node_Items_Manager, Fotago
 from .common_forward_class import *
-from bpy.types import (Node, NodeSocket, UILayout)
+from bpy.types import (NodeTree, Node, NodeSocket, UILayout)
 import bpy
 from mathutils import Vector as Vec2
 from .common_forward_func import sk_label_or_name, add_item_for_index_switch
@@ -201,7 +201,10 @@ def DoLinkHh(sko, ski, *, isReroutesToAnyType=True, isCanBetweenField=True, isCa
     if not sko.is_output: # 输出必须是第一个.
         sko, ski = ski, sko
     # 注意: "高级别", 但不是为傻瓜用户准备的; 天哪, 可以在虚拟之间连接.
-    tree = sko.id_data
+    tree: NodeTree = sko.id_data
+    # 下面好复杂的逻辑啊,暂时这样看看会不会出问题
+    tree.links.new(sko, ski, handle_dynamic_sockets=True)
+    return
     if tree.bl_idname=='NodeTreeUndefined': # 树不应该是丢失的.
         return # 在丢失的树中, 链接可以手动创建, 但通过 API不行; 所以退出.
     if sko.node==ski.node: # 对于同一个节点, 显然是无意义的, 尽管可能. 对接口更重要.
@@ -230,6 +233,7 @@ def DoLinkHh(sko, ski, *, isReroutesToAnyType=True, isCanBetweenField=True, isCa
         isProcSkfs = False
     elif not( (ndo.bl_idname in set_utilEquestrianPortalBlids)or(ndi.bl_idname in set_utilEquestrianPortalBlids) ): # 至少一个节点应该是骑士.
         isProcSkfs = False
+
     if isProcSkfs: # 嗯, 风暴原来没那么大. 我预想了更多的意大利面条代码. 如果动动脑筋, 一切都变得如此简单明了.
         # 获取虚拟套接字的骑士节点
         ndEq = ndo if isSkoVirtual else ndi # 基于输出骑士与其同伴等概率的假设.

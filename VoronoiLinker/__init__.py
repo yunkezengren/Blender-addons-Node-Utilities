@@ -64,9 +64,10 @@ try:
     from rich import traceback
     traceback.install(extra_lines=0, width=165, code_width=160, show_locals=False)
     
-    # from rich.console import Console
+    # from rich.console import Console      # 在别的文件里导入了
     # console = Console(width=160, log_time=False)
     # print = console.log    # 带有 时间戳 源文件路径 行号
+    # from rich import print as rprint      # 用log打印报错太烦了每行都带路径
 except ImportError:
     pass
 

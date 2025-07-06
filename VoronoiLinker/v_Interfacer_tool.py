@@ -13,6 +13,8 @@ from .utils_translate import *
 from .common_forward_func import *
 from .common_forward_class import *
 from .v_tool import VoronoiToolPairSk
+from bpy.types import NodeTree
+
 
 
 fitVitModeItems = ( ('COPY',   "Copy",   "Copy a socket name to clipboard"),
@@ -61,7 +63,7 @@ class VoronoiInterfacerTool(VoronoiToolPairSk):
             case 'FLIP':            # 失败
                 # ftgMain = self.fotagoSkMain
                 # if ftgMain:
-                    # TemplateDrawSksToolHh(drata, ftgMain, isFlipSide=True, tool_name="")
+                # TemplateDrawSksToolHh(drata, ftgMain, isFlipSide=True, tool_name="")
 
                 TemplateDrawSksToolHh(drata, self.fotagoSkMain, self.fotagoSkRosw, tool_name="移动接口")
                 ftgNdTar = self.fotagoNdTar
@@ -202,7 +204,8 @@ class VoronoiInterfacerTool(VoronoiToolPairSk):
                 return self.fotagoSkRosw and self.fotagoSkMain
             case 'CREATE':
                 return self.fotagoSkMain and self.fotagoNdTar
-    def MatterPurposeTool(self, event, prefs, tree):
+    def MatterPurposeTool(self, event, prefs, tree: NodeTree):
+        links = tree.links
         match self.toolMode:
             case 'COPY':
                 self.clipboard = sk_label_or_name(self.fotagoSkMain.tar)
@@ -255,7 +258,6 @@ class VoronoiInterfacerTool(VoronoiToolPairSk):
                             else:
                                 equr.MoveBySkfs(skfNew, skfTo, isSwap=None) # 天才!
                     if ftgNearest and equr.is_index_switch:
-                        links = tree.links
                         tar_input = ftgNearest.tar       # 要插入的位置的接口
                         inputs = tar_input.node.inputs
                         if tar_input.name == "Index":
@@ -273,26 +275,9 @@ class VoronoiInterfacerTool(VoronoiToolPairSk):
 
 
                 if equr.has_extend_socket:
-                    # print("from_socket ", skMain.name)
-                    # print("from_socket.node ", skMain.node.name)
-                    # # print("equr.skfa = ", equr.skfa)
-                    # # print("equr.skfa.get(nameSn) = ", equr.skfa.get(nameSn))
-                    # print("")
-                    # # pprint(equr)
-                    # pprint(equr.__dict__)
-                    # # pprint(equr.skfa)
-                    # # pprint(equr.type)
-                    # # pprint(dir(equr))
-
-                    # to_socket = equr.GetSkFromSkf(equr.skfa.get(nameSn), isOut=not skMain.is_output)
-                    # print("to_socket   ", to_socket)
-                    # # print("to_socket   ", to_socket.name)
-                    # # print("to_socket.node   ", to_socket.node.name)
-                    # print("")
-                    # pprint(equr.__dict__)   {'node': "Menu Switch",'skfa': node.enum_items,'tree': , 'type': 'MENU
-                    tree.links.new(skMain, equr.GetSkFromSkf(equr.skfa.get(nameSn), isOut=not skMain.is_output))
+                    links.new(skMain, equr.GetSkFromSkf(equr.skfa.get(nameSn), isOut=not skMain.is_output))
                 if is_group:
-                    tree.links.new(skMain, equr.GetSkFromSkf(skfNew, isOut=(skfNew.in_out=='OUTPUT')^(equr.type!='GROUP')))
+                    links.new(skMain, equr.GetSkFromSkf(skfNew, isOut=(skfNew.in_out=='OUTPUT')^(equr.type!='GROUP')))
     def InitTool(self, event, prefs, tree):
         self.fotagoSkMain = None
         self.fotagoSkRosw = None #RootSwap
@@ -309,14 +294,14 @@ class VoronoiInterfacerTool(VoronoiToolPairSk):
                 #    if self.fotagoSkRosw:
                 #        tgl = self.fotagoSkRosw.blid!='NodeSocketVirtual'
                 if True: #todo1v6 为了美观, 对 ^ 做点什么.
-                        for nd in tree.nodes:
-                            if nd.bl_idname in set_utilEquestrianPortalBlids:
-                                if nd.inputs:
-                                    self.dict_ndHidingVirtualIn[nd] = nd.inputs[-1].hide
-                                    nd.inputs[-1].hide = False
-                                if nd.outputs:
-                                    self.dict_ndHidingVirtualOut[nd] = nd.outputs[-1].hide
-                                    nd.outputs[-1].hide = False
+                    for nd in tree.nodes:
+                        if nd.bl_idname in set_utilEquestrianPortalBlids:
+                            if nd.inputs:
+                                self.dict_ndHidingVirtualIn[nd] = nd.inputs[-1].hide
+                                nd.inputs[-1].hide = False
+                            if nd.outputs:
+                                self.dict_ndHidingVirtualOut[nd] = nd.outputs[-1].hide
+                                nd.outputs[-1].hide = False
                 self.tglCrossVirt = None
                 # 某个 bug, 如果不重绘, 第一个找到的虚拟的就无法正确选择.
                 bpy.ops.wm.redraw_timer(type='DRAW', iterations=0)
