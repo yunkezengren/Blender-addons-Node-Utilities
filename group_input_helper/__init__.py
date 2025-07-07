@@ -144,7 +144,7 @@ def find_user_keyconfig(key):
             found_item = True
             for name in dir(kmi.properties):
                 if not name in ["bl_rna", "rna_type"] and not name[0] == "_":
-                    if not kmi.properties[name] == item.properties[name]:
+                    if name in kmi.properties and name in item.properties and not kmi.properties[name] == item.properties[name]:
                         found_item = False
         if found_item:
             return item
