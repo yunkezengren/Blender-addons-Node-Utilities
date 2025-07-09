@@ -5,6 +5,9 @@ from math import ceil
 from mathutils import Vector
 from .translator import i18n as tr
 from pprint import pprint
+import ctypes
+from bpy.types import NodeSocket
+from mathutils import Vector as Vec2
 
 # for i in range(400):      # 节点树节点个数 400个时      1600个时
 #     node.location.x -= 1            # 耗时 0.135465s    0.748193s
@@ -350,93 +353,88 @@ class NODE_OT_distribute_row_column(BaseAlignOp):
         grid_distribute_node(nodes, x_space=self.x_interval, y_space=self.y_interval)
         return {'FINISHED'}
 
-def get_abs_local(node):
-    return node.location + get_abs_local(node.parent) if node.parent else node.location
+def sk_loc(socket: NodeSocket):
+    """ 草,问题出在这个运行时数据,界面刷新时才更新 """
+    try:
+        return Vec2((ctypes.c_float * 2).from_address(ctypes.c_void_p.from_address(socket.as_pointer() + 520).value + 24))
+    except:
+        return socket.node.location
 
-def linear_interpolation(x,
-              xp=[  0.5,   0.8,  1,   1.1,  1.15,   1.2,  1.3,   1.4,  1.5,      2,   2.5,  3,   3.5,    4],
-              fp=[24.01, 21.48, 22, 21.87, 21.95, 21.77, 20.9, 20.86, 20.66, 20.45, 20.37, 21, 20.83, 21.24]):
-    for i in range(len(xp) - 1):
-        if xp[i] <= x <= xp[i + 1]:
-            x1 = xp[i]
-            y1 = fp[i]
-            x2 = xp[i + 1]
-            y2 = fp[i + 1]
-            y = y1 + (y2 - y1) * (x - x1) / (x2 - x1)
-            return y
-    return None
-
-def GetSocketLocation(nd, in_out):    # input -1 output 1
-    def SkIsLinkedVisible(sk):
-        if not sk.is_linked:
-            return True
-        return (sk.links) and (sk.links[0].is_muted)
-    dict_result = {}
-    ndLoc = get_abs_local(nd)
-    ndDim = Vector(nd.dimensions / ui_scale())
-    if in_out == 1:
-        skLocCarriage = Vector((ndLoc.x + ndDim.x, ndLoc.y - 35))
-    else:
-        skLocCarriage = Vector((ndLoc.x, ndLoc.y - ndDim.y + 15))
-    for sk in nd.outputs if in_out == 1 else reversed(nd.inputs):
-        if (sk.enabled) and (not sk.hide):
-            if (in_out == -1) and (sk.type == 'VECTOR') and (SkIsLinkedVisible(sk)) and (not sk.hide_value):
-                if str(sk.rna_type).find("VectorDirection") != -1:
-                    skLocCarriage.y += 20 * 2
-                elif (not (nd.type in ('BSDF_PRINCIPLED', 'SUBSURFACE_SCATTERING'))) or (not (sk.name in ("Subsurface Radius", "Radius"))):
-                    skLocCarriage.y += 30 * 2
-            goalPos = skLocCarriage.copy()
-            if sk.is_linked:
-                dict_result[sk] = {"pos": goalPos}
-            skLocCarriage.y -= linear_interpolation(ui_scale()) * in_out  # 缩放 1 -> 22  1.1 -> 21.88
-    return dict_result
+def linked_valid(sk: NodeSocket):
+    return sk.enabled and sk.is_linked and not sk.hide
 
 class NODE_OT_align_link(Operator):
     bl_idname = "node.align_link"
     bl_label = tr("对齐-拉直连线")
     bl_description = tr("选中节点,以活动节点为中心,拉直输入输出接口之间的连线")
     bl_options = {'REGISTER', 'UNDO'}
+    
+    # 在类级别声明实例属性的 "蓝图"
+    timer: bpy.types.Timer
+    aligned_nodes: list    # 从已对齐的节点出发找没对齐的
+    index: int
 
     @classmethod
     def poll(cls, context):
         i = sum(node.bl_idname != "NodeFrame" for node in context.selected_nodes)
-        return context.space_data.edit_tree and i > 1
+        return context.space_data.edit_tree and i >= 2
 
-    def execute(self, context):
-        tree = context.space_data.edit_tree
-        links = tree.links
+    def invoke(self, context, event):
+        # --- 初始化 ---
         a_node = context.active_node
-        if a_node is None:
-            self.report({"INFO"}, tr("需要选中活动节点和要对齐的节点"))
-            return {"CANCELLED"}
-        from_nodes = [a_node]
-        to_nodes = [a_node]
-        condition = 1
-        while condition:
-            condition = 0
-            temp_from_nodes = []; temp_to_nodes = []
-            for condition_node in from_nodes:
-                condition_SkIn  = GetSocketLocation(condition_node, -1)
-                for link in links:
-                    from_node = link.from_node; to_node = link.to_node
-                    from_socket = link.from_socket; to_socket = link.to_socket
-                    if to_node.name == condition_node.name and from_node.select:
-                        from_node_SKOut = GetSocketLocation(from_node, 1)
-                        from_node.location.y += condition_SkIn[to_socket]["pos"].y - from_node_SKOut[from_socket]["pos"].y - from_node.hide*24 + condition_node.hide*6 - 2
-                        if from_node.inputs:
-                            condition += 1
-                            temp_from_nodes.append(from_node)
-            from_nodes = temp_from_nodes
-            for condition_node in to_nodes:
-                condition_SkOut = GetSocketLocation(condition_node, 1)
-                for link in links:
-                    from_node = link.from_node; to_node = link.to_node
-                    from_socket = link.from_socket; to_socket = link.to_socket
-                    if from_node.name == condition_node.name and to_node.select:
-                        to_node_SKIn = GetSocketLocation(to_node, -1)
-                        to_node.location.y += condition_SkOut[from_socket]["pos"].y - to_node_SKIn[to_socket]["pos"].y - to_node.hide*4 + condition_node.hide*26
-                        if to_node.outputs:
-                            condition += 1
-                            temp_to_nodes.append(to_node)
-            to_nodes = temp_to_nodes
-        return {"FINISHED"}
+        if a_node is None or not a_node.select:
+            a_node = context.selected_nodes[0]
+
+        self.index = 0
+        self.aligned_nodes = [a_node]
+
+        # --- 启动模态和定时器 ---
+        wm = context.window_manager
+        # 定时器间隔非常短, 比如 0.01 秒, 看起来就像动画一样
+        self.timer = wm.event_timer_add(0.01, window=context.window)
+        wm.modal_handler_add(self)
+        
+        return {'RUNNING_MODAL'}
+
+    def modal(self, context, event):
+        # --- 退出条件 ---
+        if event.type in {'RIGHTMOUSE', 'ESC'}:
+            self.cancel(context)
+            return {'CANCELLED'}
+        # --- 核心逻辑: 在定时器事件中执行 ---
+        if event.type == 'TIMER':
+            # 如果队列空了, 说明所有节点都处理完了
+            if self.index >= len(self.aligned_nodes):
+                self.cancel(context)
+                return {'FINISHED'}
+
+            node = self.aligned_nodes[self.index]
+            for sk_in in node.inputs:
+                if linked_valid(sk_in):
+                    link = sk_in.links[0]
+                    from_nd = link.from_node
+                    from_sk = link.from_socket
+                    
+                    # 检查邻居节点是否需要处理
+                    if from_nd.select and (from_nd not in self.aligned_nodes) and linked_valid(from_sk):
+                        from_nd.location.y += (sk_loc(sk_in).y - sk_loc(from_sk).y) / ui_scale()
+                        self.aligned_nodes.append(from_nd)
+
+            for sk_out in node.outputs:
+                if linked_valid(sk_out):
+                    for link in sk_out.links:
+                        to_nd = link.to_node
+                        to_sk = link.to_socket
+                        if to_nd.select and (to_nd not in self.aligned_nodes) and linked_valid(to_sk):
+                            to_nd.location.y += (sk_loc(sk_out).y - sk_loc(to_sk).y) / ui_scale()
+                            self.aligned_nodes.append(to_nd)
+
+            self.index += 1
+            # 强制重绘视图, 以便下一次timer事件能读到最新的sk_loc
+            context.area.tag_redraw()
+
+        return {'PASS_THROUGH'}
+
+    def cancel(self, context):
+        """清理定时器"""
+        context.window_manager.event_timer_remove(self.timer)

@@ -11,22 +11,13 @@ from bpy.props import BoolProperty, IntProperty
 from bpy.types import AddonPreferences, Menu
 # import bpy.utils.previews
 from bpy.utils import previews as bl_preview
-# import bpy 只会导入bpy下的一级module,直接用bpy.utils.previews 会报错,没报错可能是别的插件导入过了
+#+ import bpy 只会导入bpy下的一级module,直接用bpy.utils.previews 会报错,没报错可能是别的插件导入过了
+# 并不是只会导入下一级,import bpy 根据子包里的导入,决定使用时能导入多少级 bpy.a.b.c
 
 # TODO 对齐Frame
 # TODO 把我的 Alt+1 加上 Shift+x Shift+y
 # TODO 根据左上角和右下角画格子,节点落在最近的的格子里
 # TODO 自定义栅格分布判断列的间距(或者根据节点密度/数量自动判断)
-
-bl_info = {
-    "name" : "小王-Node Align",
-    "author" : "一尘不染",
-    "description" : "align node  Shift Q | Ctrl Q",
-    "blender" : (2, 83, 0),
-    "version" : (3, 0, 4),
-    "location": "Nodes Editor",
-    "category": "Node"
-}
 
 addon_keymaps = {}
 _icons = None
