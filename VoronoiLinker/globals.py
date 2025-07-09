@@ -117,10 +117,10 @@ dict_vmtTupleMixerMain: dict[str, dict[str, tuple[str]]] = {
                                                    'GeometryNodeMeshBoolean', 'GeometryNodeGeometryToInstance')},
                 ##
         'CompositorNodeTree': {
-                'VALUE':       ('ShaderNodeCombineXYZ' , 'CompositorNodeMath',      vmtSep, 'CompositorNodeMixRGB', 'CompositorNodeSwitch', 'CompositorNodeSplitViewer', 'CompositorNodeSwitchView'),
-                'RGBA':       ('CompositorNodeAlphaOver', vmtSep, 'CompositorNodeMixRGB', 'CompositorNodeSwitch', 'CompositorNodeSplitViewer', 'CompositorNodeSwitchView'),
-                'VECTOR':     (                           vmtSep, 'CompositorNodeMixRGB', 'CompositorNodeSwitch', 'CompositorNodeSplitViewer', 'CompositorNodeSwitchView'),
-                'INT':        ('ShaderNodeCombineXYZ', 'CompositorNodeMath',      vmtSep, 'CompositorNodeMixRGB', 'CompositorNodeSwitch', 'CompositorNodeSplitViewer', 'CompositorNodeSwitchView')},
+                'VALUE':      ('ShaderNodeMix', 'ShaderNodeCombineXYZ' , 'CompositorNodeMath',      vmtSep, 'CompositorNodeMixRGB', 'CompositorNodeSwitch', 'CompositorNodeSplitViewer', 'CompositorNodeSwitchView'),
+                'RGBA':       ('ShaderNodeMix', 'CompositorNodeAlphaOver', vmtSep, 'CompositorNodeMixRGB', 'CompositorNodeSwitch', 'CompositorNodeSplitViewer', 'CompositorNodeSwitchView'),
+                'VECTOR':     ('ShaderNodeMix',                           vmtSep, 'CompositorNodeMixRGB', 'CompositorNodeSwitch', 'CompositorNodeSplitViewer', 'CompositorNodeSwitchView'),
+                'INT':        ('ShaderNodeMix', 'ShaderNodeCombineXYZ', 'CompositorNodeMath',      vmtSep, 'CompositorNodeMixRGB', 'CompositorNodeSwitch', 'CompositorNodeSplitViewer', 'CompositorNodeSwitchView')},
                                 ##
         'TextureNodeTree':    {
                 'VALUE':       ('ShaderNodeCombineXYZ' , 'TextureNodeMixRGB', 'TextureNodeTexture', 'TextureNodeMath'),

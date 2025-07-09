@@ -1,6 +1,6 @@
 schema_version = "1.0.0"
 id = "voronoi_linker"
-version = "5.1.2"
+version = "5.5.3"
 name = "Voronoi Linker"
 tagline = "aaaaa"
 maintainer = "ugorek"

@@ -145,9 +145,10 @@ class VmtPieMixer(bpy.types.Menu):
             mat_and_mat = True if (sk0_type == "MATRIX" and sk1_type == "MATRIX") else False
             match editorBlid:
                 # 这是 mix pie 的右半
-                case 'ShaderNodeTree':
+                # case 'ShaderNodeTree':
+                case 'ShaderNodeTree' | 'CompositorNodeTree':
                     row2 = LyGetPieCol(0).row(align=VmtData.pieAlignment==0)
-                    row2.enabled = False
+                    row2.enabled = True
                     LyVmAddItem(row2, 'ShaderNodeMix')
                 case 'GeometryNodeTree':
                     column0 = LyGetPieCol(0)
@@ -186,7 +187,11 @@ class VmtPieMixer(bpy.types.Menu):
                     # case 'GeometryNodeSwitch'      : row1.enabled = True
                     # case 'GeometryNodeIndexSwitch' : row2.enabled = True
                     # case 'GeometryNodeMenuSwitch'  : row3.enabled = True
-                    case 'ShaderNodeMix'           : row4.enabled = True
+                    case 'ShaderNodeMix'           : 
+                        try:        # todo 改进这里的逻辑,因为mix节点三个节点树都有
+                            row4.enabled = True
+                        except:
+                            pass
                     case 'FunctionNodeCompare'     : row5.enabled = True
                     # 上面五个是画在左边的,多种接口通用节点
                     # todo 既然通用,全局变量里提取出来
