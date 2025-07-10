@@ -92,6 +92,7 @@ def VestLyAddEnumSelectorBox(where: UILayout, lyDomain=None):
 class VestOpBox(VoronoiOpTool):
     bl_idname = 'node.voronoi_enum_selector_box'
     bl_label = "Enum Selector"
+    rename_store_node:   bpy.props.BoolProperty(default=True, description="隐藏选项时重命名存储属性等一些节点")
     def execute(self, context): # 用于下面的 draw(), 否则不显示.
         pass
     def draw(self, _context):
@@ -102,7 +103,8 @@ class VestOpBox(VoronoiOpTool):
         return context.window_manager.invoke_popup(self, width=int(width))    # 必须要 int
         # return context.window_manager.invoke_popup(self, width=int(128*VestData.boxScale))
     def cancel(self, context):
-        rename_node_based_option(VestData.nd)     # 显示节点选项优化-根据选项重命名节点-domain
+        if self.rename_store_node:
+            rename_node_based_option(VestData.nd)     # 显示节点选项优化-根据选项重命名节点-domain
 
 class VestPieBox(bpy.types.Menu):
     bl_idname = 'VL_MT_Voronoi_enum_selector_box'
@@ -176,6 +178,7 @@ class VoronoiEnumSelectorTool(VoronoiToolNd):
     isPieChoice:         bpy.props.BoolProperty(name="Pie choice",          default=False, description="Allows to select an enum by releasing the key")
     isToggleOptions:     bpy.props.BoolProperty(name="Toggle node options", default=False)
     isSelectNode:        bpy.props.IntProperty(name="Select target node",  default=1, min=0, max=3, description="0 – Do not select.\n1 – Select.\n2 – And center.\n3 – And zooming")
+    rename_store_node:   bpy.props.BoolProperty(default=True, description="隐藏选项时重命名存储属性等一些节点")
     def CallbackDrawTool(self, drata):              # 工具提示
         if self.isToggleOptions:
             mode = "隐藏选项"
@@ -190,7 +193,8 @@ class VoronoiEnumSelectorTool(VoronoiToolNd):
             success = nd.show_options
             if isCanDo:
                 # 显示节点选项优化-根据选项重命名节点-domain
-                rename_node_based_option(nd)
+                if self.rename_store_node:
+                    rename_node_based_option(nd)
                 nd.show_options = False
             return success
         elif isCanDo:
