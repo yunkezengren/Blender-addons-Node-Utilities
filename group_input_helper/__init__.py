@@ -366,7 +366,7 @@ class NODE_MT_Add_Hided_Socket_Group_Input(Menu):
 
 class NODE_PT_Add_Hided_Socket_Group_Input(Panel):
     # bl_category = 'Group'
-    bl_category = '节点树'
+    bl_category = trans('节点树')
     bl_label = trans('组输入拆分')
     bl_idname = 'NODE_PT_Add_Hided_Socket_Group_Input'
     bl_space_type = 'NODE_EDITOR'

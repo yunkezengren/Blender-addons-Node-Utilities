@@ -38,6 +38,7 @@ dictionary = {
         "添加组输入-面板": "Add group input - panel",
         "添加组输入输出接口": "Add group input output socket",
         "添加输入输出接口": "Add input output socket",
+        "节点树": "NodeTree",
         "输入接口": "Input socket",
         "输出接口": "Output socket",
         "组输入合并拆分移动": "Group input merge split move",
