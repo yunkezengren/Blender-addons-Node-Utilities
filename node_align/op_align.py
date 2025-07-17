@@ -1,13 +1,11 @@
 import bpy
-from bpy.types import Operator
+import ctypes
+from bpy.types import Operator, NodeSocket
 from bpy.props import EnumProperty, IntProperty
 from math import ceil
-from mathutils import Vector
-from .translator import i18n as tr
-from pprint import pprint
-import ctypes
-from bpy.types import NodeSocket
 from mathutils import Vector as Vec2
+from pprint import pprint
+from .translator import i18n as tr
 
 # for i in range(400):      # 节点树节点个数 400个时      1600个时
 #     node.location.x -= 1            # 耗时 0.135465s    0.748193s
