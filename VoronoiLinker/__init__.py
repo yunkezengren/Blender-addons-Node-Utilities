@@ -747,7 +747,7 @@ class VoronoiAddonPrefs(bpy.types.AddonPreferences):
     ##
     # https://blender.stackexchange.com/questions/312413/blf-module-how-to-draw-text-in-the-center
     dsManualAdjustment : FloatProperty(name="Manual adjustment",         default=-0.2, description="The Y-axis offset of text for this font") 
-    dsPointOffsetX     : FloatProperty(name="Point offset X axis",       default=20.0,   min=-50.0, max=50.0)
+    dsPointOffsetX     : FloatProperty(name="Point offset X axis",       default=8.0,   min=-50.0, max=50.0)
     dsFrameOffset      : IntProperty(  name="Frame size",                default=0,      min=0,     max=24, subtype='FACTOR') # 注意: 这必须是 Int.
     dsDistFromCursor   : FloatProperty(name="Text distance from cursor", default=25.0,   min=5.0,   max=50.0)
     ##

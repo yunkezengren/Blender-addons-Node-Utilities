@@ -1,39 +1,10 @@
-# print("=" * 100)
-# print("=" * 100)
-# print("=" * 100)
-
 import bpy, ctypes
 from bpy.types import Operator, NodeSocket
 
-# from .获取接口位置_精简版本 import sk_loc2
+# from .获取接口位置 import sk_loc2
 from .test_bpy import print_bpy
+from .获取接口位置_精简版本 import sk_support_types
 # from mathutils import Vector
-
-
-# a = 255
-# print(f"{a:b}")
-# print(f"{a:#b}")
-# print(f"{a:#o}")
-# print(f"{a:x}")
-# print(f"{a:#X}")        # #会添加 0b 0o 0x 前缀
-
-# print("[[fill]align][sign][#][0][width][,][.precision][type]")
-# print("[[fill]align] 表示: align 是可选的，但 fill 只有在 align 存在的情况下才能使用")
-
-# print(f"{1024:#016b}")
-# print(f"{1024:#016o}")
-# print(f"{1024:#016X}")
-
-# def group_string(s: str, group_size: int, separator: str = ' ') -> str:
-#     """从右向左按指定大小分组字符串"""
-#     if len(s) <= group_size: return s
-#     s_reversed = s[::-1]
-#     grouped = separator.join(s_reversed[i:i + group_size] for i in range(0, len(s_reversed), group_size))
-#     return grouped[::-1]
-
-# print(group_string(f"{1024:#018b}", 4))
-# print(group_string(f"{1024:#018o}", 4))
-# print(group_string(f"{1024:#018X}", 4))
 
 
 def sk_loc2(socket: NodeSocket):
@@ -45,31 +16,53 @@ def sk_loc2(socket: NodeSocket):
 
 class NODE_OT_print_socket_location(Operator):
     bl_idname = "node.print_socket_location"
-    bl_label = "Print Socket Location"
+    bl_label = "输出信息"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
-        print_bpy()
+        # print_bpy()
         a_node = context.active_node
         if not a_node:
             self.report({'INFO'}, "No active node selected.")
             return {'CANCELLED'}
-        print(f"\n--- Node: '{a_node.name}' (Type: {a_node.bl_idname}) ---")
+        print(f"\n--- Node: '{a_node.name}' ---")
 
         if a_node.inputs:
             print("Inputs:")
             for socket in a_node.inputs:
-                print(f"  - {socket.name:20} {sk_loc2(socket)}")
+                if socket.type != "GEOMETRY": continue
+                # print(socket.type)
+                print(f"  - {socket.name:20} {sk_support_types(socket)}")
+                # print(f"  - {socket.name:20}")
+                # sk_support_types(socket)
         else:
             print("Inputs: None")
 
-        if a_node.outputs:
-            print("Outputs:")
-            for socket in a_node.outputs:
-                print(f"  - {socket.name:20} {sk_loc2(socket)}")
-        else:
-            print("Outputs: None")
-        print("-------------------------------------------------")
+        # if a_node.outputs:
+        #     print("Outputs:")
+        #     for socket in a_node.outputs:
+        #         print(f"  - {socket.name:20} {sk_support_types(socket)}")
+        #         # print(f"  - {socket.name:20}")
+        #         # sk_support_types(socket)
+        # else:
+        #     print("Outputs: None")
+        
+        
+            
+        # if a_node.inputs:
+        #     print("Inputs:")
+        #     for socket in a_node.inputs:
+        #         print(f"  - {socket.name:20} {sk_loc2(socket)}")
+        # else:
+        #     print("Inputs: None")
+
+        # if a_node.outputs:
+        #     print("Outputs:")
+        #     for socket in a_node.outputs:
+        #         print(f"  - {socket.name:20} {sk_loc2(socket)}")
+        # else:
+        #     print("Outputs: None")
+        # print("-------------------------------------------------")
 
         return {'FINISHED'}
 
@@ -85,6 +78,9 @@ class NODE_PT_socket_printer_panel(bpy.types.Panel):
         row = layout.row()
         row.operator(NODE_OT_print_socket_location.bl_idname)
 
+def draw_button_in_header(self, context):
+    self.layout.operator(NODE_OT_print_socket_location.bl_idname, text="输出信息", icon='CONSOLE')
+
 classes = (
     NODE_OT_print_socket_location,
     NODE_PT_socket_printer_panel,
@@ -95,7 +91,7 @@ addon_keymaps = []
 def register():
     for cls in classes:
         bpy.utils.register_class(cls)
-
+    bpy.types.NODE_HT_header.prepend(draw_button_in_header)
     wm = bpy.context.window_manager
     kc = wm.keyconfigs.addon
     km = kc.keymaps.new(name='Node Editor', space_type='NODE_EDITOR')
@@ -111,3 +107,4 @@ def unregister():
     # 以相反的顺序注销所有类
     for cls in reversed(classes):
         bpy.utils.unregister_class(cls)
+    bpy.types.NODE_HT_header.remove(draw_button_in_header)

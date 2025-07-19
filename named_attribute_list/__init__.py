@@ -269,7 +269,7 @@ def extend_dict_with_evaluated_obj_attrs(attrs_d: Attr_Dict, exclude_l: list[str
     obj = deps.id_eval_get(obj)
     # box = bpy.context.evaluated_depsgraph_get()
     # obj = obj.evaluated_get(box)
-    
+
     all_evaluated_attr: list[str] = []
     if hasattr(obj, "evaluated_geometry"):
         geo = obj.evaluated_geometry()
@@ -317,7 +317,7 @@ def extend_dict_with_obj_data_attrs(attrs_d: Attr_Dict, sub_attrs_d: Attr_Dict, 
                     _.name for _ in color_attrs]
     prefs = pref()
     _dict = sub_attrs_d if prefs.hide_extra_attr else attrs_d
-    
+
     # s_time = time.perf_counter()
     all_evaluated_attr = extend_dict_with_evaluated_obj_attrs(_dict, exclude_l, a_object, all_tree_attr)
     # print("总耗时: ", f"{time.perf_counter() - s_time:.6f}s\n")
@@ -408,7 +408,7 @@ def draw_attr_menu(layout: UILayout, context: Context, attrs: Attr_Dict, is_pane
         data_type = attr_info.data_type
         if data_type not in data_type: continue      # 用处不大了,但可能有string属性?
         if ui_type == 'ShaderNodeTree' and data_type not in shader_date_types: continue
-        
+
         stored_domain_list = list(set(attr_info.domain_info))
         domain_list_to_str = " | ".join(sorted(stored_domain_list, key=lambda x: get_domain_list().index(x)))
         button_txt = attr_name + pref().show_attr_domain * f"  ({domain_list_to_str})"
@@ -430,10 +430,10 @@ def draw_attr_menu(layout: UILayout, context: Context, attrs: Attr_Dict, is_pane
                 can_find_store_node = True
         if group_name == tr("物体属性"):
             description += f'\n{tr("类型: ")}' + attr_info.info  # "\n类型:"
+        op: AL_OT_add_node_from_list = None
         if is_panel:        # 面板里额外绘制
             split = layout.split(factor=0.9)
-            op = split.operator('w.add_node_change_name_and_type', text=button_txt,
-                                    icon_value=(_icons[data_with_png[data_type]].icon_id ) )
+            op = split.operator('al.add_node_from_list', text=button_txt, icon_value=(_icons[data_with_png[data_type]].icon_id))
             icon = "HIDE_OFF" if can_find_store_node else "HIDE_ON"
             if ui_type == 'GeometryNodeTree':
                 op_find = split.operator('node.view_stored_attribute_node', text="", emboss=can_find_store_node, icon=icon)
@@ -447,8 +447,7 @@ def draw_attr_menu(layout: UILayout, context: Context, attrs: Attr_Dict, is_pane
                 # op_find.current += 1
                 # op_find.bl_description = "该属性存储次数:" + str(total) + "\ncurrent:" + str(op_find.current)
         else:
-            op = layout.operator('w.add_node_change_name_and_type', text=button_txt,
-                                    icon_value=(_icons[data_with_png[data_type]].icon_id ) )
+            op = layout.operator('al.add_node_from_list', text=button_txt, icon_value=(_icons[data_with_png[data_type]].icon_id))
             # print(type(op))     # <class 'bpy.types.NODE_PIE_OT_add_node'>
         op.attr_name = attr_name
         op.attr_type = data_type
@@ -463,8 +462,8 @@ def draw_attr_menu(layout: UILayout, context: Context, attrs: Attr_Dict, is_pane
             if attr_info.info == tr("UV贴图"):
                 op.shader_node_type = "ShaderNodeUVMap"
 
-class ATTRLIST_OT_Add_Node_Change_Name_Type_Hide(Operator):
-    bl_idname = "w.add_node_change_name_and_type"
+class AL_OT_add_node_from_list(Operator):
+    bl_idname = "al.add_node_from_list"
     bl_label = "属性隐藏选项"
     bl_options = {"REGISTER", "UNDO"}
     bl_description   : StringProperty(default="快捷键Shift 2 ", options={"HIDDEN"})    # 乐,记不清什么时候的了
@@ -800,7 +799,7 @@ class NODE_OT_View_Stored_Attribute_Node(Operator):
 
         return {'FINISHED'}
 
-# todo 复用代码 ATTRLIST_OT_Add_Node_Change_Name_Type_Hide
+# todo 复用代码 AL_OT_add_node_from_list
 class NODE_OT_Add_Named_Attribute(Operator):
     bl_idname = "node.add_named_attribute_node"
     bl_label = tr("快速添加命名属性节点")
@@ -813,11 +812,10 @@ class NODE_OT_Add_Named_Attribute(Operator):
         return context.area.ui_type == 'GeometryNodeTree'
 
     def execute(self, context):
-        print(1111111111111111111)
         active_node = context.active_node
         prefs = pref()
         if active_node and active_node.bl_idname == 'GeometryNodeStoreNamedAttribute':
-            # todo 这里和ATTRLIST_OT_Add_Node_Change_Name_Type_Hide里的GeometryNodeTree可以复用函数
+            # todo 这里和AL_OT_add_node_from_list里的GeometryNodeTree可以复用函数
             attr_name = active_node.inputs["Name"].default_value
             data_type = active_node.data_type
             if data_type in sub_data_type:
@@ -844,7 +842,7 @@ class NODE_OT_Add_Named_Attribute(Operator):
         return {"FINISHED"}
 
 classes = [
-    ATTRLIST_OT_Add_Node_Change_Name_Type_Hide,
+    AL_OT_add_node_from_list,
     ATTRLIST_MT_SubMenu,
     ATTRLIST_MT_Menu,
     ATTRLIST_PT_NPanel,
