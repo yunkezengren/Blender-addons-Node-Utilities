@@ -152,12 +152,6 @@ def find_user_keyconfig(key):
     print(f"Couldn't find keymap item for {key}, using addon keymap instead. This won't be saved across sessions!")
     return kmi
 
-def pref():
-    return bpy.context.preferences.addons[__package__].preferences
-
-def ui_scale():
-    return bpy.context.preferences.system.dpi / 72      # 类似于prefs.view.ui_scale, 但是不同的显示器dpi不一样吗
-
 # INVOKE_REGION_WIN                                                2 新建节点 唤出菜单新建跟随鼠标，标题栏新建跟随
 # INVOKE_DEFAULT  INVOKE_REGION_CHANNELS  INVOKE_REGION_PREVIEW    1 新建节点 唤出菜单新建跟随鼠标，标题栏新建不跟随
 # INVOKE_AREA  INVOKE_SCREEN                                       报错
@@ -200,6 +194,13 @@ class GroupInputHelperAddonPreferences(AddonPreferences):
         split6 = layout.split(factor=0.65)
         split6.label(text=trans('拆分并移动组输入节点时删除转接点'))
         split6.prop(self, 'is_del_reroute', text='')
+
+def pref() -> GroupInputHelperAddonPreferences:
+    assert __package__ is not None      # 断言 __package__ 在这里不可能是 None,因为 __getitem__ 接受的 key 只能是 int 或 str
+    return bpy.context.preferences.addons[__package__].preferences
+
+def ui_scale():
+    return bpy.context.preferences.system.dpi / 72      # 类似于prefs.view.ui_scale, 但是不同的显示器dpi不一样吗
 
 def get_socket_idname(socket_id):
     # 好像只3.6这样,4.0就都一种了

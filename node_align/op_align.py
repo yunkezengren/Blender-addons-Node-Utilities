@@ -15,6 +15,7 @@ from .translator import i18n as tr
 def ui_scale():
     return bpy.context.preferences.system.dpi / 72      # 类似于prefs.view.ui_scale, 但是不同的显示器dpi不一样吗
 def pref():
+    assert __package__ is not None      # 断言 __package__ 在这里不可能是 None,因为 __getitem__ 接受的 key 只能是 int 或 str
     return bpy.context.preferences.addons[__package__].preferences
 def get_x_min(nodes):
     return min(node.location.x for node in nodes)

@@ -442,7 +442,7 @@ class TestDraw:
         DrawMarker(drata, center+Vec2((-100,-60)), col, style=1)
         DrawMarker(drata, center+Vec2((-150,-60)), col, style=2)
         drata.DrawPathLL( (center+Vec2((0,-60)), center+Vec2((100,-60))), (opaque_color4(col), opaque_color4(col)), wid=drata.dsLineWidth )
-        drata.DrawPathLL( (center+Vec2((100,-60)), center+Vec2((200,-60))), (opaque_color4(col), opaque_color4(col, al=0.0)), wid=drata.dsLineWidth )
+        drata.DrawPathLL( (center+Vec2((100,-60)), center+Vec2((200,-60))), (opaque_color4(col), opaque_color4(col, alpha=0.0)), wid=drata.dsLineWidth )
         drata.DrawWidePoint(center+Vec2((0,-60)), radHh=( (6*drata.dsPointScale+1)**2+10 )**0.5, col1=Color4(opaque_color4(col)), col2=Color4(opaque_color4(col)))
         drata.DrawWidePoint(center+Vec2((100,-60)), radHh=( (6*drata.dsPointScale+1)**2+10 )**0.5, col1=col, col2=Color4(opaque_color4(col)))
         import gpu_extras.presets; gpu_extras.presets.draw_circle_2d((256,256),(1,1,1,1),10)

@@ -36,7 +36,8 @@ common_l = [['FLOAT2', 'FLOAT_VECTOR'], ['BYTE_COLOR', 'FLOAT_COLOR'], 'QUATERNI
 sort_key_l1: list[Union[str, list]] = ['BOOLEAN', 'FLOAT', ['INT8', 'INT']] + common_l
 sort_key_l2: list[Union[str, list]] = [['INT8', 'INT'], 'BOOLEAN', 'FLOAT'] + common_l
 
-def pref():
+def pref() -> "ATTRLIST_AddonPrefs":
+    assert __package__ is not None      # 断言 __package__ 在这里不可能是 None,因为 __getitem__ 接受的 key 只能是 int 或 str
     return bpy.context.preferences.addons[__package__].preferences
 
 def get_domain_list():
@@ -128,7 +129,7 @@ class ATTRLIST_AddonPrefs(AddonPreferences):
         box1.label(text=limit3)
         box1.label(text="information outdated / 描述信息过时")
 
-def get_proper_obj():
+def get_proper_obj() -> Object:
     ui_type = bpy.context.area.ui_type
     if ui_type == 'GeometryNodeTree':
         # for pinned node tree
@@ -660,7 +661,7 @@ class ATTRLIST_PT_NPanel(Panel):
                 split.prop(prefs, 'rename_Store_Node',  toggle=True, text=tr('重命名节点标签'))
 
             arrow_add = "TRIA_DOWN" if prefs.show_settings else "TRIA_RIGHT"
-            box1.prop(prefs, "show_settings", emboss=True, icon=arrow_add)
+            box1.prop(prefs, "show_settings", toggle=True, icon=arrow_add)
             if prefs.show_settings:
                 split2 = box1.split(factor=0.4)
                 split2.label(text=tr('列表排序方式'))
@@ -725,7 +726,7 @@ def exit_group_to_root():
         # bpy.ops.node.tree_path_parent()
 
 def proper_scroll_view():
-    if bpy.context.preferences.addons[__package__].preferences.if_scale_editor:
+    if pref().if_scale_editor: # type: ignore
         for i in range(50):
             bpy.ops.view2d.zoom_out()
         for i in range(40):
