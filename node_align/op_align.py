@@ -1,6 +1,6 @@
 import bpy
 import ctypes
-from bpy.types import Operator, NodeSocket
+from bpy.types import Operator, NodeSocket, Node
 from bpy.props import EnumProperty, IntProperty
 from math import ceil
 from mathutils import Vector as Vec2
@@ -370,8 +370,9 @@ class NODE_OT_align_link(Operator):
     
     # 在类级别声明实例属性的 "蓝图"
     timer: bpy.types.Timer
-    aligned_nodes: list    # 从已对齐的节点出发找没对齐的
+    aligned_nodes: list[Node]    # 从已对齐的节点出发找没对齐的
     index: int
+    iter_index: int
 
     @classmethod
     def poll(cls, context):
@@ -385,6 +386,7 @@ class NODE_OT_align_link(Operator):
             a_node = context.selected_nodes[0]
 
         self.index = 0
+        self.iter_index = 0
         self.aligned_nodes = [a_node]
 
         # --- 启动模态和定时器 ---
@@ -404,6 +406,12 @@ class NODE_OT_align_link(Operator):
         if event.type == 'TIMER':
             # 如果队列空了, 说明所有节点都处理完了
             if self.index >= len(self.aligned_nodes):
+                while self.iter_index < len(context.selected_nodes):
+                    node = context.selected_nodes[self.iter_index]
+                    self.iter_index += 1
+                    if node not in self.aligned_nodes:
+                        self.aligned_nodes.append(node)
+                        return {'RUNNING_MODAL'}
                 self.cancel(context)
                 return {'FINISHED'}
 
