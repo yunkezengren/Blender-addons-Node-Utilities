@@ -1,7 +1,7 @@
 import ctypes
 import bpy
 from bpy.types import NodeSocket
-from .globals import isWin, is_blender4plus
+from .globals import isWin, is_blender4plus, is_bl5
 # from typing import cast
 
 class StructBase(ctypes.Structure):
@@ -74,13 +74,18 @@ class BNodeSocket(StructBase):
     runtime               : ctypes.POINTER(BNodeSocketRuntimeHandle)
 
 class BNodeType(StructBase):                # \source\blender\blenkernel\BKE_node.h
-    idname                : ctypes.c_char*64
+    # 从内存布局以及debug看,idname 等几个5.0改成了 std::string ,显示40字节,nclass 偏移量是168字节
+    # 😡但是为什么std::string当做32字节才对啊,为什么从144开始读 nclass 才对
+    idname                : ctypes.c_char*32 if is_bl5 else ctypes.c_char*64
     type                  : ctypes.c_int
-    ui_name               : ctypes.c_char*64
-    ui_description        : ctypes.c_char*256
+    if is_bl5:
+        _pad1             : ctypes.c_char*4
+    ui_name               : ctypes.c_char*32 if is_bl5 else ctypes.c_char*64
+    ui_description        : ctypes.c_char*32 if is_bl5 else ctypes.c_char*256
     ui_icon               : ctypes.c_int
+    _pad2                 : ctypes.c_char*4
     if bpy.app.version >= (4, 0, 0):
-        char              : ctypes.c_void_p
+        enum_name_legacy  : ctypes.c_void_p
     width                 : ctypes.c_float
     minwidth              : ctypes.c_float
     maxwidth              : ctypes.c_float

@@ -69,15 +69,23 @@ def SolderThemeCols(themeNe):
             setattr(SoldThemeCols, dnf+"4pw", GetNiceColNone(col4))
             setattr(SoldThemeCols, dnf+"3", Vec(col4[:3])) # 用于 vptRvEeIsSavePreviewResults.
 
-def GetNdThemeNclassCol(ndTar):
-    if ndTar.bl_idname=='ShaderNodeMix':
-        match ndTar.data_type:
-            case 'RGBA':   return SoldThemeCols.color_node4pw
-            case 'VECTOR': return SoldThemeCols.vector_node4pw
-            case _:        return SoldThemeCols.converter_node4pw
+def GetNdThemeNclassCol(node: bpy.types.Node):
+    if bpy.app.version >= (5, 0, 0):
+        color_tag = node.color_tag.lower() + "_node"
+        if color_tag == "interface":
+            color_tag = "group_socket"
+        color = getattr(bpy.context.preferences.themes[0].node_editor, color_tag).copy()
+        color.s *= 2
+        color.v *= 0.9
+        return Vec((*color, 1))
     else:
-        # 小王
-        return getattr(SoldThemeCols, SoldThemeCols.dict_mapNcAtt.get(BNode.GetFields(ndTar).typeinfo.contents.nclass, 'node_backdrop')+"4pw")
+        if node.bl_idname=='ShaderNodeMix':
+            match node.data_type:
+                case 'RGBA':   return SoldThemeCols.color_node4pw
+                case 'VECTOR': return SoldThemeCols.vector_node4pw
+                case _:        return SoldThemeCols.converter_node4pw
+        else:
+            return getattr(SoldThemeCols, SoldThemeCols.dict_mapNcAtt.get(BNode.GetFields(node).typeinfo.contents.nclass, 'node_backdrop')+"4pw")
 
 def SolderClsToolNames(class_dict: dict):
     for cls in class_dict:

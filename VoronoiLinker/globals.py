@@ -25,6 +25,7 @@ floatIntColorInverse = {'INT': (0.63, 0.63, 0.63, 1), 'VALUE': (0.35, 0.55, 0.36
 # 还能因为插件能在不同API的不同版本中运行而获得额外的内啡肽. 😎
 #Todo0VV: 尽可能地向更低版本兼容. 目前能保证的是: b4.0 和 b4.1? 🤔
 is_blender4plus = bpy.app.version[0] >= 4
+is_bl5 = bpy.app.version >= (5, 0, 0)
 
 dict_typeSkToBlid = {
     'SHADER':    'NodeSocketShader',
