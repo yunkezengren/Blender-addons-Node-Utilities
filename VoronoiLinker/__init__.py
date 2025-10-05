@@ -29,7 +29,7 @@ from .utils_translate import *
 from .common_forward_func import *
 from .common_forward_class import *
 from .globals import dict_vlHhTranslations
-from .common_forward_func import GetFirstUpperLetters, GetUserKmNe, format_tool_set, Prefs
+from .common_forward_func import GetFirstUpperLetters, user_node_keymaps, format_tool_set, Prefs
 from .common_forward_class import TryAndPass
 from .utils_solder import SolderClsToolNames, RegisterSolderings, UnregisterSolderings
 from .utils_translate import GetAnnotFromCls, VlTrMapForKey
@@ -62,7 +62,8 @@ from .rot_or_mat_convert import Rot_or_Mat_Convert, PIE_MT_Convert_To_Rotation, 
 
 try:
     from rich import traceback
-    traceback.install(extra_lines=0, width=165, code_width=160, show_locals=False)
+    # traceback.install(extra_lines=0, width=165, code_width=160, show_locals=False)
+    traceback.install(extra_lines=0, width=165, show_locals=False)
     
     # from rich.console import Console      # 在别的文件里导入了
     # console = Console(width=160, log_time=False)
@@ -75,7 +76,7 @@ dict_classes = {} # 所有需要注册的类都放在这里. 使用字典是为�
 dict_vtClasses = {} # 只存放 V*T (Voronoi Tool) 工具.
 
 list_kmiDefs = []
-dict_setKmiCats = {'grt':set(), 'oth':set(), 'spc':set(), 'qqm':set(), 'cus':set()}
+dict_setKmiCats = {'最有用':set(), '很有用':set(), '可能有用':set(), '无效':set(), 'qqm':set(), 'cus':set()}
 
 def smart_add_to_reg_and_kmiDefs(cls, txt, dict_props={}):
     dict_numToKey = {"1":'ONE', "2":'TWO', "3":'THREE', "4":'FOUR', "5":'FIVE', "6":'SIX', "7":'SEVEN', "8":'EIGHT', "9":'NINE', "0":'ZERO'}
@@ -290,7 +291,7 @@ dict_toolLangSpecifDataPool[VoronoiPreviewAnchorTool, "ru_RU"] = "Вынужде
 
 smart_add_to_reg_and_kmiDefs(VoronoiMixerTool, "S#A_LEFTMOUSE") # 混合器移到了左键, 为 VQMT 减轻负担.
 with VlTrMapForKey(VoronoiMixerTool.bl_label) as dm:
-    dm["zh_CN"] = "Voronoi快速混合"
+    dm["zh_CN"] = "Voronoi快速混合饼菜单"
 with VlTrMapForKey(format_tool_set(VoronoiMixerTool)) as dm:
     dm["ru_RU"] = f"Настройки инструмента {VoronoiMixerTool.bl_label}:"
     dm["zh_CN"] = f"{VoronoiMixerTool.bl_label}快速混合设置:"
@@ -318,22 +319,22 @@ with VlTrMapForKey(format_tool_set(VoronoiQuickMathTool)) as dm:
 dict_toolLangSpecifDataPool[VoronoiQuickMathTool, "ru_RU"] = """Полноценное ответвление от VMT. Быстрая и быстрая быстрая математика на спидах.
 Имеет дополнительный мини-функционал. Также см. \"Quick quick math\" в раскладе."""
 
-smart_add_to_reg_and_kmiDefs(VoronoiRantoTool, "###_R")
-smart_add_to_reg_and_kmiDefs(VoronoiRantoTool, "S##_R", {'isAccumulate':True})
-smart_add_to_reg_and_kmiDefs(VoronoiRantoTool, "#C#_R", {'isOnlySelected':2})
-smart_add_to_reg_and_kmiDefs(VoronoiRantoTool, "#CA_R", {'isUniWid':True, 'isUncollapseNodes':True, 'isDeleteReroutes':True})
-with VlTrMapForKey(VoronoiRantoTool.bl_label) as dm:
-    dm["zh_CN"] = "Voronoi节点自动排布对齐"
-with VlTrMapForKey(format_tool_set(VoronoiRantoTool)) as dm:
-    dm["ru_RU"] = f"Настройки инструмента {VoronoiRantoTool.bl_label}:"
-    dm["zh_CN"] = f"{VoronoiRantoTool.bl_label}节点自动排布对齐工具设置:"
-dict_toolLangSpecifDataPool[VoronoiRantoTool, "ru_RU"] = "Сейчас этот инструмент не более чем пустышка.\nСтанет доступным, когда VL стяжет свои заслуженные(?) лавры популярности."
+# smart_add_to_reg_and_kmiDefs(VoronoiRantoTool, "###_R")
+# smart_add_to_reg_and_kmiDefs(VoronoiRantoTool, "S##_R", {'isAccumulate':True})
+# smart_add_to_reg_and_kmiDefs(VoronoiRantoTool, "#C#_R", {'isOnlySelected':2})
+# smart_add_to_reg_and_kmiDefs(VoronoiRantoTool, "#CA_R", {'isUniWid':True, 'isUncollapseNodes':True, 'isDeleteReroutes':True})
+# with VlTrMapForKey(VoronoiRantoTool.bl_label) as dm:
+#     dm["zh_CN"] = "Voronoi节点自动排布对齐"
+# with VlTrMapForKey(format_tool_set(VoronoiRantoTool)) as dm:
+#     dm["ru_RU"] = f"Настройки инструмента {VoronoiRantoTool.bl_label}:"
+#     dm["zh_CN"] = f"{VoronoiRantoTool.bl_label}节点自动排布对齐工具设置:"
+# dict_toolLangSpecifDataPool[VoronoiRantoTool, "ru_RU"] = "Сейчас этот инструмент не более чем пустышка.\nСтанет доступным, когда VL стяжет свои заслуженные(?) лавры популярности."
 
 smart_add_to_reg_and_kmiDefs(VoronoiSwapperTool, "S##_S", {'toolMode':'SWAP'})
 smart_add_to_reg_and_kmiDefs(VoronoiSwapperTool, "##A_S", {'toolMode':'ADD'})
 smart_add_to_reg_and_kmiDefs(VoronoiSwapperTool, "S#A_S", {'toolMode':'TRAN'})
 with VlTrMapForKey(VoronoiSwapperTool.bl_label) as dm:
-    dm["zh_CN"] = "Voronoi快速替换接口"
+    dm["zh_CN"] = "Voronoi快速交换替换移动连线"
 
 dict_toolLangSpecifDataPool[VoronoiSwapperTool, "ru_RU"] = """Инструмент для обмена линков у двух сокетов, или добавления их к одному из них.
 Для линка обмена не будет, если в итоге он окажется исходящим из своего же нода."""
@@ -345,7 +346,7 @@ smart_add_to_reg_and_kmiDefs(VoronoiHiderTool, "S##_E", {'toolMode':'SOCKET'})
 smart_add_to_reg_and_kmiDefs(VoronoiHiderTool, "#CA_E", {'toolMode':'SOCKETVAL'})
 smart_add_to_reg_and_kmiDefs(VoronoiHiderTool, "SC#_E", {'toolMode':'NODE'})
 with VlTrMapForKey(VoronoiHiderTool.bl_label) as dm:
-    dm["zh_CN"] = "Voronoi快速隐藏"
+    dm["zh_CN"] = "Voronoi快速隐藏显示接口"
 with VlTrMapForKey(format_tool_set(VoronoiHiderTool)) as dm:
     dm["ru_RU"] = f"Настройки инструмента {VoronoiHiderTool.bl_label}:"
     dm["zh_CN"] = f"{VoronoiHiderTool.bl_label}快速隐藏接口设置:"
@@ -356,7 +357,7 @@ dict_toolLangSpecifDataPool[VoronoiHiderTool, "zh_CN"] = "Shift是自动隐藏�
 smart_add_to_reg_and_kmiDefs(VoronoiMassLinkerTool, "SCA_LEFTMOUSE")
 smart_add_to_reg_and_kmiDefs(VoronoiMassLinkerTool, "SCA_RIGHTMOUSE", {'isIgnoreExistingLinks':True})
 with VlTrMapForKey(VoronoiMassLinkerTool.bl_label) as dm:
-    dm["zh_CN"] = "Voronoi根据接口名批量快速连接"
+    dm["zh_CN"] = "Voronoi批量连接同名接口"
 with VlTrMapForKey(format_tool_set(VoronoiMassLinkerTool)) as dm:
     dm["ru_RU"] = f"Настройки инструмента {VoronoiMassLinkerTool.bl_label}:"
     dm["zh_CN"] = f"{VoronoiMassLinkerTool.bl_label}根据接口名批量连接设置:"
@@ -364,11 +365,11 @@ dict_toolLangSpecifDataPool[VoronoiMassLinkerTool, "ru_RU"] = """"Малыш к�
 VLT на максималках. В связи со своим принципом работы, по своему божественен."""
 
 # 最初想用 'V_Sca', 但手指伸到 V 太远了. 而且, 考虑到创建这个工具的原因, 需要最小化调用的复杂性.
-smart_add_to_reg_and_kmiDefs(VoronoiEnumSelectorTool, "#C#_R", {'isPieChoice':True, 'isSelectNode':3})
+smart_add_to_reg_and_kmiDefs(VoronoiEnumSelectorTool, "#C#_R", {'isPieChoice':False, 'isSelectNode':1})
 smart_add_to_reg_and_kmiDefs(VoronoiEnumSelectorTool, "#C#_E", {'isInstantActivation':False})
 smart_add_to_reg_and_kmiDefs(VoronoiEnumSelectorTool, "##A_E", {'isToggleOptions':True})
 with VlTrMapForKey(VoronoiEnumSelectorTool.bl_label) as dm:
-    dm["zh_CN"] = "Voronoi快速切换节点内部下拉列表"
+    dm["zh_CN"] = "Voronoi快速隐藏/切换节点菜单选项"
 with VlTrMapForKey(format_tool_set(VoronoiEnumSelectorTool)) as dm:
     dm["ru_RU"] = f"Настройки инструмента {VoronoiEnumSelectorTool.bl_label}:"
     dm["zh_CN"] = f"{VoronoiEnumSelectorTool.bl_label}快速显示节点里下拉列表设置:"
@@ -403,25 +404,25 @@ smart_add_to_reg_and_kmiDefs(VoronoiInterfacerTool, "S#A_Z", {'toolMode':'FLIP'}
 # smart_add_to_reg_and_kmiDefs(VoronoiInterfacerTool, "S#A_Q", {'toolMode':'DELETE'})
 smart_add_to_reg_and_kmiDefs(VoronoiInterfacerTool, "S#A_E", {'toolMode':'SOC_TY'})
 with VlTrMapForKey(VoronoiInterfacerTool.bl_label) as dm:
-    dm["zh_CN"] = "Voronoi在节点组里快速复制粘贴接口名给节点组输入输出端"
+    dm["zh_CN"] = "Voronoi新建交换移动接口\复制粘贴label"
 dict_toolLangSpecifDataPool[VoronoiInterfacerTool, "ru_RU"] = """Инструмент на уровне "The Great Trio". Ответвление от VLT ради удобного ускорения
 процесса создания и спец-манипуляций с интерфейсами. "Менеджер интерфейсов"."""
 
-smart_add_to_reg_and_kmiDefs(VoronoiLinksTransferTool, "SC#_T")
+smart_add_to_reg_and_kmiDefs(VoronoiLinksTransferTool, "SCA_T")
 smart_add_to_reg_and_kmiDefs(VoronoiLinksTransferTool, "S##_T", {'isByIndexes':True})
 with VlTrMapForKey(VoronoiLinksTransferTool.bl_label) as dm:
-    dm["zh_CN"] = "Voronoi链接按输入端类型切换到别的接口"
+    dm["zh_CN"] = "Voronoi移动节点连线到另一个节点"
 dict_toolLangSpecifDataPool[VoronoiLinksTransferTool, "ru_RU"] = "Инструмент для редких нужд переноса всех линков с одного нода на другой.\nВ будущем скорее всего будет слито с VST."
 
-smart_add_to_reg_and_kmiDefs(VoronoiWarperTool, "##A_W")
-smart_add_to_reg_and_kmiDefs(VoronoiWarperTool, "S#A_W", {'isZoomedTo':False})
+smart_add_to_reg_and_kmiDefs(VoronoiWarperTool, "S#A_W")
+smart_add_to_reg_and_kmiDefs(VoronoiWarperTool, "SCA_W", {'isZoomedTo':False})
 with VlTrMapForKey(VoronoiWarperTool.bl_label) as dm:
-    dm["zh_CN"] = "Voronoi快速聚焦某条连接"
+    dm["zh_CN"] = "Voronoi聚焦某条线"
 dict_toolLangSpecifDataPool[VoronoiWarperTool, "ru_RU"] = "Мини-ответвление реверс-инженеринга топологии, (как у VPT).\nИнструмент для \"точечных прыжков\" по сокетам."
 
-smart_add_to_reg_and_kmiDefs(VoronoiLazyNodeStencilsTool, "##A_Q")
+smart_add_to_reg_and_kmiDefs(VoronoiLazyNodeStencilsTool, "S#A_Q")
 with VlTrMapForKey(VoronoiLazyNodeStencilsTool.bl_label) as dm:
-    dm["zh_CN"] = "Voronoi在输入端快速节点"
+    dm["zh_CN"] = "Voronoi在材质某些矢量和颜色输入接口添加几个节点"
 with VlTrMapForKey(format_tool_set(VoronoiLazyNodeStencilsTool)) as dm:
     dm["ru_RU"] = f"Настройки инструмента {VoronoiLazyNodeStencilsTool.bl_label}:"
     dm["zh_CN"] = f"{VoronoiLazyNodeStencilsTool.bl_label}快速添加纹理设置:"
@@ -438,28 +439,28 @@ dict_toolLangSpecifDataPool[VoronoiResetNodeTool, "ru_RU"] = """Инструме
 
 #smart_add_to_reg_and_kmiDefs(VoronoiDummyTool, "###_D", {'isDummy':True})
 
-dict_setKmiCats['grt'].add(VoronoiDummyTool.bl_idname)
-dict_setKmiCats['grt'].add(VoronoiLinkerTool.bl_idname)
-dict_setKmiCats['grt'].add(VoronoiMixerTool.bl_idname)
-dict_setKmiCats['grt'].add(VoronoiPreviewTool.bl_idname)
-dict_setKmiCats['grt'].add(VoronoiQuickMathTool.bl_idname)
+dict_setKmiCats['最有用'].add(VoronoiLinkerTool.bl_idname)
+dict_setKmiCats['最有用'].add(VoronoiPreviewTool.bl_idname)
+dict_setKmiCats['最有用'].add(VoronoiMixerTool.bl_idname)
+dict_setKmiCats['最有用'].add(VoronoiQuickMathTool.bl_idname)
+dict_setKmiCats['最有用'].add(VoronoiCallNodePie.bl_idname)
+dict_setKmiCats['最有用'].add(VoronoiHiderTool.bl_idname)
 
-dict_setKmiCats['oth'].add(VoronoiCallNodePie.bl_idname)
-dict_setKmiCats['oth'].add(VoronoiHiderTool.bl_idname)
-dict_setKmiCats['oth'].add(VoronoiEnumSelectorTool.bl_idname)
-dict_setKmiCats['oth'].add(VoronoiQuickConstant.bl_idname)
-dict_setKmiCats['oth'].add(VoronoiQuickDimensionsTool.bl_idname)
-dict_setKmiCats['oth'].add(VoronoiMassLinkerTool.bl_idname)         # 批量连线
+dict_setKmiCats['很有用'].add(VoronoiMassLinkerTool.bl_idname)         # 批量连线
+dict_setKmiCats['很有用'].add(VoronoiQuickConstant.bl_idname)
+dict_setKmiCats['很有用'].add(VoronoiInterfacerTool.bl_idname)
+dict_setKmiCats['很有用'].add(VoronoiQuickDimensionsTool.bl_idname)
+dict_setKmiCats['很有用'].add(VoronoiLinksTransferTool.bl_idname)
+dict_setKmiCats['很有用'].add(VoronoiEnumSelectorTool.bl_idname)
+dict_setKmiCats['很有用'].add(VoronoiSwapperTool.bl_idname)
+dict_setKmiCats['很有用'].add(VoronoiResetNodeTool.bl_idname)
 
-dict_setKmiCats['spc'].add(VoronoiLazyNodeStencilsTool.bl_idname)
-dict_setKmiCats['spc'].add(VoronoiPreviewAnchorTool.bl_idname)
-dict_setKmiCats['spc'].add(VoronoiSwapperTool.bl_idname)
-dict_setKmiCats['spc'].add(VoronoiInterfacerTool.bl_idname)
-dict_setKmiCats['spc'].add(VoronoiLinkRepeatingTool.bl_idname)
-dict_setKmiCats['spc'].add(VoronoiLinksTransferTool.bl_idname)
-dict_setKmiCats['spc'].add(VoronoiRantoTool.bl_idname)
-dict_setKmiCats['spc'].add(VoronoiResetNodeTool.bl_idname)
-dict_setKmiCats['spc'].add(VoronoiWarperTool.bl_idname)
+dict_setKmiCats['可能有用'].add(VoronoiLinkRepeatingTool.bl_idname)
+dict_setKmiCats['可能有用'].add(VoronoiLazyNodeStencilsTool.bl_idname)
+dict_setKmiCats['可能有用'].add(VoronoiPreviewAnchorTool.bl_idname)
+dict_setKmiCats['可能有用'].add(VoronoiWarperTool.bl_idname)
+
+# dict_setKmiCats['无效'].add(VoronoiRantoTool.bl_idname)
 
 with VlTrMapForKey(VoronoiDummyTool.bl_label) as dm:
     dm["ru_RU"] = "Voronoi Болванка"
@@ -485,7 +486,7 @@ def GetVlKeyconfigAsPy(): # 从 'bl_keymap_utils.io' 借来的. 我完全不知�
     class FakeKeyConfig:
         keymaps = []
     edited_kc = FakeKeyConfig()
-    edited_kc.keymaps.append(GetUserKmNe())
+    edited_kc.keymaps.append(user_node_keymaps())
     if kc!=wm.keyconfigs.default:
         export_keymaps = keyconfig_merge(edited_kc, kc)
     else:
@@ -549,7 +550,8 @@ def GetVlKeyconfigAsPy(): # 从 'bl_keymap_utils.io' 借来的. 我完全不知�
     return result
 def GetVaSettAsPy(prefs):
     set_ignoredAddonPrefs = {'bl_idname', 'vaUiTabs', 'vaInfoRestore', 'dsIsFieldDebug', 'dsIsTestDrawing', # tovo2v6: 是全部吗?
-                             'vaKmiMainstreamDiscl', 'vaKmiOtjersDiscl', 'vaKmiSpecialDiscl', 'vaKmiQqmDiscl', 'vaKmiCustomDiscl'}
+                             'vaKmiMainstreamDiscl', 'vaKmiOtjersDiscl', 'vaKmiSpecialDiscl', 'vaKmiInvalidDiscl', 
+                             'vaKmiQqmDiscl', 'vaKmiCustomDiscl'}
     for cls in dict_vtClasses:
         set_ignoredAddonPrefs.add(cls.disclBoxPropName)
         set_ignoredAddonPrefs.add(cls.disclBoxPropNameInfo)
@@ -633,7 +635,7 @@ class VoronoiOpAddonTabs(bpy.types.Operator):
             case 'GetPySett':
                 context.window_manager.clipboard = GetVaSettAsPy(prefs)
             case 'AddNewKmi':
-                GetUserKmNe().keymap_items.new("node.voronoi_",'D','PRESS').show_expanded = True
+                user_node_keymaps().keymap_items.new("node.voronoi_",'D','PRESS').show_expanded = True
             case _:
                 prefs.vaUiTabs = self.opt
         return {'FINISHED'}
@@ -712,6 +714,7 @@ class VoronoiAddonPrefs(bpy.types.AddonPreferences):
     vaKmiMainstreamDiscl : BoolProperty(name="The Great Trio ", default=True) # 注意: 空格对翻译很重要.
     vaKmiOtjersDiscl     : BoolProperty(name="Others ", default=False)
     vaKmiSpecialDiscl    : BoolProperty(name="Specials ", default=False)
+    vaKmiInvalidDiscl    : BoolProperty(name="Invalid ", default=False)
     vaKmiQqmDiscl        : BoolProperty(name="Quick quick math ", default=False)
     vaKmiCustomDiscl     : BoolProperty(name="Custom ", default=True)
     vaDecorLy            : FloatVectorProperty(name="DecorForLayout",   default=(0.01, 0.01, 0.01),   min=0, max=1, size=3, subtype='COLOR')
@@ -782,10 +785,13 @@ class VoronoiAddonPrefs(bpy.types.AddonPreferences):
             dm["zh_CN"] = "很有用"
         with VlTrMapForKey(GetPrefsRnaProp('vaKmiSpecialDiscl').name) as dm:
             dm["ru_RU"] = "Специальные"
-            dm["zh_CN"] = "也有用"
+            dm["zh_CN"] = "可能有用"
+        with VlTrMapForKey(GetPrefsRnaProp('vaKmiInvalidDiscl').name) as dm:
+            dm["ru_RU"] = ""
+            dm["zh_CN"] = "无效"
         with VlTrMapForKey(GetPrefsRnaProp('vaKmiQqmDiscl').name) as dm:
             dm["ru_RU"] = "Быстрая быстрая математика"
-            dm["zh_CN"] = "数学运算饼菜单"
+            dm["zh_CN"] = "快速数学运算细分后(我觉得没用,有人喜欢)"
         with VlTrMapForKey(GetPrefsRnaProp('vaKmiCustomDiscl').name) as dm:
             dm["ru_RU"] = "Кастомные"
             dm["zh_CN"] = "自定义"
@@ -897,7 +903,7 @@ class VoronoiAddonPrefs(bpy.types.AddonPreferences):
     def LyDrawTabSettings(self, where):
         def LyAddAddonBoxDiscl(where: UILayout, who, att, *, txt=None, isWide=False, align=False):
             colBox = where.box().column(align=True)
-            if LyAddDisclosureProp(colBox, who, att, txt=txt, active=False, isWide=isWide):
+            if LyAddDisclosureProp(colBox, who, att, txt=txt, active=True, isWide=isWide):
                 rowTool = colBox.row()
                 rowTool.separator()
                 return rowTool.column(align=align)
@@ -1008,7 +1014,7 @@ class VoronoiAddonPrefs(bpy.types.AddonPreferences):
                 row.prop(self,'dsIsFieldDebug')
             with LyAddQuickInactiveCol(colDev, active=self.dsIsTestDrawing) as row:
                 row.prop(self,'dsIsTestDrawing')
-    def LyDrawTabKeymaps(self, where):
+    def LyDrawTabKeymaps(self, where: UILayout):
         colMain = where.column()
         colMain.separator()
         rowLabelMain = colMain.row(align=True)
@@ -1018,23 +1024,25 @@ class VoronoiAddonPrefs(bpy.types.AddonPreferences):
         rowLabel.label(text="Node Editor")
         rowLabelPost = rowLabelMain.row(align=True)
         colList = colMain.column(align=True)
-        kmUNe = GetUserKmNe()
+        node_kms = user_node_keymaps()
         ##
         kmiCats = KmiCats()
         kmiCats.cus = KmiCat('vaKmiCustomDiscl',     set())
         kmiCats.qqm = KmiCat('vaKmiQqmDiscl',        set(), dict_setKmiCats["qqm"] )
-        kmiCats.grt = KmiCat('vaKmiMainstreamDiscl', set(), dict_setKmiCats["grt"] )
-        kmiCats.oth = KmiCat('vaKmiOtjersDiscl',     set(), dict_setKmiCats["oth"] )
-        kmiCats.spc = KmiCat('vaKmiSpecialDiscl',    set(), dict_setKmiCats["spc"] )
+        kmiCats.useful_1 = KmiCat('vaKmiMainstreamDiscl', set(), dict_setKmiCats["最有用"] )
+        kmiCats.useful_2 = KmiCat('vaKmiOtjersDiscl',     set(), dict_setKmiCats["很有用"] )
+        kmiCats.useful_3 = KmiCat('vaKmiSpecialDiscl',    set(), dict_setKmiCats["可能有用"] )
+        kmiCats.useful_4 = KmiCat('vaKmiInvalidDiscl',    set(), dict_setKmiCats["无效"] )
         kmiCats.cus.LCond = lambda a: a.id<0 # 负id用于自定义? 好吧. 就当是识别标准了.
         kmiCats.qqm.LCond = lambda a: any(True for txt in {'quickOprFloat','quickOprVector','quickOprBool','quickOprColor','justPieCall','isRepeatLastOperation'} if getattr(a.properties, txt, None))
-        kmiCats.grt.LCond = lambda a: a.idname in kmiCats.grt.set_idn
-        kmiCats.oth.LCond = lambda a: a.idname in kmiCats.oth.set_idn
-        kmiCats.spc.LCond = lambda a:True
+        kmiCats.useful_1.LCond = lambda a: a.idname in kmiCats.useful_1.set_idn
+        kmiCats.useful_2.LCond = lambda a: a.idname in kmiCats.useful_2.set_idn
+        kmiCats.useful_3.LCond = lambda a: a.idname in kmiCats.useful_3.set_idn
+        kmiCats.useful_4.LCond = lambda a: True
         # 在旧版插件中, 使用另一种搜索方法, "keymap" 标签页中的顺序与注册具有相同 `cls` 的 kmidef 的调用顺序相反.
         # 现在改成了这样. 之前的方法是如何工作的 -- 我完全不知道.
         scoAll = 0
-        for li in kmUNe.keymap_items:
+        for li in node_kms.keymap_items:
             if li.idname.startswith("node.voronoi_"):
                 for dv in kmiCats.__dict__.values():
                     if dv.LCond(li):
@@ -1042,35 +1050,37 @@ class VoronoiAddonPrefs(bpy.types.AddonPreferences):
                         dv.sco += 1
                         break
                 scoAll += 1 # 热键现在变得非常非常多, 知道它们的数量会很不错.
-        if kmUNe.is_user_modified:
+        if node_kms.is_user_modified:
             rowRestore = rowLabelMain.row(align=True)
-            with LyAddQuickInactiveCol(rowRestore, align=False) as row:
-                row.prop(self,'vaInfoRestore', text="", icon='INFO', emboss=False)
-            rowRestore.context_pointer_set('keymap', kmUNe)
-            rowRestore.operator('preferences.keymap_restore', text="Restore")
+            with LyAddQuickInactiveCol(rowRestore, align=False, active=True) as row:
+                row.prop(self,'vaInfoRestore', text="", icon='INFO')
+            rowRestore.context_pointer_set('keymap', node_kms)
+            rowRestore.operator('preferences.keymap_restore', text="Restore", icon="ERROR")
         else:
             rowLabelMain.label()
         rowAddNew = rowLabelMain.row(align=True)
         rowAddNew.ui_units_x = 12
         rowAddNew.separator()
-        rowAddNew.operator(VoronoiOpAddonTabs.bl_idname, text="Add New", icon='NONE').opt = 'AddNewKmi' # NONE  ADD
+        rowAddNew.operator(VoronoiOpAddonTabs.bl_idname, text="Add New", icon='ADD').opt = 'AddNewKmi' # NONE  ADD
         def LyAddKmisCategory(where: UILayout, cat):
             if not cat.set_kmis:
                 return
             colListCat = where.row().column(align=True)
             txt = self.bl_rna.properties[cat.propName].name
-            if not LyAddDisclosureProp(colListCat, self, cat.propName, txt=TranslateIface(txt)+f" ({cat.sco})", active=False, isWide=1-1):
+            if not LyAddDisclosureProp(colListCat, self, cat.propName, txt=TranslateIface(msgid=txt)+f" ({cat.sco})", isWide=1-1):
                 return
+            # for li in cat.set_kmis:
             for li in sorted(cat.set_kmis, key=lambda a:a.id):
-                colListCat.context_pointer_set('keymap', kmUNe)
-                rna_keymap_ui.draw_kmi([], bpy.context.window_manager.keyconfigs.user, kmUNe, li, colListCat, 0) # 注意: 如果 colListCat 不是 colListCat, 那么删除 kmi 的功能将不可用.
+                colListCat.context_pointer_set('keymap', node_kms)
+                rna_keymap_ui.draw_kmi([], bpy.context.window_manager.keyconfigs.user, node_kms, li, colListCat, 0) # 注意: 如果 colListCat 不是 colListCat, 那么删除 kmi 的功能将不可用.
         LyAddKmisCategory(colList, kmiCats.cus)
-        LyAddKmisCategory(colList, kmiCats.grt)
-        LyAddKmisCategory(colList, kmiCats.oth)
-        LyAddKmisCategory(colList, kmiCats.spc)
+        LyAddKmisCategory(colList, kmiCats.useful_1)
+        LyAddKmisCategory(colList, kmiCats.useful_2)
+        LyAddKmisCategory(colList, kmiCats.useful_3)
+        LyAddKmisCategory(colList, kmiCats.useful_4)
         LyAddKmisCategory(colList, kmiCats.qqm)
         rowLabelPost.label(text=f"({scoAll})", translate=False)
-    def LyDrawTabInfo(self, where):
+    def LyDrawTabInfo(self, where: UILayout):
         def LyAddUrlHl(where: UILayout, text, url, txtHl=""):
             row = where.row(align=True)
             row.alignment = 'LEFT'
@@ -1355,9 +1365,9 @@ def unregister():
         bpy.utils.unregister_class(dk)
 
 def DisableKmis(): # 用于重复运行脚本. 在第一次"恢复"之前有效.
-    kmUNe = GetUserKmNe()
+    node_kms = user_node_keymaps()
     for li, *oi in list_kmiDefs:
-        for kmiCon in kmUNe.keymap_items:
+        for kmiCon in node_kms.keymap_items:
             if li==kmiCon.idname:
                 kmiCon.active = False # 这会删除重复项. 是个 hack 吗?
                 kmiCon.active = True # 如果是原始的, 就恢复.

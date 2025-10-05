@@ -111,9 +111,6 @@ def GetNearestSocketsFtg(nd, samplePos, uiScale): # 返回"最近的插槽"列�
     ftg_sks_out.sort(key=lambda a: a.dist)
     return ftg_sks_in, ftg_sks_out
 
-
-
-
 def GetListOfNdEnums(node):   # 小王-判断节点是否有下拉列表
     enum_l = []
     for p in node.rna_type.properties:
@@ -122,12 +119,14 @@ def GetListOfNdEnums(node):   # 小王-判断节点是否有下拉列表
     return enum_l
 
 # 小王-显示节点选项优化-根据选项重命名节点-domain
-# def get_node_enum_item_list_dict(node):
-#     enum_dict = {}
-#     for p in node.rna_type.properties:
-#         if (p.type == 'ENUM') and (p.name != "Warning Propagation") and (not (p.is_readonly or p.is_registered)):
-#             enum_dict[p.identifier] = [item.name for item in p.enum_items]
-#     return enum_dict
+def get_node_domain_item_list(node):
+    enum_list = []
+    for p in node.rna_type.properties:
+        if p.type == 'ENUM' and p.identifier == "domain":
+            enum_list = [item for item in p.enum_items]
+            # enum_list = [item.identifier for item in p.enum_items]
+            # enum_list = [[item.name, item.identifier] for item in p.enum_items]
+    return enum_list
 
 class VlrtData:
     reprLastSkOut = ""
@@ -147,15 +146,6 @@ def CompareSkLabelName(sk1, sk2, ignore_upper_lower=False):
         return sk_label_or_name(sk1).upper()==sk_label_or_name(sk2).upper()
     else:
         return sk_label_or_name(sk1)==sk_label_or_name(sk2)
-
-def get_node_domain_item_list(node):
-    enum_list = []
-    for p in node.rna_type.properties:
-        if p.type == 'ENUM' and p.identifier == "domain":
-            enum_list = [item for item in p.enum_items]
-            # enum_list = [item.identifier for item in p.enum_items]
-            # enum_list = [[item.name, item.identifier] for item in p.enum_items]
-    return enum_list
 
 def SelectAndActiveNdOnly(ndTar):
     for nd in ndTar.id_data.nodes:

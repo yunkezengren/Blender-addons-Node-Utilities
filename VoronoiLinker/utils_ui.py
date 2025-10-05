@@ -23,7 +23,7 @@ def LyAddDisclosureProp(layout: UILayout, who, att, *, txt=None, active=True, is
     rowProp = rowMain.row(align=True)
     rowProp.alignment = 'LEFT'
     txt = txt if txt else None #+":"*tgl
-    rowProp.prop(who, att, text=txt, icon='DISCLOSURE_TRI_DOWN' if tgl else 'DISCLOSURE_TRI_RIGHT', emboss=False)
+    rowProp.prop(who, att, text=txt, icon='DISCLOSURE_TRI_DOWN' if tgl else 'DISCLOSURE_TRI_RIGHT', emboss=True)
     rowProp.active = active
     if isWide:
         rowPad = rowMain.row(align=True)
@@ -77,7 +77,7 @@ def LyAddLabeledBoxCol(layout: UILayout, *, text="", active=True, scale=1.0, ali
     box.scale_y = 0.5
     row = box.row(align=True)
     row.alignment = 'CENTER'
-    row.label(text="▶ ▶ ▶   "+text)
+    row.label(text=" ▶ ▶ ▶   " + text)
     row.active = active
     box = colMain.box()
     box.scale_y = scale

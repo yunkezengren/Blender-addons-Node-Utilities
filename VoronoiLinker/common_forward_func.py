@@ -13,9 +13,9 @@ except ImportError:
     pass
 
 def Prefs():        # 很多局部变量也是prefs 还是改大写好点
-    return bpy.context.preferences.addons[__package__].preferences
+    return bpy.context.preferences.addons[__package__].preferences # type: ignore
 
-def GetUserKmNe():
+def user_node_keymaps():
     return bpy.context.window_manager.keyconfigs.user.keymaps['Node Editor']
 
 def GetFirstUpperLetters(txt):

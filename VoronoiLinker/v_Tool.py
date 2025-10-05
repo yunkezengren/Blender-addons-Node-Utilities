@@ -30,7 +30,7 @@ def GetOpKmi(self, event):
     # Todo00: 有没有更正确的设计或方法?
     # 操作符可以有多种调用组合, 所有这些组合在 `keymap_items` 中的键都相同, 所以我们手动遍历所有
     blid = getattr(bpy.types, self.bl_idname).bl_idname
-    for li in GetUserKmNe().keymap_items:
+    for li in user_node_keymaps().keymap_items:
         if li.idname==blid:
             # 注意: 也要按键本身是否匹配来搜索, 因为多个调用方式的修饰键也可能相同.
             if (li.type==event.type)and(li.shift_ui==event.shift)and(li.ctrl_ui==event.ctrl)and(li.alt_ui==event.alt):

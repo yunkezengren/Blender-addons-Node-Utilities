@@ -25,7 +25,7 @@ class VoronoiSwapperTool(VoronoiToolPairSk):
     def CallbackDrawTool(self, drata):      # 我模仿着加的
         # 小王-模式名匹配
         name = { 'SWAP': "交换连线",
-                 'ADD':  "移动连线",
+                 'ADD':  "移动并加入连线",
                  'TRAN': "移动并替换连线",
                 }
         mode= name[self.toolMode]

@@ -15,7 +15,7 @@ from .v_tool import VoronoiToolAny
 class VoronoiCallNodePie(VoronoiToolAny):
     """ Voronoi 联动 Node Pie """
     bl_idname = 'node.voronoi_call_node_pie'
-    bl_label = "Voronoi Call Node Pie"
+    bl_label = "Voronoi联动节点饼菜单插件"
     # toolMode: bpy.props.EnumProperty(name="Mode", default='SOCKET', items=fitVhtModeItems)
     isTriggerOnCollapsedNodes: bpy.props.BoolProperty(name="Trigger on collapsed nodes", default=True)
 

@@ -274,11 +274,11 @@ class VqmtPieMath(bpy.types.Menu):
                 add_item(col_left,'FunctionNodeTransformDirection')
                 add_item(col_left,'FunctionNodeProjectPoint')
             def draw_color_mix():
-                for li in ('LIGHTEN','DARKEN','SCREEN','DODGE','LINEAR_LIGHT','SOFT_LIGHT','OVERLAY','BURN'):
+                for li in ('ADD','SUBTRACT','MULTIPLY','DIVIDE','DIFFERENCE','EXCLUSION'):
                     add_item(col_right, li)
-                for li in ('MIX', 'ADD','SUBTRACT','MULTIPLY','DIVIDE','DIFFERENCE','EXCLUSION'):
+                for li in ('LIGHTEN','DARKEN','SCREEN','DODGE','LINEAR_LIGHT','SOFT_LIGHT','OVERLAY','BURN'):
                     add_item(col_left, li)
-                for li in ('VALUE','SATURATION','HUE','COLOR'):
+                for li in ('MIX', 'VALUE','SATURATION','HUE','COLOR'):
                     add_item(col_center, li)
             def draw_int_math():
                 add_item(col_right,'ADD','ADD')

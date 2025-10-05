@@ -47,7 +47,6 @@ get_mesh_domain_cn = {k: v for k, v in zip(mesh_domain_en, mesh_domain_ch)}
 def VestLyAddEnumSelectorBox(where: UILayout, lyDomain=None):
     assert VestData.list_enumProps
     colMain = where.row()           # 显示节点选项优化-每个下拉列表，各占一列
-    # colMain = where.column()
     colDomain = lyDomain.column() if lyDomain else None
     nd = VestData.nd
     # 数学节点有高级的分类用于 .prop(), 但我不知道如何通过简单枚举手动显示它们. 反正有 VQMT.
@@ -72,17 +71,6 @@ def VestLyAddEnumSelectorBox(where: UILayout, lyDomain=None):
             colProp.separator()
         colEnum = colProp.column(align=True)     # 每个下拉列表，每个选项绘制一行
         colEnum.scale_y = VestData.boxScale
-        # 显示节点选项优化-根据选项重命名节点-不好用
-        # if li.identifier == "domain":
-        #     for item in VestData.domain_item_list:
-        #         # op = colEnum.row('vor.change_node_domain_and_name', text=item.capitalize())   # 这样是错的
-        #         op = colEnum.operator('vor.change_node_domain_and_name', text=item.name)
-        #         op.domain_item = item.identifier
-        # else:
-        #     if VestData.isDarkStyle:
-        #         colEnum.prop_tabs_enum(nd, li.identifier)
-        #     else:
-        #         colEnum.prop(nd, li.identifier, expand=True)
         if VestData.isDarkStyle:
             colEnum.prop_tabs_enum(nd, li.identifier)
         else:
@@ -249,6 +237,8 @@ class VoronoiEnumSelectorTool(VoronoiToolNd):
             ndTar = self.fotagoNd.tar
             VestData.nd = ndTar
             VestData.boxScale = prefs.vestBoxScale
+            if ndTar.bl_idname == "ShaderNodeMath":
+                VestData.boxScale = 0.9
             # VestData.boxScale = prefs.vestBoxScale * len(VestData.list_enumProps)  # 这个整体缩放，不是x方向缩放
             VestData.isDarkStyle = prefs.vestDarkStyle
             VestData.isDisplayLabels = prefs.vestDisplayLabels
