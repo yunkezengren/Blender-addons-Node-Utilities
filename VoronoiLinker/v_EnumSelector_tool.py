@@ -11,7 +11,7 @@ from .common_forward_func import *
 from .common_forward_class import *
 from .v_tool import VoronoiOpTool, VoronoiToolNd
 from bpy.app.translations import pgettext_iface as TranslateIface
-
+from bpy.types import EnumProperty
 
 domain_en = [
     'POINT',
@@ -42,39 +42,55 @@ mesh_domain_ch = ['顶点', '边', '面', '拐角']
 get_domain_cn = {k: v for k, v in zip(domain_en, domain_ch)}
 get_mesh_domain_cn = {k: v for k, v in zip(mesh_domain_en, mesh_domain_ch)}
 
-
-
-def VestLyAddEnumSelectorBox(where: UILayout, lyDomain=None):
-    assert VestData.list_enumProps
-    colMain = where.row()           # 显示节点选项优化-每个下拉列表，各占一列
-    colDomain = lyDomain.column() if lyDomain else None
-    nd = VestData.nd
+def draw_enum_property_selectors(parent_layout: UILayout, domain_layout=None):
+    assert VestData.list_length
+    main_col = parent_layout.row()  # 显示节点选项优化-每个下拉列表，各占一列
+    domain_col = domain_layout.column() if domain_layout else None
+    node = VestData.nd
     # 数学节点有高级的分类用于 .prop(), 但我不知道如何通过简单枚举手动显示它们. 反正有 VQMT.
     # 我没有忽略它们, 让它们按原样处理. 用它们选择矢量数学运算甚至非常方便 (普通数学运算放不下).
     # 域总是第一个. 例如, StoreNamedAttribute 和 FieldAtIndex 有相同的枚举, 但顺序不同; 有趣为什么.
-    # print("开始-" * 20)
-    # pprint("VestData.__dict__")
-    # pprint(VestData.__dict__)
-    # print("结束-" * 20)
-    for cyc, li in enumerate(sorted(VestData.list_enumProps, key=lambda a:a.identifier!='domain')):
-        if (cyc)and(colWhere!=colDomain):
-            colProp.separator()
-        colWhere = (colDomain if (lyDomain)and(li.identifier=='domain') else colMain)
-        colProp = colWhere.column(align=True)  # 下拉列表的名称占一行，和选项列对齐
-        if VestData.isDisplayLabels:
-            rowLabel = colProp.row(align=True)
-            rowLabel.alignment = 'CENTER'
-            rowLabel.label(text=li.name)
-            #rowLabel.active = not VestData.isPieChoice # 对于饼菜单, 边框是透明的, 文本可能会与背景中明亮的节点融合. 所以关闭了.
-            rowLabel.active = not(VestData.isDarkStyle and VestData.isPieChoice) # 但对于深色饼菜单, 还是显示深色文本.
-        elif cyc:
-            colProp.separator()
-        colEnum = colProp.column(align=True)     # 每个下拉列表，每个选项绘制一行
-        colEnum.scale_y = VestData.boxScale
-        if VestData.isDarkStyle:
-            colEnum.prop_tabs_enum(nd, li.identifier)
+
+    sorted_enum_props = sorted(VestData.list_enumProp, key=lambda a: a.identifier != 'domain')
+    all_items = sorted_enum_props + VestData.list_menu_socket
+
+    last_target_col = None
+    for index, item in enumerate(all_items):
+        menu_name = item.name
+        if isinstance(item, EnumProperty):
+            prop_name = item.identifier
+            data = node
+            is_domain_prop = (prop_name == 'domain')
         else:
-            colEnum.prop(nd, li.identifier, expand=True)
+            prop_name = "default_value"
+            data = item
+            is_domain_prop = False
+
+        if index and (last_target_col != domain_col):
+            prop_col.separator()
+            
+        target_col = (domain_col if (domain_layout and is_domain_prop) else main_col)
+        prop_col = target_col.column(align=True)  # 下拉列表的名称占一行，和选项列对齐
+        
+        if VestData.isDisplayLabels:
+            label_row = prop_col.row(align=True)
+            label_row.alignment = 'CENTER'
+            label_row.label(text=menu_name)
+            #label_row.active = not VestData.isPieChoice # 对于饼菜单, 边框是透明的, 文本可能会与背景中明亮的节点融合. 所以关闭了.
+            label_row.active = not (VestData.isDarkStyle and VestData.isPieChoice)  # 但对于深色饼菜单, 还是显示深色文本.
+        elif index:
+            prop_col.separator()
+            
+        menu_col = prop_col.column(align=True)  # 每个下拉列表，每个选项绘制一行
+        menu_col.scale_y = VestData.boxScale
+        
+        if VestData.isDarkStyle:
+            menu_col.prop_tabs_enum(data, prop_name)
+        else:
+            menu_col.prop(data, prop_name, expand=True)
+            
+        last_target_col = target_col
+
     # 在我最初的想法中, 我错误地称这个工具为“Prop Selector”. 需要想办法区分节点的通用属性和在选项中绘制的属性.
     # 幸运的是, 每个节点没有不同的枚举...
 class VestOpBox(VoronoiOpTool):
@@ -84,10 +100,11 @@ class VestOpBox(VoronoiOpTool):
     def execute(self, context): # 用于下面的 draw(), 否则不显示.
         pass
     def draw(self, _context):
-        VestLyAddEnumSelectorBox(self.layout)
+        VestData.list_menu_socket = node_visible_menu_inputs(VestData.nd)
+        draw_enum_property_selectors(self.layout)
     def invoke(self, context, event):
         # 显示节点选项优化-box宽度*列数
-        width = 90 * VestData.boxScale * len(VestData.list_enumProps)
+        width = 90 * VestData.boxScale * VestData.list_length
         return context.window_manager.invoke_popup(self, width=int(width))    # 必须要 int
         # return context.window_manager.invoke_popup(self, width=int(128*VestData.boxScale))
     def cancel(self, context):
@@ -102,11 +119,12 @@ class VestPieBox(bpy.types.Menu):
         def GetCol(where: UILayout, tgl=True):
             col = (where.box() if tgl else where).column()
             col.ui_units_x = 7*((VestData.boxScale-1)/2+1)            # 只对饼菜单显示选项有用
-            # col.ui_units_x = 7*((VestData.boxScale-1)/2+1) * len(VestData.list_enumProps)
+            # col.ui_units_x = 7*((VestData.boxScale-1)/2+1) * len(VestData.list_enumProp)
             return col
-        colDom = GetCol(pie, any(True for li in VestData.list_enumProps if li.identifier=='domain'))
-        colAll = GetCol(pie, any(True for li in VestData.list_enumProps if li.identifier!='domain'))
-        VestLyAddEnumSelectorBox(colAll, colDom)
+        colDom = GetCol(pie, any(True for li in VestData.list_enumProp if li.identifier=='domain'))
+        colAll = GetCol(pie, any(True for li in VestData.list_enumProp if li.identifier!='domain'))
+        VestData.list_menu_socket = []
+        draw_enum_property_selectors(colAll, colDom)
 
 
 def rename_node_based_option(node):
@@ -192,17 +210,17 @@ class VoronoiEnumSelectorTool(VoronoiToolNd):
     def NextAssignmentTool(self, _isFirstActivation, prefs, tree):
         self.fotagoNd = None
         for ftgNd in self.ToolGetNearestNodes(cur_x_off=0):
-            nd = ftgNd.tar
-            if nd.type=='REROUTE': # 对于这个工具, reroute 会被跳过, 原因很明显.
+            node = ftgNd.tar
+            if node.type=='REROUTE': # 对于这个工具, reroute 会被跳过, 原因很明显.
                 continue
-            # if nd.bl_idname in set_utilEquestrianPortalBlids:    # 注释掉
+            # if node.bl_idname in set_utilEquestrianPortalBlids:    # 注释掉
             #     continue
             # have_options = ["GeometryNodeBake", "GeometryNodeGroup",
             #                 "GeometryNodeForeachGeometryElementInput", "ShaderNodeTexCoord"]
-            # if nd.bl_idname not in have_options:
-            #     if not GetListOfNdEnums(nd):    # 想只对有下拉列表选项的节点绘制-导致节点组、bake、serpens里很多节点的 隐藏选项失效
+            # if node.bl_idname not in have_options:
+            #     if not GetListOfNdEnums(node):    # 想只对有下拉列表选项的节点绘制-导致节点组、bake、serpens里很多节点的 隐藏选项失效
             #         continue
-            # if nd.hide: # 对于折叠的节点, 切换结果看不到, 所以忽略.
+            # if node.hide: # 对于折叠的节点, 切换结果看不到, 所以忽略.
             #     continue              # 折叠的节点同样绘制
             if self.isToggleOptions:
                 self.fotagoNd = ftgNd
@@ -210,10 +228,10 @@ class VoronoiEnumSelectorTool(VoronoiToolNd):
                 if prefs.vestIsToggleNodesOnDrag:
                     # print(f"{self.firstResult = }")
                     if self.firstResult is None:
-                        self.firstResult = self.ToggleOptionsFromNode(nd, True)
-                    self.ToggleOptionsFromNode(nd, self.firstResult, True)
+                        self.firstResult = self.ToggleOptionsFromNode(node, True)
+                    self.ToggleOptionsFromNode(node, self.firstResult, True)
                 break
-            elif GetListOfNdEnums(nd): # 为什么不忽略没有枚举属性的节点呢?.
+            elif GetListOfNdEnums(node) or node_visible_menu_inputs(node): # 为什么不忽略没有枚举属性的节点呢?.
                 self.fotagoNd = ftgNd
                 break
     def DoActivation(self, prefs, tree):
@@ -227,19 +245,21 @@ class VoronoiEnumSelectorTool(VoronoiToolNd):
             elif pos[1]>rect[3]:
                 return False
             return True
-        VestData.list_enumProps = GetListOfNdEnums(self.fotagoNd.tar)
-        VestData.domain_item_list = get_node_domain_item_list(self.fotagoNd.tar)  # 显示节点选项优化-根据选项重命名节点-domain
+        VestData.list_enumProp = GetListOfNdEnums(self.fotagoNd.tar)
+        VestData.list_menu_socket = node_visible_menu_inputs(self.fotagoNd.tar)
+        VestData.list_length = len(VestData.list_enumProp + VestData.list_menu_socket)
+        # VestData.domain_item_list = get_node_domain_item_list(self.fotagoNd.tar)  # 显示节点选项优化-根据选项重命名节点-domain
         # print("-"*50)
         # print(self.fotagoNd.tar.name)
         # pprint(VestData.domain_item_list)
         # 如果什么都没有, 盒子调用还是会处理, 就像它存在一样, 导致不移动光标就无法再次调用工具.
-        if VestData.list_enumProps: # 所以如果为空, 什么也不做. 还有 VestLyAddEnumSelectorBox() 中的 assert.
+        if VestData.list_enumProp or VestData.list_menu_socket: # 所以如果为空, 什么也不做. 还有 draw_enum_property_selectors() 中的 assert.
             ndTar = self.fotagoNd.tar
             VestData.nd = ndTar
             VestData.boxScale = prefs.vestBoxScale
             if ndTar.bl_idname == "ShaderNodeMath":
                 VestData.boxScale = 0.9
-            # VestData.boxScale = prefs.vestBoxScale * len(VestData.list_enumProps)  # 这个整体缩放，不是x方向缩放
+            # VestData.boxScale = prefs.vestBoxScale * len(VestData.list_enumProp)  # 这个整体缩放，不是x方向缩放
             VestData.isDarkStyle = prefs.vestDarkStyle
             VestData.isDisplayLabels = prefs.vestDisplayLabels
             VestData.isPieChoice = self.isPieChoice

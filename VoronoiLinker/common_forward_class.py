@@ -324,8 +324,10 @@ class VqmtData(PieRootData):
     test_bool = False
 
 class VestData:
-    list_enumProps = [] # 用于焊接，并在调用前检查是否存在。
+    list_enumProps = []                      # 节点的下拉菜单/选项用于焊接，并在调用前检查是否存在。
+    list_menu_socket: list[NodeSocket] = []  # 节点的菜单输入接口
     domain_item_list = []
+    list_length: int = []
     nd = None
     boxScale = 1.0 # 如果忘记设置，至少盒子不会坍缩为零。
     isDarkStyle = False
