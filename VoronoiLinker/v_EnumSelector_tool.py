@@ -104,6 +104,7 @@ class VestOpBox(VoronoiOpTool):
         draw_enum_property_selectors(self.layout)
     def invoke(self, context, event):
         # 显示节点选项优化-box宽度*列数
+        VestData.list_length = len(VestData.list_enumProp + VestData.list_menu_socket)
         width = 90 * VestData.boxScale * VestData.list_length
         return context.window_manager.invoke_popup(self, width=int(width))    # 必须要 int
         # return context.window_manager.invoke_popup(self, width=int(128*VestData.boxScale))
@@ -247,8 +248,7 @@ class VoronoiEnumSelectorTool(VoronoiToolNd):
             return True
         VestData.list_enumProp = GetListOfNdEnums(self.fotagoNd.tar)
         VestData.list_menu_socket = node_visible_menu_inputs(self.fotagoNd.tar)
-        VestData.list_length = len(VestData.list_enumProp + VestData.list_menu_socket)
-        # VestData.domain_item_list = get_node_domain_item_list(self.fotagoNd.tar)  # 显示节点选项优化-根据选项重命名节点-domain
+        # VestData.domain_item_list = node_domain_item_list(self.fotagoNd.tar)  # 显示节点选项优化-根据选项重命名节点-domain
         # print("-"*50)
         # print(self.fotagoNd.tar.name)
         # pprint(VestData.domain_item_list)

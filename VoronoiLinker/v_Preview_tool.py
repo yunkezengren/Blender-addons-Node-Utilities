@@ -152,7 +152,7 @@ def VptPreviewFromSk(self, prefs, skTar):
     list_way = DoPreviewCore(skTar, self.list_distanceAnchors, self.cursorLoc)
     if self.isSelectingPreviewedNode:
         SelectAndActiveNdOnly(skTar.node) # 不仅要只选择它, 还要让它成为活动节点, 这很重要.
-    if not self.isInvokeInClassicTree:
+    if not self.in_builtin_tree:
         return
     # 我天才般地想到在预览后删除接口; 这得益于在上下文路径中不删除它们. 现在可以更自由地使用它们了.
     if (True)or(not self.tree.nodes.get(voronoiAnchorCnName)): # 关于 'True' 请阅读下文.

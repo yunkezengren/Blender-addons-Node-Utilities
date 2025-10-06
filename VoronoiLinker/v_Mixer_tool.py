@@ -103,7 +103,7 @@ class VoronoiMixerTool(VoronoiToolTripleSk):
             VmtData.skType = "MATRIX"
             _sk = VmtData.sk1
         SetPieData(self, VmtData, prefs, power_color4(get_sk_color_safe(_sk), pw=2.2))
-        if not self.isInvokeInClassicTree: #由于 usefulnessForCustomTree, 这是个无用的检查.
+        if not self.in_builtin_tree: #由于 usefulnessForCustomTree, 这是个无用的检查.
             return {'CANCELLED'} #如果操作地点不在经典编辑器中, 就直接退出. 因为经典编辑器对所有人都一样, 而插件编辑器有无数种.
 
         tup_nodes = dict_vmtTupleMixerMain.get(tree.bl_idname, False).get(VmtData.skType, None)

@@ -12,9 +12,10 @@ from .v_tool import VoronoiToolPairSk
 
 def is_unlink_route(node):
     if node.type == 'REROUTE' and (not (node.inputs[0].links or node.outputs[0].links)):
-        return True       # 转接点没连线
+        return True  # 转接点没连线
     return False
-link_same_socket_types = ['SHADER', 'STRING', 'GEOMETRY','OBJECT', 'COLLECTION', 'MATERIAL', 'TEXTURE', 'IMAGE']
+
+types_no_convert = ['SHADER', 'STRING', 'GEOMETRY', 'OBJECT', 'COLLECTION', 'MATERIAL', 'TEXTURE', 'IMAGE', 'BUNDLE', 'CLOSURE']
 # 最初, 整个插件都是为了这个工具而创建的. 你以为为什么名字都一样.
 # 但后来我被这些已掌握的能力惊呆了, 开始创作了主流三巨头. 但这还不够, 现在工具有7个以上. 太棒了!
 # 重复的注释只在这里 (并且总体上递减). 如有争议, 请参考 VLT, 将其视为最终真理.
@@ -40,47 +41,43 @@ class VoronoiLinkerTool(VoronoiToolPairSk): # 神圣中的神圣. 它存在的�
             list_ftgSksIn, list_ftgSksOut = self.ToolGetNearestSockets(nd, cur_x_off=-20)
             if isFirstActivation:
                 for ftg in list_ftgSksOut:
-                    if (self.isFirstCling)or(ftg.blid!='NodeSocketVirtual')and( (not prefs.vltPriorityIgnoring)or(self.SkPriorityIgnoreCheck(ftg.tar)) ):
+                    if (self.isFirstCling)or(ftg.blid!='')and( (not prefs.vltPriorityIgnoring)or(self.SkPriorityIgnoreCheck(ftg.tar)) ):
                         self.fotagoSkOut = ftg
                         break
             self.isFirstCling = True
             # 根据条件获取输入:
-            skOut = optional_ftg_sk(self.fotagoSkOut)
-            if skOut: # 第一次进入总是 isFirstActivation==True, 但节点可能没有输出.
+            sk_out = optional_ftg_sk(self.fotagoSkOut)
+            if sk_out: # 第一次进入总是 isFirstActivation==True, 但节点可能没有输出.
                 # 注意: 工具激活套接字的节点 (isFirstActivation==True) 无论如何都需要展开.
                 # 折叠对于 reroute 是有效的, 尽管在视觉上不显示; 但现在不需要处理了, 因为已经引入了对折叠的支持.
                 CheckUncollapseNodeAndReNext(nd, self, cond=isFirstActivation, flag=True)
                 # 在这个阶段, 否定的条件只会找到另一个结果. "不粘这个, 就粘另一个".
                 for ftg in list_ftgSksIn:
-                    # 注意: `|=` 操作符仍然会强制计算右操作数.
-                    skIn = ftg.tar
-                    # 对于允许的组内连接, 允许“转换”. 为了方便, reroute 可以连接到两侧的任何套接字, 绕过不同类型
-                    tgl = self.SkBetweenFieldsCheck(skIn, skOut)or( (skOut.node.type=='REROUTE')or(skIn.node.type=='REROUTE') )and(prefs.vltReroutesCanInAnyType)
-                    # 接口处理已移至 VIT, 现在只在虚拟之间
-                    tgl = (tgl)or( (skIn.bl_idname=='NodeSocketVirtual')and(skOut.bl_idname=='NodeSocketVirtual') )
-                    # 如果类型名称相同
-                    tgl = (tgl)or(skIn.bl_idname==skOut.bl_idname) # 注意: 包括插件套接字.
-                    # 如果经典树中有插件套接字 -- 也可以连接到所有经典套接字, 经典套接字可以连接到所有插件套接字
-                    tgl = (tgl)or(self.isInvokeInClassicTree)and(IsClassicSk(skOut)^IsClassicSk(skIn))
-                    # 限制旋转和矩阵接口
-                    if skOut.type == "MATRIX":
-                        tgl = (skIn.type in ["MATRIX", "ROTATION"])
-                    if skOut.type == "ROTATION":
-                        tgl = (skIn.type in ["ROTATION", "MATRIX", "VECTOR"])
-                    # 只能连到相同类型的接口上
-                    if skOut.type in link_same_socket_types:
-                        tgl = skIn.type==skOut.type
-                    if skIn.type in link_same_socket_types:
-                        tgl = skIn.type==skOut.type
-                    # 没连线的转接点,就都可以连
-                    if is_unlink_route(skOut.node):
-                        tgl = True
-                    if is_unlink_route(skIn.node):      # from_socket 
-                        tgl = True
-                    # 注意: SkBetweenFieldsCheck() 只检查字段之间, 所以需要显式检查 `bl_idname` 是否相同.
-                    if tgl:
+                    sk_in = ftg.tar
+                    # --- 未连接的 reroute 节点, 永远允许连接
+                    if is_unlink_route(sk_out.node) or is_unlink_route(sk_in.node) and prefs.vltReroutesCanInAnyType:
+                        valid = True
+                    elif (sk_out.type == 'CUSTOM') ^ (sk_in.type == 'CUSTOM'):  # 只有一个True时为True
+                        valid = True
+                    elif sk_out.type in types_no_convert or sk_in.type in types_no_convert:
+                        valid = (sk_in.type == sk_out.type)
+                    elif sk_out.type == "MATRIX":
+                        valid = (sk_in.type in ["MATRIX", "ROTATION"])
+                    elif sk_out.type == "ROTATION":
+                        valid = (sk_in.type in ["ROTATION", "MATRIX", "VECTOR"])
+                    else:
+                        is_classic = self.in_builtin_tree and (IsClassicSk(sk_out) ^ IsClassicSk(sk_in))
+                        # 注意: SkBetweenFieldsCheck() 只检查字段之间, 所以需要显式检查 `bl_idname` 是否相同.
+                        valid = (self.SkBetweenFieldsCheck(sk_in, sk_out) or is_classic)
+                    # if hasattr(sk_out, "inferred_structure_type"):
+                    #     # todo 草,获取不到接口形状啊 display_shape 不准确
+                    #     if sk_out.inferred_structure_type not in ["SINGLE", "DYNAMIC"] and (sk_in.inferred_structure_type == "SINGLE"
+                    #                                                                         and sk_in.display_shape != "CIRCLE"):
+                    #         valid = False
+                    if valid:
                         self.fotagoSkIn = ftg
-                        break # 只需要处理第一个最近的满足条件的. 否则结果会是最远的.
+                        break  # 只需要处理第一个最近的满足条件的. 否则结果会是最远的.
+
                 # 在这个阶段, 否定的条件会使结果为空. 就像“什么都没找到”; 并且会相应地绘制.
                 if self.fotagoSkIn:
                     if self.fotagoSkOut.tar.node==self.fotagoSkIn.tar.node: # 如果输出的最近输入是它自己的节点

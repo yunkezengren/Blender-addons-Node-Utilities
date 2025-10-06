@@ -111,7 +111,7 @@ def GetNearestSocketsFtg(nd, samplePos, uiScale): # 返回"最近的插槽"列�
     ftg_sks_out.sort(key=lambda a: a.dist)
     return ftg_sks_in, ftg_sks_out
 
-def GetListOfNdEnums(node):   # 小王-判断节点是否有下拉列表
+def GetListOfNdEnums(node: Node):   # 小王-判断节点是否有下拉列表
     enum_l = []
     for p in node.rna_type.properties:
         if (p.type == 'ENUM') and (p.name != "Warning Propagation") and (not (p.is_readonly or p.is_registered)):
@@ -119,7 +119,7 @@ def GetListOfNdEnums(node):   # 小王-判断节点是否有下拉列表
     return enum_l
 
 # 小王-显示节点选项优化-根据选项重命名节点-domain
-def get_node_domain_item_list(node):
+def node_domain_item_list(node: Node):
     enum_list = []
     for p in node.rna_type.properties:
         if p.type == 'ENUM' and p.identifier == "domain":
@@ -127,6 +127,9 @@ def get_node_domain_item_list(node):
             # enum_list = [item.identifier for item in p.enum_items]
             # enum_list = [[item.name, item.identifier] for item in p.enum_items]
     return enum_list
+
+def node_visible_menu_inputs(node: Node) -> list[NodeSocket]:
+    return [socket for socket in node.inputs if (socket.type == 'MENU' and socket.is_icon_visible)]
 
 class VlrtData:
     reprLastSkOut = ""
