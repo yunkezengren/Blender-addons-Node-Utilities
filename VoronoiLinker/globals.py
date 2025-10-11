@@ -118,10 +118,10 @@ dict_vmtTupleMixerMain: dict[str, dict[str, tuple[str]]] = {
                                                    'GeometryNodeMeshBoolean', 'GeometryNodeGeometryToInstance')},
                 ##
         'CompositorNodeTree': {
-                'VALUE':      ('ShaderNodeMix', 'ShaderNodeCombineXYZ' , 'CompositorNodeMath',      vmtSep, 'CompositorNodeMixRGB', 'CompositorNodeSwitch', 'CompositorNodeSplitViewer', 'CompositorNodeSwitchView'),
-                'RGBA':       ('ShaderNodeMix', 'CompositorNodeAlphaOver', vmtSep, 'CompositorNodeMixRGB', 'CompositorNodeSwitch', 'CompositorNodeSplitViewer', 'CompositorNodeSwitchView'),
-                'VECTOR':     ('ShaderNodeMix',                           vmtSep, 'CompositorNodeMixRGB', 'CompositorNodeSwitch', 'CompositorNodeSplitViewer', 'CompositorNodeSwitchView'),
-                'INT':        ('ShaderNodeMix', 'ShaderNodeCombineXYZ', 'CompositorNodeMath',      vmtSep, 'CompositorNodeMixRGB', 'CompositorNodeSwitch', 'CompositorNodeSplitViewer', 'CompositorNodeSwitchView')},
+                'VALUE':      ('ShaderNodeMix', 'ShaderNodeCombineXYZ' , 'ShaderNodeMath',      vmtSep, 'ShaderNodeMix', 'CompositorNodeSwitch', 'CompositorNodeSplitViewer', 'CompositorNodeSwitchView'),
+                'RGBA':       ('ShaderNodeMix', 'CompositorNodeAlphaOver', vmtSep, 'ShaderNodeMix', 'CompositorNodeSwitch', 'CompositorNodeSplitViewer', 'CompositorNodeSwitchView'),
+                'VECTOR':     ('ShaderNodeMix',                           vmtSep, 'ShaderNodeMix', 'CompositorNodeSwitch', 'CompositorNodeSplitViewer', 'CompositorNodeSwitchView'),
+                'INT':        ('ShaderNodeMix', 'ShaderNodeCombineXYZ', 'ShaderNodeMath',      vmtSep, 'ShaderNodeMix', 'CompositorNodeSwitch', 'CompositorNodeSplitViewer', 'CompositorNodeSwitchView')},
                                 ##
         'TextureNodeTree':    {
                 'VALUE':       ('ShaderNodeCombineXYZ' , 'TextureNodeMixRGB', 'TextureNodeTexture', 'TextureNodeMath'),
@@ -137,14 +137,14 @@ dict_vmtMixerNodesDefs = { # '-1' 表示这里的视觉标记，它们的连接�
         'FunctionNodeCompare':            (-1, -1, 'Compare  '),
         'ShaderNodeMath':                 (0, 1, 'Max Float '),
         'ShaderNodeMixRGB':               (1, 2, 'Mix RGB '),
-        'CompositorNodeMixRGB':           (1, 2, 'Mix Col '),
+        'ShaderNodeMix':           (1, 2, 'Mix Col '),
         'CompositorNodeSwitch':           (0, 1, 'Switch '),
         'CompositorNodeSplitViewer':      (0, 1, 'Split Viewer '),
         'CompositorNodeSwitchView':       (0, 1, 'Switch View '),
         'TextureNodeMixRGB':              (1, 2, 'Mix Col '),
         'TextureNodeTexture':             (0, 1, 'Texture '),
         'ShaderNodeVectorMath':           (0, 1, 'Max Vector '),
-        'CompositorNodeMath':             (0, 1, 'Max Float '),
+        'ShaderNodeMath':             (0, 1, 'Max Float '),
         'TextureNodeMath':                (0, 1, 'Max Float '),
         'ShaderNodeMixShader':            (1, 2, 'Mix Shader '),
         'ShaderNodeAddShader':            (0, 1, 'Add Shader '),
@@ -229,18 +229,20 @@ dict_vqmtQuickMathMain = {
 dict_vqmtEditorNodes = {
         'VALUE':   {'ShaderNodeTree':     'ShaderNodeMath',
                     'GeometryNodeTree':   'ShaderNodeMath',
-                    'CompositorNodeTree': 'CompositorNodeMath',
+                    'CompositorNodeTree': 'ShaderNodeMath',
                     'TextureNodeTree':    'TextureNodeMath'},
         ##
         'VECTOR':  {'ShaderNodeTree':     'ShaderNodeVectorMath',
-                    'GeometryNodeTree':   'ShaderNodeVectorMath'},
+                    'GeometryNodeTree':   'ShaderNodeVectorMath',
+                    'CompositorNodeTree': 'ShaderNodeVectorMath',
+                    },
         ##
         'BOOLEAN': {'GeometryNodeTree':   'FunctionNodeBooleanMath'},
         'INT':     {'GeometryNodeTree':   'FunctionNodeIntegerMath'},
         ##
         'RGBA':    {'ShaderNodeTree':     'ShaderNodeMix',
                     'GeometryNodeTree':   'ShaderNodeMix',
-                    'CompositorNodeTree': 'CompositorNodeMixRGB',
+                    'CompositorNodeTree': 'ShaderNodeMix',
                     'TextureNodeTree':    'TextureNodeMixRGB'} }
 # 根据操作的套接字默认值
 dict_vqmtDefaultValueOperation = {
@@ -302,11 +304,14 @@ dict_vqmtQuickPresets = {
                    'ADD|x|pi/2,pi/2,pi/2': 'x + pi/2'} }
 
 
-dict_vqdtQuickDimensionsMain = {
+AllQuickDimensions = {
         'ShaderNodeTree':    {'VECTOR':   ('ShaderNodeSeparateXYZ',),
                               'RGBA':     ('ShaderNodeSeparateColor',),
                               'VALUE':    ('ShaderNodeCombineXYZ', 'ShaderNodeCombineColor'),
-                              'INT':      ('ShaderNodeCombineXYZ',)},
+                              'INT':      ('ShaderNodeCombineXYZ',),
+                              'BUNDLE':   ('NodeSeparateBundle', ),
+                              'CLOSURE':  ('NodeEvaluateClosure', ),
+                              },
         'GeometryNodeTree':  {'VECTOR':   ('ShaderNodeSeparateXYZ',),
                               'RGBA':     ('FunctionNodeSeparateColor',),
                               'VALUE':    ('ShaderNodeCombineXYZ', 'FunctionNodeCombineColor', 'FunctionNodeQuaternionToRotation'),
@@ -315,35 +320,51 @@ dict_vqdtQuickDimensionsMain = {
                               'STRING':   ('GeometryNodeStringToCurves',),   # Alt D 字符串接口
                               'MATRIX':   ('FunctionNodeSeparateTransform',),   # Alt D 矩阵接口
                               'ROTATION': ('FunctionNodeRotationToQuaternion',),
-                              'GEOMETRY': ('GeometryNodeSeparateGeometry',)}, # 虽然意义相同。将其视为一个迷你彩蛋。
-                            #   'GEOMETRY': ('GeometryNodeSeparateComponents',)}, # 虽然意义相同。将其视为一个迷你彩蛋。
+                              'GEOMETRY': ('GeometryNodeSeparateGeometry',), # GeometryNodeSeparateComponents更合适, 但SeparateGeometry更常用
+                              'BUNDLE':   ('NodeSeparateBundle', ),
+                              'CLOSURE':  ('NodeEvaluateClosure', ),
+                              }, 
+                            
         'CompositorNodeTree':{'VECTOR':   ('ShaderNodeSeparateXYZ',),
                               'RGBA':     ('CompositorNodeSeparateColor',),
                               'VALUE':    ('ShaderNodeCombineXYZ', 'CompositorNodeCombineColor'),
-                              'INT':      ('ShaderNodeCombineXYZ',)},
+                              'INT':      ('ShaderNodeCombineXYZ',),
+                              },
         'TextureNodeTree':   {'VECTOR':   ('TextureNodeSeparateColor',),
                               'RGBA':     ('TextureNodeSeparateColor',),
                               'VALUE':    ('TextureNodeCombineColor', ''), # 无法处理缺少第二个的情况，因此留空；参见 |3|。
-                              'INT':      ('TextureNodeCombineColor',)}}
+                              'INT':      ('TextureNodeCombineColor',),
+                              }
+        }
 
-dict_vqdtQuickConstantMain = {
-        'GeometryNodeTree':  {'BOOLEAN':  'FunctionNodeInputBool',
-                              'VALUE':    'ShaderNodeValue',
-                              'INT':      'FunctionNodeInputInt',
-                              'VECTOR':   'ShaderNodeCombineXYZ',
-                              'RGBA':     'FunctionNodeInputColor',
-                              'STRING':   'FunctionNodeInputString',
-                              'MENU':     'GeometryNodeIndexSwitch',
-                              'MATRIX':   'FunctionNodeCombineTransform',
+AllQuickConstant: dict[str, dict[str, str | list]] = {
+        'GeometryNodeTree':  {'BOOLEAN':   'FunctionNodeInputBool',
+                              'VALUE':     'ShaderNodeValue',
+                              'INT':       'FunctionNodeInputInt',
+                              'VECTOR':    'ShaderNodeCombineXYZ',
+                              'RGBA':      'FunctionNodeInputColor',
+                              'STRING':    'FunctionNodeInputString',
+                              'MENU':      'GeometryNodeIndexSwitch',
+                              'MATRIX':    'FunctionNodeCombineTransform',
                               'ROTATION': ['FunctionNodeEulerToRotation', 
                                            'FunctionNodeAxisAngleToRotation', 
-                                           'FunctionNodeQuaternionToRotation' ]
+                                           'FunctionNodeQuaternionToRotation' ],
+                              'MATERIAL':  'GeometryNodeInputMaterial',
+                              'OBJECT':    'GeometryNodeInputObject',
+                              'COLLECTION':'GeometryNodeInputCollection',
+                              'IMAGE':     'GeometryNodeInputImage',
+                              'BUNDLE':    'NodeCombineBundle',
+                              'CLOSURE':   'NodeClosureOutput',
                               }, 
-        'ShaderNodeTree':    {'VALUE':    'ShaderNodeValue',
-                              'VECTOR':   'ShaderNodeCombineXYZ',
-                              'RGBA':     'ShaderNodeRGB'     },
-        'CompositorNodeTree':{'VALUE':    'CompositorNodeValue',
-                              'VECTOR':   'ShaderNodeCombineXYZ',
-                              'RGBA':     'CompositorNodeRGB'     },
+        'ShaderNodeTree':    {'VALUE':     'ShaderNodeValue',
+                              'VECTOR':    'ShaderNodeCombineXYZ',
+                              'RGBA':      'ShaderNodeRGB',
+                              'BUNDLE':    'NodeCombineBundle',
+                              'CLOSURE':   'NodeClosureOutput',
+                              },
+        'CompositorNodeTree':{'VALUE':     'ShaderNodeValue',
+                              'VECTOR':    'ShaderNodeCombineXYZ',
+                              'RGBA':      'CompositorNodeRGB',
+                              },
         'TextureNodeTree':   { }
         }

@@ -301,7 +301,7 @@ def VlrtRememberLastSockets(sko, ski):
         if (ski)and(ski.id_data==sko.id_data):
             VlrtData.reprLastSkIn = repr(ski)
 
-def NewLinkHhAndRemember(sko, ski):
+def remember_add_link(sko, ski):
     DoLinkHh(sko, ski) #sko.id_data.links.new(sko, ski)
     VlrtRememberLastSockets(sko, ski)
 
@@ -331,8 +331,9 @@ def DoQuickMath(event, tree, operation, isCombo=False):
         # if VqmtData.qmSkType=='VECTOR':
         #     aNd.inputs[0].hide_value = True
         #使用event.shift的想法很棒。最初是为了单个连接到第二个接口，但由于下面的可视化搜索，它也可以交换两个连接。
-        bl4ofs = 2*is_blender4plus*(tree.bl_idname in {'ShaderNodeTree','GeometryNodeTree'})
-        skInx = aNd.inputs[0] if VqmtData.qmSkType!='RGBA' else aNd.inputs[-2-bl4ofs] #"Inx"，因为它是对整数“index”的模仿，但后来我意识到可以直接使用socket进行后续连接。
+        bl4ofs = 2 * is_blender4plus        # byd 搞版本兼容真麻烦,删掉
+        #"Inx"，因为它是对整数“index”的模仿，但后来我意识到可以直接使用socket进行后续连接。
+        skInx = aNd.inputs[0] if VqmtData.qmSkType != 'RGBA' else aNd.inputs[-2 - bl4ofs]
         if event.shift:
             for sk in aNd.inputs:
                 if (sk!=skInx)and(sk.enabled):
@@ -340,24 +341,24 @@ def DoQuickMath(event, tree, operation, isCombo=False):
                         skInx = sk
                         break
         if VqmtData.sk0:
-            NewLinkHhAndRemember(VqmtData.sk0, skInx)
+            remember_add_link(VqmtData.sk0, skInx)
             if VqmtData.sk1:
                 #第二个是“可视化地”搜索的；这是为了'SCALE'（缩放）操作。
                 for sk in aNd.inputs: #从上到下搜索。因为还有'MulAdd'（乘加）。
                     if (sk.enabled)and(not sk.is_linked): #注意：“aNd”是新创建的；并且没有连接。因此使用is_linked。
                         #哦，这个缩放；唯一一个具有两种不同类型接口的。
                         if (sk.type==skInx.type)or(operation=='SCALE'): #寻找相同类型的。对 RGBA Mix 有效。
-                            NewLinkHhAndRemember(VqmtData.sk1, sk)
+                            remember_add_link(VqmtData.sk1, sk)
                             break #只需要连接到找到的第一个，否则会连接到所有（例如在'MulAdd'中）。
             elif isCombo:
                 for sk in aNd.inputs:
                     if (sk.type==skInx.type)and(not sk.is_linked):
-                        NewLinkHhAndRemember(VqmtData.sk0, sk)
+                        remember_add_link(VqmtData.sk0, sk)
                         break
             if VqmtData.sk2:
                 for sk in aNd.outputs:
                     if (sk.enabled)and(not sk.hide):
-                        NewLinkHhAndRemember(sk, VqmtData.sk2)
+                        remember_add_link(sk, VqmtData.sk2)
                         break
     #为第二个接口设置默认值（大多数为零）。这是为了美观；而且这毕竟是数学运算。
     #注意：向量节点创建时已经为零，所以不需要再为它清零。
@@ -367,16 +368,18 @@ def DoQuickMath(event, tree, operation, isCombo=False):
             #这里没有可见性和连接的检查，强制赋值。因为我就是这么想的。
             sk.default_value = dict_vqmtDefaultValueOperation[VqmtData.qmSkType].get(operation, tup_default)[cyc]
     else: #为了节省dict_vqmtDefaultValueOperation中的空间而进行的优化。
-        tup_col = dict_vqmtDefaultValueOperation[VqmtData.qmSkType].get(operation, tup_default)
-        aNd.inputs[-2-bl4ofs].default_value = tup_col[0]
-        aNd.inputs[-1-bl4ofs].default_value = tup_col[1]
+        pass
+        # 为颜色输入接口设置默认值, 有的有alpha有的没,麻烦不管了
+        # tup_col = dict_vqmtDefaultValueOperation[VqmtData.qmSkType].get(operation, tup_default)
+        # aNd.inputs[-2-bl4ofs].default_value = tup_col[0]
+        # aNd.inputs[-1-bl4ofs].default_value = tup_col[1]
     ##
     if isPreset:
         for zp in zip(aNd.inputs, preset[1:]):
             if zp[1]:
                 if zp[1]=="x":
                     if VqmtData.sk0:
-                        NewLinkHhAndRemember(VqmtData.sk0, zp[0])
+                        remember_add_link(VqmtData.sk0, zp[0])
                 else:
                     zp[0].default_value = eval(f"{zp[1]}")
     #根据请求隐藏所有接口。面无表情地做，因为已连接的接口反正也隐藏不了；甚至不用检查'sk.enabled'。

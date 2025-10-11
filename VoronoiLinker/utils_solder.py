@@ -69,13 +69,13 @@ def SolderThemeCols(themeNe):
             setattr(SoldThemeCols, dnf+"4pw", GetNiceColNone(col4))
             setattr(SoldThemeCols, dnf+"3", Vec(col4[:3])) # 用于 vptRvEeIsSavePreviewResults.
 
-def GetNdThemeNclassCol(node: bpy.types.Node):
+def node_tag_color(node: bpy.types.Node):
     if bpy.app.version >= (5, 0, 0):
         color_tag = node.color_tag.lower() + "_node"
         if color_tag == "interface":
             color_tag = "group_socket"
         color = getattr(bpy.context.preferences.themes[0].node_editor, color_tag).copy()
-        color.s *= 2
+        color.s *= 1.5
         color.v *= 0.9
         return Vec((*color, 1))
     else:

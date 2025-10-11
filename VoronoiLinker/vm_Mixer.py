@@ -24,7 +24,7 @@ def DoMix(tree: NodeTree, isShift: bool, isAlt: bool, type: str):
     fix_type = {'VALUE':'FLOAT'}.get(VmtData.skType, VmtData.skType)
     # 两次 switch case -- 为了代码舒适和一点点节约.
     match a_node.bl_idname:
-        case 'ShaderNodeMath'|'ShaderNodeVectorMath'|'CompositorNodeMath'|'TextureNodeMath':
+        case 'ShaderNodeMath'|'ShaderNodeVectorMath'|'ShaderNodeMath'|'TextureNodeMath':
             a_node.operation = 'MAXIMUM'
         case 'FunctionNodeBooleanMath':
             a_node.operation = 'OR'
@@ -53,7 +53,7 @@ def DoMix(tree: NodeTree, isShift: bool, isAlt: bool, type: str):
             for i, sk in enumerate(sks):
                 if isinstance(a_node, GeometryNodeMenuSwitch):
                     a_node.enum_items[i].name = sk.name
-                NewLinkHhAndRemember(sk, a_node.inputs[i+sk_index_offset])
+                remember_add_link(sk, a_node.inputs[i+sk_index_offset])
         case 'GeometryNodeSwitch'|'FunctionNodeCompare'|'ShaderNodeMix': #|2|.
             fix_type = VmtData.skType
             match a_node.bl_idname:
@@ -62,7 +62,7 @@ def DoMix(tree: NodeTree, isShift: bool, isAlt: bool, type: str):
             tgl = isinstance(a_node, bpy.types.ShaderNodeMix) and a_node.data_type in {"FLOAT", "VECTOR"}
             list_foundSk = [sk for sk in a_node.inputs if sk.type==fix_type][tgl:]    # mix三个浮点/矢量输入,第一个是非均匀模式的矢量Factor
             for i, sk in enumerate(sk for sk in (VmtData.sk0, VmtData.sk1) if sk):
-                NewLinkHhAndRemember(sk, list_foundSk[i^isShift])
+                remember_add_link(sk, list_foundSk[i^isShift])
         case _:
             # 这种密集的处理是为了多输入 -- 需要改变连接顺序.
             Mix_item = dict_vmtMixerNodesDefs[a_node.bl_idname]
@@ -72,10 +72,10 @@ def DoMix(tree: NodeTree, isShift: bool, isAlt: bool, type: str):
             soc_in = a_node.inputs[Mix_item[1^isShift^swap_link]]
             is_multi_in = a_node.inputs[Mix_item[0]].is_multi_input
             if (VmtData.sk1)and(is_multi_in): # `0` 在这里主要是因为 dict_vmtMixerNodesDefs 中的“多输入节点”都是零.
-                NewLinkHhAndRemember( VmtData.sk1, soc_in)
-            DoLinkHh( VmtData.sk0, a_node.inputs[Mix_item[0^isShift]^swap_link] ) # 注意: 这不是 NewLinkHhAndRemember(), 以便多输入的第二个视觉上是 VlrtData 中的最后一个.
+                remember_add_link( VmtData.sk1, soc_in)
+            DoLinkHh( VmtData.sk0, a_node.inputs[Mix_item[0^isShift]^swap_link] ) # 注意: 这不是 remember_add_link(), 以便多输入的第二个视觉上是 VlrtData 中的最后一个.
             if (VmtData.sk1)and(not is_multi_in):
-                NewLinkHhAndRemember( VmtData.sk1, soc_in)
+                remember_add_link( VmtData.sk1, soc_in)
     a_node.show_options = not VmtData.isHideOptions
     # 接下来和 vqmt 中一样. 它的是主要的; 这里为了直观对应而复制.
     if isAlt:

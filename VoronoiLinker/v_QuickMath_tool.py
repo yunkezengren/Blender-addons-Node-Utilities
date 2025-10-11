@@ -159,7 +159,7 @@ class VoronoiQuickMathTool(VoronoiToolTripleSk):
         match tree.bl_idname:
             case 'ShaderNodeTree':     VqmtData.qmSkType = {'BOOLEAN':'VALUE'}.get(VqmtData.qmSkType, VqmtData.qmSkType)
             case 'GeometryNodeTree':   pass
-            case 'CompositorNodeTree': VqmtData.qmSkType = {'BOOLEAN':'VALUE', 'VECTOR':'RGBA'}.get(VqmtData.qmSkType, VqmtData.qmSkType)
+            case 'CompositorNodeTree': VqmtData.qmSkType = {'BOOLEAN':'VALUE'}.get(VqmtData.qmSkType, VqmtData.qmSkType)
             case 'TextureNodeTree':    VqmtData.qmSkType = {'BOOLEAN':'VALUE', 'VECTOR':'RGBA'}.get(VqmtData.qmSkType, VqmtData.qmSkType)
         if self.isRepeatLastOperation:
             return DoQuickMath(event, tree, VqmtData.dict_lastOperation[VqmtData.qmTrueSkType])

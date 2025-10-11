@@ -123,17 +123,17 @@ class VoronoiLinkerTool(VoronoiToolPairSk): # 神圣中的神圣. 它存在的�
                 tree.links.remove(lk)
             # 在 b3.5 版本之前, 下面的处理是必要的, 以防止新的组 io 被创建两次.
             # 现在没有这个处理, Blender 要么崩溃, 要么从虚拟到多输入的链接无效
-            if sko.bl_idname=='NodeSocketVirtual':
-                sko = sko.node.outputs[-2]
+            # if sko.bl_idname=='NodeSocketVirtual':
+            #     sko = sko.node.outputs[-2]
             tree.links.new(sko, ski) # 将下一个连接为第一个.
             for li in list_skLinks: # 恢复记住的. #todo0VV 为了支持旧版本: 以前是 [:-1], 因为列表中的最后一个已经是期望的, 由上面一行连接.
                 tree.links.new(li[0], li[1]).is_muted = li[2]
-        VlrtRememberLastSockets(sko, ski) # 记住 VLRT 的套接字, 它们现在是“最后使用的”.
+        VlrtRememberLastSockets(sko, link.to_socket) # 记住 VLRT 的套接字, 它们现在是“最后使用的”.
         if prefs.vltSelectingInvolved:
             for nd in tree.nodes:
                 nd.select = False
             sko.node.select = True
-            ski.node.select = True
+            to_node.select = True
             tree.nodes.active = sko.node # P.s. 不知道为什么是它; 也可以是 ski. 把这个做成选项感觉不太好.
     def InitTool(self, event, prefs, tree):
         self.fotagoSkOut = None

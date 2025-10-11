@@ -62,8 +62,9 @@ from .rot_or_mat_convert import Rot_or_Mat_Convert, PIE_MT_Convert_To_Rotation, 
 
 try:
     from rich import traceback
+    # 在WindTerm里太宽了, 在VSCode终端里拉满
     # traceback.install(extra_lines=0, width=165, code_width=160, show_locals=False)
-    traceback.install(extra_lines=0, width=165, show_locals=False)
+    traceback.install(extra_lines=0, width=140, show_locals=False)
     
     # from rich.console import Console      # 在别的文件里导入了
     # console = Console(width=160, log_time=False)
@@ -376,7 +377,7 @@ with VlTrMapForKey(format_tool_set(VoronoiEnumSelectorTool)) as dm:
 dict_toolLangSpecifDataPool[VoronoiEnumSelectorTool, "ru_RU"] = """Инструмент для удобно-ленивого переключения свойств перечисления.
 Избавляет от прицеливания мышкой, клика, а потом ещё одного прицеливания и клика."""
 
-# 参见: VlrtData, VlrtRememberLastSockets() 和 NewLinkHhAndRemember().
+# 参见: VlrtData, VlrtRememberLastSockets() 和 remember_add_link().
 smart_add_to_reg_and_kmiDefs(VoronoiLinkRepeatingTool, "###_V", {'toolMode':'SOCKET'})
 smart_add_to_reg_and_kmiDefs(VoronoiLinkRepeatingTool, "S##_V", {'toolMode':'NODE'})
 with VlTrMapForKey(VoronoiLinkRepeatingTool.bl_label) as dm:
@@ -1132,9 +1133,9 @@ class VoronoiAddonPrefs(bpy.types.AddonPreferences):
                     rowTool = colDiscl.row(align=True)
                     rowTool.label(icon='BLANK1')
                     rowTool.label(icon='BLANK1')
-                    colText = rowTool.column(align=True)
+                    text_color = rowTool.column(align=True)
                     for li in txtToolInfo.split("\n"):
-                        colText.label(text=li, translate=False)
+                        text_color.label(text=li, translate=False)
                 with LyAddQuickInactiveCol(rowLabel, att='row') as row:
                     row.alignment = 'LEFT'
                     row.label(text=f"({cls.vlTripleName})", translate=False)

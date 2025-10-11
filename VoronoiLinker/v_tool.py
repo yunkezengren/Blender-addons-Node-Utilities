@@ -3,7 +3,7 @@ import bpy
 from mathutils import Vector as Vec2
 
 from pprint import pprint
-from bpy.types import Node, Area
+from bpy.types import Node, Area, Context, Event
 from bpy.types import View2D as View2d
 
 from .utils_node import GetNearestSocketsFtg, GetNearestNodesFtg, RestoreCollapsedNodes
@@ -23,7 +23,6 @@ from .utils_drawing import *
 from .utils_translate import *
 from .common_forward_func import *
 from .common_forward_class import *
-
 
 
 def GetOpKmi(self, event): 
@@ -68,7 +67,7 @@ class VoronoiToolRoot(VoronoiOpTool, VoronoiToolFillers): #0
     canDrawInAppearance = False
     # 点击节点编辑器总是不可避免的, 那里有节点, 所以对于所有工具
     isPassThrough: bpy.props.BoolProperty(name="Pass through node selecting", default=False, description="Clicking over a node activates selection, not the tool")
-    def CallbackDrawRoot(self, drata, context):
+    def CallbackDrawRoot(self, drata: VlDrawData, context: Context):
         if drata.whereActivated!=context.space_data: # 需要只在活动的编辑器中绘制, 而不是在所有打开相同树的编辑器中绘制.
             return
         drata.worldZoom = self.ctView2d.GetZoom() # 每次都从 EdgePan 和鼠标滚轮获取. 以前可以一次性焊接.
@@ -79,7 +78,7 @@ class VoronoiToolRoot(VoronoiOpTool, VoronoiToolFillers): #0
     def ToolGetNearestNodes(self, includePoorNodes=False, cur_x_off=0):
         self.cursorLoc.x += cur_x_off    # 唤起位置偏移
         return GetNearestNodesFtg(self.tree.nodes[:], self.cursorLoc, self.uiScale, includePoorNodes)
-    def ToolGetNearestSockets(self, nd, cur_x_off=0):
+    def ToolGetNearestSockets(self, nd: Node, cur_x_off=0):
         self.cursorLoc.x += cur_x_off    #     唤起位置偏移
         return GetNearestSocketsFtg(nd, self.cursorLoc, self.uiScale)
     def NextAssignmentRoot(self, flag):
@@ -90,7 +89,7 @@ class VoronoiToolRoot(VoronoiOpTool, VoronoiToolFillers): #0
                 EdgePanData.isWorking = False # 现在只对 VLT 有效. 也许应该做个 ~self.ErrorToolProc, 并在 VLT 中 "退后一步".
                 bpy.types.SpaceNodeEditor.draw_handler_remove(self.handle, 'WINDOW')
                 raise
-    def ModalMouseNext(self, event, prefs):
+    def ModalMouseNext(self, event: Event, prefs):
         match event.type:
             case 'MOUSEMOVE':
                 self.NextAssignmentRoot(False)
@@ -179,60 +178,60 @@ class VoronoiToolRoot(VoronoiOpTool, VoronoiToolFillers): #0
         return {'RUNNING_MODAL'}
 
 class VoronoiToolSk(VoronoiToolRoot): #1
-    def CallbackDrawTool(self, drata):
+    def CallbackDrawTool(self, drata: VlDrawData):
         TemplateDrawSksToolHh(drata, self.fotagoSk)
     def MatterPurposePoll(self):
         return not not self.fotagoSk
-    def InitToolPre(self, event):
+    def InitToolPre(self, event: Event):
         self.fotagoSk = None
 
 class VoronoiToolPairSk(VoronoiToolSk): #2
     isCanBetweenFields: bpy.props.BoolProperty(name="Can between fields", default=True, description="Tool can connecting between different field types")
-    def CallbackDrawTool(self, drata):
+    def CallbackDrawTool(self, drata: VlDrawData):
         TemplateDrawSksToolHh(drata, self.fotagoSk0, self.fotagoSk1)
     def SkBetweenFieldsCheck(self, sk1, sk2):
         # 注意: 考虑到此函数的目的和名称, sk1 和 sk2 无论如何都应该是来自字段, 且仅来自字段.
         return (sk1.type in set_utilTypeSkFields)and( (self.isCanBetweenFields)and(sk2.type in set_utilTypeSkFields)or(sk1.type==sk2.type) )
-    def InitToolPre(self, event):
+    def InitToolPre(self, event: Event):
         self.fotagoSk0 = None
         self.fotagoSk1 = None
 
 
 class VoronoiToolTripleSk(VoronoiToolPairSk): #3
-    def ModalTool(self, event, prefs):
+    def ModalTool(self, event: Event, prefs):
         if (self.isStartWithModf)and(not self.canPickThird): # 谁会真的通过按下和释放某个修饰键来切换到选择第三个套接字呢?.
             # 因为这代价太高了; 既然选择了没有修饰键的热键, 那就满足于有限的功能吧. 或者自己动手.
             self.canPickThird = not(event.shift or event.ctrl or event.alt)
-    def InitToolPre(self, event):
+    def InitToolPre(self, event: Event):
         self.fotagoSk2 = None
         self.canPickThird = False
         self.isStartWithModf = (event.shift)or(event.ctrl)or(event.alt)
 
 class VoronoiToolNd(VoronoiToolRoot): #1
-    def CallbackDrawTool(self, drata):
+    def CallbackDrawTool(self, drata: VlDrawData):
         TemplateDrawNodeFull(drata, self.fotagoNd, tool_name="隐藏选项")
     def MatterPurposePoll(self):
         return not not self.fotagoNd
-    def InitToolPre(self, event):
+    def InitToolPre(self, event: Event):
         self.fotagoNd = None
 
 class VoronoiToolPairNd(VoronoiToolSk): #2
     def MatterPurposePoll(self):
         return self.fotagoNd0 and self.fotagoNd1
-    def InitToolPre(self, event):
+    def InitToolPre(self, event: Event):
         self.fotagoNd0 = None
         self.fotagoNd1 = None
 
 class VoronoiToolAny(VoronoiToolSk, VoronoiToolNd): #2
     @staticmethod
-    def TemplateDrawAny(drata, ftg, *, cond, tool_name=""):
+    def TemplateDrawAny(drata: VlDrawData, ftg, *, cond: bool, tool_name=""):
         if cond:
             TemplateDrawNodeFull(drata, ftg, tool_name=tool_name)
         else:
             TemplateDrawSksToolHh(drata, ftg, tool_name=tool_name)      # 绘制工具提示
     def MatterPurposePoll(self):
         return self.fotagoAny
-    def InitToolPre(self, event):
+    def InitToolPre(self, event: Event):
         self.fotagoAny = None
 
 def CheckUncollapseNodeAndReNext(nd: Node, self: VoronoiToolRoot, *, cond: bool, flag=None): # 我是多么鄙视折叠起来的节点啊.

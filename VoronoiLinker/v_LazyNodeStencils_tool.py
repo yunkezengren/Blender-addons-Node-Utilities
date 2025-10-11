@@ -117,7 +117,7 @@ def DoLazyStencil(tree, skFirst, skSecond, lzSten):
             tree.links.new(nd.outputs[abs(li.lzHhOutSk)-1], skFirst if li.lzHhOutSk<0 else skSecond)
         if li.lzHhInSk:
             tree.links.new(skFirst if li.lzHhInSk<0 else skSecond, nd.inputs[abs(li.lzHhInSk)-1])
-    # 对于单个节点还行, 但考虑到多样性和灵活性, 最好还是不用 NewLinkHhAndRemember(), 直接原生连接.
+    # 对于单个节点还行, 但考虑到多样性和灵活性, 最好还是不用 remember_add_link(), 直接原生连接.
     for li in lzSten.list_links:
         tree.links.new(list_result[li[0]].outputs[li[1]], list_result[li[2]].inputs[li[3]])
     if lzSten.isSameLink:

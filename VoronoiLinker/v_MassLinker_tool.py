@@ -22,6 +22,8 @@ class VoronoiMassLinkerTool(VoronoiToolRoot): #"猫狗合体", 既不是节点, 
     usefulnessForCustomTree = True
     isIgnoreExistingLinks: bpy.props.BoolProperty(name="Ignore existing links", default=False)
     def CallbackDrawTool(self, drata):
+        # TemplateDrawSksToolHh(drata, self.fotagoSk0, self.fotagoSk1, self.fotagoSk2, tool_name="Quick Dimensions - 暂时只输出有效")
+        # TemplateDrawSksToolHh(drata, None, None, sideMarkHh=-1, isClassicFlow=True, tool_name="Linker")
         #这里违反了本地 VL 的读写概念, CallbackDraw 会查找并记录找到的接口, 而不是简单地读取和绘制. 我想这样更容易实现这个工具.
         self.list_equalFtgSks.clear() #每次都清除. P.s. 在开始时执行此操作很重要, 而不是在两个节点的分支中.
         if not self.ndTar0:
