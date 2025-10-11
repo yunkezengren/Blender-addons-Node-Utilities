@@ -3,7 +3,7 @@ bl_info = {
     "author" : "一尘不染",
     "description" : "快速添加组输入节点-拆分合并移动组输入节点-快速添加组输入输出接口(Qucik add and split merge move Group Input node-Qucik add Group Input Output socket)",
     "blender" : (3, 0, 0),
-    "version" : (2, 8, 0),
+    "version" : (2, 8, 2),
     "location" : "偏好设置-标题栏-N面板(Preferences-Editor Bar-N panel)",
     "warning" : "",
     "doc_url": "",
@@ -39,103 +39,91 @@ from bpy.types import NodeSocket
 addon_keymaps = {}
 _icons = None
 
-socket_name = [
-            "Geometry",
-            "Shader",
-            "Boolean",
-            "Float",
-            "Integer",
-            "Vector",
-            "Color",
-            "Rotation",
-            "Matrix",
-            "Menu",
-            "String",
-            "Material",
-            "Object",
-            "Collection",
-            "Image",
-            "Texture",
-            ]
-socket_name_cn = [
-            "几何数据",
-            "着色器",
-            "布尔",
-            "浮点",
-            "整数",
-            "矢量",
-            "颜色",
-            "旋转",
-            "矩阵",
-            "菜单",
-            "字符串",
-            "材质",
-            "物体",
-            "集合",
-            "图像",
-            "纹理",
-            ]
-socket_bl_socket_idname = [
-            "NodeSocketGeometry",
-            "NodeSocketShader",
-            "NodeSocketBool",
-            "NodeSocketFloat",
-            "NodeSocketInt",
-            "NodeSocketVector",
-            "NodeSocketColor",
-            "NodeSocketRotation",
-            "NodeSocketMatrix",
-            "NodeSocketMenu",
-            "NodeSocketString",
-            "NodeSocketMaterial",
-            "NodeSocketObject",
-            "NodeSocketCollection",
-            "NodeSocketImage",
-            "NodeSocketTexture",
-            ]
-png_list = [
-            '几何数据.png',
-            '着色器.png',    # Shader接口也用几何数据
-            '布尔.png',
-            '浮点.png',
-            '整数.png',
-            '矢量.png',
-            '颜色.png',
-            '旋转.png',
-            '矩阵.png',
-            '菜单.png',
-            '字符串.png',
-            '材质.png',
-            '物体.png',
-            '集合.png',
-            '图像.png',
-            '纹理.png',
-            '空.png',
-            ]
-Geometry_socket_type = [   # 这里没用到
-            "GEOMETRY",
-            "SHADER",
-            "BOOLEAN",
-            "VALUE",
-            "INT",
-            "VECTOR",
-            "RGBA",
-            "ROTATION",
-            "MATRIX",
-            "MENU",
-            "STRING",
-            "MATERIAL",
-            "OBJECT",
-            "COLLECTION",
-            "IMAGE",
-            "TEXTURE",
-            "CUSTOM",    # 黑色虚拟接口
-            ]
+sk_name_cn = [
+    "几何数据",
+    "着色器",
+    "布尔",
+    "浮点",
+    "整数",
+    "矢量",
+    "颜色",
+    "旋转",
+    "矩阵",
+    "菜单",
+    "字符串",
+    "材质",
+    "物体",
+    "集合",
+    "图像",
+    # "纹理",
+    "捆包",
+    "闭包",
+]
 
-inputs_png = {k:v for k, v in zip(socket_bl_socket_idname, png_list)}
-# inputs_png["NodeSocketShader"] = '几何数据.png'
-get_socket_name = {k:v for k, v in zip(socket_bl_socket_idname, socket_name_cn)}
-# get_socket_name = {k:v for k, v in zip(socket_bl_socket_idname, zip(socket_name_cn, socket_name))}
+sk_idnames = [
+    "NodeSocketGeometry",
+    "NodeSocketShader",
+    "NodeSocketBool",
+    "NodeSocketFloat",
+    "NodeSocketInt",
+    "NodeSocketVector",
+    "NodeSocketColor",
+    "NodeSocketRotation",
+    "NodeSocketMatrix",
+    "NodeSocketMenu",
+    "NodeSocketString",
+    "NodeSocketMaterial",
+    "NodeSocketObject",
+    "NodeSocketCollection",
+    "NodeSocketImage",
+    # "NodeSocketTexture",
+    "NodeSocketBundle",
+    "NodeSocketClosure",
+]
+
+sk_icons = [
+    "NODE_SOCKET_GEOMETRY",
+    "NODE_SOCKET_SHADER",
+    "NODE_SOCKET_BOOLEAN",
+    "NODE_SOCKET_FLOAT",
+    "NODE_SOCKET_INT",
+    "NODE_SOCKET_VECTOR",
+    "NODE_SOCKET_RGBA",
+    "NODE_SOCKET_ROTATION",
+    "NODE_SOCKET_MATRIX",
+    "NODE_SOCKET_MENU",
+    "NODE_SOCKET_STRING",
+    "NODE_SOCKET_MATERIAL",
+    "NODE_SOCKET_OBJECT",
+    "NODE_SOCKET_COLLECTION",
+    "NODE_SOCKET_IMAGE",
+    # "NODE_SOCKET_TEXTURE",
+    "NODE_SOCKET_BUNDLE",
+    "NODE_SOCKET_CLOSURE",
+]
+
+png_list = [
+    '几何数据.png',
+    '着色器.png',  # Shader接口也用几何数据
+    '布尔.png',
+    '浮点.png',
+    '整数.png',
+    '矢量.png',
+    '颜色.png',
+    '旋转.png',
+    '矩阵.png',
+    '菜单.png',
+    '字符串.png',
+    '材质.png',
+    '物体.png',
+    '集合.png',
+    '图像.png',
+    '空.png',
+]
+
+sk_idname_to_png_name = {k:v for k, v in zip(sk_idnames, png_list)}
+sk_idname_to_cn = {k:v for k, v in zip(sk_idnames, sk_name_cn)}
+sk_idname_to_icon = {k:v for k, v in zip(sk_idnames, sk_icons)}
 
 def find_user_keyconfig(key):
     km, kmi = addon_keymaps[key]
@@ -202,7 +190,7 @@ def pref() -> GroupInputHelperAddonPreferences:
 def ui_scale():
     return bpy.context.preferences.system.dpi / 72      # 类似于prefs.view.ui_scale, 但是不同的显示器dpi不一样吗
 
-def get_socket_idname(socket_id):
+def sk_idname_版本兼容(socket_id):
     # 好像只3.6这样,4.0就都一种了
     if socket_id.startswith("NodeSocketFloat"):
         socket_id = "NodeSocketFloat"
@@ -274,16 +262,23 @@ def draw_add_hided_socket_group_input(layout: UILayout):
             panel_count += 1
             layout.separator()
             if prefs.show_panel_name:
-                panel_name = "●" * in_item["depth"] + item.name
+                panel_name = "●" * in_item["depth"] + " " + item.name
                 op = layout.operator(NODE_OT_Add_Hided_Socket_Group_Input.bl_idname, text=iface_(panel_name), icon="DOWNARROW_HLT")
                 op.panel_name = item.name
                 op.in_panel = True
                 op.is_panel = True
         if item.item_type == 'SOCKET':
-            socket_id = get_socket_idname(item.bl_socket_idname)
-            input_png = inputs_png[socket_id]
             socket_name = item.name if item.name else " "  # 文本为空时,菜单里按钮不对齐
-            op = layout.operator(NODE_OT_Add_Hided_Socket_Group_Input.bl_idname, text=iface_(socket_name), icon_value=(_icons[input_png].icon_id ) )
+            if bpy.app.version >= (4, 5, 0):
+                op = layout.operator(NODE_OT_Add_Hided_Socket_Group_Input.bl_idname,
+                                     text=iface_(socket_name),
+                                     icon=sk_idname_to_icon[item.bl_socket_idname])
+            else:
+                socket_id = sk_idname_版本兼容(item.bl_socket_idname)
+                input_png = sk_idname_to_png_name[socket_id]
+                op = layout.operator(NODE_OT_Add_Hided_Socket_Group_Input.bl_idname,
+                                     text=iface_(socket_name),
+                                     icon_value=(_icons[input_png].icon_id))
             in_panel = item.parent.index != -1
             op.in_panel = in_panel   # 不等于-1的话是面板内的接口
             if in_panel:
@@ -382,33 +377,6 @@ class NODE_PT_Add_Hided_Socket_Group_Input(Panel):
         draw_add_hided_socket_group_input(layout)
 
 # ==================================================================================================
-def draw_add_new_socket(layout, context):
-    for socket_type, socket_name in get_socket_name.items():
-        in_socket_png = inputs_png[socket_type]
-        tree_type = context.space_data.edit_tree.bl_idname
-        group_type = None
-        a_node = context.active_node
-        name = trans(socket_name)
-        if a_node and a_node.select:
-            group_type = a_node.bl_idname
-        # print("--" * 20)
-        # print(f"{tree_type = }")
-        # print(f"{a_node.bl_idname = }")
-        # print(f"{a_node.type = }")
-        # if tree_type == "ShaderNodeTree" or group_type == "GROUP":            # 这样对于组节点就绘制多次了
-        if tree_type == "ShaderNodeTree" or group_type == "ShaderNodeGroup":
-            if socket_name in ["着色器", "布尔", "浮点", "整数", "矢量", "颜色"]:
-                op = layout.operator('node.add_new_group_item', text=name, icon_value=(_icons[in_socket_png].icon_id ) )
-                op.socket_type = socket_type
-        if tree_type == "CompositorNodeTree" or group_type == "CompositorNodeGroup":
-            if socket_name in ["浮点", "矢量", "颜色"]:
-                op = layout.operator('node.add_new_group_item', text=name, icon_value=(_icons[in_socket_png].icon_id ) )
-                op.socket_type = socket_type
-        if tree_type == "GeometryNodeTree" and socket_name != "着色器":
-            # if group_type == "GeometryNodeGroup" or tree_type == "GeometryNodeTree":
-            op = layout.operator('node.add_new_group_item', text=name, icon_value=(_icons[in_socket_png].icon_id ) )
-            op.socket_type = socket_type
-
 class NODE_OT_Add_New_Group_Item(BaseOperator):
     bl_idname = "node.add_new_group_item"
     bl_label = trans("添加输入输出接口")
@@ -417,12 +385,12 @@ class NODE_OT_Add_New_Group_Item(BaseOperator):
 
     def execute(self, context):
         a_node = context.active_node
-        if a_node and a_node.select and a_node.bl_idname in ["GeometryNodeGroup", "ShaderNodeGroup"]:
+        if a_node and a_node.select and a_node.type == "GROUP":
             tree = a_node.node_tree
         else:
             tree = context.space_data.edit_tree
         interface = tree.interface
-        name = trans(get_socket_name[self.socket_type])
+        name = trans(sk_idname_to_cn[self.socket_type])
         if context.scene.add_input_socket:
             item = interface.new_socket(name, socket_type=self.socket_type, in_out="INPUT")
             interface.active = item
@@ -441,12 +409,17 @@ class NODE_PT_Add_New_Group_Item(Panel):
     bl_order = 4
     bl_options = {'DEFAULT_CLOSED'}
     bl_ui_units_x=0
+    @classmethod
+    def poll(cls, context):
+        a_node = context.active_node
+        # todo 合成器和材质里顶层无效,要显示提示信息
+        return context.space_data.edit_tree
 
     def draw(self, context):
         # name = trans(socket_name)     # 什么时候加的?会出问题
         info = trans("添加输入输出接口")
         a_node = context.active_node
-        if a_node and a_node.select and a_node.type=="GROUP":
+        if a_node and a_node.select and a_node.type == "GROUP":
             info = trans("给活动节点组添加接口")
         layout = self.layout
         layout.label(text=trans(info), icon='NODETREE')
@@ -454,6 +427,26 @@ class NODE_PT_Add_New_Group_Item(Panel):
         split.prop(context.scene, 'add_input_socket',  text=trans('输入接口'), toggle=True, icon='BACK')
         split.prop(context.scene, 'add_output_socket', text=trans('输出接口'), toggle=True, icon='FORWARD')
         draw_add_new_socket(layout, context)
+
+def draw_add_new_socket(layout, context):
+    for sk_idname, socket_name in sk_idname_to_cn.items():
+        tree_type = context.space_data.edit_tree.bl_idname
+        name = trans(socket_name)
+        base_type = ["浮点", "整数", "布尔", "矢量", "颜色"]
+        if tree_type == "ShaderNodeTree" and socket_name not in ["着色器"] + base_type + ["菜单", "捆包", "闭包"]:
+            continue
+        if tree_type == "CompositorNodeTree" and socket_name not in base_type + ["菜单"]:
+            continue
+        if tree_type == "GeometryNodeTree" and socket_name == "着色器":
+            continue
+        if bpy.app.version < (5, 0, 0) and socket_name in ["捆包", "闭包"]:
+            continue
+        if bpy.app.version >= (4, 5, 0):
+            op = layout.operator('node.add_new_group_item', text=name, icon=sk_idname_to_icon[sk_idname])
+        else:
+            in_socket_png = sk_idname_to_png_name[sk_idname]
+            op = layout.operator('node.add_new_group_item', text=name, icon_value=(_icons[in_socket_png].icon_id))
+        op.socket_type = sk_idname
 
 # ==================================================================================================
 def abs_loc(node):
@@ -470,11 +463,6 @@ def get_nodes_center(nodes):
             # center = location + Vec2((node.width / 2, - node.dimensions.y / 2))
             center = [location.x, location.x + node.width, location.y, location.y - node.dimensions.y]
             locs.append(center)
-        # print([[l[0], l[1]] for l in locs])
-        # # 选中节点重心位置
-        # center_x = sum(x for x, y in locs) / len(nodes); center_y = sum(y for x, y in locs) / len(nodes)
-        # # 选中节点中心位置
-        # center_x1 = (max(x for x, y in locs) + min(x for x, y in locs)) / 2: center_y1 = (max(y for x, y in locs) + min(y for x, y in locs)) / 2
         min_x1 = min(l[0] for l in locs)
         center_y1 = (max(l[2] for l in locs) + min(l[3] for l in locs)) / 2
         return Vec2((min_x1, center_y1))
@@ -902,14 +890,17 @@ classes = [
 def register():
     global _icons
     _icons = bpy.utils.previews.new()
-    for png in png_list:
-        _icons.load(png, os.path.join(os.path.dirname(__file__), 'icons', png), "IMAGE")
+    if bpy.app.version >= (4, 5, 0):
+        _icons.load('空.png', os.path.join(os.path.dirname(__file__), 'icons', '空.png'), "IMAGE")
+    else:
+        for png in png_list:
+            _icons.load(png, os.path.join(os.path.dirname(__file__), 'icons', png), "IMAGE")
 
     for i in classes:
         bpy.utils.register_class(i)
     bpy.types.NODE_MT_editor_menus.append(add_group_input_helper_to_node_mt_editor_menus)
-    bpy.types.Scene.add_input_socket  = BoolProperty(name='add_input_socket',  description='trans(同时添加输入接口)', default=True)
-    bpy.types.Scene.add_output_socket = BoolProperty(name='add_output_socket', description='trans(同时添加输出接口)', default=False)
+    bpy.types.Scene.add_input_socket  = BoolProperty(name='add_input_socket',  description=trans('同时添加输入接口'), default=True)
+    bpy.types.Scene.add_output_socket = BoolProperty(name='add_output_socket', description=trans('同时添加输出接口'), default=False)
 
     # 第一种
     kc = bpy.context.window_manager.keyconfigs.addon
