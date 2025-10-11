@@ -83,10 +83,10 @@ dict_skTypeHandSolderingColor = { # 用于 VQMT.
     'VECTOR':     (0.38999998569488525, 0.38999998569488525, 0.7799999713897705,  1.0),
     'CUSTOM':     (0.20000000298023224, 0.20000000298023224, 0.20000000298023224, 1.0) }
 
-support_all_type = ('GeometryNodeSwitch', 'GeometryNodeIndexSwitch', 'GeometryNodeMenuSwitch')
-_support_data_type = support_all_type + ('FunctionNodeCompare', 'ShaderNodeMix')
+node_support_all = ('GeometryNodeSwitch', 'GeometryNodeIndexSwitch', 'GeometryNodeMenuSwitch')
+_support_data_type = node_support_all + ('FunctionNodeCompare', 'ShaderNodeMix')
 
-vmtSep = 'MixerItemsSeparator123'               # 字符串比较后当 separator()
+SEPARATE = 'MixerItemsSeparator123'               # 字符串比较后当 separator()
 # 新接口类型的Mix饼菜单
 # 顺序很重要; 最常用的 (在此列表中) 优先显示 (MixRGB 除外).
 dict_vmtTupleMixerMain: dict[str, dict[str, tuple[str]]] = {
@@ -98,30 +98,31 @@ dict_vmtTupleMixerMain: dict[str, dict[str, tuple[str]]] = {
                 'INT':        ('ShaderNodeCombineXYZ', 'ShaderNodeMixRGB',  'ShaderNodeMix',                      'ShaderNodeMath')},
                 ##
         'GeometryNodeTree':   { 
-                'VALUE':      support_all_type + ( 'ShaderNodeMix', 'ShaderNodeCombineXYZ', 'FunctionNodeCompare', 'ShaderNodeMath'),
+                'VALUE':      node_support_all + ( 'ShaderNodeMix', 'ShaderNodeCombineXYZ', 'FunctionNodeCompare', 'ShaderNodeMath'),
                 'RGBA':       _support_data_type,
                 'VECTOR':     _support_data_type+ ('ShaderNodeVectorMath', ),
-                'STRING':     support_all_type + ('FunctionNodeCompare', 'GeometryNodeStringJoin',
+                'STRING':     node_support_all + ('FunctionNodeCompare', 'GeometryNodeStringJoin',
                                                    'FunctionNodeStringLength', 'FunctionNodeReplaceString', ),
-                'INT':        support_all_type + ( 'ShaderNodeMix', 'ShaderNodeCombineXYZ', 'FunctionNodeCompare', 'ShaderNodeMath'),
+                'INT':        node_support_all + ( 'ShaderNodeMix', 'ShaderNodeCombineXYZ', 'FunctionNodeCompare', 'ShaderNodeMath'),
                 'BOOLEAN':    _support_data_type+ ( 'ShaderNodeMath',                       'FunctionNodeBooleanMath'),
-                'ROTATION':   support_all_type + ( 'ShaderNodeMix', ),
-                'MATRIX':     support_all_type + ( 'FunctionNodeMatrixMultiply', 'FunctionNodeInvertMatrix', 
-                                'FunctionNodeTransformPoint', 'FunctionNodeTransformDirection', 'FunctionNodeProjectPoint',
-                                'FunctionNodeMatrixDeterminant', 'FunctionNodeSeparateTransform', 'FunctionNodeSeparateMatrix'),
-                'OBJECT':     support_all_type,
-                'MATERIAL':   support_all_type,
-                'COLLECTION': support_all_type,
-                'TEXTURE':    support_all_type,
-                'IMAGE':      support_all_type,
-                'GEOMETRY':   support_all_type + ('GeometryNodeJoinGeometry', 'GeometryNodeInstanceOnPoints', 'GeometryNodeCurveToMesh', 
+                'ROTATION':   node_support_all + ( 'ShaderNodeMix', ),
+                'MATRIX':     node_support_all + ( 'FunctionNodeMatrixMultiply', SEPARATE, 
+                                'FunctionNodeTransposeMatrix', 'FunctionNodeInvertMatrix', 'FunctionNodeMatrixDeterminant', SEPARATE, 
+                                'FunctionNodeTransformPoint', 'FunctionNodeTransformDirection', 'FunctionNodeProjectPoint', SEPARATE, 
+                                'FunctionNodeSeparateTransform', 'FunctionNodeSeparateMatrix'),
+                'OBJECT':     node_support_all,
+                'MATERIAL':   node_support_all,
+                'COLLECTION': node_support_all,
+                'TEXTURE':    node_support_all,
+                'IMAGE':      node_support_all,
+                'GEOMETRY':   node_support_all + ('GeometryNodeJoinGeometry', 'GeometryNodeInstanceOnPoints', 'GeometryNodeCurveToMesh', 
                                                    'GeometryNodeMeshBoolean', 'GeometryNodeGeometryToInstance')},
                 ##
         'CompositorNodeTree': {
-                'VALUE':      ('ShaderNodeMix', 'ShaderNodeCombineXYZ' , 'ShaderNodeMath',      vmtSep, 'ShaderNodeMix', 'CompositorNodeSwitch', 'CompositorNodeSplitViewer', 'CompositorNodeSwitchView'),
-                'RGBA':       ('ShaderNodeMix', 'CompositorNodeAlphaOver', vmtSep, 'ShaderNodeMix', 'CompositorNodeSwitch', 'CompositorNodeSplitViewer', 'CompositorNodeSwitchView'),
-                'VECTOR':     ('ShaderNodeMix',                           vmtSep, 'ShaderNodeMix', 'CompositorNodeSwitch', 'CompositorNodeSplitViewer', 'CompositorNodeSwitchView'),
-                'INT':        ('ShaderNodeMix', 'ShaderNodeCombineXYZ', 'ShaderNodeMath',      vmtSep, 'ShaderNodeMix', 'CompositorNodeSwitch', 'CompositorNodeSplitViewer', 'CompositorNodeSwitchView')},
+                'VALUE':      ('ShaderNodeMix', 'ShaderNodeCombineXYZ' , 'ShaderNodeMath',      SEPARATE, 'ShaderNodeMix', 'CompositorNodeSwitch', 'CompositorNodeSplitViewer', 'CompositorNodeSwitchView'),
+                'RGBA':       ('ShaderNodeMix', 'CompositorNodeAlphaOver', SEPARATE, 'ShaderNodeMix', 'CompositorNodeSwitch', 'CompositorNodeSplitViewer', 'CompositorNodeSwitchView'),
+                'VECTOR':     ('ShaderNodeMix',                           SEPARATE, 'ShaderNodeMix', 'CompositorNodeSwitch', 'CompositorNodeSplitViewer', 'CompositorNodeSwitchView'),
+                'INT':        ('ShaderNodeMix', 'ShaderNodeCombineXYZ', 'ShaderNodeMath',      SEPARATE, 'ShaderNodeMix', 'CompositorNodeSwitch', 'CompositorNodeSplitViewer', 'CompositorNodeSwitchView')},
                                 ##
         'TextureNodeTree':    {
                 'VALUE':       ('ShaderNodeCombineXYZ' , 'TextureNodeMixRGB', 'TextureNodeTexture', 'TextureNodeMath'),
@@ -165,7 +166,8 @@ dict_vmtMixerNodesDefs = { # '-1' 表示这里的视觉标记，它们的连接�
         'GeometryNodeMeshBoolean':        (0, 1, 'Boolean '),
         'GeometryNodeGeometryToInstance': (0, 0, 'To Instance '),
         'FunctionNodeMatrixMultiply':     (0, 1, 'Multiply'),
-        'FunctionNodeInvertMatrix':       (0, 0, 'Invert'),
+        'FunctionNodeTransposeMatrix':    (0, 0, 'Transpose Matrix'),
+        'FunctionNodeInvertMatrix':       (0, 0, 'Invert Matrix'),
         'FunctionNodeTransformPoint':     (1, 0, 'Transform Point'),
         'FunctionNodeTransformDirection': (1, 0, 'Transform Direction'),
         'FunctionNodeProjectPoint':       (1, 0, 'Project Point'),

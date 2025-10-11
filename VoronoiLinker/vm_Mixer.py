@@ -42,7 +42,7 @@ def DoMix(tree: NodeTree, isShift: bool, isAlt: bool, type: str):
         case 'ShaderNodeMix':
             a_node.data_type = {'INT':'FLOAT', 'BOOLEAN':'FLOAT'}.get(fix_type, fix_type)
     match a_node.bl_idname:
-        case 'GeometryNodeIndexSwitch'|'GeometryNodeMenuSwitch'|"ShaderNodeCombineXYZ": 
+        case 'GeometryNodeIndexSwitch'|'GeometryNodeMenuSwitch'|"ShaderNodeCombineXYZ":
             sks = [sk for sk in (VmtData.sk0, VmtData.sk1, VmtData.sk2) if sk]
             if VmtData.sk2:
                 if isinstance(a_node, GeometryNodeMenuSwitch):
@@ -119,7 +119,7 @@ class VmtPieMixer(bpy.types.Menu):
         tup_nodes = dict_vmtTupleMixerMain[editorBlid][VmtData.skType]
         if VmtData.isSpeedPie:
             for ti in tup_nodes:
-                if ti!=vmtSep:
+                if ti != SEPARATE:
                     LyVmAddOp(pie, ti)
         else:
             # 如果执行时列为空, 则只显示一个空的点框. 下面两个列表是为了修复这个问题.
@@ -144,8 +144,8 @@ class VmtPieMixer(bpy.types.Menu):
                 vec_and_mat = True
             mat_and_mat = True if (sk0_type == "MATRIX" and sk1_type == "MATRIX") else False
             match editorBlid:
-                # 这是 mix pie 的右半
-                # case 'ShaderNodeTree':
+            # 这是 mix pie 的右半
+            # case 'ShaderNodeTree':
                 case 'ShaderNodeTree' | 'CompositorNodeTree':
                     row2 = LyGetPieCol(0).row(align=VmtData.pieAlignment==0)
                     row2.enabled = True
@@ -153,10 +153,10 @@ class VmtPieMixer(bpy.types.Menu):
                 case 'GeometryNodeTree':
                     column0 = LyGetPieCol(0)
                     # 这三个是几何节点全部接口类型都支持
-                    for idname in support_all_type:
+                    for idname in node_support_all:
                         row123 = column0.row(align=VmtData.pieAlignment==0)
                         LyVmAddItem(row123, idname)
-                        
+
                     # row1 = column0.row(align=VmtData.pieAlignment==0)
                     # row2 = column0.row(align=VmtData.pieAlignment==0)
                     # row3 = column0.row(align=VmtData.pieAlignment==0)
@@ -166,7 +166,7 @@ class VmtPieMixer(bpy.types.Menu):
                     # LyVmAddItem(row1, 'GeometryNodeSwitch')
                     # LyVmAddItem(row2, 'GeometryNodeIndexSwitch')
                     # LyVmAddItem(row3, 'GeometryNodeMenuSwitch')
-                    
+
                     row4 = column0.row(align=VmtData.pieAlignment==0)
                     row5 = column0.row(align=VmtData.pieAlignment==0)
                     row4.enabled = False
@@ -180,14 +180,15 @@ class VmtPieMixer(bpy.types.Menu):
                     # LyVmAddItem(row4, 'FunctionNodeCompare')
                     # LyVmAddItem(row5, 'FunctionNodeCompare')
             sco = 0
-            
+
+            last_ti = None
             for ti in tup_nodes:
-                if ti in support_all_type: continue
+                if ti in node_support_all: continue
                 match ti:
-                    # case 'GeometryNodeSwitch'      : row1.enabled = True
-                    # case 'GeometryNodeIndexSwitch' : row2.enabled = True
-                    # case 'GeometryNodeMenuSwitch'  : row3.enabled = True
-                    case 'ShaderNodeMix'           : 
+                # case 'GeometryNodeSwitch'      : row1.enabled = True
+                # case 'GeometryNodeIndexSwitch' : row2.enabled = True
+                # case 'GeometryNodeMenuSwitch'  : row3.enabled = True
+                    case 'ShaderNodeMix'           :
                         try:        # todo 改进这里的逻辑,因为mix节点三个节点树都有
                             row4.enabled = True
                         except:
@@ -198,11 +199,14 @@ class VmtPieMixer(bpy.types.Menu):
                     case _:
                         # 下面是 mix pie 的右半
                         column1 = LyGetPieCol(1)
-                        if ti==vmtSep:
+                        if ti == SEPARATE:
+                            if last_ti == SEPARATE:
+                                continue
                             if sco:
                                 column1.separator()
+                            last_ti = SEPARATE
                         else:
-                            if vec_and_mat and ti in ["FunctionNodeMatrixMultiply", "FunctionNodeMatrixDeterminant", "FunctionNodeInvertMatrix", "FunctionNodeCombineTransform", "FunctionNodeCombineMatrix"]:
+                            if vec_and_mat and ti not in ["FunctionNodeTransformPoint", "FunctionNodeTransformDirection", "FunctionNodeProjectPoint"]:
                                 continue
                             if mat_and_mat and ti not in ["FunctionNodeMatrixMultiply"]: continue
                             LyVmAddItem(column1, ti)
