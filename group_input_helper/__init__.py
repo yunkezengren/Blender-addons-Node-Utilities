@@ -26,15 +26,13 @@ from typing import Union
 import ctypes
 from bpy.types import NodeSocket
 
-# _ 拆分后删除转接口
+# + 拆分后删除转接口
 # Todo 组输入移动后找个好位置
 # Todo 顶层材质不显示着色器
-# Todo 着色器接口排在最上面
-# Todo 看心情添加版本控制
-# ____ 百度网盘更新
 # Todo 合并组输入没活动节点时,新节点位置在左上角
 # Todo 合并组输入时适当重命名
 # todo 显示组输入 是否灰显或隐藏
+# todo 学习节点树仓库的 i18n
 
 addon_keymaps = {}
 _icons = None
@@ -159,13 +157,9 @@ class GroupInputHelperAddonPreferences(AddonPreferences):
         split1.label(text=trans('添加组输入-菜单'))
         split1.prop(find_user_keyconfig('key_MT_Add_Group_Input'), 'type', text='', full_event=True)
 
-        split2 = layout.split(factor=0.65, align=False)
-        split2.label(text=trans('添加组输入-面板'))
-        split2.prop(find_user_keyconfig('key_PT_Add_Group_Input'), 'type', text='', full_event=True)
-
         split3 = layout.split(factor=0.65, align=True)
-        split3.label(text=trans('添加组输入输出接口'))
-        split3.prop(find_user_keyconfig('key_Add_New_Group_Item'), 'type', text='', full_event=True)
+        split3.label(text=trans('组输入助手-面板'))
+        split3.prop(find_user_keyconfig('NODE_PT_Group_Input_Helper'), 'type', text='', full_event=True)
 
         split3 = layout.split(factor=0.65, align=True)
         split3.label(text=trans('组输入合并拆分移动'))
@@ -354,23 +348,7 @@ def add_group_input_helper_to_node_mt_editor_menus(self, context):
 
 class NODE_MT_Add_Hided_Socket_Group_Input(Menu):
     bl_idname = "NODE_MT_Add_Hided_Socket_Group_Input"
-    bl_label = trans("添加组输入")
-
-    def draw(self, context):
-        layout = self.layout
-        draw_add_hided_socket_group_input(layout)
-
-class NODE_PT_Add_Hided_Socket_Group_Input(Panel):
-    # bl_category = 'Group'
-    bl_category = trans('节点树')
-    bl_label = trans('组输入拆分')
-    bl_idname = 'NODE_PT_Add_Hided_Socket_Group_Input'
-    bl_space_type = 'NODE_EDITOR'
-    bl_region_type = 'UI'
-    bl_context = ''
-    bl_order = 4
-    bl_options = {'DEFAULT_CLOSED'}
-    bl_ui_units_x=0
+    bl_label = trans("添加组输入节点")
 
     def draw(self, context):
         layout = self.layout
@@ -399,14 +377,15 @@ class NODE_OT_Add_New_Group_Item(BaseOperator):
             interface.active = item
         return {"FINISHED"}
 
-class NODE_PT_Add_New_Group_Item(Panel):
-    bl_category = '节点树'
-    bl_label = trans('添加组输入输出接口')
-    bl_idname = 'NODE_PT_Add_New_Group_Item'
+# ==================================================================================================
+class NODE_PT_Group_Input_Helper(Panel):
+    bl_category = "Group"
+    bl_label = trans('组输入助手')
+    bl_idname = 'NODE_PT_Group_Input_Helper'
     bl_space_type = 'NODE_EDITOR'
     bl_region_type = 'UI'
     bl_context = ''
-    bl_order = 4
+    bl_order = 6
     bl_options = {'DEFAULT_CLOSED'}
     bl_ui_units_x=0
     @classmethod
@@ -416,17 +395,27 @@ class NODE_PT_Add_New_Group_Item(Panel):
         return context.space_data.edit_tree
 
     def draw(self, context):
-        # name = trans(socket_name)     # 什么时候加的?会出问题
+        layout = self.layout
+        # layout.label(text=trans("1"), icon='NODETREE')
+        
+        header, body = layout.panel("group_helper_1")
         info = trans("添加输入输出接口")
         a_node = context.active_node
+        icons = ['FORWARD', 'BACK']
         if a_node and a_node.select and a_node.type == "GROUP":
+            icons.reverse()
             info = trans("给活动节点组添加接口")
-        layout = self.layout
-        layout.label(text=trans(info), icon='NODETREE')
-        split = layout.split(factor=0.5, align=True)
-        split.prop(context.scene, 'add_input_socket',  text=trans('输入接口'), toggle=True, icon='BACK')
-        split.prop(context.scene, 'add_output_socket', text=trans('输出接口'), toggle=True, icon='FORWARD')
-        draw_add_new_socket(layout, context)
+        header.label(text=trans(info))
+        if body:
+            split = body.split(factor=0.5, align=True)
+            split.prop(context.scene, 'add_input_socket',  text=trans('输入接口'), toggle=True, icon=icons[0])
+            split.prop(context.scene, 'add_output_socket', text=trans('输出接口'), toggle=True, icon=icons[1])
+            draw_add_new_socket(body, context)
+
+        header, body = layout.panel("group_helper_2", default_closed=True)
+        header.label(text=trans("添加组输入节点"))
+        if body:
+            draw_add_hided_socket_group_input(body)
 
 def draw_add_new_socket(layout, context):
     for sk_idname, socket_name in sk_idname_to_cn.items():
@@ -871,9 +860,8 @@ class NODE_MT_Merge_Split_Move_Group_Input(Menu):
 classes = [
     NODE_OT_Add_Hided_Socket_Group_Input,
     NODE_MT_Add_Hided_Socket_Group_Input,
-    NODE_PT_Add_Hided_Socket_Group_Input,
+    NODE_PT_Group_Input_Helper,
     NODE_OT_Add_New_Group_Item,
-    NODE_PT_Add_New_Group_Item,
     NODE_OT_Merge_Group_Input_Socket,
     NODE_OT_Split_Group_Input_Socket,
     NODE_OT_Split_All_Group_Input_Socket,
@@ -910,15 +898,10 @@ def register():
     kmi.properties.name = 'NODE_MT_Add_Hided_Socket_Group_Input'
     addon_keymaps['key_MT_Add_Group_Input'] = (km, kmi)
 
-    kmi = km.keymap_items.new('wm.call_panel', 'ONE', 'PRESS', ctrl=True, alt=True, shift=True, repeat=False)
-    kmi.properties.name = 'NODE_PT_Add_Hided_Socket_Group_Input'
-    kmi.properties.keep_open = True
-    addon_keymaps['key_PT_Add_Group_Input'] = (km, kmi)
-
     kmi = km.keymap_items.new('wm.call_panel', 'ONE', 'PRESS', ctrl=True, alt=False, shift=False, repeat=False)
-    kmi.properties.name = 'NODE_PT_Add_New_Group_Item'
+    kmi.properties.name = 'NODE_PT_Group_Input_Helper'
     kmi.properties.keep_open = True
-    addon_keymaps['key_Add_New_Group_Item'] = (km, kmi)
+    addon_keymaps['NODE_PT_Group_Input_Helper'] = (km, kmi)
 
     kmi = km.keymap_items.new('wm.call_menu', 'ONE', 'PRESS', ctrl=False, alt=False, shift=True, repeat=False)
     kmi.properties.name = 'NODE_MT_Merge_Split_Move_Group_Input'
