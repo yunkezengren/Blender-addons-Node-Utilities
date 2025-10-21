@@ -3,7 +3,7 @@ bl_info = {
     "author" : "一尘不染",
     "description" : "快速添加组输入节点-拆分合并移动组输入节点-快速添加组输入输出接口(Qucik add and split merge move Group Input node-Qucik add Group Input Output socket)",
     "blender" : (3, 0, 0),
-    "version" : (2, 8, 2),
+    "version" : (2, 9, 0),
     "location" : "偏好设置-标题栏-N面板(Preferences-Editor Bar-N panel)",
     "warning" : "",
     "doc_url": "",
@@ -13,7 +13,8 @@ bl_info = {
 
 import bpy, os
 from bpy.types import Operator, Menu, Panel, AddonPreferences
-from bpy.types import (Node, NodeTree, NodeTreeInterfaceItem, NodeTreeInterfacePanel, NodeTreeInterfaceSocket, UILayout)
+from bpy.types import (Node, Nodes, NodeTree, NodeTreeInterfaceItem, NodeTreeInterfacePanel, NodeTreeInterfaceSocket, UILayout,
+                       NodeLink, NodeLinks, Context)
 from bpy.props import EnumProperty, BoolProperty, IntProperty, StringProperty
 from bpy.app.translations import pgettext_iface as iface_
 import bpy.utils.previews
@@ -27,6 +28,7 @@ import ctypes
 from bpy.types import NodeSocket
 
 # + 拆分后删除转接口
+# Todo 很久之前写的了,层层嵌套的地方需要优化, 拆分移动合并要考虑复用代码
 # Todo 组输入移动后找个好位置
 # Todo 顶层材质不显示着色器
 # Todo 合并组输入没活动节点时,新节点位置在左上角
@@ -221,69 +223,6 @@ def draw_none_socket(layout: UILayout):
     op.index_start = -1
     op.in_panel = False
 
-def draw_add_hided_socket_group_input(layout: UILayout):
-    # 默认时并不会真正创建 Operator 实例,把每个菜单项的信息打包成一个轻量级的数据结构,菜单跳过invoke,面板不跳
-    # 在“高效的快捷模式”和“功能完整的正式模式”之间进行切换。
-    layout.operator_context = 'INVOKE_DEFAULT'
-    prefs =  pref()
-    tree: NodeTree = bpy.context.space_data.edit_tree
-
-    # print("*"*50)
-    if bpy.app.version < (4, 0, 0):
-        in_items = tree.inputs
-    if bpy.app.version >= (4, 0, 0):
-        in_items: list[dict[str, Union[NodeTreeInterfaceSocket, int]]] = []
-        items = tree.interface.items_tree
-        index = 0   # 只算接口的序号
-        for item in items:
-            # i = item
-            # print(f"{i.index:2} {i.position:2} {i.item_type:6} parent.index:{i.parent.index:2} {i.parent.parent==None}")
-            if item.item_type == 'SOCKET' and item.in_out == 'INPUT':
-                in_items.append({"item": item, "index": index, "len": 1})
-                index += 1
-            if item.item_type == 'PANEL':
-                length = count_input_socket_recursive(item)
-                depth = count_panel_depth(item)
-                in_items.append({"item": item, "index": index, "len": length, "depth": depth})
-    # pprint(in_items)
-    panel_count = 0
-    for in_item in in_items:
-        item = in_item["item"]
-        op: NODE_OT_Add_Hided_Socket_Group_Input = None
-        if item.item_type == 'PANEL':
-            if panel_count == 0:    # 如果有面板,就把none放在面板上方
-                draw_none_socket(layout)
-            panel_count += 1
-            layout.separator()
-            if prefs.show_panel_name:
-                panel_name = "●" * in_item["depth"] + " " + item.name
-                op = layout.operator(NODE_OT_Add_Hided_Socket_Group_Input.bl_idname, text=iface_(panel_name), icon="DOWNARROW_HLT")
-                op.panel_name = item.name
-                op.in_panel = True
-                op.is_panel = True
-        if item.item_type == 'SOCKET':
-            socket_name = item.name if item.name else " "  # 文本为空时,菜单里按钮不对齐
-            if bpy.app.version >= (4, 5, 0):
-                op = layout.operator(NODE_OT_Add_Hided_Socket_Group_Input.bl_idname,
-                                     text=iface_(socket_name),
-                                     icon=sk_idname_to_icon[item.bl_socket_idname])
-            else:
-                socket_id = sk_idname_版本兼容(item.bl_socket_idname)
-                input_png = sk_idname_to_png_name[socket_id]
-                op = layout.operator(NODE_OT_Add_Hided_Socket_Group_Input.bl_idname,
-                                     text=iface_(socket_name),
-                                     icon_value=(_icons[input_png].icon_id))
-            in_panel = item.parent.index != -1
-            op.in_panel = in_panel   # 不等于-1的话是面板内的接口
-            if in_panel:
-                op.panel_name = item.parent.name
-        op.index_start = in_item["index"]
-        op.index_end = in_item["index"] + in_item["len"] - 1   # 长度-1才是结束序号
-        op.bl_description = item.description
-        # op.bl_description = des + "\n" + str(in_item)
-    if panel_count == 0:
-        draw_none_socket(layout)
-
 class BaseOperator(Operator):
     bl_options = {"REGISTER", "UNDO"}
 
@@ -354,6 +293,69 @@ class NODE_MT_Add_Hided_Socket_Group_Input(Menu):
         layout = self.layout
         draw_add_hided_socket_group_input(layout)
 
+def draw_add_hided_socket_group_input(layout: UILayout):
+    # 默认时并不会真正创建 Operator 实例,把每个菜单项的信息打包成一个轻量级的数据结构,菜单跳过invoke,面板不跳
+    # 在“高效的快捷模式”和“功能完整的正式模式”之间进行切换。
+    layout.operator_context = 'INVOKE_DEFAULT'
+    prefs =  pref()
+    tree: NodeTree = bpy.context.space_data.edit_tree
+
+    # print("*"*50)
+    if bpy.app.version < (4, 0, 0):
+        in_items = tree.inputs
+    if bpy.app.version >= (4, 0, 0):
+        in_items: list[dict[str, Union[NodeTreeInterfaceSocket, int]]] = []
+        items = tree.interface.items_tree
+        index = 0   # 只算接口的序号
+        for item in items:
+            # i = item
+            # print(f"{i.index:2} {i.position:2} {i.item_type:6} parent.index:{i.parent.index:2} {i.parent.parent==None}")
+            if item.item_type == 'SOCKET' and item.in_out == 'INPUT':
+                in_items.append({"item": item, "index": index, "len": 1})
+                index += 1
+            if item.item_type == 'PANEL':
+                length = count_input_socket_recursive(item)
+                depth = count_panel_depth(item)
+                in_items.append({"item": item, "index": index, "len": length, "depth": depth})
+    # pprint(in_items)
+    panel_count = 0
+    for in_item in in_items:
+        item = in_item["item"]
+        op: NODE_OT_Add_Hided_Socket_Group_Input = None
+        if item.item_type == 'PANEL':
+            if panel_count == 0:    # 如果有面板,就把none放在面板上方
+                draw_none_socket(layout)
+            panel_count += 1
+            layout.separator()
+            if prefs.show_panel_name:
+                panel_name = "●" * in_item["depth"] + " " + item.name
+                op = layout.operator(NODE_OT_Add_Hided_Socket_Group_Input.bl_idname, text=iface_(panel_name), icon="DOWNARROW_HLT")
+                op.panel_name = item.name
+                op.in_panel = True
+                op.is_panel = True
+        if item.item_type == 'SOCKET':
+            socket_name = item.name if item.name else " "  # 文本为空时,菜单里按钮不对齐
+            if bpy.app.version >= (4, 5, 0):
+                op = layout.operator(NODE_OT_Add_Hided_Socket_Group_Input.bl_idname,
+                                     text=iface_(socket_name),
+                                     icon=sk_idname_to_icon[item.bl_socket_idname])
+            else:
+                socket_id = sk_idname_版本兼容(item.bl_socket_idname)
+                input_png = sk_idname_to_png_name[socket_id]
+                op = layout.operator(NODE_OT_Add_Hided_Socket_Group_Input.bl_idname,
+                                     text=iface_(socket_name),
+                                     icon_value=(_icons[input_png].icon_id))
+            in_panel = item.parent.index != -1
+            op.in_panel = in_panel   # 不等于-1的话是面板内的接口
+            if in_panel:
+                op.panel_name = item.parent.name
+        op.index_start = in_item["index"]
+        op.index_end = in_item["index"] + in_item["len"] - 1   # 长度-1才是结束序号
+        op.bl_description = item.description
+        # op.bl_description = des + "\n" + str(in_item)
+    if panel_count == 0:
+        draw_none_socket(layout)
+
 # ==================================================================================================
 class NODE_OT_Add_New_Group_Item(BaseOperator):
     bl_idname = "node.add_new_group_item"
@@ -377,7 +379,6 @@ class NODE_OT_Add_New_Group_Item(BaseOperator):
             interface.active = item
         return {"FINISHED"}
 
-# ==================================================================================================
 class NODE_PT_Group_Input_Helper(Panel):
     bl_category = "Group"
     bl_label = trans('组输入助手')
@@ -397,7 +398,7 @@ class NODE_PT_Group_Input_Helper(Panel):
     def draw(self, context):
         layout = self.layout
         # layout.label(text=trans("1"), icon='NODETREE')
-        
+
         header, body = layout.panel("group_helper_1")
         info = trans("添加输入输出接口")
         a_node = context.active_node
@@ -498,7 +499,8 @@ def sk_loc(socket: NodeSocket):
 def move_nd_to_sk(input_nd: Node, to_socket: NodeSocket, offset: int):
     input_nd.location = sk_loc(to_socket) / ui_scale()
     input_nd.location.x -= 180
-    input_nd.location.y +=  offset
+    input_nd.location.y += offset
+    input_nd.parent = to_socket.node.parent
 
 class NODE_OT_Merge_Group_Input_Socket(BaseOperator):
     bl_idname = "node.merge_group_input_socket"
@@ -526,12 +528,12 @@ class NODE_OT_Merge_Group_Input_Socket(BaseOperator):
             group_id = {socket.identifier: socket for socket in target_group.outputs}
             for node in list_group:
                 if node != target_group:
-                    for sk_outket in node.outputs:
-                        tar_socket = group_id[sk_outket.identifier]
-                        if sk_outket.is_linked:
-                            for link in sk_outket.links:
+                    for sk_out in node.outputs:
+                        tar_socket = group_id[sk_out.identifier]
+                        if sk_out.is_linked:
+                            for link in sk_out.links:
                                 links.new(tar_socket, link.to_socket)
-                        if sk_outket.hide == False:
+                        if sk_out.hide == False:
                             tar_socket.hide = False
                     nodes.remove(node)    # 没出错,不确定这样删会不会出错(删的是nodes里的)
             if not condition:
@@ -547,6 +549,7 @@ def merge_group_input_linked(selected_nodes, active_node, loc_at_max_y=False):
     list_group_loc_y = []
     for node in selected_nodes:
         if node.bl_idname == "NodeGroupInput":
+            node.parent = None
             list_group.append(node)
             list_group_loc_y.append(abs_loc(node).y)
     list_group_loc_y.sort()
@@ -559,13 +562,13 @@ def merge_group_input_linked(selected_nodes, active_node, loc_at_max_y=False):
     else:
         target_group = list_group[0]
         nodes_center = get_nodes_center(list_group)
-    group_id = {sk_outket.identifier: sk_outket for sk_outket in target_group.outputs}
+    group_id = {sk_out.identifier: sk_out for sk_out in target_group.outputs}
     for node in list_group:
         if node != target_group:
-            for sk_outket in node.outputs:
-                if sk_outket.is_linked:
-                    for link in sk_outket.links:
-                        links.new(group_id[sk_outket.identifier], link.to_socket)
+            for sk_out in node.outputs:
+                if sk_out.is_linked:
+                    for link in sk_out.links:
+                        links.new(group_id[sk_out.identifier], link.to_socket)
             nodes.remove(node)    # 没出错,不确定这样删会不会出错
     if not condition:
         tar_loc = target_group.dimensions
@@ -660,54 +663,85 @@ class NODE_OT_Split_All_And_Move(BaseOperator):
         tree: NodeTree = context.space_data.edit_tree
         nodes = tree.nodes
         links = tree.links
-        selected_nodes = context.selected_nodes
+        selected_nodes = get_selected_group_input(context)
         is_del_reroute = pref().is_del_reroute
         i = 0
         offset = 0
         for node in selected_nodes:
-            if node.bl_idname == "NodeGroupInput" and node.select and has_link(node):
-                i = -1
-                for sk_out in node.outputs:
-                    if not sk_out.hide and sk_out.enabled and sk_out.bl_idname != "NodeSocketVirtual":
-                        if not offset:
-                            offset = node.location.y - sk_loc(sk_out).y / ui_scale()
-                        # 删掉组输入输出接口后面连的所有转接点
-                        if is_del_reroute and sk_out.links:
-                            for link in sk_out.links:
-                                delete_reroute(link, nodes, links, sk_out)
-                        link_count = len(sk_out.links)
-                        soc_links = sk_out.links if sk_out.links else range(1)
-                        for link in soc_links:
-                            if hasattr(link, "is_valid") and not link.is_valid:       # 有些线存在，但是因为节点不同选项，线不可见
-                                continue
-                            i += 1
-                            if link_count:         # is_linked:
-                                group_in_nd = nodes.new('NodeGroupInput')
-                                group_id = {socket.identifier: socket for socket in group_in_nd.outputs}
-                                spec_in_socket = group_id[sk_out.identifier]
+            i = -1
+            node.parent = None
+            for sk_out in node.outputs:
+                if not sk_out.hide and sk_out.enabled and sk_out.bl_idname != "NodeSocketVirtual":
+                    if not offset:
+                        offset = node.location.y - sk_loc(sk_out).y / ui_scale()
+                    # 删掉组输入输出接口后面连的所有转接点
+                    if is_del_reroute and sk_out.links:
+                        delete_reroute(sk_out, nodes, links)
+                    link_count = len(sk_out.links)
+                    soc_links = sk_out.links if sk_out.links else range(1)
+                    for link in soc_links:
+                        if hasattr(link, "is_valid") and not link.is_valid:       # 有些线存在，但是因为节点不同选项，线不可见
+                            continue
+                        i += 1
+                        if link_count:         # is_linked:
+                            group_in_nd = nodes.new('NodeGroupInput')
+                            group_id = {socket.identifier: socket for socket in group_in_nd.outputs}
+                            spec_in_socket = group_id[sk_out.identifier]
 
-                                links.new(spec_in_socket, link.to_socket)
-                                to_socket = spec_in_socket.links[0].to_socket
-                                move_nd_to_sk(group_in_nd, to_socket, offset)
-                            for new_sk_out in group_in_nd.outputs:
-                                if new_sk_out.identifier != sk_out.identifier:
-                                    new_sk_out.hide = True
-                nodes.remove(node)
+                            links.new(spec_in_socket, link.to_socket)
+                            to_socket = spec_in_socket.links[0].to_socket
+                            move_nd_to_sk(group_in_nd, to_socket, offset)
+                        for new_sk_out in group_in_nd.outputs:
+                            if new_sk_out.identifier != sk_out.identifier:
+                                new_sk_out.hide = True
+            nodes.remove(node)
         return {"FINISHED"}
+# !会导致崩溃,我也崩溃
+# def delete_reroute0(link, nodes, links, sk_out):
+#     if link.to_node.type == "REROUTE":
+#         reroute = link.to_node
+#         for re_link in reroute.outputs[0].links:
+#             links.new(sk_out, re_link.to_socket)
+#             delete_reroute0(re_link, nodes, links, sk_out)
+#         nodes.remove(reroute)
+# def delete_reroute(sk_out: NodeSocket, nodes: Nodes, links: NodeLinks):
+#     for link in sk_out.links:
+#         delete_reroute0(link, nodes, links, sk_out)
 
-def delete_reroute(link, nodes, links, sk_outket):
-    if link.to_node.type == "REROUTE":
-        reroute = link.to_node
-        for re_link in reroute.outputs[0].links:
-            links.new(sk_outket, re_link.to_socket)
-            delete_reroute(re_link, nodes, links, sk_outket)
+def delete_reroute(sk_out: NodeSocket, nodes: Nodes, links: NodeLinks):
+    links_to_check = list(sk_out.links)
+    reroutes = set()
+
+    while links_to_check:
+        link = links_to_check.pop()
+        if link and link.to_node and link.to_node.type == 'REROUTE':
+            reroute = link.to_node
+            reroutes.add(reroute)
+
+            for next_link in reroute.outputs[0].links:
+                links_to_check.append(next_link)
+
+        # elif link and link.to_socket:
+        else:
+            links.new(sk_out, link.to_socket)
+
+    for reroute in reroutes:
         nodes.remove(reroute)
 
-def split_all_and_merge_move(context, is_pre_merge=False):
-    selected_nodes = context.selected_nodes
+def get_selected_group_input(context: Context, deselect_other: bool = True) -> list[Node]:
+    selected_nodes = []
+    for node  in context.selected_nodes:
+        if node.bl_idname == "NodeGroupInput" and node.select and has_link(node):
+            selected_nodes.append(node)
+        elif deselect_other:
+            node.select = False
+    return selected_nodes
+
+def split_all_and_merge_move(context: Context, is_pre_merge=False):
+    selected_nodes = get_selected_group_input(context)
     if is_pre_merge:
         merge_group_input_linked(selected_nodes, context.active_node)
-    selected_nodes = context.selected_nodes
+    # selected_nodes = context.selected_nodes
     tree = context.space_data.edit_tree
     nodes = tree.nodes
     links = tree.links
@@ -715,44 +749,46 @@ def split_all_and_merge_move(context, is_pre_merge=False):
     i = 0
     to_node_with_inputs = {}    # to_node_with_group_inputs节点输入接口的组输入数量
     for node in selected_nodes:
-        if node.bl_idname == "NodeGroupInput" and node.select and has_link(node):
-            i = -1
-            offset = 0
-            for sk_out in node.outputs:
-                if not sk_out.hide and sk_out.enabled and sk_out.bl_idname != "NodeSocketVirtual":
-                    if not offset:
-                        offset = node.location.y - sk_loc(sk_out).y / ui_scale()
-                    # 删掉组输入输出接口后面连的所有转接点
-                    if is_del_reroute and sk_out.links:
-                        for link in sk_out.links:
-                            delete_reroute(link, nodes, links, sk_out)
-                    link_count = len(sk_out.links)
-                    # soc_links = sk_out.links if sk_out.links else range(1)
-                    if sk_out.links:
-                        soc_links = sk_out.links
+        if node.bl_idname != "NodeGroupInput" or not has_link(node):
+            continue
+        node.parent = None
+        i = -1
+        offset = 0
+        for sk_out in node.outputs:
+            if sk_out.hide or not sk_out.enabled or sk_out.bl_idname == "NodeSocketVirtual":
+                continue
+            if not offset:
+                offset = node.location.y - sk_loc(sk_out).y / ui_scale()
+            # 删掉组输入输出接口后面连的所有转接点
+            if is_del_reroute and sk_out.links:
+                delete_reroute(sk_out, nodes, links)
+            link_count = len(sk_out.links)
+            # soc_links = sk_out.links if sk_out.links else range(1)
+            if sk_out.links:
+                soc_links = sk_out.links
+            else:
+                continue
+            for link in soc_links:
+                if hasattr(link, "is_valid") and not link.is_valid:       # 有些线存在，但是因为节点不同选项，线不可见
+                    continue
+                i += 1
+                group_in_nd = nodes.new('NodeGroupInput')
+                # group_in_nd.location = node.location; group_in_nd.location.y = node.location.y - 80 * i
+                group_id = {socket.identifier: socket for socket in group_in_nd.outputs}
+                spec_in_socket = group_id[sk_out.identifier]
+                if link_count:         # is_linked:
+                    links.new(spec_in_socket, link.to_socket)
+                    to_node = spec_in_socket.links[0].to_node
+                    to_socket = spec_in_socket.links[0].to_socket
+                    if to_node in to_node_with_inputs:
+                        to_node_with_inputs[to_node].append(group_in_nd)
                     else:
-                        continue
-                    for link in soc_links:
-                        if hasattr(link, "is_valid") and not link.is_valid:       # 有些线存在，但是因为节点不同选项，线不可见
-                            continue
-                        i += 1
-                        group_in_nd = nodes.new('NodeGroupInput')
-                        # group_in_nd.location = node.location; group_in_nd.location.y = node.location.y - 80 * i
-                        group_id = {socket.identifier: socket for socket in group_in_nd.outputs}
-                        spec_in_socket = group_id[sk_out.identifier]
-                        if link_count:         # is_linked:
-                            links.new(spec_in_socket, link.to_socket)
-                            to_node = spec_in_socket.links[0].to_node
-                            to_socket = spec_in_socket.links[0].to_socket
-                            if to_node in to_node_with_inputs:
-                                to_node_with_inputs[to_node].append(group_in_nd)
-                            else:
-                                to_node_with_inputs[to_node] = [group_in_nd]
-                            move_nd_to_sk(group_in_nd, to_socket, offset)
-                        for new_sk_out in group_in_nd.outputs:
-                            if new_sk_out.identifier != sk_out.identifier:
-                                new_sk_out.hide = True
-            nodes.remove(node)
+                        to_node_with_inputs[to_node] = [group_in_nd]
+                    move_nd_to_sk(group_in_nd, to_socket, offset)
+                for new_sk_out in group_in_nd.outputs:
+                    if new_sk_out.identifier != sk_out.identifier:
+                        new_sk_out.hide = True
+        nodes.remove(node)
 
     for node_list in to_node_with_inputs.values():
         if len(node_list) > 1:
@@ -791,15 +827,15 @@ class NODE_OT_Split_Group_Input_Linked(BaseOperator):
         for node in selected_nodes:
             if node.bl_idname == "NodeGroupInput" and node.select:
                 i = -1
-                for sk_outket in node.outputs:
-                    if sk_outket.is_linked:
+                for sk_out in node.outputs:
+                    if sk_out.is_linked:
                         i += 1
                         group_in_nd = nodes.new('NodeGroupInput')
                         group_in_nd.location = abs_loc(node)
                         group_in_nd.location.y = abs_loc(node).y - 60 * i
                         group_id = {sk_outket1.identifier: sk_outket1 for sk_outket1 in group_in_nd.outputs}
-                        for link in sk_outket.links:
-                            links.new(group_id[sk_outket.identifier], link.to_socket)
+                        for link in sk_out.links:
+                            links.new(group_id[sk_out.identifier], link.to_socket)
                         for sk_out in group_in_nd.outputs:
                             sk_out.hide = True
                 nodes.remove(node)
