@@ -1,4 +1,3 @@
-
 from .utils_color import power_color4, get_sk_color_safe
 from .common_forward_func import DisplayMessage
 from .utils_translate import GetAnnotFromCls, VlTrMapForKey
@@ -34,7 +33,7 @@ class VoronoiQuickMathTool(VoronoiToolTripleSk):
     isPlaceImmediately:    bpy.props.BoolProperty(name="Place immediately",   default=False)
     quickOprBool:          bpy.props.StringProperty(name="Bool (quick)",   default="")
     quickOprColor:         bpy.props.StringProperty(name="Color (quick)",  default="")
-    justPieCall:           bpy.props.IntProperty(name="Just call pie", default=0, min=0, max=5, 
+    justPieCall:           bpy.props.IntProperty(name="Just call pie", default=0, min=0, max=5,
                                                  description="Call pie to add a node, bypassing the sockets selection.\n0–Disable.\n1–Float.\n2–Vector.\n3–Boolean.\n4–Color.\n5–Int")
     def CallbackDrawTool(self, drata):
         TemplateDrawSksToolHh(drata, self.fotagoSk0, self.fotagoSk1, self.fotagoSk2, tool_name="Quick Math")
@@ -61,7 +60,7 @@ class VoronoiQuickMathTool(VoronoiToolTripleSk):
                                 break
                         else: #对于 isQuickQuickMath, 只附加到明确指定操作的套接字类型.
                             match ftg.tar.type:
-                                # case 'VALUE'|'INT':         isSucessOut = self.quickOprFloat
+                            # case 'VALUE'|'INT':         isSucessOut = self.quickOprFloat
                                 case 'VALUE':         isSucessOut = self.quickOprFloat
                                 # case 'INT':           isSucessOut = self.quickOprInt
                                 case 'VECTOR' | "ROTATION": isSucessOut = self.quickOprVector
@@ -140,7 +139,7 @@ class VoronoiQuickMathTool(VoronoiToolTripleSk):
         VqmtData.qmTrueSkType = VqmtData.qmSkType #这个信息对于“最后的操作”是必需的.
         self.int_default_float = False
         match VqmtData.sk0.type:
-            # case 'INT':      VqmtData.qmSkType = 'VALUE' #只有整数被剥夺了它自己的数学节点. 也许以后会添加?.
+        # case 'INT':      VqmtData.qmSkType = 'VALUE' #只有整数被剥夺了它自己的数学节点. 也许以后会添加?.
             case 'INT':
                 # 为的是除了两个接口都是整数，一个接口是整数，默认浮点饼菜单
                 if VqmtData.sk1:
@@ -186,9 +185,12 @@ class VoronoiQuickMathTool(VoronoiToolTripleSk):
         VqmtData.canProcHideSks = False #立即用于上面的两个 DoQuickMath 和下面的操作符.
         if self.justPieCall:
             match tree.bl_idname:
-                case 'ShaderNodeTree': can = self.justPieCall in {1,2,4}
-                case 'GeometryNodeTree': can = True
-                case 'CompositorNodeTree'|'TextureNodeTree': can = self.justPieCall in {1,4}
+                case 'ShaderNodeTree' | 'CompositorNodeTree':
+                    can = self.justPieCall in {1, 2, 4}
+                case 'GeometryNodeTree':
+                    can = True
+                case 'TextureNodeTree':
+                    can = self.justPieCall in {1, 4}
             if not can:
                 txt_vqmtThereIsNothing = "There is nothing"  # ! 草
                 DisplayMessage(self.bl_label, txt_vqmtThereIsNothing)
@@ -267,5 +269,5 @@ class VoronoiQuickMathTool(VoronoiToolTripleSk):
         with VlTrMapForKey(GetPrefsRnaProp('vqmtDisplayIcons').name) as dm:
             dm["ru_RU"] = "Отображать иконки"
 #            dm[zh_CN] = ""
-        #参见 vqmtRepickKey 在 VLT 中的翻译.
-        #vqmtPie 的翻译与 VMT 中的相同.
+#参见 vqmtRepickKey 在 VLT 中的翻译.
+#vqmtPie 的翻译与 VMT 中的相同.
