@@ -97,17 +97,9 @@ class VmtPieMixer(bpy.types.Menu):
         def LyVmAddOp(where: UILayout, txt):
             where.operator(VmtOpMixer.bl_idname, text=TranslateIface(dict_vmtMixerNodesDefs[txt][2])).operation = txt
         def LyVmAddItem(where: UILayout, txt):
-            ly = where.row(align=VmtData.pieAlignment==0)
+            ly = where.row(align=_align)
             soldPdsc = VmtData.pieDisplaySocketColor
             if soldPdsc:
-                # ly = ly.split(factor=( abs( (soldPdsc>0)- 0.01*abs(soldPdsc)/(1+(soldPdsc>0)) ) )/VmtData.uiScale, align=True)
-                # print("."*50)
-                # print(f"{ VmtData.uiScale = }")
-                # print(f"{ soldPdsc>0 = }")
-                # print(f"{ abs(soldPdsc) = }")
-                # print(f"{ 0.01*abs(soldPdsc)/(1+(soldPdsc>0)) = }")
-                # print(f"{ ( abs( (soldPdsc>0)- 0.01*abs(soldPdsc)/(1+(soldPdsc>0)) ) )/VmtData.uiScale = }")
-                # ly = ly.split(factor=0.05, align=True)
                 ly = ly.split(factor=Color_Bar_Width * VmtData.uiScale, align=True)      # 饼菜单颜色条宽度
             if soldPdsc<0:
                 ly.prop(VmtData.prefs,'vaDecorColSk', text="")
@@ -115,8 +107,10 @@ class VmtPieMixer(bpy.types.Menu):
             if soldPdsc>0:
                 ly.prop(VmtData.prefs,'vaDecorColSk', text="")
         pie = self.layout.menu_pie()
-        editorBlid = context.space_data.tree_type
-        tup_nodes = dict_vmtTupleMixerMain[editorBlid][VmtData.skType]
+        tree_idname = context.space_data.tree_type
+
+        default_nodes = mixer_default.get(tree_idname, None)
+        tup_nodes = mixer_tree_sk_nodes[tree_idname].get(VmtData.skType, default_nodes)
         if VmtData.isSpeedPie:
             for ti in tup_nodes:
                 if ti != SEPARATE:
@@ -125,83 +119,58 @@ class VmtPieMixer(bpy.types.Menu):
             # 如果执行时列为空, 则只显示一个空的点框. 下面两个列表是为了修复这个问题.
             list_cols: list[UILayout] = [pie.row(), pie.row(), pie.row() if VmtData.pieDisplaySocketTypeInfo>0 else None]
             list_done = [False, False, False]
+
             def LyGetPieCol(inx: int):
                 if list_done[inx]:
                     return list_cols[inx]
                 box = list_cols[inx].box()
-                col = box.column(align=VmtData.pieAlignment<2)
-                col.ui_units_x = 6*((VmtData.pieScale-1)/2+1)
+                col = box.column(align=VmtData.pieAlignment < 2)
+                col.ui_units_x = 6 * ((VmtData.pieScale - 1) / 2 + 1)
                 col.scale_y = VmtData.pieScale
                 list_cols[inx] = col
                 list_done[inx] = True
                 return col
-            sk0_type = VmtData.sk0.type
-            sk1_type = VmtData.sk1.type if VmtData.sk1 else None
-            vec_and_mat = False    # 混合饼菜单选的两个接口,有矢量和矩阵
-            rot_and_mat = False    # 混合饼菜单选的两个接口,有旋转和矩阵
-            # 连接了两个接口，且一个是矩阵一不是矩阵
-            # if VmtData.sk1 and (sk0_type == "MATRIX") != (sk1_type == "MATRIX"):
-            if VmtData.sk1 and ((sk0_type == "VECTOR" and sk1_type == "MATRIX") or (sk0_type == "MATRIX" and sk1_type == "VECTOR")):
-                vec_and_mat = True
-            if VmtData.sk1 and ((sk0_type == "ROTATION" and sk1_type == "MATRIX") or (sk0_type == "MATRIX" and sk1_type == "ROTATION")):
-                rot_and_mat = True
-            mat_and_mat = True if (sk0_type == "MATRIX" and sk1_type == "MATRIX") else False
-            match editorBlid:
-            # 这是 mix pie 的右半
-            # case 'ShaderNodeTree':
-                case 'ShaderNodeTree' | 'CompositorNodeTree':
-                    row2 = LyGetPieCol(0).row(align=VmtData.pieAlignment==0)
-                    row2.enabled = True
-                    LyVmAddItem(row2, 'ShaderNodeMix')
-                case 'GeometryNodeTree':
-                    column0 = LyGetPieCol(0)
-                    # 这三个是几何节点全部接口类型都支持
-                    for idname in node_support_all:
-                        row123 = column0.row(align=VmtData.pieAlignment==0)
-                        LyVmAddItem(row123, idname)
+            col_left = LyGetPieCol(0)
+            col_right = LyGetPieCol(1)
+            _align = VmtData.pieAlignment == 0
 
-                    row4 = column0.row(align=VmtData.pieAlignment==0)
-                    row5 = column0.row(align=VmtData.pieAlignment==0)
-                    row4.enabled = False
-                    row5.enabled = False
-                    if VmtData.skType != "MATRIX":  # 暂时只是让矩阵接口的混合饼菜单不显示 混合和比较节点
-                        LyVmAddItem(row4, 'ShaderNodeMix')
-                        LyVmAddItem(row5, 'FunctionNodeCompare')
-                    # # todo 混合饼菜单对比较节点的额外支持
-                    # row4 = col.row(align=VmtData.pieAlignment==0)
-                    # row5 = col.row(align=VmtData.pieAlignment==0)
-                    # LyVmAddItem(row4, 'FunctionNodeCompare')
-                    # LyVmAddItem(row5, 'FunctionNodeCompare')
+            for idname in default_nodes:
+                row123 = col_left.row(align=_align)
+                LyVmAddItem(row123, idname)
+
             sco = 0
-
             last_ti = None
             for ti in tup_nodes:
-                if ti in node_support_all: continue
+                if ti in node_support_all_gn_sk: continue
                 match ti:
-                # case 'GeometryNodeSwitch'      : row1.enabled = True
-                # case 'GeometryNodeIndexSwitch' : row2.enabled = True
-                # case 'GeometryNodeMenuSwitch'  : row3.enabled = True
                     case 'ShaderNodeMix'           :
-                        try:        # todo 改进这里的逻辑,因为mix节点三个节点树都有
-                            row4.enabled = True
-                        except:
-                            pass
-                    case 'FunctionNodeCompare'     : row5.enabled = True
-                    # 上面五个是画在左边的,多种接口通用节点
-                    # todo 既然通用,全局变量里提取出来
+                        # todo 改进这里的逻辑,虽然mix节点三个节点树都有，但为了画在左半
+                        row4 = col_left.row(align=_align)
+                        LyVmAddItem(row4, 'ShaderNodeMix')
+                    case 'FunctionNodeCompare'     :
+                        # todo 比较节点的额外支持: 显示多种比较模式
+                        row5 = col_left.row(align=_align)
+                        LyVmAddItem(row5, 'FunctionNodeCompare')
                     case _:
-                        # 下面是 mix pie 的右半
-                        column1 = LyGetPieCol(1)
                         if ti == SEPARATE:
                             if last_ti == SEPARATE:
                                 continue
                             if sco:
-                                column1.separator()
+                                col_right.separator()
                         else:
+                            sk0_type = VmtData.sk0.type
+                            sk1_type = VmtData.sk1.type if VmtData.sk1 else None
+                            # 混合 选的 两个 接口类型
+                            types_set = {sk0_type, sk1_type}
+                            vec_and_mat = (types_set == {"VECTOR", "MATRIX"})
+                            rot_and_mat = (types_set == {"ROTATION", "MATRIX"})
+                            mat_and_mat = (sk0_type == sk1_type == "MATRIX")
                             if vec_and_mat and ti not in ["FunctionNodeTransformPoint", "FunctionNodeTransformDirection", "FunctionNodeProjectPoint"]:
                                 continue
-                            if (mat_and_mat or rot_and_mat) and ti not in ["FunctionNodeMatrixMultiply"]: continue
-                            LyVmAddItem(column1, ti)
+                            if (mat_and_mat or rot_and_mat) and ti not in ["FunctionNodeMatrixMultiply"]:
+                                continue
+                            
+                            LyVmAddItem(col_right, ti)
                             sco += 1
                         last_ti = ti
             if VmtData.pieDisplaySocketTypeInfo:

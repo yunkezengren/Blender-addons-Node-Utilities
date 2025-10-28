@@ -46,6 +46,8 @@ dict_typeSkToBlid = {
     'CUSTOM':    'NodeSocketVirtual',
 }
 
+TYPES_NO_CONVERT = ['SHADER', 'STRING', 'GEOMETRY', 'OBJECT', 'COLLECTION', 'MATERIAL', 'TEXTURE', 'IMAGE', 'BUNDLE', 'CLOSURE']
+
 set_utilTypeSkFields = {'VALUE', 'RGBA', 'VECTOR', 'INT', 'BOOLEAN', 'ROTATION', 'STRING', 'MATRIX'}       # Alt D 等多个操作 支持的接口
 
 set_classicSocketsBlid = {'NodeSocketShader',  'NodeSocketColor',   'NodeSocketVector', 'NodeSocketFloat',     'NodeSocketString',  'NodeSocketInt',    'NodeSocketBool',
@@ -53,16 +55,16 @@ set_classicSocketsBlid = {'NodeSocketShader',  'NodeSocketColor',   'NodeSocketV
                           'NodeSocketMatrix'}
 
 # 新建接口-用到了
-set_utilEquestrianPortalBlids = {'NodeGroupInput', 'NodeGroupOutput', 
-                                 'GeometryNodeSimulationInput', 'GeometryNodeSimulationOutput', 
+set_utilEquestrianPortalBlids = {'NodeGroupInput', 'NodeGroupOutput',
+                                 'GeometryNodeSimulationInput', 'GeometryNodeSimulationOutput',
                                  'GeometryNodeRepeatInput', 'GeometryNodeRepeatOutput',
                                  'GeometryNodeMenuSwitch', 'GeometryNodeBake',
                                  'GeometryNodeCaptureAttribute', 'GeometryNodeIndexSwitch'
                                  }
 inline_socket_node_list = [ # 自动隐藏接口优化-inline
-                            'GeometryNodeSimulationInput', 'GeometryNodeSimulationOutput', 
+                            'GeometryNodeSimulationInput', 'GeometryNodeSimulationOutput',
                             'GeometryNodeRepeatInput', 'GeometryNodeRepeatOutput',
-                            'GeometryNodeForeachGeometryElementInput', 'GeometryNodeForeachGeometryElementOutput', 
+                            'GeometryNodeForeachGeometryElementInput', 'GeometryNodeForeachGeometryElementOutput',
                             'GeometryNodeCaptureAttribute',
                             ]
 
@@ -83,52 +85,59 @@ dict_skTypeHandSolderingColor = { # 用于 VQMT.
     'VECTOR':     (0.38999998569488525, 0.38999998569488525, 0.7799999713897705,  1.0),
     'CUSTOM':     (0.20000000298023224, 0.20000000298023224, 0.20000000298023224, 1.0) }
 
-node_support_all = ('GeometryNodeSwitch', 'GeometryNodeIndexSwitch', 'GeometryNodeMenuSwitch')
-_support_data_type = node_support_all + ('FunctionNodeCompare', 'ShaderNodeMix')
+node_support_all_gn_sk = ('GeometryNodeSwitch', 'GeometryNodeIndexSwitch', 'GeometryNodeMenuSwitch')
+_support_data_type = node_support_all_gn_sk + ('FunctionNodeCompare', 'ShaderNodeMix')
+
+mixer_default: dict[str, tuple[str]] = {
+    'ShaderNodeTree':     ('GeometryNodeMenuSwitch', ),
+    'GeometryNodeTree':   node_support_all_gn_sk,
+    'CompositorNodeTree': ('GeometryNodeMenuSwitch', ),
+}
+
+# geo_sk_type = [
+#     'VALUE', 'RGBA', 'VECTOR', 'STRING', 'INT', 'BOOLEAN', 'ROTATION', 'MATRIX',
+#     'OBJECT', 'MATERIAL', 'COLLECTION', 'TEXTURE', 'IMAGE', 'GEOMETRY', 'BUNDLE', 'CLOSURE'
+# ]
 
 SEPARATE = 'MixerItemsSeparator123'               # 字符串比较后当 separator()
 # 新接口类型的Mix饼菜单
 # 顺序很重要; 最常用的 (在此列表中) 优先显示 (MixRGB 除外).
-dict_vmtTupleMixerMain: dict[str, dict[str, tuple[str]]] = {
-        'ShaderNodeTree':     { 
+mixer_tree_sk_nodes: dict[str, dict[str, tuple[str]]] = {
+        'ShaderNodeTree':     {
                 'SHADER':     ('ShaderNodeMixShader', 'ShaderNodeAddShader'),
                 'VALUE':      ('ShaderNodeCombineXYZ', 'ShaderNodeMixRGB',  'ShaderNodeMix',                      'ShaderNodeMath'),
                 'RGBA':       ('ShaderNodeMixRGB',  'ShaderNodeMix'),
                 'VECTOR':     ('ShaderNodeMixRGB',  'ShaderNodeMix',                                       'ShaderNodeVectorMath'),
                 'INT':        ('ShaderNodeCombineXYZ', 'ShaderNodeMixRGB',  'ShaderNodeMix',                      'ShaderNodeMath')},
                 ##
-        'GeometryNodeTree':   { 
-                'VALUE':      node_support_all + ( 'ShaderNodeMix', 'ShaderNodeCombineXYZ', 'FunctionNodeCompare', 'ShaderNodeMath'),
+        'GeometryNodeTree':   {
+                'VALUE':      node_support_all_gn_sk + ( 'ShaderNodeMix', 'ShaderNodeCombineXYZ', 'FunctionNodeCompare', 'ShaderNodeMath'),
                 'RGBA':       _support_data_type,
                 'VECTOR':     _support_data_type+ ('ShaderNodeVectorMath', ),
-                'STRING':     node_support_all + ('FunctionNodeCompare', 'GeometryNodeStringJoin',
+                'STRING':     node_support_all_gn_sk + ('FunctionNodeCompare', 'GeometryNodeStringJoin',
                                                    'FunctionNodeStringLength', 'FunctionNodeReplaceString', ),
-                'INT':        node_support_all + ( 'ShaderNodeMix', 'ShaderNodeCombineXYZ', 'FunctionNodeCompare', 'ShaderNodeMath'),
+                'INT':        node_support_all_gn_sk + ( 'ShaderNodeMix', 'ShaderNodeCombineXYZ', 'FunctionNodeCompare', 'ShaderNodeMath'),
                 'BOOLEAN':    _support_data_type+ ( 'ShaderNodeMath',                       'FunctionNodeBooleanMath'),
-                'ROTATION':   node_support_all + ( 'ShaderNodeMix', ),
-                'MATRIX':     node_support_all + ( 'FunctionNodeMatrixMultiply', SEPARATE, 
-                                'FunctionNodeTransposeMatrix', 'FunctionNodeInvertMatrix', 'FunctionNodeMatrixDeterminant', SEPARATE, 
-                                'FunctionNodeTransformPoint', 'FunctionNodeTransformDirection', 'FunctionNodeProjectPoint', SEPARATE, 
+                'ROTATION':   node_support_all_gn_sk + ( 'ShaderNodeMix', ),
+                'MATRIX':     node_support_all_gn_sk + ( 'FunctionNodeMatrixMultiply', SEPARATE,
+                                'FunctionNodeTransposeMatrix', 'FunctionNodeInvertMatrix', 'FunctionNodeMatrixDeterminant', SEPARATE,
+                                'FunctionNodeTransformPoint', 'FunctionNodeTransformDirection', 'FunctionNodeProjectPoint', SEPARATE,
                                 'FunctionNodeSeparateTransform', 'FunctionNodeSeparateMatrix'),
-                'OBJECT':     node_support_all,
-                'MATERIAL':   node_support_all,
-                'COLLECTION': node_support_all,
-                'TEXTURE':    node_support_all,
-                'IMAGE':      node_support_all,
-                'GEOMETRY':   node_support_all + ('GeometryNodeJoinGeometry', 'GeometryNodeInstanceOnPoints', 'GeometryNodeCurveToMesh', 
+                'GEOMETRY':   node_support_all_gn_sk + ('GeometryNodeJoinGeometry', 'GeometryNodeInstanceOnPoints', 'GeometryNodeCurveToMesh',
                                                    'GeometryNodeMeshBoolean', 'GeometryNodeGeometryToInstance')},
                 ##
         'CompositorNodeTree': {
-                'VALUE':      ('ShaderNodeMix', 'ShaderNodeCombineXYZ' , 'ShaderNodeMath',      SEPARATE, 'ShaderNodeMix', 'CompositorNodeSwitch', 'CompositorNodeSplitViewer', 'CompositorNodeSwitchView'),
-                'RGBA':       ('ShaderNodeMix', 'CompositorNodeAlphaOver', SEPARATE, 'ShaderNodeMix', 'CompositorNodeSwitch', 'CompositorNodeSplitViewer', 'CompositorNodeSwitchView'),
-                'VECTOR':     ('ShaderNodeMix',                           SEPARATE, 'ShaderNodeMix', 'CompositorNodeSwitch', 'CompositorNodeSplitViewer', 'CompositorNodeSwitchView'),
-                'INT':        ('ShaderNodeMix', 'ShaderNodeCombineXYZ', 'ShaderNodeMath',      SEPARATE, 'ShaderNodeMix', 'CompositorNodeSwitch', 'CompositorNodeSplitViewer', 'CompositorNodeSwitchView')},
+                'VALUE':      ('ShaderNodeMix', SEPARATE, 'ShaderNodeCombineXYZ' , 'ShaderNodeMath',      'CompositorNodeSwitch', 'CompositorNodeSplitViewer', 'CompositorNodeSwitchView'),
+                'RGBA':       ('ShaderNodeMix', SEPARATE, 'CompositorNodeAlphaOver', 'CompositorNodeSwitch', 'CompositorNodeSplitViewer', 'CompositorNodeSwitchView'),
+                'VECTOR':     ('ShaderNodeMix', SEPARATE,                           'CompositorNodeSwitch', 'CompositorNodeSplitViewer', 'CompositorNodeSwitchView'),
+                'INT':        ('ShaderNodeMix', SEPARATE, 'ShaderNodeCombineXYZ', 'ShaderNodeMath',      'CompositorNodeSwitch', 'CompositorNodeSplitViewer', 'CompositorNodeSwitchView')},
                                 ##
         'TextureNodeTree':    {
                 'VALUE':       ('ShaderNodeCombineXYZ' , 'TextureNodeMixRGB', 'TextureNodeTexture', 'TextureNodeMath'),
                 'RGBA':       ('TextureNodeMixRGB', 'TextureNodeTexture'),
                 'VECTOR':     ('TextureNodeMixRGB',                                        'TextureNodeDistance'),
                 'INT':        ('TextureNodeMixRGB', 'TextureNodeTexture', 'TextureNodeMath')}}
+
 # ! 混合饼菜单在这里加不如改进 VoronoiLinker和NodePie联动
 # 按一次Shift 多一个接口
 dict_vmtMixerNodesDefs = { # '-1' 表示这里的视觉标记，它们的连接套接字是自动计算的（参见 |2|），而不是在此列表中明确指定
@@ -176,7 +185,6 @@ dict_vmtMixerNodesDefs = { # '-1' 表示这里的视觉标记，它们的连接�
         'FunctionNodeSeparateMatrix':     (0, 0, 'Separate Matrix'),
         'FunctionNodeCombineTransform':   (0, 1, 'Combine Transform'),
         'FunctionNodeCombineMatrix':      (0, 1, 'Combine Matrix'),
-        
         }
 
 
@@ -325,8 +333,8 @@ AllQuickDimensions = {
                               'GEOMETRY': ('GeometryNodeSeparateGeometry',), # GeometryNodeSeparateComponents更合适, 但SeparateGeometry更常用
                               'BUNDLE':   ('NodeSeparateBundle', ),
                               'CLOSURE':  ('NodeEvaluateClosure', ),
-                              }, 
-                            
+                              },
+
         'CompositorNodeTree':{'VECTOR':   ('ShaderNodeSeparateXYZ',),
                               'RGBA':     ('CompositorNodeSeparateColor',),
                               'VALUE':    ('ShaderNodeCombineXYZ', 'CompositorNodeCombineColor'),
@@ -348,8 +356,8 @@ AllQuickConstant: dict[str, dict[str, str | list]] = {
                               'STRING':    'FunctionNodeInputString',
                               'MENU':      'GeometryNodeIndexSwitch',
                               'MATRIX':    'FunctionNodeCombineTransform',
-                              'ROTATION': ['FunctionNodeEulerToRotation', 
-                                           'FunctionNodeAxisAngleToRotation', 
+                              'ROTATION': ['FunctionNodeEulerToRotation',
+                                           'FunctionNodeAxisAngleToRotation',
                                            'FunctionNodeQuaternionToRotation' ],
                               'MATERIAL':  'GeometryNodeInputMaterial',
                               'OBJECT':    'GeometryNodeInputObject',
@@ -357,7 +365,7 @@ AllQuickConstant: dict[str, dict[str, str | list]] = {
                               'IMAGE':     'GeometryNodeInputImage',
                               'BUNDLE':    'NodeCombineBundle',
                               'CLOSURE':   'NodeClosureOutput',
-                              }, 
+                              },
         'ShaderNodeTree':    {'VALUE':     'ShaderNodeValue',
                               'VECTOR':    'ShaderNodeCombineXYZ',
                               'RGBA':      'ShaderNodeRGB',

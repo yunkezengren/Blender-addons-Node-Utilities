@@ -111,22 +111,15 @@ class Node_Items_Manager():
         newName = sk_label_or_name(skTar)
         sk_type = skTar.type
         match self.type:
-            case 'SIM':
-                if sk_type not in {'VALUE','INT','BOOLEAN','VECTOR','ROTATION', 'MATRIX','STRING','RGBA','GEOMETRY'}: # TODO1v6 最好是能反向找到它们在哪里，而不是硬编码。
-                    raise Exception(f"Socket type is not supported by Simulation: `{skTar.path_from_id()}`")
-                return self.skfa.new(sk_type, newName)
-            # case 'REP':
-            case 'REP' | 'BAKE' | 'CAPTURE':       # 小王-插入接口
-                # ('FLOAT', 'INT', 'BOOLEAN', 'VECTOR', 'ROTATION', 'MATRIX', 'STRING', 'MENU',
-                #  'RGBA', 'OBJECT', 'IMAGE', 'GEOMETRY', 'COLLECTION','TEXTURE', 'MATERIAL')
-                # 'BAKE' 没必要判断
-                if sk_type not in {'VALUE','INT','BOOLEAN','VECTOR','ROTATION', 'MATRIX','STRING','RGBA','GEOMETRY',
-                                      'OBJECT','IMAGE','COLLECTION','MATERIAL'}:
-                    raise Exception(f"Socket type is not supported by Repeating: `{skTar.path_from_id()}`")
-                if self.type == 'CAPTURE' and sk_type == 'VALUE':
+            # case 'SIM':
+            #     if sk_type not in {'VALUE', 'INT', 'BOOLEAN', 'VECTOR', 'ROTATION', 'MATRIX', 'STRING', 'RGBA', 'GEOMETRY'}: # TODO1v6 最好是能反向找到它们在哪里，而不是硬编码。
+            #         raise Exception(f"Socket type is not supported by Simulation: `{skTar.path_from_id()}`")
+            #     return self.skfa.new(sk_type, newName)
+            case 'SIM' | 'REP' | 'BAKE' | 'CAPTURE':
+                if sk_type == 'VALUE':
                     sk_type = 'FLOAT'
                 return self.skfa.new(sk_type, newName)
-            case 'MENU' :
+            case 'MENU':
                 return self.skfa.new(newName)
             case 'INDEX' :
                 input_soc = add_item_for_index_switch(self.node)

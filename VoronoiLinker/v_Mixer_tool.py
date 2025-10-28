@@ -106,10 +106,11 @@ class VoronoiMixerTool(VoronoiToolTripleSk):
         if not self.in_builtin_tree: #由于 usefulnessForCustomTree, 这是个无用的检查.
             return {'CANCELLED'} #如果操作地点不在经典编辑器中, 就直接退出. 因为经典编辑器对所有人都一样, 而插件编辑器有无数种.
 
-        tup_nodes = dict_vmtTupleMixerMain.get(tree.bl_idname, False).get(VmtData.skType, None)
+        default_nodes = mixer_default.get(tree.bl_idname, None)
+        tup_nodes = mixer_tree_sk_nodes.get(tree.bl_idname, False).get(VmtData.skType, default_nodes)
         if tup_nodes:
-            if length(tup_nodes)==1: #如果只有一个选择, 就跳过它直接进行混合.
-                DoMix(tree, False, False, tup_nodes[0]) #在即时激活时, 可能没有释放修饰键. 因此 DoMix() 接收的是手动设置而不是 event.
+            if length(tup_nodes) == 1:  #如果只有一个选择, 就跳过它直接进行混合.
+                DoMix(tree, False, False, tup_nodes[0])  #在即时激活时, 可能没有释放修饰键. 因此 DoMix() 接收的是手动设置而不是 event.
             else: #否则提供选择
                 bpy.ops.wm.call_menu_pie(name=VmtPieMixer.bl_idname)
         else: #否则接口类型未定义 (例如几何节点中的着色器).
