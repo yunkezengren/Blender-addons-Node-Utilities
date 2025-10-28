@@ -119,8 +119,7 @@ class VoronoiInterfacerTool(VoronoiToolPairSk):
                     self.fotagoSkMain = None
             break
     def NextAssignmentToolNewCreate(self, isFirstActivation, prefs, tree):
-        set_eqSimRepBlids = {'GeometryNodeSimulationInput', 'GeometryNodeSimulationOutput', 'GeometryNodeRepeatInput', 'GeometryNodeRepeatOutput'}
-        for ftgNd in self.ToolGetNearestNodes(cur_x_off=0):
+        for ftgNd in self.ToolGetNearestNodes(includePoorNodes=True, cur_x_off=0):
             nd = ftgNd.tar
             if nd.type=='REROUTE':
                 continue

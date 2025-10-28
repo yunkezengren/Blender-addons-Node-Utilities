@@ -108,7 +108,7 @@ class VoronoiLinkerTool(VoronoiToolPairSk): # 神圣中的神圣. 它存在的�
         return False
     def MatterPurposePoll(self):
         return self.fotagoSkOut and self.fotagoSkIn
-    def MatterPurposeTool(self, event, prefs, tree):
+    def MatterPurposeTool(self, event, prefs, tree: NodeTree):
         sko = self.fotagoSkOut.tar
         ski = self.fotagoSkIn.tar
         ##

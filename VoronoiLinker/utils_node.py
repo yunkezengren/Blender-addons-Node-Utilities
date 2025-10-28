@@ -61,7 +61,20 @@ def GetNearestNodesFtg(nodes, samplePos, uiScale, includePoorNodes=True): # 返�
     # 几乎是真实的. 圆角没有计算. 它们的缺失不影响使用, 而计算需要更多的操作. 所以没必要炫技.
     # 另一方面, 圆角对于折叠的节点很重要, 但我鄙视它们, 所以...
     # 框架节点被跳过, 因为没有一个工具需要它们.没有插槽的节点--就像框架节点一样;可以在搜索阶段就忽略它们.
-    return sorted([GenFtgFromNd(nd, samplePos, uiScale) for nd in nodes if (nd.type!='FRAME')and( (nd.inputs)or(nd.outputs)or(includePoorNodes) )], key=lambda a:a.dist)
+    
+    valid_ftgs: list[Fotago] = []
+    for nd in nodes:
+        if nd.type == 'FRAME':
+            continue
+        if not includePoorNodes and not nd.inputs and not nd.outputs:
+            continue
+
+        ftg_object = GenFtgFromNd(nd, samplePos, uiScale)
+        valid_ftgs.append(ftg_object)
+
+    return sorted(valid_ftgs, key=lambda ftg: ftg.dist)
+    
+    # return sorted([GenFtgFromNd(nd, samplePos, uiScale) for nd in nodes if (nd.type!='FRAME')and( (nd.inputs)or(nd.outputs)or(includePoorNodes) )], key=lambda a:a.dist)
 
 # 我本想添加一个自制的加速结构, 但后来突然意识到, 还需要"第二近"的信息. 所以看来不完整处理是不行的.
 # 如果你知道如何加速这个过程同时保留信息, 请与我分享.
