@@ -49,7 +49,7 @@ class VoronoiQuickConstant(VoronoiToolTripleSk):
                 CheckUncollapseNodeAndReNext(nd, self, cond=True, flag=True)
                 break
             CheckUncollapseNodeAndReNext(nd, self, cond=self.fotagoSk1, flag=False)
-            sk_out0 = optional_ftg_sk(self.fotagoSk0)
+            sk_out0 = opt_ftg_socket(self.fotagoSk0)
             if sk_out0:
                 only_single_link = {'MENU'}
                 if sk_out0.type in only_single_link:     # 小王 输出接口类型 不允许同时连到多个输入接口
@@ -66,7 +66,7 @@ class VoronoiQuickConstant(VoronoiToolTripleSk):
                     if self.fotagoSk1:
                         break
                 else:
-                    sk_out1 = optional_ftg_sk(self.fotagoSk1)
+                    sk_out1 = opt_ftg_socket(self.fotagoSk1)
                     for ftg in list_ftgSksOut:
                         if ftg.tar.type==sk_out0.type:
                             self.fotagoSk2 = ftg

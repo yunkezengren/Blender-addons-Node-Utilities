@@ -32,6 +32,7 @@ class VoronoiInterfacerTool(VoronoiToolPairSk):
     usefulnessForCustomTree = False
     canDrawInAddonDiscl = False
     toolMode: bpy.props.EnumProperty(name="Mode", default='NEW', items=fitVitModeItems)
+
     def CallbackDrawTool(self, drata):
         # print(f"{self.toolMode = }")
         match self.toolMode:
@@ -43,24 +44,14 @@ class VoronoiInterfacerTool(VoronoiToolPairSk):
                     TemplateDrawSksToolHh(drata, ftgMain, sideMarkHh=-2, tool_name="插入接口")
                 ftgNdTar = self.fotagoNdTar
                 if ftgNdTar:
-                    TemplateDrawNodeFull(drata, ftgNdTar, tool_name="Interfacer")
-                    # print(f"{type(ftgNdTar) = }")
-                    # pprint(ftgNdTar.__dict__)
-                    # print(f"{type(ftgMain) = }")
-                    # pprint(ftgMain.__dict__)
+                    TemplateDrawNodeFull(drata, ftgNdTar, tool_name="节点组")
                     list_ftgSksIn, list_ftgSksOut = self.ToolGetNearestSockets(ftgNdTar.tar, cur_x_off=0)
-                    # print("-" * 50)
-                    # print(f"{type(list_ftgSksIn) = }")
-                    # pprint(list_ftgSksIn)
-                    # pprint(list_ftgSksIn[0].__dict__)
-                    near_group_in = list_ftgSksIn[0]        # 接电阻可能没有输入接口:
-                    # print(ftgNdTar.pos.y)
+                    near_group_in = list_ftgSksIn[0]  # 接电阻可能没有输入接口:
 
                     y = ftgNdTar.pos.y
-                    boxHeiBound = Vec((y-7, y+7 ))
+                    boxHeiBound = Vec((y - 7, y + 7))
                     DrawVlSocketArea(drata, near_group_in.tar, boxHeiBound, Color4(get_sk_color_safe(ftgMain.tar)))
-                    # DrawVlSocketArea(drata, near_group_in.tar, near_group_in.boxHeiBound, Color4(get_sk_color_safe(near_group_in.tar)))
-            case 'FLIP':            # 失败
+            case 'FLIP':  # 失败
                 # ftgMain = self.fotagoSkMain
                 # if ftgMain:
                 # TemplateDrawSksToolHh(drata, ftgMain, isFlipSide=True, tool_name="")
@@ -118,7 +109,7 @@ class VoronoiInterfacerTool(VoronoiToolPairSk):
             if isFirstActivation:
                 self.fotagoSkRosw = FindAnySk(nd, list_ftgSksIn, list_ftgSksOut)
             CheckUncollapseNodeAndReNext(nd, self, cond=self.fotagoSkRosw, flag=True)
-            skRosw = optional_ftg_sk(self.fotagoSkRosw)
+            skRosw = opt_ftg_socket(self.fotagoSkRosw)
             if skRosw:
                 for ftg in list_ftgSksOut if skRosw.is_output else list_ftgSksIn:
                     if (ftg.blid!='NodeSocketVirtual')and(Node_Items_Manager.IsSimRepCorrectSk(nd, ftg.tar)):
@@ -141,46 +132,42 @@ class VoronoiInterfacerTool(VoronoiToolPairSk):
                         self.fotagoSkRosw = None
                         for ftg in list_ftgSksOut:
                             self.fotagoSkRosw = ftg
-                            self.tglCrossVirt = ftg.blid=='NodeSocketVirtual'
+                            self.tglCrossVirt = ftg.blid == 'NodeSocketVirtual'
                             break
                         CheckUncollapseNodeAndReNext(nd, self, cond=self.fotagoSkRosw, flag=True)
-                    skRosw = optional_ftg_sk(self.fotagoSkRosw)
+                    skRosw = opt_ftg_socket(self.fotagoSkRosw)
                     if skRosw:
                         for ftg in list_ftgSksIn:
-                            if (ftg.blid=='NodeSocketVirtual')^self.tglCrossVirt:
+                            if (ftg.blid == 'NodeSocketVirtual') ^ self.tglCrossVirt:
                                 self.fotagoSkMain = ftg
                                 break
-                        if (self.fotagoSkMain)and(self.fotagoSkMain.tar.node==skRosw.node): #todo0NA 概括这种检查到类中.
+                        if (self.fotagoSkMain) and (self.fotagoSkMain.tar.node == skRosw.node):  #todo0NA 概括这种检查到类中.
                             self.fotagoSkMain = None
                     CheckUncollapseNodeAndReNext(nd, self, cond=self.fotagoSkMain, flag=True)
                 case 'CREATE':
                     if isFirstActivation:
                         ftgSkOut, ftgSkIn = None, None
                         for ftg in list_ftgSksIn:
-                            if (ftg.blid!='NodeSocketVirtual')and(Node_Items_Manager.IsSimRepCorrectSk(nd, ftg.tar)):
+                            if (ftg.blid != 'NodeSocketVirtual') and (Node_Items_Manager.IsSimRepCorrectSk(nd, ftg.tar)):
                                 ftgSkIn = ftg
                                 break
                         for ftg in list_ftgSksOut:
-                            if (ftg.blid!='NodeSocketVirtual')and(Node_Items_Manager.IsSimRepCorrectSk(nd, ftg.tar)):
+                            if (ftg.blid != 'NodeSocketVirtual') and (Node_Items_Manager.IsSimRepCorrectSk(nd, ftg.tar)):
                                 ftgSkOut = ftg
                                 break
                         self.fotagoSkMain = MinFromFtgs(ftgSkOut, ftgSkIn)
                     self.fotagoNdTar = None
-                    skMain = optional_ftg_sk(self.fotagoSkMain)
-                    if skMain:
-                        if nd==skMain.node: # 也可以允许来自自己的节点, 但也许最好不要.
-                            break
-                        if nd.type not in Node_Items_Manager.set_equestrianNodeTypes:
-                            continue
-                        if (skMain.is_output)and(nd.type=='GROUP_INPUT'):
-                            continue
-                        if (not skMain.is_output)and(nd.type=='GROUP_OUTPUT'):
-                            continue
-                        if (skMain.is_output)and(nd.type=='GROUP_INPUT'):
-                            continue
-                        if (not skMain.is_output)and(nd.type=='GROUP_OUTPUT'):
-                            continue
-                        self.fotagoNdTar = ftgNd
+                    skMain = opt_ftg_socket(self.fotagoSkMain)
+                    if not skMain: continue
+                    if nd == skMain.node:
+                        break
+                    if nd.type not in Node_Items_Manager.set_equestrianNodeTypes:
+                        continue
+                    if skMain.is_output and nd.type == 'GROUP_INPUT':
+                        continue
+                    if not skMain.is_output and nd.type == 'GROUP_OUTPUT':
+                        continue
+                    self.fotagoNdTar = ftgNd
             break
     def NextAssignmentTool(self, isFirstActivation, prefs, tree):
         match self.toolMode:

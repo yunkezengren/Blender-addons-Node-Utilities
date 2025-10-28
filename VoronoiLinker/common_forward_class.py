@@ -3,15 +3,16 @@ from builtins import len as length
 from mathutils import Vector as Vec2
 from bpy.types import NodeSocket, Node
 # from .common_forward_func import *
-from .common_forward_func import (sk_label_or_name, add_item_for_index_switch, sk_type_to_idname, 
+from .common_forward_func import (sk_label_or_name, add_item_for_index_switch, sk_type_to_idname,
                            is_builtin_tree_idname)
+from .globals import is_bl5_plus
 
 # Equestrian 的意思是"骑手"或"马术的",取其驾驭、控制的寓意.似乎是专门用来操作管理有 item 的节点, 比如:
 # 这些节点都有一个共同点: 它们内部有自己的items, 可以动态地添加、删除、移动它们上面的插槽 (socket).
 # 提供了一套统一的 API 来驾驭它们的内部接口, 抽象成了统一的操作
 class Node_Items_Manager():
-    set_equestrianNodeTypes = {'GROUP', 'GROUP_INPUT', 'GROUP_OUTPUT', 
-                               'SIMULATION_INPUT', 'SIMULATION_OUTPUT', 
+    set_equestrianNodeTypes = {'GROUP', 'GROUP_INPUT', 'GROUP_OUTPUT',
+                               'SIMULATION_INPUT', 'SIMULATION_OUTPUT',
                                'REPEAT_INPUT', 'REPEAT_OUTPUT',
                                "FOREACH_GEOMETRY_ELEMENT_INPUT", "FOREACH_GEOMETRY_ELEMENT_OUTPUT",
                                'MENU_SWITCH', 'BAKE', 'CAPTURE_ATTRIBUTE', 'INDEX_SWITCH'               # 小王-更改接口名称
@@ -32,7 +33,7 @@ class Node_Items_Manager():
         return None
     @staticmethod
     def IsSimRepCorrectSk(node, skTar: NodeSocket):
-        node_has_items = {'SIMULATION_INPUT', 'SIMULATION_OUTPUT', 'REPEAT_INPUT', 'REPEAT_OUTPUT', 
+        node_has_items = {'SIMULATION_INPUT', 'SIMULATION_OUTPUT', 'REPEAT_INPUT', 'REPEAT_OUTPUT',
                           'MENU_SWITCH', 'BAKE', 'CAPTURE_ATTRIBUTE', 'INDEX_SWITCH'}       # 'INDEX_SWITCH' 在这里还没用到
         if (skTar.bl_idname=='NodeSocketVirtual')and(node.type in node_has_items):
             return False
@@ -87,7 +88,7 @@ class Node_Items_Manager():
         if not self.IsContainsSkf(skfTar):
             raise Exception(f"Equestrian items does not contain `{skfTar}`")
         match self.type:
-            # 小王-插入接口会用到
+        # 小王-插入接口会用到
             case 'SIM' | 'REP' | 'CAPTURE' | 'BAKE':
                 for sk in (self.node.outputs if isOut else self.node.inputs):
                     if sk.name==skfTar.name:
@@ -115,7 +116,7 @@ class Node_Items_Manager():
                 return self.skfa.new(skTar.type, newName)
             # case 'REP':
             case 'REP' | 'BAKE' | 'CAPTURE':       # 小王-插入接口
-                # ('FLOAT', 'INT', 'BOOLEAN', 'VECTOR', 'ROTATION', 'MATRIX', 'STRING', 'MENU', 
+                # ('FLOAT', 'INT', 'BOOLEAN', 'VECTOR', 'ROTATION', 'MATRIX', 'STRING', 'MENU',
                 #  'RGBA', 'OBJECT', 'IMAGE', 'GEOMETRY', 'COLLECTION','TEXTURE', 'MATERIAL')
                 # 'BAKE' 没必要判断
                 if skTar.type not in {'VALUE','INT','BOOLEAN','VECTOR','ROTATION', 'MATRIX','STRING','RGBA','GEOMETRY',
@@ -150,12 +151,15 @@ class Node_Items_Manager():
                     for ng in bpy.data.node_groups:
                         if is_builtin_tree_idname(ng.bl_idname):
                             FixInTree(ng)
-                    for att in ('materials','scenes','worlds','textures','lights','linestyles'): # 是这些，还是我忘了某个？
+                    data_names = ['materials', 'scenes', 'worlds', 'textures', 'lights', 'linestyles']
+                    if is_bl5_plus:
+                        data_names.remove('scenes')
+                    for att in data_names: # 是这些，还是我忘了某个？
                         for dt in getattr(bpy.data, att):
                             if dt.node_tree: # 对于 materials -- https://github.com/ugorek000/VoronoiLinker/issues/19; 我仍然不明白它怎么可能是 None。
                                 FixInTree(dt.node_tree)
                 return skfNew
-    
+
     def MoveBySkfs(self, skfFrom, skfTo, *, isSwap=False): # 本可以自行处理“BySks”的复杂性，但这已经是调用方的责任了。
         match self.type:
             case 'SIM' | 'REP' | 'MENU' | 'BAKE' | 'CAPTURE':       # 小王-支持交换接口
@@ -229,7 +233,7 @@ class Node_Items_Manager():
                         if scoPanel>0:
                             skft.move_to_parent(skf, list_panels[scoPanel][0], 0) # 因为 'reversed(skfa)'，位置问题得以解决，这里只需 '0'；令人惊叹的方便巧合。
                         scoSkf += 1
-    
+
     def __init__(self, snkd): #"snkd" = 套接字或节点。
         isSk = hasattr(snkd,'link_limit') # self.IsSocketDefinitely(snkd)
         ndEq = snkd.node if isSk else snkd
@@ -302,7 +306,7 @@ class PieRootData:
 class VmtData(PieRootData):
     sk0: NodeSocket = None
     sk1: NodeSocket = None
-    sk2: NodeSocket = None  # 小王 
+    sk2: NodeSocket = None  # 小王
     skType = ""
     isHideOptions = False
     isPlaceImmediately = False
@@ -360,7 +364,3 @@ def VlnstUpdateLastExecError(self, _context):
     else:
         VlnstData.lastLastExecError = ""
     VlnstData.isUpdateWorking = False
-
-
-
-

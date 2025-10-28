@@ -19,7 +19,7 @@ viaverSkfMethod = -1 # 用于成功交互方法的切换开关. 本可以按版�
 
 # 注意: ViaVer'ы 尚未更新.
 def ViaVerNewSkf(tree, isSide, ess, name):
-    if is_blender4plus: # Todo1VV: 重新思考拓扑结构; 使用全局函数和方法, 以及一个指向成功方法的全局变量, 实现"完全锁定".
+    if is_bl4_plus: # Todo1VV: 重新思考拓扑结构; 使用全局函数和方法, 以及一个指向成功方法的全局变量, 实现"完全锁定".
         global viaverSkfMethod
         if viaverSkfMethod==-1:
             viaverSkfMethod = 1+hasattr(tree.interface,'items_tree')
@@ -32,7 +32,7 @@ def ViaVerNewSkf(tree, isSide, ess, name):
     return skf
 
 def ViaVerGetSkfa(tree, isSide):
-    if is_blender4plus:
+    if is_bl4_plus:
         global viaverSkfMethod
         if viaverSkfMethod==-1:
             viaverSkfMethod = 1+hasattr(tree.interface,'items_tree')
@@ -46,7 +46,7 @@ def ViaVerGetSkf(tree, isSide, name):
     return ViaVerGetSkfa(tree, isSide).get(name)
 
 def ViaVerSkfRemove(tree, isSide, name):
-    if is_blender4plus:
+    if is_bl4_plus:
         tree.interface.remove(name)
     else:
         (tree.outputs if isSide else tree.inputs).remove(name)

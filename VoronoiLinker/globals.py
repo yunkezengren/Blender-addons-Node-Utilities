@@ -24,8 +24,8 @@ floatIntColorInverse = {'INT': (0.63, 0.63, 0.63, 1), 'VALUE': (0.35, 0.55, 0.36
 # 用于支持在旧版本中工作. 这样在被迫切换到旧版本时, 心里能舒坦点, 不用那么紧张,
 # 还能因为插件能在不同API的不同版本中运行而获得额外的内啡肽. 😎
 #Todo0VV: 尽可能地向更低版本兼容. 目前能保证的是: b4.0 和 b4.1? 🤔
-is_blender4plus = bpy.app.version[0] >= 4
-is_bl5 = bpy.app.version >= (5, 0, 0)
+is_bl4_plus = bpy.app.version[0] >= 4
+is_bl5_plus = bpy.app.version >= (5, 0, 0)
 
 dict_typeSkToBlid = {
     'SHADER':    'NodeSocketShader',
@@ -138,11 +138,11 @@ dict_vmtMixerNodesDefs = { # '-1' 表示这里的视觉标记，它们的连接�
         'FunctionNodeCompare':            (-1, -1, 'Compare  '),
         'ShaderNodeMath':                 (0, 1, 'Max Float '),
         'ShaderNodeMixRGB':               (1, 2, 'Mix RGB '),
-        'ShaderNodeMix':           (1, 2, 'Mix Col '),
+        'ShaderNodeMix':           (1, 2, 'Mix '),
         'CompositorNodeSwitch':           (0, 1, 'Switch '),
         'CompositorNodeSplitViewer':      (0, 1, 'Split Viewer '),
         'CompositorNodeSwitchView':       (0, 1, 'Switch View '),
-        'TextureNodeMixRGB':              (1, 2, 'Mix Col '),
+        'TextureNodeMixRGB':              (1, 2, 'Mix '),
         'TextureNodeTexture':             (0, 1, 'Texture '),
         'ShaderNodeVectorMath':           (0, 1, 'Max Vector '),
         'ShaderNodeMath':             (0, 1, 'Max Float '),

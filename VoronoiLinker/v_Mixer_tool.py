@@ -45,7 +45,7 @@ class VoronoiMixerTool(VoronoiToolTripleSk):
             if isFirstActivation:
                 self.fotagoSk0 = list_ftgSksOut[0] if list_ftgSksOut else None
             #对于第二个, 根据条件:
-            skOut0 = optional_ftg_sk(self.fotagoSk0)
+            skOut0 = opt_ftg_socket(self.fotagoSk0)
             # todo 做一些接口类型判断,比如 一个是 geometry 剩下的也要是
             if skOut0:
                 if not self.canPickThird:
@@ -68,7 +68,7 @@ class VoronoiMixerTool(VoronoiToolTripleSk):
                         break
                 else:
                     # print("\ncanPickThird==================================")
-                    skOut1 = optional_ftg_sk(self.fotagoSk1)
+                    skOut1 = opt_ftg_socket(self.fotagoSk1)
                     for ftg in list_ftgSksOut:
                         # if ftg.tar.type == skOut0.type:
                         self.fotagoSk2 = ftg
@@ -91,10 +91,10 @@ class VoronoiMixerTool(VoronoiToolTripleSk):
             return self.fotagoSk1
     def MatterPurposeTool(self, event, prefs, tree):
         VmtData.sk0 = self.fotagoSk0.tar
-        socket1 = optional_ftg_sk(self.fotagoSk1)
+        socket1 = opt_ftg_socket(self.fotagoSk1)
         VmtData.sk1 = socket1
         #对虚拟接口的支持已关闭; 只从第一个读取
-        VmtData.sk2 = optional_ftg_sk(self.fotagoSk2)
+        VmtData.sk2 = opt_ftg_socket(self.fotagoSk2)
         VmtData.skType = VmtData.sk0.type if VmtData.sk0.bl_idname!='NodeSocketVirtual' else socket1.type
         VmtData.isHideOptions = self.isHideOptions
         VmtData.isPlaceImmediately = self.isPlaceImmediately

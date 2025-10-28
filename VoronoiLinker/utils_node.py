@@ -1,5 +1,5 @@
 from .C_Structure import BNode, BNodeSocket
-from .globals import is_blender4plus, set_classicSocketsBlid, dict_typeSkToBlid, set_utilTypeSkFields
+from .globals import is_bl4_plus, set_classicSocketsBlid, dict_typeSkToBlid, set_utilTypeSkFields
 from .globals import *
 from .common_forward_class import Node_Items_Manager, Fotago
 from .common_forward_class import *
@@ -85,7 +85,7 @@ def GenFtgsFromPuts(nd, isSide, samplePos, uiScale): # 为 vptRvEeSksHighlightin
             if (not isSide)and(sk.type=='VECTOR')and(SkIsLinkedVisible(sk))and(not sk.hide_value):
                 if "VectorDirection" in str(sk.rna_type):
                     hei = 2
-                elif not( (nd.type in ('BSDF_PRINCIPLED','SUBSURFACE_SCATTERING'))and(not is_blender4plus) )or( not(sk.name in ("Subsurface Radius","Radius"))):
+                elif not( (nd.type in ('BSDF_PRINCIPLED','SUBSURFACE_SCATTERING'))and(not is_bl4_plus) )or( not(sk.name in ("Subsurface Radius","Radius"))):
                     hei = 3
             boxHeiBound = (pos.y-11-hei*20,  pos.y+11+max(sk.vl_sold_is_final_linked_cou-2,0)*5*(not isSide))
             txt = TranslateIface(sk_label_or_name(sk)) if sk.bl_idname!='NodeSocketVirtual' else TranslateIface("Virtual" if not sk.name else sk_label_or_name(sk))
@@ -135,7 +135,7 @@ class VlrtData:
     reprLastSkOut = ""
     reprLastSkIn = ""
 
-def optional_ftg_sk(ftg: Fotago) -> NodeSocket:
+def opt_ftg_socket(ftg: Fotago) -> NodeSocket:
     return ftg.tar if ftg else None
 
 def IsClassicSk(sk: NodeSocket):
@@ -331,7 +331,7 @@ def DoQuickMath(event, tree, operation, isCombo=False):
         # if VqmtData.qmSkType=='VECTOR':
         #     aNd.inputs[0].hide_value = True
         #使用event.shift的想法很棒。最初是为了单个连接到第二个接口，但由于下面的可视化搜索，它也可以交换两个连接。
-        bl4ofs = 2 * is_blender4plus        # byd 搞版本兼容真麻烦,删掉
+        bl4ofs = 2 * is_bl4_plus        # byd 搞版本兼容真麻烦,删掉
         #"Inx"，因为它是对整数“index”的模仿，但后来我意识到可以直接使用socket进行后续连接。
         skInx = aNd.inputs[0] if VqmtData.qmSkType != 'RGBA' else aNd.inputs[-2 - bl4ofs]
         if event.shift:

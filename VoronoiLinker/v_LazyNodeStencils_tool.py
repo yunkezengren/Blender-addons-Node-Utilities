@@ -196,7 +196,7 @@ class VoronoiLazyNodeStencilsTool(VoronoiToolPairSk): # 第一个应外部请求
             if isFirstActivation:
                 self.fotagoSk0 = FindAnySk()
                 CheckUncollapseNodeAndReNext(nd, self, cond=self.fotagoSk0, flag=True)
-            skFirst = optional_ftg_sk(self.fotagoSk0)
+            skFirst = opt_ftg_socket(self.fotagoSk0)
             if skFirst:
                 self.fotagoSk1 = FindAnySk()
                 if self.fotagoSk1:
@@ -207,7 +207,7 @@ class VoronoiLazyNodeStencilsTool(VoronoiToolPairSk): # 第一个应外部请求
     def MatterPurposePoll(self):
         return not not self.fotagoSk0
     def MatterPurposeTool(self, event, prefs, tree):
-        VlnstLazyTemplate(prefs, tree, optional_ftg_sk(self.fotagoSk0), optional_ftg_sk(self.fotagoSk1), self.cursorLoc)
+        VlnstLazyTemplate(prefs, tree, opt_ftg_socket(self.fotagoSk0), opt_ftg_socket(self.fotagoSk1), self.cursorLoc)
     @staticmethod
     def LyDrawInAddonDiscl(col, prefs):
         LyAddNiceColorProp(col, prefs,'vlnstNonColorName')

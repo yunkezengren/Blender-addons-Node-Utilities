@@ -137,11 +137,14 @@ class VmtPieMixer(bpy.types.Menu):
                 return col
             sk0_type = VmtData.sk0.type
             sk1_type = VmtData.sk1.type if VmtData.sk1 else None
-            vec_and_mat = False    # 有矢量和矩阵输入接口的节点
+            vec_and_mat = False    # 混合饼菜单选的两个接口,有矢量和矩阵
+            rot_and_mat = False    # 混合饼菜单选的两个接口,有旋转和矩阵
             # 连接了两个接口，且一个是矩阵一不是矩阵
-            # if VmtData.sk1 and ((sk0_type != "MATRIX" and sk1_type == "MATRIX") or (sk0_type == "MATRIX" and sk1_type != "MATRIX")):
-            if VmtData.sk1 and (sk0_type == "MATRIX") != (sk1_type == "MATRIX"):
+            # if VmtData.sk1 and (sk0_type == "MATRIX") != (sk1_type == "MATRIX"):
+            if VmtData.sk1 and ((sk0_type == "VECTOR" and sk1_type == "MATRIX") or (sk0_type == "MATRIX" and sk1_type == "VECTOR")):
                 vec_and_mat = True
+            if VmtData.sk1 and ((sk0_type == "ROTATION" and sk1_type == "MATRIX") or (sk0_type == "MATRIX" and sk1_type == "ROTATION")):
+                rot_and_mat = True
             mat_and_mat = True if (sk0_type == "MATRIX" and sk1_type == "MATRIX") else False
             match editorBlid:
             # 这是 mix pie 的右半
@@ -156,16 +159,6 @@ class VmtPieMixer(bpy.types.Menu):
                     for idname in node_support_all:
                         row123 = column0.row(align=VmtData.pieAlignment==0)
                         LyVmAddItem(row123, idname)
-
-                    # row1 = column0.row(align=VmtData.pieAlignment==0)
-                    # row2 = column0.row(align=VmtData.pieAlignment==0)
-                    # row3 = column0.row(align=VmtData.pieAlignment==0)
-                    # row1.enabled = False
-                    # row2.enabled = False
-                    # row3.enabled = False
-                    # LyVmAddItem(row1, 'GeometryNodeSwitch')
-                    # LyVmAddItem(row2, 'GeometryNodeIndexSwitch')
-                    # LyVmAddItem(row3, 'GeometryNodeMenuSwitch')
 
                     row4 = column0.row(align=VmtData.pieAlignment==0)
                     row5 = column0.row(align=VmtData.pieAlignment==0)
@@ -204,13 +197,13 @@ class VmtPieMixer(bpy.types.Menu):
                                 continue
                             if sco:
                                 column1.separator()
-                            last_ti = SEPARATE
                         else:
                             if vec_and_mat and ti not in ["FunctionNodeTransformPoint", "FunctionNodeTransformDirection", "FunctionNodeProjectPoint"]:
                                 continue
-                            if mat_and_mat and ti not in ["FunctionNodeMatrixMultiply"]: continue
+                            if (mat_and_mat or rot_and_mat) and ti not in ["FunctionNodeMatrixMultiply"]: continue
                             LyVmAddItem(column1, ti)
                             sco += 1
+                        last_ti = ti
             if VmtData.pieDisplaySocketTypeInfo:
                 box = pie.box()
                 row = box.row(align=True)

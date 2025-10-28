@@ -56,7 +56,7 @@ class VoronoiSwapperTool(VoronoiToolPairSk):
                         ftgSkIn = None
                 self.fotagoSk0 = MinFromFtgs(ftgSkOut, ftgSkIn)
             #这里积累了很多奇怪的关于None等的检查 -- 这是我将自己发明的许多高级函数连接在一起的结果.
-            skOut0 = optional_ftg_sk(self.fotagoSk0)
+            skOut0 = opt_ftg_socket(self.fotagoSk0)
             if skOut0:
                 for ftg in list_ftgSksOut if skOut0.is_output else list_ftgSksIn:
                     if ftg.blid=='NodeSocketVirtual':
