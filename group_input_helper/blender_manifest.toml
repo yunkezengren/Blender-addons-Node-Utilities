@@ -1,6 +1,6 @@
 schema_version = "1.0.0"
 id = "group_input_helper"
-version = "2.9.0"
+version = "2.9.1"
 name = "Group input helper(节点组输入助手)"
 tagline = "Qucik add/split/merge Group Input node/socket(快速添加拆分合并移动组输入节点接口)"
 maintainer = "W_Cloud(一尘不染)"

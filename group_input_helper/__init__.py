@@ -3,36 +3,27 @@ bl_info = {
     "author" : "一尘不染",
     "description" : "快速添加组输入节点-拆分合并移动组输入节点-快速添加组输入输出接口(Qucik add and split merge move Group Input node-Qucik add Group Input Output socket)",
     "blender" : (3, 0, 0),
-    "version" : (2, 9, 0),
-    "location" : "偏好设置-标题栏-N面板(Preferences-Editor Bar-N panel)",
-    "warning" : "",
-    "doc_url": "",
-    "tracker_url": "",
+    "version" : (2, 9, 1),
     "category" : "Node"
 }
 
 import bpy, os
-from bpy.types import Operator, Menu, Panel, AddonPreferences
-from bpy.types import (Node, Nodes, NodeTree, NodeTreeInterfaceItem, NodeTreeInterfacePanel, NodeTreeInterfaceSocket, UILayout,
-                       NodeLink, NodeLinks, Context)
-from bpy.props import EnumProperty, BoolProperty, IntProperty, StringProperty
-from bpy.app.translations import pgettext_iface as iface_
 import bpy.utils.previews
+from bpy.types import (Operator, Menu, Panel, AddonPreferences, Context, UILayout, Node, Nodes, NodeSocket, NodeTree, NodeLinks,
+                       NodeTreeInterfaceItem, NodeTreeInterfacePanel, NodeTreeInterfaceSocket, )
+from bpy.props import BoolProperty, IntProperty, StringProperty
+from bpy.app.translations import pgettext_iface as iface_
 from mathutils import Vector as Vec2
 
 from .translator import i18n as trans
-from pprint import pprint
 from typing import Union
+from ctypes import c_float, c_void_p
 
-import ctypes
-from bpy.types import NodeSocket
-
-# + 拆分后删除转接口
 # Todo 很久之前写的了,层层嵌套的地方需要优化, 拆分移动合并要考虑复用代码
 # Todo 组输入移动后找个好位置
 # Todo 顶层材质不显示着色器
-# Todo 合并组输入没活动节点时,新节点位置在左上角
 # Todo 合并组输入时适当重命名
+# Todo 拆分组输入,增加重命名/折叠/调整宽度选项
 # todo 显示组输入 是否灰显或隐藏
 # todo 学习节点树仓库的 i18n
 
@@ -186,7 +177,7 @@ def pref() -> GroupInputHelperAddonPreferences:
 def ui_scale():
     return bpy.context.preferences.system.dpi / 72      # 类似于prefs.view.ui_scale, 但是不同的显示器dpi不一样吗
 
-def sk_idname_版本兼容(socket_id):
+def sk_idname_版本兼容(socket_id: str):
     # 好像只3.6这样,4.0就都一种了
     if socket_id.startswith("NodeSocketFloat"):
         socket_id = "NodeSocketFloat"
@@ -300,7 +291,6 @@ def draw_add_hided_socket_group_input(layout: UILayout):
     prefs =  pref()
     tree: NodeTree = bpy.context.space_data.edit_tree
 
-    # print("*"*50)
     if bpy.app.version < (4, 0, 0):
         in_items = tree.inputs
     if bpy.app.version >= (4, 0, 0):
@@ -317,7 +307,6 @@ def draw_add_hided_socket_group_input(layout: UILayout):
                 length = count_input_socket_recursive(item)
                 depth = count_panel_depth(item)
                 in_items.append({"item": item, "index": index, "len": length, "depth": depth})
-    # pprint(in_items)
     panel_count = 0
     for in_item in in_items:
         item = in_item["item"]
@@ -439,10 +428,10 @@ def draw_add_new_socket(layout, context):
         op.socket_type = sk_idname
 
 # ==================================================================================================
-def abs_loc(node):
+def abs_loc(node: Node):
     return node.location + abs_loc(node.parent) if node.parent else node.location
 
-def get_nodes_center(nodes):
+def get_nodes_center(nodes: Nodes):
     """ 并非中心 """
     if nodes:     #  没有节点不运行
         locs = []
@@ -457,44 +446,20 @@ def get_nodes_center(nodes):
         center_y1 = (max(l[2] for l in locs) + min(l[3] for l in locs)) / 2
         return Vec2((min_x1, center_y1))
 
-def has_link(node):
+def has_link(node: Node):
     for socket in node.outputs:
         if socket.is_linked:
             return True
     return False
 
-def is_tall(socket):
-    if socket.type not in ["VECTOR", "ROTATION"]:
-        return False
-    if socket.hide_value:
-        return False
-    if socket.is_linked:
-        return False
-    return True
-
-def sk_loc_legacy(tar_socket):
-    tar_node = tar_socket.node
-    has_tall = 0
-    for socket in reversed(tar_node.inputs):
-        has_tall += is_tall(socket)
-        # print(f"{has_tall=}")
-    deviation = 5 * has_tall if has_tall else 0      # 矢量接口导致dimensions.y不准?
-    y = abs_loc(tar_node).y - tar_node.dimensions.y + deviation + 43     # 额外加的是组输入输出接口和顶端的距离差
-    soc_loc_dict = {}    # socket_location_dictionary
-    for socket in reversed(tar_node.inputs):
-        if socket.hide or not socket.enabled:
-            continue
-        y_offset = 21.9   # 接口之间常规距离
-        vec_offset = 60   # 矢量接口距离
-        y += y_offset + vec_offset * is_tall(socket)
-        soc_loc_dict[socket] = y
-    return Vec2((abs_loc(tar_node).x, soc_loc_dict[tar_socket]))
-
 def sk_loc(socket: NodeSocket):
     try:
-        return Vec2((ctypes.c_float * 2).from_address(ctypes.c_void_p.from_address(socket.as_pointer() + 520).value + 24))
+        offset = 520
+        if bpy.app.version > (5, 0, 0):
+            offset = 456  # 520 - 64
+        return Vec2((c_float * 2).from_address(c_void_p.from_address(socket.as_pointer() + offset).value + 24))
     except:
-        return sk_loc_legacy(socket)
+        pass
 
 def move_nd_to_sk(input_nd: Node, to_socket: NodeSocket, offset: int):
     input_nd.location = sk_loc(to_socket) / ui_scale()
@@ -541,8 +506,8 @@ class NODE_OT_Merge_Group_Input_Socket(BaseOperator):
                 target_group.location = nodes_center - Vec2((0,  - tar_loc.y))
         return {"FINISHED"}
 
-def merge_group_input_linked(selected_nodes, active_node, loc_at_max_y=False):
-    tree = bpy.context.space_data.edit_tree
+def merge_group_input_linked(selected_nodes: Nodes, active_node: Node, loc_at_max_y=False):
+    tree: NodeTree = bpy.context.space_data.edit_tree
     nodes = tree.nodes
     links = tree.links
     list_group = []
@@ -696,6 +661,7 @@ class NODE_OT_Split_All_And_Move(BaseOperator):
                                 new_sk_out.hide = True
             nodes.remove(node)
         return {"FINISHED"}
+
 # !会导致崩溃,我也崩溃
 # def delete_reroute0(link, nodes, links, sk_out):
 #     if link.to_node.type == "REROUTE":
@@ -704,9 +670,6 @@ class NODE_OT_Split_All_And_Move(BaseOperator):
 #             links.new(sk_out, re_link.to_socket)
 #             delete_reroute0(re_link, nodes, links, sk_out)
 #         nodes.remove(reroute)
-# def delete_reroute(sk_out: NodeSocket, nodes: Nodes, links: NodeLinks):
-#     for link in sk_out.links:
-#         delete_reroute0(link, nodes, links, sk_out)
 
 def delete_reroute(sk_out: NodeSocket, nodes: Nodes, links: NodeLinks):
     links_to_check = list(sk_out.links)
@@ -728,7 +691,7 @@ def delete_reroute(sk_out: NodeSocket, nodes: Nodes, links: NodeLinks):
     for reroute in reroutes:
         nodes.remove(reroute)
 
-def get_selected_group_input(context: Context, deselect_other: bool = True) -> list[Node]:
+def get_selected_group_input(context: Context, deselect_other=True) -> list[Node]:
     selected_nodes = []
     for node  in context.selected_nodes:
         if node.bl_idname == "NodeGroupInput" and node.select and has_link(node):
