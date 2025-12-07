@@ -46,7 +46,7 @@ dict_typeSkToBlid = {
     'CUSTOM':    'NodeSocketVirtual',
 }
 
-TYPES_NO_CONVERT = ['SHADER', 'STRING', 'GEOMETRY', 'OBJECT', 'COLLECTION', 'MATERIAL', 'TEXTURE', 'IMAGE', 'BUNDLE', 'CLOSURE']
+TYPES_NO_CONVERT = ['STRING', 'GEOMETRY', 'OBJECT', 'COLLECTION', 'MATERIAL', 'TEXTURE', 'IMAGE', 'BUNDLE', 'CLOSURE']
 
 set_utilTypeSkFields = {'VALUE', 'RGBA', 'VECTOR', 'INT', 'BOOLEAN', 'ROTATION', 'STRING', 'MATRIX'}       # Alt D 等多个操作 支持的接口
 
