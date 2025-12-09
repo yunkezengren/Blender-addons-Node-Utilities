@@ -28,7 +28,7 @@ class NODE_MT_n_panel_pie(Menu):
 
         pie.separator() # LEFT
         # RIGHT
-        op = pie.operator("pme.switch_n_panel_category", text="N", icon='MENU_PANEL')
+        op = pie.operator("pme.switch_n_panel_category", text="N 面板", icon='MENU_PANEL')
         op.category_name = "切换N面板"
 
         pie.separator() # BOTTOM
@@ -91,7 +91,7 @@ def register():
     kc = wm.keyconfigs.addon
     if kc:
         km = kc.keymaps.new(name='Node Editor', space_type='NODE_EDITOR')
-        kmi = km.keymap_items.new('wm.call_menu_pie', type='N', value="CLICK_DRAG")
+        kmi = km.keymap_items.new('wm.call_menu_pie', type='TAB', value="CLICK_DRAG")
         kmi.properties.name = NODE_MT_n_panel_pie.bl_idname
         addon_keymaps.append((km, kmi))
 

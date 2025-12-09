@@ -1,5 +1,5 @@
 import bpy, ctypes
-from bpy.types import Operator, NodeSocket
+from bpy.types import Operator, NodeSocket, Header
 
 # from .获取接口位置 import sk_loc2
 from .test_bpy import print_bpy
@@ -38,31 +38,30 @@ class NODE_OT_print_socket_location(Operator):
         else:
             print("Inputs: None")
 
-        # if a_node.outputs:
-        #     print("Outputs:")
-        #     for socket in a_node.outputs:
-        #         print(f"  - {socket.name:20} {sk_support_types(socket)}")
-        #         # print(f"  - {socket.name:20}")
-        #         # sk_support_types(socket)
-        # else:
-        #     print("Outputs: None")
-        
-        
-            
-        # if a_node.inputs:
-        #     print("Inputs:")
-        #     for socket in a_node.inputs:
-        #         print(f"  - {socket.name:20} {sk_loc2(socket)}")
-        # else:
-        #     print("Inputs: None")
+        return {'FINISHED'}
 
-        # if a_node.outputs:
-        #     print("Outputs:")
-        #     for socket in a_node.outputs:
-        #         print(f"  - {socket.name:20} {sk_loc2(socket)}")
-        # else:
-        #     print("Outputs: None")
-        # print("-------------------------------------------------")
+class NODE_OT_print_tree_path(Operator):
+    bl_idname = "node.print_tree_path"
+    bl_label = "输出节点树路径"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        # print_bpy()
+        space = context.space_data
+        assert(type(space) is bpy.types.SpaceNodeEditor)
+        print("="*50)
+        path = space.path
+        print(path.to_string)
+        print(path)
+        p = path[-1]
+        print(p.node_tree)
+        # path.pop()
+        
+        a_node = context.active_node
+        assert(not isinstance(a_node, bpy.types.NodeGroup))
+        # path.append(a_node.node_tree)
+        # path.append(a_node.node_tree, node=a_node)
+        
 
         return {'FINISHED'}
 
@@ -75,14 +74,16 @@ class NODE_PT_socket_printer_panel(bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
-        row = layout.row()
-        row.operator(NODE_OT_print_socket_location.bl_idname)
+        col = layout.column()
+        col.operator(NODE_OT_print_socket_location.bl_idname)
+        col.operator(NODE_OT_print_tree_path.bl_idname)
 
-def draw_button_in_header(self, context):
+def draw_button_in_header(self: Header, context):
     self.layout.operator(NODE_OT_print_socket_location.bl_idname, text="输出信息", icon='CONSOLE')
 
 classes = (
     NODE_OT_print_socket_location,
+    NODE_OT_print_tree_path,
     NODE_PT_socket_printer_panel,
 )
 

@@ -19,6 +19,7 @@ from .translator import i18n as trans
 from typing import Union
 from ctypes import c_float, c_void_p
 
+# Todo 要让支持的接口类型更通用啊,而不是自己判断
 # Todo 很久之前写的了,层层嵌套的地方需要优化, 拆分移动合并要考虑复用代码
 # Todo 组输入移动后找个好位置
 # Todo 顶层材质不显示着色器

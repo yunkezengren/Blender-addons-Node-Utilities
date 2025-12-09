@@ -354,8 +354,11 @@ class NODE_OT_distribute_row_column(BaseAlignOp):
 
 def sk_loc(socket: NodeSocket):
     """ 草,问题出在这个运行时数据,界面刷新时才更新 """
+    offset = 520
+    if bpy.app.version >= (5, 1, 0):
+        offset -= 64    #  5.1移除了short_label https://projects.blender.org/blender/blender/pulls/148940/files
     try:
-        return Vec2((ctypes.c_float * 2).from_address(ctypes.c_void_p.from_address(socket.as_pointer() + 520).value + 24))
+        return Vec2((ctypes.c_float * 2).from_address(ctypes.c_void_p.from_address(socket.as_pointer() + offset).value + 24))
     except:
         return socket.node.location
 
@@ -367,7 +370,7 @@ class NODE_OT_align_link(Operator):
     bl_label = tr("对齐-拉直连线")
     bl_description = tr("选中节点,以活动节点为中心,拉直输入输出接口之间的连线")
     bl_options = {'REGISTER', 'UNDO'}
-    
+
     # 在类级别声明实例属性的 "蓝图"
     timer: bpy.types.Timer
     aligned_nodes: list[Node]    # 从已对齐的节点出发找没对齐的
@@ -394,7 +397,7 @@ class NODE_OT_align_link(Operator):
         # 定时器间隔非常短, 比如 0.01 秒, 看起来就像动画一样
         self.timer = wm.event_timer_add(0.01, window=context.window)
         wm.modal_handler_add(self)
-        
+
         return {'RUNNING_MODAL'}
 
     def modal(self, context, event):
@@ -421,7 +424,7 @@ class NODE_OT_align_link(Operator):
                     link = sk_in.links[0]
                     from_nd = link.from_node
                     from_sk = link.from_socket
-                    
+
                     # 检查邻居节点是否需要处理
                     if from_nd.select and (from_nd not in self.aligned_nodes) and linked_valid(from_sk):
                         from_nd.location.y += (sk_loc(sk_in).y - sk_loc(from_sk).y) / ui_scale()

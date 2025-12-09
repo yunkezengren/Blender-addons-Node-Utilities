@@ -1,21 +1,33 @@
 from typing import Union, Optional
 from dataclasses import dataclass, field
 
+# field(default_factory=list) 作用：为数据类的每个新实例/对象 创建一个全新的、独立的空列表作为默认值。
+# 创建一个 Attr_Info 对象时，如果没给 domain_info 传值，它都会得到一个属于自己的、新的空列表。
+# 默认值只在函数/类定义时创建一次;所有实例共享同一个默认值;修改一个，影响所有
+
 @dataclass
 class Attr_Info:
     # 必选参数
     data_type: str
     """ ## data_type提示 """
+
     domain: list[str]
+
     domain_info: list[str] = field(default_factory=list)
-    """ ### todo 应该可以删掉 domain_info,在需要的地方在处理 domain->domain_info """
+    """ ### todo 应该可以删掉 domain_info,在需要的地方再 domain -> domain_info """
+
     # 对于 list或dict这样的可变类型,必须这样, 直接写domain:list=[], 所有实例都会共享同一个列表
     group_name: Union[str, list[str]] = field(default_factory=list)
+
     group_node_name: list[str] = field(default_factory=list)
+
     group_name_parent: list[str] = field(default_factory=list)
+
     node_name: list[str] = field(default_factory=list)
+
     # "可能存在"的属性,Optional[bool] 是 Union[bool, None] 的简写
     if_instanced: Optional[bool] = None
+
     info: Optional[str] = None
 
 Attr_Dict = dict[str, Attr_Info]
