@@ -244,6 +244,8 @@ class VqmtPieMath(bpy.types.Menu):
                 add_item(col_left,'MAXIMUM','NONE') #SORT_DESC  TRIA_UP_BAR
                 add_item(col_left,'MINIMUM','NONE') #SORT_ASC  TRIA_DOWN_BAR
                 for li in ('MODULO', 'FLOORED_MODULO', 'SNAP', 'WRAP'):
+                    if is_vec and li == 'FLOORED_MODULO':
+                        continue
                     add_item(col_left, li)
                 col_left.separator()
                 if not is_vec:
