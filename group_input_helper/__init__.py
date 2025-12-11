@@ -273,7 +273,7 @@ class NODE_OT_Add_Hided_Socket_Group_Input(BaseOperator):
 
         return {"FINISHED"}
 
-def add_group_input_helper_to_node_mt_editor_menus(self, context):
+def add_group_input_helper_to_node_mt_editor_menus(self: Menu, context: Context):
     layout = self.layout
     layout.menu('NODE_MT_Add_Hided_Socket_Group_Input', text=trans('组输入'))
 
@@ -408,7 +408,7 @@ class NODE_PT_Group_Input_Helper(Panel):
         if body:
             draw_add_hided_socket_group_input(body)
 
-def draw_add_new_socket(layout, context):
+def draw_add_new_socket(layout: UILayout, context: Context):
     for sk_idname, socket_name in sk_idname_to_cn.items():
         tree_type = context.space_data.edit_tree.bl_idname
         name = trans(socket_name)
