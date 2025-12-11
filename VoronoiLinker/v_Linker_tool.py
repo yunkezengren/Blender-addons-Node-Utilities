@@ -15,7 +15,6 @@ def is_unlink_route(node):
         return True  # 转接点没连线
     return False
 
-types_no_convert = ['SHADER', 'STRING', 'GEOMETRY', 'OBJECT', 'COLLECTION', 'MATERIAL', 'TEXTURE', 'IMAGE', 'BUNDLE', 'CLOSURE']
 # 最初, 整个插件都是为了这个工具而创建的. 你以为为什么名字都一样.
 # 但后来我被这些已掌握的能力惊呆了, 开始创作了主流三巨头. 但这还不够, 现在工具有7个以上. 太棒了!
 # 重复的注释只在这里 (并且总体上递减). 如有争议, 请参考 VLT, 将其视为最终真理.
@@ -55,16 +54,20 @@ class VoronoiLinkerTool(VoronoiToolPairSk): # 神圣中的神圣. 它存在的�
                 for ftg in list_ftgSksIn:
                     sk_in = ftg.tar
                     # --- 未连接的 reroute 节点, 永远允许连接
-                    if is_unlink_route(sk_out.node) or is_unlink_route(sk_in.node) and prefs.vltReroutesCanInAnyType:
+                    if (is_unlink_route(sk_out.node) or is_unlink_route(sk_in.node) and prefs.vltReroutesCanInAnyType):
                         valid = True
                     elif (sk_out.type == 'CUSTOM') ^ (sk_in.type == 'CUSTOM'):  # 只有一个True时为True
                         valid = True
-                    elif sk_out.type in types_no_convert or sk_in.type in types_no_convert:
-                        valid = (sk_in.type == sk_out.type)
+                    elif sk_in.type == sk_out.type:
+                        valid = True
+                    # elif sk_out.type in TYPES_NO_CONVERT or sk_in.type in TYPES_NO_CONVERT:
+                    #     valid = (sk_in.type == sk_out.type)
                     elif sk_out.type == "MATRIX":
                         valid = (sk_in.type in ["MATRIX", "ROTATION"])
                     elif sk_out.type == "ROTATION":
                         valid = (sk_in.type in ["ROTATION", "MATRIX", "VECTOR"])
+                    elif sk_out.type in ['VALUE', 'RGBA', 'VECTOR', 'INT', 'BOOLEAN', "SHADER"] and sk_in.type == "SHADER":
+                        valid = True
                     else:
                         is_classic = self.in_builtin_tree and (IsClassicSk(sk_out) ^ IsClassicSk(sk_in))
                         # 注意: SkBetweenFieldsCheck() 只检查字段之间, 所以需要显式检查 `bl_idname` 是否相同.
@@ -111,9 +114,30 @@ class VoronoiLinkerTool(VoronoiToolPairSk): # 神圣中的神圣. 它存在的�
     def MatterPurposeTool(self, event, prefs, tree: NodeTree):
         sko = self.fotagoSkOut.tar
         ski = self.fotagoSkIn.tar
+        to_node = ski.node
+        # ! 创建连线后 ski如果改变类型(比如菜单选项/转接点), 会变得无效,访问后崩溃
+        link = tree.links.new(sko, ski, handle_dynamic_sockets=True) # 最重要的一行又变成了低级的.
+        # ##
+        if getattr(sko, "inferred_structure_type", "") == 'GRID' and hasattr(to_node, "data_type"):
+            if sko.type == "VECTOR":
+                for data_t in ["VECTOR", "VECTOR_FLOAT", "FLOAT_VECTOR"]:
+                    try:
+                        to_node.data_type = data_t
+                        break
+                    except:
+                        pass
+                        # print(f"警告: 节点 '{to_node.name}' 不支持 VECTOR or VECTOR_FLOAT data type.")
+            elif sko.type == "VALUE":
+                to_node.data_type = "FLOAT"
+            else:
+                try:
+                    to_node.data_type = sko.type
+                except:
+                    pass
+        if hasattr(to_node, "input_type"):
+            ...
         ##
-        tree.links.new(sko, ski) # 最重要的一行又变成了低级的.
-        ##
+        self.fotagoSkIn.tar = link.to_socket
         if ski.is_multi_input: # 如果是多输入, 实现合理的连接顺序.
             # 我个人的愿望, 它修复了奇怪的行为, 使其逻辑上正确可预期. 为什么通过 api 最后连接的会被粘到开头?
             list_skLinks = []
@@ -128,7 +152,7 @@ class VoronoiLinkerTool(VoronoiToolPairSk): # 神圣中的神圣. 它存在的�
             tree.links.new(sko, ski) # 将下一个连接为第一个.
             for li in list_skLinks: # 恢复记住的. #todo0VV 为了支持旧版本: 以前是 [:-1], 因为列表中的最后一个已经是期望的, 由上面一行连接.
                 tree.links.new(li[0], li[1]).is_muted = li[2]
-        VlrtRememberLastSockets(sko, link.to_socket) # 记住 VLRT 的套接字, 它们现在是“最后使用的”.
+        VlrtRememberLastSockets(sko, self.fotagoSkIn.tar) # 记住 VLRT 的套接字, 它们现在是“最后使用的”.
         if prefs.vltSelectingInvolved:
             for nd in tree.nodes:
                 nd.select = False
