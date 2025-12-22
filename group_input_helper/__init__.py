@@ -3,7 +3,7 @@ bl_info = {
     "author" : "一尘不染",
     "description" : "快速添加组输入节点-拆分合并移动组输入节点-快速添加组输入输出接口(Qucik add and split merge move Group Input node-Qucik add Group Input Output socket)",
     "blender" : (3, 0, 0),
-    "version" : (2, 9, 1),
+    "version" : (2, 9, 2),
     "category" : "Node"
 }
 
@@ -429,23 +429,19 @@ def draw_add_new_socket(layout: UILayout, context: Context):
         op.socket_type = sk_idname
 
 # ==================================================================================================
-def abs_loc(node: Node):
-    return node.location + abs_loc(node.parent) if node.parent else node.location
+def nd_abs_loc(node: Node):
+    return node.location + nd_abs_loc(node.parent) if node.parent else node.location
 
-def get_nodes_center(nodes: Nodes):
-    """ 并非中心 """
-    if nodes:     #  没有节点不运行
-        locs = []
-        for node in nodes:
-            node.select = True
-            if node.bl_idname == "NodeFrame": continue
-            location = abs_loc(node)
-            # center = location + Vec2((node.width / 2, - node.dimensions.y / 2))
-            center = [location.x, location.x + node.width, location.y, location.y - node.dimensions.y]
-            locs.append(center)
-        min_x1 = min(l[0] for l in locs)
-        center_y1 = (max(l[2] for l in locs) + min(l[3] for l in locs)) / 2
-        return Vec2((min_x1, center_y1))
+def get_nodes_target_loc(nodes: Nodes):
+    locs = []
+    for node in nodes:
+        if node.bl_idname == "NodeFrame": continue
+        location = nd_abs_loc(node)
+        center = [location.x, location.y, location.y - node.dimensions.y]
+        locs.append(center)
+    min_x1 = min(l[0] for l in locs)
+    center_y1 = (max(l[1] for l in locs) + min(l[2] for l in locs)) / 2
+    return Vec2((min_x1, center_y1))
 
 def has_link(node: Node):
     for socket in node.outputs:
@@ -453,17 +449,17 @@ def has_link(node: Node):
             return True
     return False
 
-def sk_loc(socket: NodeSocket):
+def sk_location(socket: NodeSocket):
     try:
         offset = 520
-        if bpy.app.version > (5, 0, 0):
+        if bpy.app.version >= (5, 1, 0):
             offset = 456  # 520 - 64
         return Vec2((c_float * 2).from_address(c_void_p.from_address(socket.as_pointer() + offset).value + 24))
     except:
-        pass
+        raise Exception("获取接口位置函数出错")
 
 def move_nd_to_sk(input_nd: Node, to_socket: NodeSocket, offset: int):
-    input_nd.location = sk_loc(to_socket) / ui_scale()
+    input_nd.location = sk_location(to_socket) / ui_scale()
     input_nd.location.x -= 180
     input_nd.location.y += offset
     input_nd.parent = to_socket.node.parent
@@ -490,7 +486,7 @@ class NODE_OT_Merge_Group_Input_Socket(BaseOperator):
                 target_group = a_node
             else:
                 target_group = list_group[0]
-                nodes_center = get_nodes_center(list_group)
+                nodes_center = get_nodes_target_loc(list_group)
             group_id = {socket.identifier: socket for socket in target_group.outputs}
             for node in list_group:
                 if node != target_group:
@@ -514,10 +510,10 @@ def merge_group_input_linked(selected_nodes: Nodes, active_node: Node, loc_at_ma
     list_group = []
     list_group_loc_y = []
     for node in selected_nodes:
-        if node.bl_idname == "NodeGroupInput":
-            node.parent = None
-            list_group.append(node)
-            list_group_loc_y.append(abs_loc(node).y)
+        if node.bl_idname != "NodeGroupInput": continue
+        node.parent = None
+        list_group.append(node)
+        list_group_loc_y.append(nd_abs_loc(node).y)
     list_group_loc_y.sort()
     y_max = list_group_loc_y[-1]
     if len(list_group) == 1:
@@ -527,15 +523,15 @@ def merge_group_input_linked(selected_nodes: Nodes, active_node: Node, loc_at_ma
         target_group = active_node
     else:
         target_group = list_group[0]
-        nodes_center = get_nodes_center(list_group)
+        nodes_center = get_nodes_target_loc(list_group)
     group_id = {sk_out.identifier: sk_out for sk_out in target_group.outputs}
     for node in list_group:
-        if node != target_group:
-            for sk_out in node.outputs:
-                if sk_out.is_linked:
-                    for link in sk_out.links:
-                        links.new(group_id[sk_out.identifier], link.to_socket)
-            nodes.remove(node)    # 没出错,不确定这样删会不会出错
+        if node == target_group: continue
+        for sk_out in node.outputs:
+            if not sk_out.is_linked: continue
+            for link in sk_out.links:
+                links.new(group_id[sk_out.identifier], link.to_socket)
+        nodes.remove(node)    # 没出错,不确定这样删会不会出错
     if not condition:
         tar_loc = target_group.dimensions
         target_group.location = nodes_center - Vec2((0, -tar_loc.y))
@@ -568,22 +564,21 @@ class NODE_OT_Split_Group_Input_Socket(BaseOperator):
         selected_nodes = context.selected_nodes
         i = 0
         for node in selected_nodes:
-            if node.bl_idname == "NodeGroupInput" and node.select:
-                i = -1
-                for sk_out in node.outputs:
-                    if not sk_out.hide and sk_out.enabled and sk_out.bl_idname != "NodeSocketVirtual":
-                        # if sk_out.is_linked:
-                        i += 1
-                        group_in_nd = nodes.new('NodeGroupInput')
-                        group_in_nd.location = abs_loc(node)
-                        group_in_nd.location.y = abs_loc(node).y - 60 * i
-                        group_id = {socket.identifier: socket for socket in group_in_nd.outputs}
-                        for link in sk_out.links:
-                            links.new(group_id[sk_out.identifier], link.to_socket)
-                        for new_sk_out in group_in_nd.outputs:
-                            if new_sk_out.identifier != sk_out.identifier:
-                                new_sk_out.hide = True
-                nodes.remove(node)
+            if node.bl_idname != "NodeGroupInput" or not node.select: continue
+            i = -1
+            for sk_out in node.outputs:
+                if sk_out.hide or not sk_out.enabled or sk_out.bl_idname == "NodeSocketVirtual": continue
+                i += 1
+                group_in_nd = nodes.new('NodeGroupInput')
+                group_in_nd.location = nd_abs_loc(node)
+                group_in_nd.location.y = nd_abs_loc(node).y - 60 * i
+                group_id = {socket.identifier: socket for socket in group_in_nd.outputs}
+                for link in sk_out.links:
+                    links.new(group_id[sk_out.identifier], link.to_socket)
+                for new_sk_out in group_in_nd.outputs:
+                    if new_sk_out.identifier != sk_out.identifier:
+                        new_sk_out.hide = True
+            nodes.remove(node)
         return {"FINISHED"}
 
 class NODE_OT_Split_All_Group_Input_Socket(BaseOperator):
@@ -598,26 +593,26 @@ class NODE_OT_Split_All_Group_Input_Socket(BaseOperator):
         selected_nodes = context.selected_nodes
         i = 0
         for node in selected_nodes:
-            if node.bl_idname == "NodeGroupInput" and node.select:
-                i = -1
-                for sk_out in node.outputs:
-                    if not sk_out.hide and sk_out.enabled and sk_out.bl_idname != "NodeSocketVirtual":
-                        link_count = len(sk_out.links)
-                        soc_links = sk_out.links if sk_out.links else range(1)
-                        for link in soc_links:
-                            if hasattr(link, "is_valid") and not link.is_valid:       # 有些线存在，但是因为节点不同选项，线不可见
-                                continue
-                            i += 1
-                            group_in_nd = nodes.new('NodeGroupInput')
-                            group_in_nd.location = abs_loc(node)
-                            group_in_nd.location.y = abs_loc(node).y - 60 * i
-                            group_id = {socket.identifier: socket for socket in group_in_nd.outputs}
-                            if link_count:
-                                links.new(group_id[sk_out.identifier], link.to_socket)
-                            for new_sk_out in group_in_nd.outputs:
-                                if new_sk_out.identifier != sk_out.identifier:
-                                    new_sk_out.hide = True
-                nodes.remove(node)
+            if node.bl_idname != "NodeGroupInput" or not node.select: continue
+            i = -1
+            for sk_out in node.outputs:
+                if sk_out.hide or not sk_out.enabled or sk_out.bl_idname == "NodeSocketVirtual": continue
+                link_count = len(sk_out.links)
+                soc_links = sk_out.links if sk_out.links else range(1)
+                for link in soc_links:
+                    if hasattr(link, "is_valid") and not link.is_valid:       # 有些线存在，但是因为节点不同选项，线不可见
+                        continue
+                    i += 1
+                    group_in_nd = nodes.new('NodeGroupInput')
+                    group_in_nd.location = nd_abs_loc(node)
+                    group_in_nd.location.y = nd_abs_loc(node).y - 60 * i
+                    group_id = {socket.identifier: socket for socket in group_in_nd.outputs}
+                    if link_count:
+                        links.new(group_id[sk_out.identifier], link.to_socket)
+                    for new_sk_out in group_in_nd.outputs:
+                        if new_sk_out.identifier != sk_out.identifier:
+                            new_sk_out.hide = True
+            nodes.remove(node)
         return {"FINISHED"}
 
 class NODE_OT_Split_All_And_Move(BaseOperator):
@@ -639,7 +634,7 @@ class NODE_OT_Split_All_And_Move(BaseOperator):
             for sk_out in node.outputs:
                 if not sk_out.hide and sk_out.enabled and sk_out.bl_idname != "NodeSocketVirtual":
                     if not offset:
-                        offset = node.location.y - sk_loc(sk_out).y / ui_scale()
+                        offset = node.location.y - sk_location(sk_out).y / ui_scale()
                     # 删掉组输入输出接口后面连的所有转接点
                     if is_del_reroute and sk_out.links:
                         delete_reroute(sk_out, nodes, links)
@@ -662,15 +657,6 @@ class NODE_OT_Split_All_And_Move(BaseOperator):
                                 new_sk_out.hide = True
             nodes.remove(node)
         return {"FINISHED"}
-
-# !会导致崩溃,我也崩溃
-# def delete_reroute0(link, nodes, links, sk_out):
-#     if link.to_node.type == "REROUTE":
-#         reroute = link.to_node
-#         for re_link in reroute.outputs[0].links:
-#             links.new(sk_out, re_link.to_socket)
-#             delete_reroute0(re_link, nodes, links, sk_out)
-#         nodes.remove(reroute)
 
 def delete_reroute(sk_out: NodeSocket, nodes: Nodes, links: NodeLinks):
     links_to_check = list(sk_out.links)
@@ -722,7 +708,7 @@ def split_all_and_merge_move(context: Context, is_pre_merge=False):
             if sk_out.hide or not sk_out.enabled or sk_out.bl_idname == "NodeSocketVirtual":
                 continue
             if not offset:
-                offset = node.location.y - sk_loc(sk_out).y / ui_scale()
+                offset = node.location.y - sk_location(sk_out).y / ui_scale()
             # 删掉组输入输出接口后面连的所有转接点
             if is_del_reroute and sk_out.links:
                 delete_reroute(sk_out, nodes, links)
@@ -757,7 +743,7 @@ def split_all_and_merge_move(context: Context, is_pre_merge=False):
     for node_list in to_node_with_inputs.values():
         if len(node_list) > 1:
             # 不知道为什么合并后会偏移md
-            merge_group_input_linked(node_list, None, loc_at_max_y=True).location.x = abs_loc(node_list[0]).x
+            merge_group_input_linked(node_list, None, loc_at_max_y=True).location.x = nd_abs_loc(node_list[0]).x
 
 class NODE_OT_Split_All_And_Merge_Move(BaseOperator):
     bl_idname = "node.split_all_and_merge_move"
@@ -795,8 +781,8 @@ class NODE_OT_Split_Group_Input_Linked(BaseOperator):
                     if sk_out.is_linked:
                         i += 1
                         group_in_nd = nodes.new('NodeGroupInput')
-                        group_in_nd.location = abs_loc(node)
-                        group_in_nd.location.y = abs_loc(node).y - 60 * i
+                        group_in_nd.location = nd_abs_loc(node)
+                        group_in_nd.location.y = nd_abs_loc(node).y - 60 * i
                         group_id = {sk_outket1.identifier: sk_outket1 for sk_outket1 in group_in_nd.outputs}
                         for link in sk_out.links:
                             links.new(group_id[sk_out.identifier], link.to_socket)
