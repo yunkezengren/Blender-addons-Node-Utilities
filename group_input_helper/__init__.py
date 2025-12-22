@@ -453,7 +453,7 @@ def sk_location(socket: NodeSocket):
     try:
         offset = 520
         if bpy.app.version >= (5, 1, 0):
-            offset = 456  # 520 - 64
+            offset = 456  # 520-64  5.1移除了short_label https://projects.blender.org/blender/blender/pulls/148940/files
         return Vec2((c_float * 2).from_address(c_void_p.from_address(socket.as_pointer() + offset).value + 24))
     except:
         raise Exception("获取接口位置函数出错")

@@ -360,7 +360,7 @@ def sk_loc(socket: NodeSocket):
     try:
         return Vec2((ctypes.c_float * 2).from_address(ctypes.c_void_p.from_address(socket.as_pointer() + offset).value + 24))
     except:
-        return socket.node.location
+        raise Exception("获取接口位置函数出错")
 
 def linked_valid(sk: NodeSocket):
     return sk.enabled and sk.is_linked and not sk.hide
