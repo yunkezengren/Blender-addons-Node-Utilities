@@ -1,6 +1,6 @@
 import bpy
 import ctypes
-from bpy.types import Operator, NodeSocket, Node
+from bpy.types import Operator, NodeSocket, Node, Nodes
 from bpy.props import EnumProperty, IntProperty
 from math import ceil
 from mathutils import Vector as Vec2
@@ -14,25 +14,47 @@ from .translator import i18n as tr
 
 def ui_scale():
     return bpy.context.preferences.system.dpi / 72      # 类似于prefs.view.ui_scale, 但是不同的显示器dpi不一样吗
+
 def pref():
     assert __package__ is not None      # 断言 __package__ 在这里不可能是 None,因为 __getitem__ 接受的 key 只能是 int 或 str
     return bpy.context.preferences.addons[__package__].preferences
-def get_x_min(nodes):
+
+def node_y_min(node: Node):
+    height = node.dimensions.y / ui_scale()
+    if node.hide:
+        return node.location.y - (height / 2 + 9)
+    else:
+        return node.location.y - height
+
+def node_y_max(node: Node):
+    height = node.dimensions.y / ui_scale()
+    if node.hide:
+        return node.location.y + (height / 2 - 9)
+    else:
+        return node.location.y
+
+def node_y_center(node: Node):
+    return (node_y_min(node) + node_y_max(node)) / 2
+
+def nodes_x_min(nodes: Nodes):
     return min(node.location.x for node in nodes)
-def get_x_max(nodes):
+
+def nodes_x_max(nodes: Nodes):
     return max(node.location.x + node.width for node in nodes)
-def get_y_min(nodes):
-    return min(node.location.y - node.dimensions.y / ui_scale() for node in nodes)
-def get_y_max(nodes):
-    return max(node.location.y for node in nodes)
-def get_x_center(nodes):
-    x_min = get_x_min(nodes)
-    x_max = get_x_max(nodes)
+
+def nodes_y_min(nodes: Nodes):
+    return min(node_y_min(node) for node in nodes)
+
+def nodes_y_max(nodes: Nodes):
+    return max(node_y_max(node) for node in nodes)
+
+def nodes_x_center(nodes: Nodes):
+    x_min = nodes_x_min(nodes)
+    x_max = nodes_x_max(nodes)
     return (x_min + x_max) / 2
-def get_y_center(nodes):
-    y_min = get_y_min(nodes)
-    y_max = get_y_max(nodes)
-    return (y_min + y_max) / 2
+
+def nodes_y_center(nodes: Nodes):
+    return (nodes_y_min(nodes) + nodes_y_max(nodes)) / 2
 
 def detach_parent_frame(node_parent_dict, frame_node_list):
     before_select_nodes = bpy.context.selected_nodes
@@ -58,7 +80,7 @@ class BaseAlignOp(Operator):
         i = sum(node.bl_idname != "NodeFrame" for node in context.selected_nodes)
         return context.space_data.edit_tree and i > 1
 
-    def align_nodes(self, nodes):
+    def align_nodes(self, nodes: Nodes):
         raise NotImplementedError("Subclasses must implement this method")
 
     def execute(self, context):
@@ -82,10 +104,10 @@ class NODE_OT_align_left(BaseAlignOp):
     bl_label = tr("对齐节点到最左侧")
     bl_description = tr("对齐选中点到最左侧")
 
-    def align_nodes(self, nodes):
+    def align_nodes(self, nodes: Nodes):
         # self.report({"INFO"}, "普通信息")
         # self.show_popup("测试弹窗普通信息")
-        x_min = get_x_min(nodes)
+        x_min = nodes_x_min(nodes)
         for node in nodes:
             node.location.x = x_min
 
@@ -94,8 +116,8 @@ class NODE_OT_align_right(BaseAlignOp):
     bl_label = tr("对齐节点到最右侧")
     bl_description = tr("对齐选中点到最右侧")
 
-    def align_nodes(self, nodes):
-        x_max = get_x_max(nodes)
+    def align_nodes(self, nodes: Nodes):
+        x_max = nodes_x_max(nodes)
         for node in nodes:
             node.location.x = x_max - node.width
 
@@ -104,28 +126,28 @@ class NODE_OT_align_top(BaseAlignOp):
     bl_label = tr("对齐节点到顶部")
     bl_description = tr("对齐选中节点到顶部")
 
-    def align_nodes(self, nodes):
-        y_max = get_y_max(nodes)
+    def align_nodes(self, nodes: Nodes):
+        y_max = nodes_y_max(nodes)
         for node in nodes:
-            node.location.y = y_max
+            node.location.y += y_max - node_y_max(node)
 
 class NODE_OT_align_bottom(BaseAlignOp):
     bl_idname = "node.align_bottom"
     bl_label = tr("对齐节点到底部")
     bl_description = tr("对齐选中节点到底部")
 
-    def align_nodes(self, nodes):
-        y_min = get_y_min(nodes)
+    def align_nodes(self, nodes: Nodes):
+        y_min = nodes_y_min(nodes)
         for node in nodes:
-            node.location.y = y_min + node.dimensions.y / ui_scale()
+            node.location.y += y_min - node_y_min(node)
 
 def align_height(nodes):
-    y_center = get_y_center(nodes)
+    y_center = nodes_y_center(nodes)
     for node in nodes:
-        node.location.y = y_center + node.dimensions.y / 2 / ui_scale()
+        node.location.y += y_center - node_y_center(node)
 
 def align_width(nodes):
-    x_center = get_x_center(nodes)
+    x_center = nodes_x_center(nodes)
     for node in nodes:
         node.location.x = x_center - node.width / 2
 
@@ -134,7 +156,7 @@ class NODE_OT_align_heightcenter(BaseAlignOp):
     bl_label = tr("对齐节点高度")
     bl_description = tr("对齐选中节点的高度中心,即居中分布")
 
-    def align_nodes(self, nodes):
+    def align_nodes(self, nodes: Nodes):
         align_height(nodes)
 
 class NODE_OT_align_widthcenter(BaseAlignOp):
@@ -142,7 +164,7 @@ class NODE_OT_align_widthcenter(BaseAlignOp):
     bl_label = tr("对齐节点宽度")
     bl_description = tr("对齐选中节点的宽度中心,即居中分布")
 
-    def align_nodes(self, nodes):
+    def align_nodes(self, nodes: Nodes):
         align_width(nodes)
 
 # y_space 是想用自定义非偏好设置里的自定义宽度
@@ -192,7 +214,7 @@ def evenly_distribute_node(nodes, is_horizontal=False, is_vertical=False, min_p=
                 interval = pref().space_y
             if y_space is not None:
                 interval = y_space
-            node_info[2].location.y = max_pos - interval * i - sum_size
+            node_info[2].location.y += max_pos - interval * i - sum_size - node_y_max(node_info[2])
         sum_size += node_info[3]
     return node_infos
 
@@ -201,7 +223,7 @@ class NODE_OT_distribute_horizontal(BaseAlignOp):
     bl_label = tr("对齐-水平等距分布")
     bl_description = tr("水平方向节点之间间距一致")
 
-    def align_nodes(self, nodes):
+    def align_nodes(self, nodes: Nodes):
         evenly_distribute_node(nodes, is_horizontal=True)
 
 class NODE_OT_distribute_vertical(BaseAlignOp):
@@ -209,7 +231,7 @@ class NODE_OT_distribute_vertical(BaseAlignOp):
     bl_label = tr("对齐-垂直等距分布")
     bl_description = tr("垂直方向节点之间间距一致")
 
-    def align_nodes(self, nodes):
+    def align_nodes(self, nodes: Nodes):
         evenly_distribute_node(nodes, is_vertical=True)
 
 class NODE_OT_align_width_vertical(BaseAlignOp):
@@ -217,7 +239,7 @@ class NODE_OT_align_width_vertical(BaseAlignOp):
     bl_label = tr("等距对齐高度")
     bl_description = tr("对齐高度+垂直等距分布")
 
-    def align_nodes(self, nodes):
+    def align_nodes(self, nodes: Nodes):
         align_width(nodes)
         evenly_distribute_node(nodes, is_vertical=True)
 
@@ -226,7 +248,7 @@ class NODE_OT_align_height_horizontal(BaseAlignOp):
     bl_label = tr("等距对齐宽度")
     bl_description = tr("对齐宽度+水平等距分布")
 
-    def align_nodes(self, nodes):
+    def align_nodes(self, nodes: Nodes):
         align_height(nodes)
         evenly_distribute_node(nodes, is_horizontal=True)
 
@@ -235,7 +257,7 @@ class NODE_OT_distribute_horizontal_vertical(BaseAlignOp):
     bl_label = tr("对齐-水平垂直等距")
     bl_description = tr("水平+垂直等距分布")
 
-    def align_nodes(self, nodes):
+    def align_nodes(self, nodes: Nodes):
         # 对性能影响不太大吧,就不改函数内部,同时支持水平垂直对齐了
         evenly_distribute_node(nodes, is_horizontal=True)
         evenly_distribute_node(nodes, is_vertical=True)
@@ -303,7 +325,7 @@ class NODE_OT_distribute_grid_relative(BaseAlignOp):
     bl_label = tr("对齐-相对网格分布")
     bl_description = tr("每一列先垂直等距分布,各列之间水平等距分布,每列对齐宽度居中对齐")
 
-    def align_nodes(self, nodes):
+    def align_nodes(self, nodes: Nodes):
         grid_distribute_node(nodes)
 
 class NODE_OT_distribute_grid_absolute(BaseAlignOp):
@@ -311,9 +333,9 @@ class NODE_OT_distribute_grid_absolute(BaseAlignOp):
     bl_label = tr("对齐-绝对网格分布")
     bl_description = tr("每一列先垂直等距分布,各列之间水平等距分布,每列对齐宽度居中对齐,每列最大最小高度一样")
 
-    def align_nodes(self, nodes):
-        y_min = get_y_min(nodes)
-        y_max = get_y_max(nodes)
+    def align_nodes(self, nodes: Nodes):
+        y_min = nodes_y_min(nodes)
+        y_max = nodes_y_max(nodes)
         grid_distribute_node(nodes, min_pos=y_min, max_pos=y_max)       # 使得每列顶对齐,列长一样
 
 class NODE_OT_distribute_row_column(BaseAlignOp):
@@ -330,9 +352,9 @@ class NODE_OT_distribute_row_column(BaseAlignOp):
     def invoke(self, context, event):
         return context.window_manager.invoke_props_dialog(self)
 
-    def align_nodes(self, nodes):
-        x_min = get_x_min(nodes)
-        y_max = get_y_max(nodes)
+    def align_nodes(self, nodes: Nodes):
+        x_min = nodes_x_min(nodes)
+        y_max = nodes_y_max(nodes)
         nodes.sort(key=lambda node: node.location.x * 100 - node.location.y)
         # for i, node in enumerate(nodes):
         #     node.label = str(int(node.location.x * 100 - node.location.y))
