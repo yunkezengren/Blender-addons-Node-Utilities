@@ -1,18 +1,18 @@
 import bpy
-from .v_tool import *
-from .globals import *
-from .utils_ui import *
-from .utils_node import *
-from .utils_color import *
-from .utils_solder import *
-from .utils_drawing import *
-from .utils_translate import *
-from .common_forward_func import *
-from .common_forward_class import *
-from .v_tool import VoronoiToolPairSk
-from .globals import dict_typeSkToBlid
-from .utils_node import sk_type_to_idname
-from .common_forward_func import sk_label_or_name
+from ..base_tool import *
+from ..globals import *
+from ..utils.ui import *
+from ..utils.node import *
+from ..utils.color import *
+from ..utils.solder import *
+from ..utils.drawing import *
+from ..utils.translate import *
+from ..common_forward_func import *
+from ..common_forward_class import *
+from ..base_tool import VoronoiToolPairSk
+from ..globals import dict_typeSkToBlid
+from ..utils.node import sk_type_to_idname
+from ..common_forward_func import sk_label_or_name
 import copy
 
 

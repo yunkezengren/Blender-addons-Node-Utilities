@@ -1,7 +1,7 @@
-from .C_Structure import BNode
-from .globals import *
-from .utils_color import Color4, opaque_color4, power_color4
-from .common_forward_func import GetFirstUpperLetters
+from ..C_Structure import BNode
+from ..globals import *
+from .color import Color4, opaque_color4, power_color4
+from ..common_forward_func import GetFirstUpperLetters
 from mathutils import Vector as Vec
 import bpy
 

@@ -1,21 +1,21 @@
-from .common_forward_class import VmtData
-from .common_forward_func import DisplayMessage
-from .v_tool import *
-from .globals import *
-from .utils_ui import *
-from .utils_node import *
-from .utils_color import *
-from .utils_solder import *
-from .utils_drawing import *
-from .utils_translate import *
-from .common_forward_func import *
-from .common_forward_class import *
-from .v_tool import VoronoiToolTripleSk
-from .utils_color import power_color4, get_sk_color_safe
-from .utils_translate import GetAnnotFromCls, VlTrMapForKey
+from ..common_forward_class import VmtData
+from ..common_forward_func import DisplayMessage
+from ..base_tool import *
+from ..globals import *
+from ..utils.ui import *
+from ..utils.node import *
+from ..utils.color import *
+from ..utils.solder import *
+from ..utils.drawing import *
+from ..utils.translate import *
+from ..common_forward_func import *
+from ..common_forward_class import *
+from ..base_tool import VoronoiToolTripleSk
+from ..utils.color import power_color4, get_sk_color_safe
+from ..utils.translate import GetAnnotFromCls, VlTrMapForKey
 from bpy.app.translations import pgettext_iface as TranslateIface
 
-from .vm_Mixer import *
+from .mixer_sub import *
 
 
 class VoronoiMixerTool(VoronoiToolTripleSk):

@@ -1,14 +1,14 @@
-from .v_tool import *
-from .globals import *
-from .utils_ui import *
-from .utils_node import *
-from .utils_color import *
-from .utils_solder import *
-from .utils_drawing import *
-from .utils_translate import *
-from .common_forward_func import *
-from .common_forward_class import *
-from .v_tool import VoronoiToolPairSk
+from ..base_tool import *
+from ..globals import *
+from ..utils.ui import *
+from ..utils.node import *
+from ..utils.color import *
+from ..utils.solder import *
+from ..utils.drawing import *
+from ..utils.translate import *
+from ..common_forward_func import *
+from ..common_forward_class import *
+from ..base_tool import VoronoiToolPairSk
 
 def is_unlink_route(node):
     if node.type == 'REROUTE' and (not (node.inputs[0].links or node.outputs[0].links)):

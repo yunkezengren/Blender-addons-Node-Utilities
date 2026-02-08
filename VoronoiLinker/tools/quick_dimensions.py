@@ -1,19 +1,19 @@
-from .v_tool import *
-from .globals import *
-from .utils_ui import *
-from .utils_node import *
-from .utils_color import *
-from .utils_solder import *
-from .utils_drawing import *
-from .utils_translate import *
-from .common_forward_func import *
-from .common_forward_class import *
-from .v_tool import VoronoiToolTripleSk
-from .common_forward_func import *
-from .utils_node import GetListOfNdEnums, remember_add_link, opt_ftg_socket
-from .rot_or_mat_convert import Convert_Data, PIE_MT_Convert_Rotation_To, PIE_MT_Separate_Matrix
-from .globals import Cursor_X_Offset
-from .utils_drawing import TemplateDrawSksToolHh
+from ..base_tool import *
+from ..globals import *
+from ..utils.ui import *
+from ..utils.node import *
+from ..utils.color import *
+from ..utils.solder import *
+from ..utils.drawing import *
+from ..utils.translate import *
+from ..common_forward_func import *
+from ..common_forward_class import *
+from ..base_tool import VoronoiToolTripleSk
+from ..common_forward_func import *
+from ..utils.node import GetListOfNdEnums, remember_add_link, opt_ftg_socket
+from .matrix_convert import Convert_Data, PIE_MT_Convert_Rotation_To, PIE_MT_Separate_Matrix
+from ..globals import Cursor_X_Offset
+from ..utils.drawing import TemplateDrawSksToolHh
 
 def get_dimension_node(tree: NodeTree, sk_type: str):
     return AllQuickDimensions.get(tree.bl_idname, None).get(sk_type, None)

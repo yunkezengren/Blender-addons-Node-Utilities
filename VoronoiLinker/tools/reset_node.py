@@ -1,18 +1,18 @@
-from .common_forward_class import TryAndPass
-from .utils_solder import SolderSkLinks
-from .utils_drawing import TemplateDrawNodeFull
-from .utils_translate import GetAnnotFromCls, VlTrMapForKey
-from .v_tool import *
-from .globals import *
-from .utils_ui import *
-from .utils_node import *
-from .utils_color import *
-from .utils_solder import *
-from .utils_drawing import *
-from .utils_translate import *
-from .common_forward_func import *
-from .common_forward_class import *
-from .v_tool import VoronoiToolNd
+from ..common_forward_class import TryAndPass
+from ..utils.solder import SolderSkLinks
+from ..utils.drawing import TemplateDrawNodeFull
+from ..utils.translate import GetAnnotFromCls, VlTrMapForKey
+from ..base_tool import *
+from ..globals import *
+from ..utils.ui import *
+from ..utils.node import *
+from ..utils.color import *
+from ..utils.solder import *
+from ..utils.drawing import *
+from ..utils.translate import *
+from ..common_forward_func import *
+from ..common_forward_class import *
+from ..base_tool import VoronoiToolNd
 
 class VoronoiResetNodeTool(VoronoiToolNd):
     bl_idname = 'node.voronoi_reset_node'

@@ -1,13 +1,13 @@
-from .C_Structure import BNode, BNodeSocket
-from .globals import is_bl4_plus, set_classicSocketsBlid, dict_typeSkToBlid, set_utilTypeSkFields
-from .globals import *
-from .common_forward_class import Node_Items_Manager, Fotago
-from .common_forward_class import *
+from ..C_Structure import BNode, BNodeSocket
+from ..globals import is_bl4_plus, set_classicSocketsBlid, dict_typeSkToBlid, set_utilTypeSkFields
+from ..globals import *
+from ..common_forward_class import Node_Items_Manager, Fotago
+from ..common_forward_class import *
 from bpy.types import (NodeTree, Node, NodeSocket, UILayout)
 import bpy
 from mathutils import Vector as Vec2
-from .common_forward_func import sk_label_or_name, add_item_for_index_switch
-from .common_forward_func import *
+from ..common_forward_func import sk_label_or_name, add_item_for_index_switch
+from ..common_forward_func import *
 from bpy.app.translations import pgettext_iface as TranslateIface
 
 

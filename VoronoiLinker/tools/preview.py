@@ -1,18 +1,18 @@
-from .utils_node import RestoreCollapsedNodes
-from .utils_solder import SolderSkLinks
-from .utils_color import get_sk_color_safe, Color4
-from .utils_translate import GetAnnotFromCls, VlTrMapForKey
-from .v_tool import *
-from .globals import *
-from .utils_ui import *
-from .utils_node import *
-from .utils_color import *
-from .utils_solder import *
-from .utils_drawing import *
-from .utils_translate import *
-from .common_forward_func import *
-from .common_forward_class import *
-from .v_tool import VoronoiToolSk
+from ..utils.node import RestoreCollapsedNodes
+from ..utils.solder import SolderSkLinks
+from ..utils.color import get_sk_color_safe, Color4
+from ..utils.translate import GetAnnotFromCls, VlTrMapForKey
+from ..base_tool import *
+from ..globals import *
+from ..utils.ui import *
+from ..utils.node import *
+from ..utils.color import *
+from ..utils.solder import *
+from ..utils.drawing import *
+from ..utils.translate import *
+from ..common_forward_func import *
+from ..common_forward_class import *
+from ..base_tool import VoronoiToolSk
 
 
 viaverSkfMethod = -1 # 用于成功交互方法的切换开关. 本可以按版本分布到映射表中, 但"根据实际情况"尝试有其独特的美学魅力.

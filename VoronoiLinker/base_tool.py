@@ -6,21 +6,21 @@ from pprint import pprint
 from bpy.types import Node, Area, Context, Event
 from bpy.types import View2D as View2d
 
-from .utils_node import GetNearestSocketsFtg, GetNearestNodesFtg, RestoreCollapsedNodes
-from .utils_solder import SolderSkLinks
-from .utils_drawing import DrawDebug, TemplateDrawNodeFull, TemplateDrawSksToolHh
+from .utils.node import GetNearestSocketsFtg, GetNearestNodesFtg, RestoreCollapsedNodes
+from .utils.solder import SolderSkLinks
+from .utils.drawing import DrawDebug, TemplateDrawNodeFull, TemplateDrawSksToolHh
 from .C_Structure import RectBase
 from .common_forward_class import TryAndPass
 from .globals import set_utilTypeSkFields
 
-from .v_tool import *
+from .base_tool import *
 from .globals import *
-from .utils_ui import *
-from .utils_node import *
-from .utils_color import *
-from .utils_solder import *
-from .utils_drawing import *
-from .utils_translate import *
+from .utils.ui import *
+from .utils.node import *
+from .utils.color import *
+from .utils.solder import *
+from .utils.drawing import *
+from .utils.translate import *
 from .common_forward_func import *
 from .common_forward_class import *
 

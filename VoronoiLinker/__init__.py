@@ -18,47 +18,47 @@ from bpy.app.translations import pgettext_iface as TranslateIface
 from time import perf_counter_ns
 from pprint import pprint
 
-from .v_tool import *
+from .base_tool import *
 from .globals import *
-from .utils_ui import *
-from .utils_node import *
-from .utils_color import *
-from .utils_solder import *
-from .utils_drawing import *
-from .utils_translate import *
+from .utils.ui import *
+from .utils.node import *
+from .utils.color import *
+from .utils.solder import *
+from .utils.drawing import *
+from .utils.translate import *
 from .common_forward_func import *
 from .common_forward_class import *
 from .globals import dict_vlHhTranslations
 from .common_forward_func import GetFirstUpperLetters, user_node_keymaps, format_tool_set, Prefs
 from .common_forward_class import TryAndPass
-from .utils_solder import SolderClsToolNames, RegisterSolderings, UnregisterSolderings
-from .utils_translate import GetAnnotFromCls, VlTrMapForKey
-from .utils_drawing import TestDraw
+from .utils.solder import SolderClsToolNames, RegisterSolderings, UnregisterSolderings
+from .utils.translate import GetAnnotFromCls, VlTrMapForKey
+from .utils.drawing import TestDraw
 
-from .v_tool import VoronoiToolRoot, VoronoiToolPairSk
-from .vm_Mixer import VmtOpMixer, VmtPieMixer
-from .vqmt_PieMath import VqmtOpMain, VqmtPieMath
-from .v_Dummy_tool import VoronoiDummyTool
-from .v_Hider_tool import VoronoiHiderTool
-from .v_Mixer_tool import VoronoiMixerTool
-from .v_Ranto_tool import VoronoiRantoTool
-from .v_CallNodePie import VoronoiCallNodePie
-from .v_Linker_tool import VoronoiLinkerTool
-from .v_Warper_tool import VoronoiWarperTool
-from .v_Preview_tool import VoronoiPreviewTool
-from .v_Swapper_tool import VoronoiSwapperTool
-from .v_QuickConstant import VoronoiQuickConstant
-from .v_QuickMath_tool import VoronoiQuickMathTool
-from .v_ResetNode_tool import VoronoiResetNodeTool
-from .v_MassLinker_tool import VoronoiMassLinkerTool
-from .v_Interfacer_tool import VoronoiInterfacerTool
-from .v_EnumSelector_tool import VoronoiEnumSelectorTool, VestOpBox, VestPieBox, SNA_OT_Change_Node_Domain_And_Name
-from .v_LinkRepeating_tool import VoronoiLinkRepeatingTool
-from .v_LinksTransfer_tool import VoronoiLinksTransferTool
-from .v_PreviewAnchor_tool import VoronoiPreviewAnchorTool
-from .v_QuickDimensions_tool import VoronoiQuickDimensionsTool
-from .v_LazyNodeStencils_tool import VoronoiLazyNodeStencilsTool
-from .rot_or_mat_convert import Rot_or_Mat_Convert, PIE_MT_Convert_To_Rotation, PIE_MT_Convert_Rotation_To, PIE_MT_Separate_Matrix, PIE_MT_Combine_Matrix
+from .base_tool import VoronoiToolRoot, VoronoiToolPairSk
+from .tools.mixer_sub import VmtOpMixer, VmtPieMixer
+from .tools.pie_math import VqmtOpMain, VqmtPieMath
+from .tools.dummy import VoronoiDummyTool
+from .tools.hider import VoronoiHiderTool
+from .tools.mixer import VoronoiMixerTool
+from .tools.ranto import VoronoiRantoTool
+from .tools.call_node_pie import VoronoiCallNodePie
+from .tools.linker import VoronoiLinkerTool
+from .tools.warper import VoronoiWarperTool
+from .tools.preview import VoronoiPreviewTool
+from .tools.swapper import VoronoiSwapperTool
+from .tools.quick_constant import VoronoiQuickConstant
+from .tools.quick_math import VoronoiQuickMathTool
+from .tools.reset_node import VoronoiResetNodeTool
+from .tools.mass_linker import VoronoiMassLinkerTool
+from .tools.interfacer import VoronoiInterfacerTool
+from .tools.enum_selector import VoronoiEnumSelectorTool, VestOpBox, VestPieBox, SNA_OT_Change_Node_Domain_And_Name
+from .tools.link_repeating import VoronoiLinkRepeatingTool
+from .tools.links_transfer import VoronoiLinksTransferTool
+from .tools.preview_anchor import VoronoiPreviewAnchorTool
+from .tools.quick_dimensions import VoronoiQuickDimensionsTool
+from .tools.lazy_node_stencils import VoronoiLazyNodeStencilsTool
+from .tools.matrix_convert import Rot_or_Mat_Convert, PIE_MT_Convert_To_Rotation, PIE_MT_Convert_Rotation_To, PIE_MT_Separate_Matrix, PIE_MT_Combine_Matrix
 
 try:
     from rich import traceback
