@@ -72,9 +72,10 @@ def SolderThemeCols(themeNe: ThemeNodeEditor):
 
 def node_tag_color(node: Node):
     if bpy.app.version >= (5, 0, 0):
-        color_tag = node.color_tag.lower() + "_node"
+        color_tag = node.color_tag.lower()
         if color_tag == "interface":
             color_tag = "group_socket"
+        color_tag += "_node"
         color = getattr(bpy.context.preferences.themes[0].node_editor, color_tag).copy()
         color.s *= 1.5
         color.v *= 0.9
