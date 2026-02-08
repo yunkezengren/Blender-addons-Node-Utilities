@@ -107,9 +107,9 @@ class VoronoiHiderTool(VoronoiToolAny):
     isTriggerOnCollapsedNodes: bpy.props.BoolProperty(name="Trigger on collapsed nodes", default=True)
     def CallbackDrawTool(self, drata):
         # 模式名匹配
-        name = { 'NODE'     : "自动隐藏/显示接口",
-                 'SOCKET'   : "隐藏接口",
-                 'SOCKETVAL': "隐藏/显示接口值",
+        name = { 'NODE'     : "Auto Hide/Show Sockets",
+                 'SOCKET'   : "Hide Sockets",
+                 'SOCKETVAL': "Hide/Show Socket Values",
                 }
         mode= name[self.toolMode]
         self.TemplateDrawAny(drata, self.fotagoAny, cond=self.toolMode=='NODE', tool_name=mode)

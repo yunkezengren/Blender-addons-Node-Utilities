@@ -2,6 +2,7 @@ import gpu, gpu_extras, blf, copy
 from mathutils import Vector as Vec2
 from math import pi, cos, sin
 import bpy
+from bpy.app.translations import pgettext_iface as _iface
 from bpy.types import NodeSocket, Context
 from ..C_Structure import View2D
 from .node import node_abs_loc
@@ -261,7 +262,7 @@ def TemplateDrawNodeFull(drata: VlDrawData, ftgNd, *, side=1, tool_name=""): # �
                 txt = ndTar.label
 
             DrawWorldText(drata, drata.cursorLoc, (drata.dsDistFromCursor*side, -0.5), txt, text_color=colTx, colBg=colTx)
-            DrawWorldText(drata, drata.cursorLoc, (drata.dsDistFromCursor*side, 1   ), tool_name, text_color=colTx, colBg=colTx)
+            DrawWorldText(drata, drata.cursorLoc, (drata.dsDistFromCursor*side, 1   ), _iface(tool_name), text_color=colTx, colBg=colTx)
             # # 额外绘制
             # print(f"{txt = }")
             # print(f"{(drata.dsDistFromCursor*side, -0.5) = }")
@@ -339,7 +340,7 @@ def TemplateDrawSksToolHh(drata: VlDrawData, *args_ftgSks, sideMarkHh=1, isDrawT
                     DrawVlMarker(drata, cursorLoc, ofsHh=(frameDim[0] * dir, frameDim[1] * ofsY), col=get_sk_color_safe(ftg.tar))
             # 绘制工具提示
             ftg_show_name = copy.copy(ftg)
-            ftg_show_name.soldText = tool_name.capitalize()
+            ftg_show_name.soldText = _iface(tool_name).capitalize()
             # print(f"{x_offset = }")
             if x_offset != 0:
                 cursorLoc2 = cursorLoc.copy() + Vec2((0, 50))  # 额外绘制

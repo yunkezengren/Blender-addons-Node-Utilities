@@ -193,7 +193,7 @@ class VoronoiToolTripleSk(VoronoiToolPairSk): #3
 
 class VoronoiToolNd(VoronoiToolRoot): #1
     def CallbackDrawTool(self, drata: VlDrawData):
-        TemplateDrawNodeFull(drata, self.fotagoNd, tool_name="隐藏选项")
+        TemplateDrawNodeFull(drata, self.fotagoNd)
     def MatterPurposePoll(self):
         return not not self.fotagoNd
     def InitToolPre(self, event: Event):

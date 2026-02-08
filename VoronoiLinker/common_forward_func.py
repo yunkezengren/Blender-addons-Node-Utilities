@@ -22,7 +22,7 @@ def DisplayMessage(title: str, text: str, icon='NONE'):
         self.layout.label(text=text, icon=icon, translate=False)
     bpy.context.window_manager.popup_menu(PopupMessage, title=title, icon='NONE')
  
-def format_tool_set(cls: Operator):
+def format_tool_set(cls: type[Operator]):
     return _iface(cls.bl_label) + _iface(" tool settings")
 
 # ======================放在这避免循环导入

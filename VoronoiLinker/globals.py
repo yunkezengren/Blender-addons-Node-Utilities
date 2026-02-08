@@ -160,7 +160,7 @@ dict_vmtMixerNodesDefs = { # '-1' 表示这里的视觉标记，它们的连接�
         'ShaderNodeAddShader':            (0, 1, 'Add Shader '),
         'GeometryNodeIndexSwitch':        (1, 2, 'Index Switch '),
         'GeometryNodeMenuSwitch':         (1, 2, 'Menu Switch  '),
-        'ShaderNodeCombineXYZ':           (0, 1, '合并XYZ'),
+        'ShaderNodeCombineXYZ':           (0, 1, 'Combine XYZ'),
         # 字符串接口 Alt Shift 左键
         'GeometryNodeStringJoin':         (1, 1, 'Join String '),
         'FunctionNodeStringLength':       (0, 0, 'String Length '),

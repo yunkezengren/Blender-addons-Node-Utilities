@@ -18,7 +18,7 @@ class VoronoiQuickDimensionsTool(VoronoiToolTripleSk):
     def CallbackDrawTool(self, drata):
         # print(f"Quick Dimensions 类里 {drata = }")
         # TemplateDrawSksToolHh(drata, self.fotagoSk0, self.fotagoSk1, self.fotagoSk2)
-        TemplateDrawSksToolHh(drata, self.fotagoSk0, self.fotagoSk1, self.fotagoSk2, tool_name="Quick Dimensions - 暂时只输出有效")
+        TemplateDrawSksToolHh(drata, self.fotagoSk0, self.fotagoSk1, self.fotagoSk2, tool_name="Quick Dimensions - Output only for now")
     def NextAssignmentTool(self, isFirstActivation, prefs, tree):
         if isFirstActivation:
             self.fotagoSk0 = None

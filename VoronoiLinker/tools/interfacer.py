@@ -30,14 +30,14 @@ class VoronoiInterfacerTool(VoronoiToolPairSk):
         # print(f"{self.toolMode = }")
         match self.toolMode:
             case 'NEW':
-                TemplateDrawSksToolHh(drata, self.fotagoSkRosw, self.fotagoSkMain, isClassicFlow=True, tool_name="连到扩展接口")
+                TemplateDrawSksToolHh(drata, self.fotagoSkRosw, self.fotagoSkMain, isClassicFlow=True, tool_name="Connect to Extend Socket")
             case 'CREATE':
                 ftgMain = self.fotagoSkMain
                 if ftgMain:
-                    TemplateDrawSksToolHh(drata, ftgMain, sideMarkHh=-2, tool_name="插入接口")
+                    TemplateDrawSksToolHh(drata, ftgMain, sideMarkHh=-2, tool_name="Insert to Socket")
                 ftgNdTar = self.fotagoNdTar
                 if ftgNdTar:
-                    TemplateDrawNodeFull(drata, ftgNdTar, tool_name="节点组")
+                    TemplateDrawNodeFull(drata, ftgNdTar, tool_name="Node Group")
                     list_ftgSksIn, list_ftgSksOut = self.ToolGetNearestSockets(ftgNdTar.tar, cur_x_off=0)
                     near_group_in = list_ftgSksIn[0]  # 接电阻可能没有输入接口:
 
@@ -49,7 +49,7 @@ class VoronoiInterfacerTool(VoronoiToolPairSk):
                 # if ftgMain:
                 # TemplateDrawSksToolHh(drata, ftgMain, isFlipSide=True, tool_name="")
 
-                TemplateDrawSksToolHh(drata, self.fotagoSkMain, self.fotagoSkRosw, tool_name="移动接口")
+                TemplateDrawSksToolHh(drata, self.fotagoSkMain, self.fotagoSkRosw, tool_name="Move to Socket")
                 ftgNdTar = self.fotagoNdTar
                 if ftgNdTar:
                     # TemplateDrawNodeFull(drata, ftgNdTar, tool_name="Interfacer")
@@ -62,10 +62,10 @@ class VoronoiInterfacerTool(VoronoiToolPairSk):
                     # DrawVlSocketArea(drata, near_group_in.tar, near_group_in.boxHeiBound, Color4(get_sk_color_safe(near_group_in.tar)))
             case _:
                 # 小王-模式名匹配
-                name = {'COPY':  "复制接口名",
-                        'PASTE': "粘贴接口名",
-                        'SWAP':  "交换接口",
-                        'SOC_TY':  "更改节口类型",
+                name = {'COPY':  "Copy Socket Name",
+                        'PASTE': "Paste Socket Name",
+                        'SWAP':  "Swap Sockets",
+                        'SOC_TY':  "Change Socket Type",
                         # 'FLIP':  "接口1移到接口2上",
                         }
                 # todo 接口1移到接口2上  FLIP模式，在两个接口绘制名后加上 接口1 接口2

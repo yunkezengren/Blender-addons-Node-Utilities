@@ -90,7 +90,7 @@ def draw_enum_property_selectors(parent_layout: UILayout, domain_layout=None):
 class VestOpBox(VoronoiOpTool):
     bl_idname = 'node.voronoi_enum_selector_box'
     bl_label = "Enum Selector"
-    rename_node:   bpy.props.BoolProperty(default=True, description="隐藏选项时重命名存储属性等一些节点,目前只有中文")
+    rename_node:   bpy.props.BoolProperty(default=True, description="Rename nodes when hiding options, currently only in Chinese")
     def execute(self, context): # 用于下面的 draw(), 否则不显示.
         pass
     def draw(self, _context):
@@ -120,7 +120,6 @@ class VestPieBox(bpy.types.Menu):
         colAll = GetCol(pie, any(True for li in VestData.list_enumProp if li.identifier!='domain'))
         VestData.list_menu_socket = []
         draw_enum_property_selectors(colAll, colDom)
-
 
 def rename_node_based_option(node):
     """ 节点根据选项重命名 """
@@ -179,14 +178,14 @@ class VoronoiEnumSelectorTool(VoronoiToolNd):
     isPieChoice:         bpy.props.BoolProperty(name="Pie choice",          default=False, description="Allows to select an enum by releasing the key")
     isToggleOptions:     bpy.props.BoolProperty(name="Toggle node options", default=False)
     isSelectNode:        bpy.props.IntProperty(name="Select target node",  default=1, min=0, max=3, description="0 – Do not select.\n1 – Select.\n2 – And center.\n3 – And zooming")
-    rename_node:         bpy.props.BoolProperty(default=True, description="切换选项时重命名存储属性等一些节点,目前只有中文")
+    rename_node:         bpy.props.BoolProperty(default=True, description="Rename nodes when toggling options, currently only in Chinese")
     def CallbackDrawTool(self, drata):              # 工具提示
         if self.isToggleOptions:
-            mode = "隐藏选项"
+            mode = "Hide Options"
             if self.firstResult == False:           # 最近节点选项是隐藏的，后续就是显示选项
-                mode = "显示选项"
+                mode = "Show Options"
         else:
-            mode = "切换选项"
+            mode = "Toggle Options"
         TemplateDrawNodeFull(drata, self.fotagoNd, tool_name=mode)
         # self.TemplateDrawAny(drata, self.fotagoAny, cond=self.toolMode=='NODE', tool_name=name)
     def ToggleOptionsFromNode(self, nd, lastResult, isCanDo=False): # 工作原理复制自 VHT HideFromNode().

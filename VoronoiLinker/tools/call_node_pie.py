@@ -5,13 +5,13 @@ from ..common_forward_class import Fotago
 class VoronoiCallNodePie(VoronoiToolAny):
     """ Voronoi 联动 Node Pie """
     bl_idname = 'node.voronoi_call_node_pie'
-    bl_label = "Voronoi联动节点饼菜单插件"
+    bl_label = "Voronoi Call Node Pie"
     # toolMode: bpy.props.EnumProperty(name="Mode", default='SOCKET', items=fitVhtModeItems)
     isTriggerOnCollapsedNodes: bpy.props.BoolProperty(name="Trigger on collapsed nodes", default=True)
 
     def CallbackDrawTool(self, drata):
-        self.TemplateDrawAny(drata, self.fotagoAny, cond=False, tool_name="节点饼菜单")
-        # TemplateDrawSksToolHh(drata, self.fotagoSkMain, self.fotagoSkRosw, tool_name="节点饼菜单")
+        self.TemplateDrawAny(drata, self.fotagoAny, cond=False, tool_name="Node Pie Menu")
+        # TemplateDrawSksToolHh(drata, self.fotagoSkMain, self.fotagoSkRosw, tool_name="Node Pie Menu")
     def NextAssignmentTool(self, _isFirstActivation, prefs, tree):
         # pprint(self.__dict__)
         self.fotagoAny: Fotago = None
