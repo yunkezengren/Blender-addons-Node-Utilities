@@ -91,7 +91,7 @@ def GenFtgsFromPuts(nd: Node, isSide, samplePos, uiScale): # 为 vptRvEeSksHighl
             # 但插槽也没有布局高度的API, 所以只能点对点地打补丁; 直到想出其他办法.
             hei = 0
             if (not isSide)and(sk.type=='VECTOR')and(SkIsLinkedVisible(sk))and(not sk.hide_value):
-                if "VectorDirection" in str(sk.rna_type):
+                if "VectorDirection" in str(sk.bl_rna):
                     hei = 2
                 elif not( (nd.type in ('BSDF_PRINCIPLED','SUBSURFACE_SCATTERING'))and(not is_bl4_plus) )or( not(sk.name in ("Subsurface Radius","Radius"))):
                     hei = 3
@@ -119,14 +119,14 @@ def GetNearestSocketsFtg(nd: Node, samplePos, uiScale): # 返回"最近的插槽
 
 def node_enum_props(node: Node) -> list[bpy.types.EnumProperty]:   # 小王-判断节点是否有下拉列表
     enum_l = []
-    for prop in node.rna_type.properties:
+    for prop in node.bl_rna.properties:
         if (prop.type == 'ENUM') and (prop.identifier != "warning_propagation") and (prop.identifier.startswith("note_")) and (not (prop.is_readonly or prop.is_registered)):
             enum_l.append(prop)
     return enum_l
 
 def node_domain_item_list(node: Node):
     enum_list = []
-    for prop in node.rna_type.properties:
+    for prop in node.bl_rna.properties:
         if prop.type == 'ENUM' and prop.identifier == "domain":
             enum_list = [item for item in prop.enum_items]
     return enum_list
