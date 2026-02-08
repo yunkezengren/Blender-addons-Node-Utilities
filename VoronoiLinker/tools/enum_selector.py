@@ -1,4 +1,3 @@
-from ..utils.translate import GetAnnotFromCls, VlTrMapForKey
 from ..base_tool import *
 from ..globals import *
 from ..utils.ui import *
@@ -6,7 +5,6 @@ from ..utils.node import *
 from ..utils.color import *
 from ..utils.solder import *
 from ..utils.drawing import *
-from ..utils.translate import *
 from ..common_forward_func import *
 from ..common_forward_class import *
 from ..base_tool import VoronoiOpTool, VoronoiToolNd
@@ -320,9 +318,6 @@ class VoronoiEnumSelectorTool(VoronoiToolNd):
         LyAddHandSplitProp(colBox, prefs,'vestBoxScale')
         LyAddHandSplitProp(colBox, prefs,'vestDisplayLabels')
         LyAddHandSplitProp(colBox, prefs,'vestDarkStyle')
-    @classmethod
-    def BringTranslations(cls):
-        pass
 
 
 # 显示节点选项优化-根据选项重命名节点-不好用-自定义ops,单击按钮立即运行(缺点：按钮文本居中对齐，按钮上文本翻译有问题)

@@ -43,6 +43,21 @@ translations_dict = {
         ("Operator", "Voronoi Reset Node"): "Voronoi Reset Node",
         ("Operator", "Mixer Mixer"): "Mixer Mixer",
         ("Operator", "Quick Math"): "Quick Math",
+        ("Operator", "Voronoi Call Node Pie"): "Voronoi Call Node Pie",
+        
+        # Tool display names (tool_name)
+        ("*", "Linker"): "Линковщик",
+        ("*", "Preview"): "Превью",
+        ("*", "Quick Mix"): "Быстрое смешивание",
+        ("*", "Quick Math"): "Быстрая математика",
+        ("*", "Lazy Node Stencils"): "Ленивые стенсилы",
+        ("*", "MassLinker"): "Массовый линковщик",
+        ("*", "Links Transfer"): "Перенос связей",
+        ("*", "连到扩展接口"): "Подключение к расширенному интерфейсу",
+        ("*", "插入接口"): "Вставка интерфейса",
+        ("*", "节点组"): "Группа узлов",
+        ("*", "移动接口"): "Перемещение интерфейса",
+        ("*", "节点饼菜单"): "Пирог меню узлов",
         
         # Base tool properties
         ("*", "Pass through node selecting"): "Пропускать через выделение нода",
@@ -349,6 +364,21 @@ translations_dict = {
         ("Operator", "Voronoi Reset Node"): "Voronoi快速恢复节点默认参数",
         ("Operator", "Mixer Mixer"): "混合饼菜单",
         ("Operator", "Quick Math"): "快速数学运算",
+        ("Operator", "Voronoi Call Node Pie"): "Voronoi联动节点饼菜单插件",
+        
+        # Tool display names (tool_name)
+        ("*", "Linker"): "连接器",
+        ("*", "Preview"): "预览",
+        ("*", "Quick Mix"): "快速混合",
+        ("*", "Quick Math"): "快速数学",
+        ("*", "Lazy Node Stencils"): "懒人节点模板",
+        ("*", "MassLinker"): "批量连接",
+        ("*", "Links Transfer"): "链接转移",
+        ("*", "连到扩展接口"): "连接到扩展接口",
+        ("*", "插入接口"): "插入接口",
+        ("*", "节点组"): "节点组",
+        ("*", "移动接口"): "移动接口",
+        ("*", "节点饼菜单"): "节点饼菜单",
         
         # Base tool properties
         ("*", "Pass through node selecting"): "单击输出接口预览(而不是自动根据鼠标位置自动预览)",

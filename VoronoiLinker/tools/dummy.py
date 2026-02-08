@@ -5,7 +5,6 @@ from ..utils.node import *
 from ..utils.color import *
 from ..utils.solder import *
 from ..utils.drawing import *
-from ..utils.translate import *
 from ..common_forward_func import *
 from ..common_forward_class import *
 from ..base_tool import VoronoiToolSk
@@ -43,6 +42,3 @@ class VoronoiDummyTool(VoronoiToolSk):   # 快速便捷地添加新工具的模�
     @staticmethod
     def LyDrawInAddonDiscl(col, prefs):
         LyAddNiceColorProp(col, prefs,'vdtDummy')
-    @classmethod
-    def BringTranslations(cls):
-        pass

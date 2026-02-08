@@ -1,7 +1,6 @@
 from ..utils.node import DoLinkHh
 from ..utils.color import get_sk_color_safe, Color4
 from ..common_forward_func import sk_label_or_name
-from ..utils.translate import GetAnnotFromCls, VlTrMapForKey
 from ..base_tool import *
 from ..globals import *
 from ..utils.ui import *
@@ -9,7 +8,6 @@ from ..utils.node import *
 from ..utils.color import *
 from ..utils.solder import *
 from ..utils.drawing import *
-from ..utils.translate import *
 from ..common_forward_func import *
 from ..common_forward_class import *
 from ..base_tool import VoronoiToolPairSk
@@ -297,6 +295,4 @@ class VoronoiInterfacerTool(VoronoiToolPairSk):
     @staticmethod
     def LyDrawInAddonDiscl(col, prefs):
         LyAddLeftProp(col, prefs,'vitPasteToAnySocket')
-    @classmethod
-    def BringTranslations(cls):
-        pass
+

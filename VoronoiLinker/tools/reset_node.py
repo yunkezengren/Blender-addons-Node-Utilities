@@ -1,7 +1,6 @@
 from ..common_forward_class import TryAndPass
 from ..utils.solder import SolderSkLinks
 from ..utils.drawing import TemplateDrawNodeFull
-from ..utils.translate import GetAnnotFromCls, VlTrMapForKey
 from ..base_tool import *
 from ..globals import *
 from ..utils.ui import *
@@ -9,7 +8,6 @@ from ..utils.node import *
 from ..utils.color import *
 from ..utils.solder import *
 from ..utils.drawing import *
-from ..utils.translate import *
 from ..common_forward_func import *
 from ..common_forward_class import *
 from ..base_tool import VoronoiToolNd
@@ -69,6 +67,3 @@ class VoronoiResetNodeTool(VoronoiToolNd):
         self.VrntDoResetNode(self.fotagoNd.tar, tree)
     def InitTool(self, event, prefs, tree):
         self.set_done = set() #没有这个会有非常“可怕”的行为，如果过度操作，很可能会崩溃.
-    @classmethod
-    def BringTranslations(cls):
-        pass

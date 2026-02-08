@@ -20,7 +20,6 @@ from .utils.node import *
 from .utils.color import *
 from .utils.solder import *
 from .utils.drawing import *
-from .utils.translate import *
 from .common_forward_func import *
 from .common_forward_class import *
 
@@ -57,8 +56,6 @@ class VoronoiToolFillers: #-1
     def InitTool(self, event, prefs, tree): return {}
     @staticmethod
     def LyDrawInAddonDiscl(col, prefs): pass
-    @classmethod
-    def BringTranslations(cls): pass
 
 class VoronoiToolRoot(VoronoiOpTool, VoronoiToolFillers): #0
     usefulnessForUndefTree = False

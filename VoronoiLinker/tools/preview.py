@@ -1,7 +1,6 @@
 from ..utils.node import RestoreCollapsedNodes
 from ..utils.solder import SolderSkLinks
 from ..utils.color import get_sk_color_safe, Color4
-from ..utils.translate import GetAnnotFromCls, VlTrMapForKey
 from ..base_tool import *
 from ..globals import *
 from ..utils.ui import *
@@ -9,7 +8,6 @@ from ..utils.node import *
 from ..utils.color import *
 from ..utils.solder import *
 from ..utils.drawing import *
-from ..utils.translate import *
 from ..common_forward_func import *
 from ..common_forward_class import *
 from ..base_tool import VoronoiToolSk
@@ -553,6 +551,3 @@ class VoronoiPreviewTool(VoronoiToolSk):
             row.prop(prefs,'vptHlTextScale', text="Scale")
             row.active = prefs.vptRvEeSksHighlighting
         LyAddLeftProp(col, prefs,'vptRvEeIsSavePreviewResults')
-    @classmethod
-    def BringTranslations(cls):
-        pass

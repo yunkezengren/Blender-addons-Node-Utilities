@@ -7,12 +7,10 @@ from ..utils.node import *
 from ..utils.color import *
 from ..utils.solder import *
 from ..utils.drawing import *
-from ..utils.translate import *
 from ..common_forward_func import *
 from ..common_forward_class import *
 from ..base_tool import VoronoiToolTripleSk
 from ..utils.color import power_color4, get_sk_color_safe
-from ..utils.translate import GetAnnotFromCls, VlTrMapForKey
 from bpy.app.translations import pgettext_iface as TranslateIface
 
 from .mixer_sub import *
@@ -131,6 +129,4 @@ class VoronoiMixerTool(VoronoiToolTripleSk):
         LyAddHandSplitProp(colProps, prefs,f'{tlw}PieSocketDisplayType')
         LyAddHandSplitProp(colProps, prefs,f'{tlw}PieDisplaySocketColor')
         colProps.active = getattr(prefs,f'{tlw}PieType')=='CONTROL'
-    @classmethod
-    def BringTranslations(cls):
-        pass
+

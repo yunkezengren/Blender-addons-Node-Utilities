@@ -6,7 +6,6 @@ from ..utils.node import *
 from ..utils.color import *
 from ..utils.solder import *
 from ..utils.drawing import *
-from ..utils.translate import *
 from ..common_forward_func import *
 from ..common_forward_class import *
 from ..base_tool import VoronoiToolPairSk
@@ -212,6 +211,3 @@ class VoronoiLazyNodeStencilsTool(VoronoiToolPairSk): # 第一个应外部请求
     def LyDrawInAddonDiscl(col, prefs):
         LyAddNiceColorProp(col, prefs,'vlnstNonColorName')
         LyAddNiceColorProp(col, prefs,'vlnstLastExecError', ico='ERROR' if prefs.vlnstLastExecError else 'NONE', decor=0)
-    @classmethod
-    def BringTranslations(cls):
-        pass

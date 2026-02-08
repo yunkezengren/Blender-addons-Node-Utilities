@@ -7,7 +7,6 @@ from ..C_Structure import View2D
 from .node import node_abs_loc
 from .color import (Color4, power_color4, clamp_color4, opaque_color4, get_color_black_alpha,
                       get_sk_color_safe, get_sk_color)
-from .translate import *
 from .node import *
 from .ui import *
 from .color import *

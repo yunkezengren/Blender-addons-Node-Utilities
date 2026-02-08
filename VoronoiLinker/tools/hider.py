@@ -1,5 +1,4 @@
 from ..common_forward_func import sk_label_or_name
-from ..utils.translate import GetAnnotFromCls, VlTrMapForKey
 from ..base_tool import *
 from ..globals import *
 from ..utils.ui import *
@@ -7,7 +6,6 @@ from ..utils.node import *
 from ..utils.color import *
 from ..utils.solder import *
 from ..utils.drawing import *
-from ..utils.translate import *
 from ..common_forward_func import *
 from ..common_forward_class import *
 from ..base_tool import VoronoiToolAny
@@ -221,9 +219,4 @@ class VoronoiHiderTool(VoronoiToolAny):
         LyAddHandSplitProp(col, prefs,'vhtNeverHideGeometry')
         LyAddHandSplitProp(col, prefs,'vhtIsUnhideVirtual', forceBoolean=2)
         LyAddLeftProp(col, prefs,'vhtIsToggleNodesOnDrag')
-    @classmethod
-    def BringTranslations(cls):
-        pass
-
-
 

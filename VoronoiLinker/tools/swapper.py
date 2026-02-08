@@ -1,4 +1,3 @@
-from ..utils.translate import GetAnnotFromCls, VlTrMapForKey
 from ..base_tool import *
 from ..globals import *
 from ..utils.ui import *
@@ -6,7 +5,6 @@ from ..utils.node import *
 from ..utils.color import *
 from ..utils.solder import *
 from ..utils.drawing import *
-from ..utils.translate import *
 from ..common_forward_func import *
 from ..common_forward_class import *
 from ..base_tool import VoronoiToolPairSk
@@ -123,6 +121,3 @@ class VoronoiSwapperTool(VoronoiToolPairSk):
                             tree.links.new(lk.from_socket, skIo1)
                             tree.links.remove(lk)
         #VST VLRT是不需要的，对吧？
-    @classmethod
-    def BringTranslations(cls):
-        pass

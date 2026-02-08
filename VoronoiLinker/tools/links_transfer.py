@@ -1,6 +1,5 @@
 from ..utils.solder import SolderSkLinks
 from ..common_forward_func import sk_label_or_name
-from ..utils.translate import GetAnnotFromCls, VlTrMapForKey
 from ..base_tool import *
 from ..globals import *
 from ..utils.ui import *
@@ -8,7 +7,6 @@ from ..utils.node import *
 from ..utils.color import *
 from ..utils.solder import *
 from ..utils.drawing import *
-from ..utils.translate import *
 from ..common_forward_func import *
 from ..common_forward_class import *
 
@@ -79,8 +77,3 @@ class VoronoiLinksTransferTool(VoronoiToolPairNd): #Todo2v6 与 VST 合并并变
                     for lk in zp[0].vl_sold_links_final:
                         if not lk.is_muted:
                             NewLink(zp[1], lk)
-    @classmethod
-    def BringTranslations(cls):
-        with VlTrMapForKey(GetAnnotFromCls(VoronoiLinksTransferTool,'isByIndexes').name) as dm:
-            dm["ru_RU"] = "Переносить по индексам"
-            dm["zh_CN"] = "按顺序传输"

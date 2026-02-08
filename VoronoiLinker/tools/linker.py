@@ -5,7 +5,6 @@ from ..utils.node import *
 from ..utils.color import *
 from ..utils.solder import *
 from ..utils.drawing import *
-from ..utils.translate import *
 from ..common_forward_func import *
 from ..common_forward_class import *
 from ..base_tool import VoronoiToolPairSk
@@ -174,6 +173,4 @@ class VoronoiLinkerTool(VoronoiToolPairSk): # 神圣中的神圣. 它存在的�
         LyAddLeftProp(col, prefs,'vltDeselectAllNodes')
         LyAddLeftProp(col, prefs,'vltPriorityIgnoring')
         LyAddLeftProp(col, prefs,'vltSelectingInvolved')
-    @classmethod
-    def BringTranslations(cls):
-        pass
+

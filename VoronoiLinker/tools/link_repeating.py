@@ -1,5 +1,4 @@
 from ..utils.solder import SolderSkLinks
-from ..utils.translate import GetAnnotFromCls, VlTrMapForKey
 from ..utils.node import DoLinkHh
 from ..base_tool import *
 from ..globals import *
@@ -8,7 +7,6 @@ from ..utils.node import *
 from ..utils.color import *
 from ..utils.solder import *
 from ..utils.drawing import *
-from ..utils.translate import *
 from ..common_forward_func import *
 from ..common_forward_class import *
 from ..base_tool import VoronoiToolAny
@@ -84,18 +82,3 @@ class VoronoiLinkRepeatingTool(VoronoiToolAny): # 分离成单独的工具, 以�
                 except:
                     setattr(VlrtData, txtAttReprLastSk, "")
         # 注意: 原来, Ctrl-Z 会使(全局保存的) tree 链接变成 'ReferenceError: StructRNA of type ShaderNodeTree has been removed'.
-    @classmethod
-    def BringTranslations(cls):
-        tran = GetAnnotFromCls(cls,'toolMode').items
-        with VlTrMapForKey(tran.SOCKET.name) as dm:
-            dm["ru_RU"] = "Для сокета"
-#            dm["zh_CN"] = ""
-        with VlTrMapForKey(tran.SOCKET.description) as dm:
-            dm["ru_RU"] = "Используя последний линк, созданный каким-н. из инструментов, создать такой же для указанного сокета."
-#            dm["zh_CN"] = ""
-        with VlTrMapForKey(tran.NODE.name) as dm:
-            dm["ru_RU"] = "Для нода"
-#            dm["zh_CN"] = ""
-        with VlTrMapForKey(tran.NODE.description) as dm:
-            dm["ru_RU"] = "Используя имя последнего сокета, найти и соединить для выбранного нода."
-            dm["zh_CN"] = "鼠标移动到节点旁自动恢复节点的连接"

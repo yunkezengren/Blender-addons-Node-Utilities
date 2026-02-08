@@ -1,5 +1,3 @@
-from ..utils.translate import GetAnnotFromCls, VlTrMapForKey
-
 from ..base_tool import *
 from ..globals import *
 from ..utils.ui import *
@@ -7,7 +5,6 @@ from ..utils.node import *
 from ..utils.color import *
 from ..utils.solder import *
 from ..utils.drawing import *
-from ..utils.translate import *
 from ..common_forward_func import *
 from ..common_forward_class import *
 from ..base_tool import *
@@ -79,6 +76,3 @@ class VoronoiPreviewAnchorTool(VoronoiToolSk): #嗯, 现在这是一个完整的
                     tree.links.new(nd.outputs[-1], rrAnch.inputs[0])
                     tree.nodes.remove(nd)
             return {'FINISHED'}
-    @classmethod
-    def BringTranslations(cls):
-        pass

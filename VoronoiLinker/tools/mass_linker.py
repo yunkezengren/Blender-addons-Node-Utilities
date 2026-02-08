@@ -1,4 +1,3 @@
-from ..utils.translate import GetAnnotFromCls, VlTrMapForKey
 from ..base_tool import *
 from ..globals import *
 from ..utils.ui import *
@@ -6,7 +5,6 @@ from ..utils.node import *
 from ..utils.color import *
 from ..utils.solder import *
 from ..utils.drawing import *
-from ..utils.translate import *
 from ..common_forward_func import *
 from ..common_forward_class import *
 from ..base_tool import VoronoiToolRoot
@@ -116,12 +114,3 @@ class VoronoiMassLinkerTool(VoronoiToolRoot): #"猫狗合体", 既不是节点, 
     @staticmethod
     def LyDrawInAddonDiscl(col, prefs):
         LyAddLeftProp(col, prefs,'vmltIgnoreCase')
-    @classmethod
-    def BringTranslations(cls):
-        with VlTrMapForKey(GetAnnotFromCls(cls,'isIgnoreExistingLinks').name) as dm:
-            dm["ru_RU"] = "Игнорировать существующие связи"
-            dm["zh_CN"] = "忽略现有链接"
-        ##
-        with VlTrMapForKey(GetPrefsRnaProp('vmltIgnoreCase').name) as dm:
-            dm["ru_RU"] = "Игнорировать регистр"
-            dm["zh_CN"] = "忽略接口名称的大小写"

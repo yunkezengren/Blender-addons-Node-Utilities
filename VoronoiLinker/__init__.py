@@ -25,14 +25,12 @@ from .utils.node import *
 from .utils.color import *
 from .utils.solder import *
 from .utils.drawing import *
-from .utils.translate import *
 from .common_forward_func import *
 from .common_forward_class import *
 from .translations import translations_dict
 from .common_forward_func import GetFirstUpperLetters, user_node_keymaps, format_tool_set, Prefs
 from .common_forward_class import TryAndPass
 from .utils.solder import SolderClsToolNames, RegisterSolderings, UnregisterSolderings
-from .utils.translate import GetAnnotFromCls, VlTrMapForKey
 from .utils.drawing import TestDraw
 
 from .base_tool import VoronoiToolRoot, VoronoiToolPairSk
@@ -134,11 +132,6 @@ txt_IntQuickMath = "Integer Quick Math"
 txt_BooleanQuickMath = "Boolean Quick Math"
 txt_MatrixQuickMath = "Matrix Quick Math"
 txt_ColorQuickMode = "Color Quick Mode"
-
-
-# CollectTranslationDict 不再需要，翻译由 translations.py 提供
-def CollectTranslationDict():
-    pass
 
 dict_toolLangSpecifDataPool = {}
 
@@ -581,9 +574,6 @@ class VoronoiAddonPrefs(bpy.types.AddonPreferences):
     vOwZoomMin             : FloatProperty(name="Zoom min", default=0.05,  min=0.0078125, max=1.0,  precision=3)
     vOwZoomMax             : FloatProperty(name="Zoom max", default=2.301, min=1.0,       max=16.0, precision=3)
     # ------
-    @staticmethod
-    def BringTranslations():
-        pass
     def LyDrawTabSettings(self, where):
         def LyAddAddonBoxDiscl(where: UILayout, who, att, *, txt=None, isWide=False, align=False):
             colBox = where.box().column(align=True)

@@ -1,5 +1,4 @@
 from ..common_forward_func import DisplayMessage
-from ..utils.translate import GetAnnotFromCls, VlTrMapForKey
 from ..base_tool import *
 from ..globals import *
 from ..utils.ui import *
@@ -7,7 +6,6 @@ from ..utils.node import *
 from ..utils.color import *
 from ..utils.solder import *
 from ..utils.drawing import *
-from ..utils.translate import *
 from ..common_forward_func import *
 from ..common_forward_class import *
 from ..base_tool import VoronoiToolNd
@@ -112,6 +110,3 @@ class VoronoiRantoTool(VoronoiToolNd): #完成了.
     def LyDrawInAddonDiscl(col, prefs):
         LyAddLeftProp(col, prefs,'vrtIsLiveRanto')
         LyAddLeftProp(col, prefs,'vrtIsFixIslands')
-    @classmethod
-    def BringTranslations(cls):
-        pass
