@@ -125,25 +125,4 @@ class VoronoiSwapperTool(VoronoiToolPairSk):
         #VST VLRT是不需要的，对吧？
     @classmethod
     def BringTranslations(cls):
-        tran = GetAnnotFromCls(cls,'toolMode').items
-        with VlTrMapForKey(tran.SWAP.name) as dm:
-            dm["ru_RU"] = "Поменять"
-            dm["zh_CN"] = "交换"
-        with VlTrMapForKey(tran.SWAP.description) as dm:
-            dm["ru_RU"] = "Все линки у первого сокета будут на втором, у второго на первом."
-            dm["zh_CN"] = "第一个接口的所有连线将移至第二个，第二个的将移至第一个。"
-        with VlTrMapForKey(tran.ADD.name) as dm:
-            dm["ru_RU"] = "Добавить"
-            dm["zh_CN"] = "添加"
-        with VlTrMapForKey(tran.ADD.description) as dm:
-            dm["ru_RU"] = "Добавить все линки со второго сокета на первый. Второй будет пустым."
-            dm["zh_CN"] = "将第二个接口的所有连线添加到第一个。第二个将变为空。"
-        with VlTrMapForKey(tran.TRAN.name) as dm:
-            dm["ru_RU"] = "Переместить"
-            dm["zh_CN"] = "转移"
-        with VlTrMapForKey(tran.TRAN.description) as dm:
-            dm["ru_RU"] = "Переместить все линки со второго сокета на первый с заменой."
-            dm["zh_CN"] = "将第二个接口的所有连线转移到第一个并替换现有连线。"
-        with VlTrMapForKey(GetAnnotFromCls(cls,'isCanAnyType').name) as dm:
-            dm["ru_RU"] = "Может меняться с любым типом"
-            dm["zh_CN"] = "可以与任何类型交换"
+        pass

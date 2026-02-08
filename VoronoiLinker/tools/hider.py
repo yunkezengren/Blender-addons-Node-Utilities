@@ -223,50 +223,7 @@ class VoronoiHiderTool(VoronoiToolAny):
         LyAddLeftProp(col, prefs,'vhtIsToggleNodesOnDrag')
     @classmethod
     def BringTranslations(cls):
-        tran = GetAnnotFromCls(cls,'toolMode').items
-        with VlTrMapForKey(tran.NODE.name) as dm:
-            dm["ru_RU"] = "Авто-нод"
-#            dm["zh_CN"] = ""
-        with VlTrMapForKey(tran.NODE.description) as dm:
-            dm["ru_RU"] = "Автоматически обработать сокрытие сокетов для нода."
-#            dm["zh_CN"] = ""
-        with VlTrMapForKey(tran.SOCKET.description) as dm:
-            dm["ru_RU"] = "Сокрытие сокета."
-#            dm["zh_CN"] = ""
-        with VlTrMapForKey(tran.SOCKETVAL.name) as dm:
-            dm["ru_RU"] = "Значение сокета"
-#            dm["zh_CN"] = ""
-        with VlTrMapForKey(tran.SOCKETVAL.description) as dm:
-            dm["ru_RU"] = "Переключение видимости содержимого сокета."
-#            dm["zh_CN"] = ""
-        with VlTrMapForKey(GetAnnotFromCls(cls,'isTriggerOnCollapsedNodes').name) as dm:
-            dm["ru_RU"] = "Триггериться на свёрнутые ноды"
-            dm["zh_CN"] = "仅触发已折叠节点"
-        ##
-        with VlTrMapForKey(GetPrefsRnaProp('vhtHideBoolSocket').name) as dm:
-            dm["ru_RU"] = "Скрывать Boolean сокеты"
-            dm["zh_CN"] = "隐藏布尔接口"
-        with VlTrMapForKey(GetPrefsRnaProp('vhtHideHiddenBoolSocket').name) as dm:
-            dm["ru_RU"] = "Скрывать скрытые Boolean сокеты"
-            dm["zh_CN"] = "隐藏已隐藏的布尔接口"
-        with VlTrMapForKey(GetPrefsRnaProp('vhtHideBoolSocket',1).name) as dm:
-            dm["ru_RU"] = "Если True"
-            dm["zh_CN"] = "如果为True"
-        with VlTrMapForKey(GetPrefsRnaProp('vhtHideBoolSocket',3).name) as dm:
-            dm["ru_RU"] = "Если False"
-            dm["zh_CN"] = "如果为False"
-        with VlTrMapForKey(GetPrefsRnaProp('vhtNeverHideGeometry').name) as dm:
-            dm["ru_RU"] = "Никогда не скрывать входные сокеты геометрии"
-            dm["zh_CN"] = "永不隐藏几何输入接口"
-        with VlTrMapForKey(GetPrefsRnaProp('vhtNeverHideGeometry',1).name) as dm:
-            dm["ru_RU"] = "Только первый"
-            dm["zh_CN"] = "仅第一个接口"
-        with VlTrMapForKey(GetPrefsRnaProp('vhtIsUnhideVirtual').name) as dm:
-            dm["ru_RU"] = "Показывать виртуальные сокеты"
-            dm["zh_CN"] = "显示虚拟接口"
-        with VlTrMapForKey(GetPrefsRnaProp('vhtIsToggleNodesOnDrag').name) as dm:
-            dm["ru_RU"] = "Переключать ноды при ведении курсора" #"Обрабатывать ноды в реальном времени"
-            dm["zh_CN"] = "移动光标时切换节点"
+        pass
 
 
 

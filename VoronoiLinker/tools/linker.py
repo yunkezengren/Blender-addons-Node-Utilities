@@ -176,21 +176,4 @@ class VoronoiLinkerTool(VoronoiToolPairSk): # 神圣中的神圣. 它存在的�
         LyAddLeftProp(col, prefs,'vltSelectingInvolved')
     @classmethod
     def BringTranslations(cls):
-        with VlTrMapForKey(GetPrefsRnaProp('vltRepickKey').name) as dm:
-            dm["ru_RU"] = "Клавиша перевыбора"
-            dm["zh_CN"] = "重选快捷键"
-        with VlTrMapForKey(GetPrefsRnaProp('vltReroutesCanInAnyType').name) as dm:
-            dm["ru_RU"] = "Рероуты могут подключаться в любой тип"
-            dm["zh_CN"] = "重新定向节点可以连接到任何类型的节点"
-        with VlTrMapForKey(GetPrefsRnaProp('vltDeselectAllNodes').name) as dm:
-            dm["ru_RU"] = "Снять выделение со всех нодов при активации"
-            dm["zh_CN"] = "快速连接时取消选择所有节点"
-        with VlTrMapForKey(GetPrefsRnaProp('vltPriorityIgnoring').name) as dm:
-            dm["ru_RU"] = "Приоритетное игнорирование"
-#            dm["zh_CN"] = ""
-        with VlTrMapForKey(GetPrefsRnaProp('vltPriorityIgnoring').description) as dm:
-            dm["ru_RU"] = "Высокоуровневое игнорирование \"надоедливых\" сокетов при первом поиске.\n(Сейчас только \"Alpha\"-сокет у нод изображений)"
-#            dm["zh_CN"] = ""
-        with VlTrMapForKey(GetPrefsRnaProp('vltSelectingInvolved').name) as dm:
-            dm["ru_RU"] = "Выделять задействованные ноды"
-            dm["zh_CN"] = "快速连接后自动选择连接的节点"
+        pass

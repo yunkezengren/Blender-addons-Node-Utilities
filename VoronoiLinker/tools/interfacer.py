@@ -299,40 +299,4 @@ class VoronoiInterfacerTool(VoronoiToolPairSk):
         LyAddLeftProp(col, prefs,'vitPasteToAnySocket')
     @classmethod
     def BringTranslations(cls):
-        tran = GetAnnotFromCls(cls,'toolMode').items
-        with VlTrMapForKey(tran.COPY.name) as dm:
-            dm["ru_RU"] = "Копировать"
-#            dm["zh_CN"] = ""
-        with VlTrMapForKey(tran.COPY.description) as dm:
-            dm["ru_RU"] = "Копировать имя сокета в буфер обмена."
-#            dm["zh_CN"] = ""
-        with VlTrMapForKey(tran.PASTE.name) as dm:
-            dm["ru_RU"] = "Вставить"
-#            dm["zh_CN"] = ""
-        with VlTrMapForKey(tran.PASTE.description) as dm:
-            dm["ru_RU"] = "Вставить содержимое буфера обмена в имя интерфейса."
-#            dm["zh_CN"] = ""
-        with VlTrMapForKey(tran.SWAP.name) as dm:
-            dm["ru_RU"] = "Поменять местами"
-#            dm["zh_CN"] = ""
-        with VlTrMapForKey(tran.SWAP.description) as dm:
-            dm["ru_RU"] = "Поменять местами два интерфейса."
-#            dm["zh_CN"] = ""
-        with VlTrMapForKey(tran.FLIP.name) as dm:
-            dm["ru_RU"] = "Сдвинуть"
-#            dm["zh_CN"] = ""
-        with VlTrMapForKey(tran.FLIP.description) as dm:
-            dm["ru_RU"] = "Переместить интерфейс на новое место, сдвигая всех остальных."
-#            dm["zh_CN"] = ""
-        with VlTrMapForKey(tran.NEW.name) as dm:
-            dm["ru_RU"] = "Добавить"
-#            dm["zh_CN"] = ""
-        with VlTrMapForKey(tran.NEW.description) as dm:
-            dm["ru_RU"] = "Добавить интерфейс с помощью виртуальных сокетов."
-#            dm["zh_CN"] = ""
-        with VlTrMapForKey(tran.CREATE.name) as dm:
-            dm["ru_RU"] = "Создать"
-#            dm["zh_CN"] = ""
-        with VlTrMapForKey(tran.CREATE.description) as dm:
-            dm["ru_RU"] = "Создать интерфейс из выбранного сокета, и вставить его на указанное место."
-#            dm["zh_CN"] = ""
+        pass

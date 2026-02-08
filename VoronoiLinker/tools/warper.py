@@ -96,16 +96,4 @@ class VoronoiWarperTool(VoronoiToolSk):
         LyAddKeyTxtProp(col, prefs,'vwtSelectTargetKey')
     @classmethod
     def BringTranslations(cls):
-        with VlTrMapForKey(GetAnnotFromCls(cls,'isZoomedTo').name) as dm:
-            dm["ru_RU"] = "Центрировать"
-            dm["zh_CN"] = "自动最大化显示"
-        with VlTrMapForKey(GetAnnotFromCls(cls,'isSelectReroutes').name) as dm:
-            dm["ru_RU"] = "Выделять рероуты"
-            dm["zh_CN"] = "选择更改路线"
-        with VlTrMapForKey(GetAnnotFromCls(cls,'isSelectReroutes').description) as dm:
-            dm["ru_RU"] = "-1 – Де-выделять всех.\n 0 – Ничего не делать.\n 1 – Выделять связанные рероуты"
-            dm["zh_CN"] = "-1 – 取消全选。\n 0 – 不做任何事。\n 1 – 选择相连的转向节点"
-        ##
-        with VlTrMapForKey(GetPrefsRnaProp('vwtSelectTargetKey').name) as dm:
-            dm["ru_RU"] = "Клавиша выделения цели"
-            dm["zh_CN"] = "选择目标快捷键"
+        pass

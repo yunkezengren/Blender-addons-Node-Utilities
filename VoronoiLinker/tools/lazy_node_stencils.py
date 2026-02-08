@@ -214,9 +214,4 @@ class VoronoiLazyNodeStencilsTool(VoronoiToolPairSk): # 第一个应外部请求
         LyAddNiceColorProp(col, prefs,'vlnstLastExecError', ico='ERROR' if prefs.vlnstLastExecError else 'NONE', decor=0)
     @classmethod
     def BringTranslations(cls):
-        with VlTrMapForKey(GetPrefsRnaProp('vlnstNonColorName').name) as dm:
-            dm["ru_RU"] = "Название \"Не-цветовых данных\""
-            dm["zh_CN"] = "图片纹理色彩空间名称"
-        with VlTrMapForKey(GetPrefsRnaProp('vlnstLastExecError').name) as dm:
-            dm["ru_RU"] = "Последняя ошибка выполнения"
-            dm["zh_CN"] = "上次运行时错误"
+        pass

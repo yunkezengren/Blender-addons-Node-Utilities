@@ -226,48 +226,4 @@ class VoronoiQuickMathTool(VoronoiToolTripleSk):
         colProps.active = getattr(prefs,'vqmtPieType')=='CONTROL'
     @classmethod
     def BringTranslations(cls):
-        with VlTrMapForKey(GetAnnotFromCls(cls,'isHideOptions').name) as dm:
-            dm["ru_RU"] = "Скрывать опции нода"
-            dm["zh_CN"] = "隐藏节点选项"
-        #* isPlaceImmediately 的翻译已在 VMT 中 *
-        with VlTrMapForKey(GetAnnotFromCls(cls,'justPieCall').name) as dm:
-            dm["ru_RU"] = "Просто вызвать пирог"
-            dm["zh_CN"] = "仅调用饼图"
-        with VlTrMapForKey(GetAnnotFromCls(cls,'justPieCall').description) as dm:
-            dm["ru_RU"] = "Вызвать пирог для добавления нода, минуя выбор сокетов.\n0 – Выключено.\n1 – Float.\n2 – Vector.\n3 – Boolean.\n4 – Color"
-#            dm["zh_CN"] = ""
-        with VlTrMapForKey(GetAnnotFromCls(cls,'isRepeatLastOperation').name) as dm:
-            dm["ru_RU"] = "Повторить последнюю операцию"
-            dm["zh_CN"] = "重复上一操作"
-        with VlTrMapForKey(GetAnnotFromCls(cls,'isRepeatLastOperation').description) as dm:
-            dm["ru_RU"] = "Минуя вызов пирога, активирует последнюю использованную операцию для выбранного типа сокета.\n"+\
-                        "Ищет сокеты только из доступных предыдущих операций, которые были свершены для типа сокета.\n"+\
-                        "Просто вызов пирога и быстрая быстрая математика, не запоминаются как последние операции"
-#            dm["zh_CN"] = ""
-        with VlTrMapForKey(GetAnnotFromCls(cls,'quickOprFloat').name) as dm:
-            dm["ru_RU"] = "Скаляр (быстро)"
-            dm["zh_CN"] = "浮点（快速）"
-        with VlTrMapForKey(GetAnnotFromCls(cls,'quickOprVector').name) as dm:
-            dm["ru_RU"] = "Вектор (быстро)"
-            dm["zh_CN"] = "矢量（快速）"
-        with VlTrMapForKey(GetAnnotFromCls(cls,'quickOprBool').name) as dm:
-            dm["ru_RU"] = "Логический (быстро)"
-            dm["zh_CN"] = "布尔（快速）"
-        with VlTrMapForKey(GetAnnotFromCls(cls,'quickOprColor').name) as dm:
-            dm["ru_RU"] = "Цвет (быстро)"
-            dm["zh_CN"] = "颜色（快速）"
-        ##
-        with VlTrMapForKey(GetPrefsRnaProp('vqmtIncludeThirdSk').name) as dm:
-            dm["ru_RU"] = "Разрешить третий сокет"
-            dm["zh_CN"] = "包括第三个接口"
-        with VlTrMapForKey(GetPrefsRnaProp('vqmtIncludeQuickPresets').name) as dm:
-            dm["ru_RU"] = "Включить быстрые пресеты"
-#            dm["zh_CN"] = ""
-        with VlTrMapForKey(GetPrefsRnaProp('vqmtIncludeExistingValues').name) as dm:
-            dm["ru_RU"] = "Включить существующие значения"
-#            dm["zh_CN"] = ""
-        with VlTrMapForKey(GetPrefsRnaProp('vqmtDisplayIcons').name) as dm:
-            dm["ru_RU"] = "Отображать иконки"
-#            dm[zh_CN] = ""
-#参见 vqmtRepickKey 在 VLT 中的翻译.
-#vqmtPie 的翻译与 VMT 中的相同.
+        pass

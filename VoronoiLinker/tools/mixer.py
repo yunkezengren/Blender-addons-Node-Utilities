@@ -133,43 +133,4 @@ class VoronoiMixerTool(VoronoiToolTripleSk):
         colProps.active = getattr(prefs,f'{tlw}PieType')=='CONTROL'
     @classmethod
     def BringTranslations(cls):
-        with VlTrMapForKey(GetAnnotFromCls(cls,'isCanFromOne').name) as dm:
-            dm["ru_RU"] = "Может от одного сокета"
-            dm["zh_CN"] = "从一个接口连接"
-        with VlTrMapForKey(GetAnnotFromCls(cls,'isPlaceImmediately').name) as dm:
-            dm["ru_RU"] = "Размещать моментально"
-            dm["zh_CN"] = "立即添加节点到鼠标位置"
-        ##
-        with VlTrMapForKey(GetPrefsRnaProp('vmtReroutesCanInAnyType').name) as dm:
-            dm["ru_RU"] = "Рероуты могут смешиваться с любым типом"
-            dm["zh_CN"] = "快速混合不限定接口类型"
-        with VlTrMapForKey(GetPrefsRnaProp('vmtPieType').name) as dm:
-            dm["ru_RU"] = "Тип пирога"
-            dm["zh_CN"] = "饼菜单类型"
-        with VlTrMapForKey(GetPrefsRnaProp('vmtPieType',0).name) as dm:
-            dm["ru_RU"] = "Контроль"
-            dm["zh_CN"] = "控制(自定义)"
-        with VlTrMapForKey(GetPrefsRnaProp('vmtPieType',1).name) as dm:
-            dm["ru_RU"] = "Скорость"
-            dm["zh_CN"] = "速度型(多层菜单)"
-        with VlTrMapForKey(GetPrefsRnaProp('vmtPieScale').name) as dm:
-            dm["ru_RU"] = "Размер пирога"
-            dm["zh_CN"] = "饼菜单大小"
-        with VlTrMapForKey(GetPrefsRnaProp('vmtPieAlignment').name) as dm:
-            dm["ru_RU"] = "Выравнивание между элементами"
-            # dm["zh_CN"] = "元素对齐方式"?
-        with VlTrMapForKey(GetPrefsRnaProp('vmtPieAlignment').description) as dm:
-            dm["ru_RU"] = "0 – Гладко.\n1 – Скруглённые состыкованные.\n2 – Зазор"
-            # dm["zh_CN"] = ""
-        with VlTrMapForKey(GetPrefsRnaProp('vmtPieSocketDisplayType').name) as dm:
-            dm["ru_RU"] = "Отображение типа сокета"
-            dm["zh_CN"] = "显示接口类型"
-        with VlTrMapForKey(GetPrefsRnaProp('vmtPieSocketDisplayType').description) as dm:
-            dm["ru_RU"] = "0 – Выключено.\n1 – Сверху.\n-1 – Снизу (VMT)"
-            # dm["zh_CN"] = ""
-        with VlTrMapForKey(GetPrefsRnaProp('vmtPieDisplaySocketColor').name) as dm:
-            dm["ru_RU"] = "Отображение цвета сокета"
-            # dm["zh_CN"] = ""
-        with VlTrMapForKey(GetPrefsRnaProp('vmtPieDisplaySocketColor').description) as dm:
-            dm["ru_RU"] = "Знак – сторона цвета. Значение – ширина цвета"
-            # dm["zh_CN"] = ""
+        pass

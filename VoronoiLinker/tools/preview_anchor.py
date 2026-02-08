@@ -81,15 +81,4 @@ class VoronoiPreviewAnchorTool(VoronoiToolSk): #嗯, 现在这是一个完整的
             return {'FINISHED'}
     @classmethod
     def BringTranslations(cls):
-        with VlTrMapForKey(GetAnnotFromCls(cls,'anchorType').name) as dm:
-            dm["ru_RU"] = "Тип якоря"
-            dm["zh_CN"] = "转接点的类型"
-        with VlTrMapForKey(GetAnnotFromCls(cls,'isActiveAnchor').name) as dm:
-            dm["ru_RU"] = "Делать якорь активным"
-            dm["zh_CN"] = "转接点设置为活动项"
-        with VlTrMapForKey(GetAnnotFromCls(cls,'isSelectAnchor').name) as dm:
-            dm["ru_RU"] = "Выделять якорь"
-            dm["zh_CN"] = "转接点高亮显示"
-        with VlTrMapForKey(GetAnnotFromCls(cls,'isDeleteNonCanonAnchors').name) as dm:
-            dm["ru_RU"] = "Удалить имеющиеся якори"
-#            dm["zh_CN"] = ""
+        pass

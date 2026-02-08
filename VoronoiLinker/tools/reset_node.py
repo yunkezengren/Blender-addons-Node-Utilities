@@ -71,12 +71,4 @@ class VoronoiResetNodeTool(VoronoiToolNd):
         self.set_done = set() #没有这个会有非常“可怕”的行为，如果过度操作，很可能会崩溃.
     @classmethod
     def BringTranslations(cls):
-        with VlTrMapForKey(GetAnnotFromCls(cls,'isResetEnums').name) as dm:
-            dm["ru_RU"] = "Восстанавливать свойства перечисления"
-            dm["zh_CN"] = "恢复下拉列表里的选择"
-        with VlTrMapForKey(GetAnnotFromCls(cls,'isResetOnDrag').name) as dm:
-            dm["ru_RU"] = "Восстанавливать при ведении курсора (не рекомендуется)"
-            dm["zh_CN"] = "悬停时恢复(不推荐)"
-        with VlTrMapForKey(GetAnnotFromCls(cls,'isSelectResetedNode').name) as dm:
-            dm["ru_RU"] = "Выделять восстановленный нод"
-            dm["zh_CN"] = "选择重置的节点"
+        pass

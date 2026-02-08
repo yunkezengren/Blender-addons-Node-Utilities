@@ -322,41 +322,7 @@ class VoronoiEnumSelectorTool(VoronoiToolNd):
         LyAddHandSplitProp(colBox, prefs,'vestDarkStyle')
     @classmethod
     def BringTranslations(cls):
-        with VlTrMapForKey("Box ") as dm:
-            dm["ru_RU"] = "Коробка"
-        ##
-        with VlTrMapForKey(GetAnnotFromCls(cls,'isInstantActivation').name) as dm:
-            dm["ru_RU"] = "Моментальная активация"
-            dm["zh_CN"] = "直接打开饼菜单"
-        with VlTrMapForKey(GetAnnotFromCls(cls,'isInstantActivation').description) as dm:
-            dm["ru_RU"] = "Пропустить рисование к ноду и активацию при отпускании, и активировать немедленно при нажатии"
-            dm["zh_CN"] = "不勾选可以先根据鼠标位置动态选择节点"
-        with VlTrMapForKey(GetAnnotFromCls(cls,'isPieChoice').name) as dm:
-            dm["ru_RU"] = "Выбор пирогом"
-            dm["zh_CN"] = "饼菜单选择"
-        with VlTrMapForKey(GetAnnotFromCls(cls,'isPieChoice').description) as dm:
-            dm["ru_RU"] = "Позволяет выбрать элемент отпусканием клавиши"
-#            dm["zh_CN"] = ""
-        with VlTrMapForKey(GetAnnotFromCls(cls,'isToggleOptions').name) as dm:
-            dm["ru_RU"] = "Переключение опций нода"
-#            dm["zh_CN"] = "隐藏节点里的下拉列表"?
-        with VlTrMapForKey(GetAnnotFromCls(cls,'isSelectNode').name) as dm:
-            dm["ru_RU"] = "Выделять целевой нод"
-            dm["zh_CN"] = "选择目标节点"
-        with VlTrMapForKey(GetAnnotFromCls(cls,'isSelectNode').description) as dm:
-            dm["ru_RU"] = "0 – Не выделять.\n1 – Выделять.\n2 – и центрировать.\n3 – и приближать"
-#            dm["zh_CN"] = ""
-##
-#* vestIsToggleNodesOnDrag 的翻译已在 VHT 中 *
-        with VlTrMapForKey(GetPrefsRnaProp('vestBoxScale').name) as dm:
-            dm["ru_RU"] = "Масштаб панели"
-            dm["zh_CN"] = "下拉列表面板大小"
-        with VlTrMapForKey(GetPrefsRnaProp('vestDisplayLabels').name) as dm:
-            dm["ru_RU"] = "Отображать имена свойств перечислений"
-            dm["zh_CN"] = "显示下拉列表属性名称"
-        with VlTrMapForKey(GetPrefsRnaProp('vestDarkStyle').name) as dm:
-            dm["ru_RU"] = "Тёмный стиль"
-            dm["zh_CN"] = "暗色风格"
+        pass
 
 
 # 显示节点选项优化-根据选项重命名节点-不好用-自定义ops,单击按钮立即运行(缺点：按钮文本居中对齐，按钮上文本翻译有问题)
