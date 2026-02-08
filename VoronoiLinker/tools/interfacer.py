@@ -252,7 +252,6 @@ class VoronoiInterfacerTool(VoronoiToolPairSk):
                                 links.remove(link[0])                      # 删除旧连线
                         links.new(skMain, inputs[i])
 
-
                 if equr.has_extend_socket:
                     links.new(skMain, equr.GetSkFromSkf(equr.skfa.get(nameSn), isOut=not skMain.is_output))
                 if is_group:

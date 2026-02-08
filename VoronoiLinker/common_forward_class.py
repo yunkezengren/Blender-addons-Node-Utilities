@@ -1,9 +1,10 @@
 import bpy
 from mathutils import Vector as Vec2
-from bpy.types import NodeSocket, Node
+from bpy.types import NodeSocket, Node, NodeTree
 from .common_forward_func import (sk_label_or_name, add_item_for_index_switch, sk_type_to_idname,
                                   is_builtin_tree_idname)
 from .globals import is_bl5_plus
+B = bpy.types
 
 # Equestrian 的意思是"骑手"或"马术的",取其驾驭、控制的寓意.似乎是专门用来操作管理有 item 的节点, 比如:
 # 这些节点都有一个共同点: 它们内部有自己的items, 可以动态地添加、删除、移动它们上面的插槽 (socket).
@@ -109,21 +110,22 @@ class Node_Items_Manager():
         newName = sk_label_or_name(skTar)
         sk_type = skTar.type
         match self.type:
-            # case 'SIM':
-            #     if sk_type not in {'VALUE', 'INT', 'BOOLEAN', 'VECTOR', 'ROTATION', 'MATRIX', 'STRING', 'RGBA', 'GEOMETRY'}: # TODO1v6 最好是能反向找到它们在哪里，而不是硬编码。
-            #         raise Exception(f"Socket type is not supported by Simulation: `{skTar.path_from_id()}`")
-            #     return self.skfa.new(sk_type, newName)
             case 'SIM' | 'REP' | 'BAKE' | 'CAPTURE':
                 if sk_type == 'VALUE':
                     sk_type = 'FLOAT'
-                return self.skfa.new(sk_type, newName)
+                skfa1: B.NodeGeometrySimulationOutputItems | B.NodeGeometryRepeatOutputItems | B.NodeGeometryBakeItems | B.NodeGeometryCaptureAttributeItems = self.skfa
+                return skfa1.new(sk_type, newName)
             case 'MENU':
-                return self.skfa.new(newName)
-            case 'INDEX' :
+                skfa2: B.NodeMenuSwitchItems = self.skfa
+                return skfa2.new(newName)
+            case 'INDEX':
+                # NodeIndexSwitchItems
                 input_soc = add_item_for_index_switch(self.node)
                 return input_soc
             case 'CLASSIC'|'GROUP':
-                skfNew = self.skfa.data.new_socket(newName, socket_type=sk_type_to_idname(skTar), in_out='OUTPUT' if (skTar.is_output^isFlipSide) else 'INPUT')
+                # self.skfa 是 tree.interface.items_tree  是 bpy_prop_collection[NodeTreeInterfaceItem]
+                data: B.NodeTreeInterface = self.skfa.data
+                skfNew = data.new_socket(newName, socket_type=sk_type_to_idname(skTar), in_out='OUTPUT' if (skTar.is_output^isFlipSide) else 'INPUT')
                 skfNew.hide_value = skTar.hide_value
                 if hasattr(skfNew,'default_value'):
                     skfNew.default_value = skTar.default_value
@@ -179,7 +181,7 @@ class Node_Items_Manager():
                     raise Exception(f"Equestrian tree is not equal for `{skfTo}`")
                 # 我不知道有什么方法可以“正常地”实现这一点，而无需重新连接面板。尽管我觉得这是唯一的方法。
                 list_panels = [ [None, None, None, None, ()] ]
-                skfa = self.skfa
+                skfa: B.bpy_prop_collection[B.NodeTreeInterfaceItem]  = self.skfa
                 # 记住面板：
                 scos = {False:0, True:0}
                 for skf in skfa:
@@ -191,7 +193,7 @@ class Node_Items_Manager():
                         scos[skf.in_out=='OUTPUT'] += 1
                 list_panels[-1][4] = (scos[False], scos[True])
                 # 删除面板：
-                skft = skfa.data
+                skft: B.NodeTreeInterface = skfa.data
                 tgl = True
                 while tgl:
                     tgl = False
@@ -228,51 +230,50 @@ class Node_Items_Manager():
                             skft.move_to_parent(skf, list_panels[scoPanel][0], 0) # 因为 'reversed(skfa)'，位置问题得以解决，这里只需 '0'；令人惊叹的方便巧合。
                         scoSkf += 1
 
-    def __init__(self, snkd): #"snkd" = 套接字或节点。
+    def __init__(self, snkd: NodeSocket | Node): #"snkd" = 套接字或节点。
         isSk = hasattr(snkd,'link_limit') # self.IsSocketDefinitely(snkd)
-        ndEq = snkd.node if isSk else snkd
+        ndEq: Node = snkd.node if isSk else snkd # type: ignore
         if ndEq.type not in self.set_equestrianNodeTypes:
             raise Exception(f"Equestrian not found from `{snkd.path_from_id()}`")
-        self.tree = snkd.id_data
-        self.node = ndEq
+        self.tree: NodeTree = snkd.id_data
+        self.node: Node = ndEq
         ndEq = getattr(ndEq,'paired_output', ndEq)
-        match ndEq.type:
-            case 'GROUP_OUTPUT'|'GROUP_INPUT':
-                self.type = 'CLASSIC'
-                self.skfa = ndEq.id_data.interface.items_tree
-            case 'SIMULATION_OUTPUT':
-                self.type = 'SIM'
-                self.skfa = ndEq.state_items
-            case 'REPEAT_OUTPUT':
-                self.type = 'REP'
-                self.skfa = ndEq.repeat_items
-            # 小王-更改接口名称
-            case 'MENU_SWITCH':
-                self.type = 'MENU'
-                self.skfa = ndEq.enum_items
-            case 'INDEX_SWITCH':
-                self.type = 'INDEX'
-                self.skfa = ndEq
-            case 'BAKE':
-                self.type = 'BAKE'
-                self.skfa = ndEq.bake_items
-            case 'CAPTURE_ATTRIBUTE':
-                self.type = 'CAPTURE'
-                self.skfa = ndEq.capture_items
-                # if hasattr(ndEq, "capture_items"):
-            # for each zone 的重命名有点麻烦,不过这个目前优先级低
-            # case 'FOREACH_GEOMETRY_ELEMENT_INPUT':
-            #     self.type = 'FOREACH_IN'
-            #     self.skfa = ndEq.input_items
-            case 'FOREACH_GEOMETRY_ELEMENT_OUTPUT':
-                self.type = 'FOREACH_OUT'
-                # self.skfa = ndEq.main_items
-                self.skfa = ndEq.generation_items
-            case 'GROUP':
-                self.type = 'GROUP'
-                if not ndEq.node_tree:
-                    raise Exception(f"Tree for nodegroup `{ndEq.path_from_id()}` not found, from `{snkd.path_from_id()}`")
-                self.skfa = ndEq.node_tree.interface.items_tree
+
+        if isinstance(ndEq, (B.NodeGroupInput, B.NodeGroupOutput)):
+            self.type = 'CLASSIC'
+            self.skfa = self.tree.interface.items_tree  # bpy_prop_collection[NodeTreeInterfaceItem]
+        elif isinstance(ndEq, B.GeometryNodeSimulationOutput):
+            self.type = 'SIM'
+            self.skfa = ndEq.state_items
+        elif isinstance(ndEq, B.GeometryNodeRepeatOutput):
+            self.type = 'REP'
+            self.skfa = ndEq.repeat_items
+        # 小王-更改接口名称
+        elif isinstance(ndEq, B.GeometryNodeMenuSwitch):
+            self.type = 'MENU'
+            self.skfa = ndEq.enum_items
+        elif isinstance(ndEq, B.GeometryNodeIndexSwitch):
+            self.type = 'INDEX'
+            self.skfa = ndEq
+        elif isinstance(ndEq, B.GeometryNodeBake):
+            self.type = 'BAKE'
+            self.skfa = ndEq.bake_items
+        elif isinstance(ndEq, B.GeometryNodeCaptureAttribute):
+            self.type = 'CAPTURE'
+            self.skfa = ndEq.capture_items
+        # for each zone 的重命名有点麻烦,不过这个目前优先级低
+        # elif isinstance(ndEq, B.GeometryNodeForeachGeometryElementInput):
+        #     self.type = 'FOREACH_IN'
+        #     self.skfa = ndEq.input_items
+        elif isinstance(ndEq, B.GeometryNodeForeachGeometryElementOutput):
+            self.type = 'FOREACH_OUT'
+            # self.skfa = ndEq.main_items
+            self.skfa = ndEq.generation_items
+        elif isinstance(ndEq, B.NodeGroup):
+            self.type = 'GROUP'
+            if not ndEq.node_tree:
+                raise Exception(f"Tree for nodegroup `{ndEq.path_from_id()}` not found, from `{snkd.path_from_id()}`")
+            self.skfa = ndEq.node_tree.interface.items_tree
 
 class Fotago(): # Found Target Goal (找到的目标), "剩下的你们自己看着办".
     # def __getattr__(self, att): # 天才. 仅次于 '(*args): return Vector((args))'.
