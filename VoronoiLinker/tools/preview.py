@@ -350,8 +350,6 @@ def DoPreviewCore(skTar, list_distAnchs, cursorLoc):
                     ndAnchor = nd
         if ndAnchor: # 锚点使"计划有变", 并将流重定向到自己身上.
             lk = tree.links.new(portalSkFrom, ndAnchor.inputs[0])
-            # print(f"0 {ndAnchor = }")
-            #tree.links.new(ndAnchor.outputs[0], portalSkTo)
             curWay.finalLink = lk
             break # 撞到锚点后终止, 提高了锚点的使用可能性, 使其更酷. 如果你对 Voronoi_Anchor 有好感, 我理解你. 我也是.
             # 终止允许从带有锚点的深度到根节点有用户自定义的连接, 而不破坏它们.
@@ -464,9 +462,6 @@ class VoronoiPreviewTool(VoronoiToolSk):
         if self.fotagoSk:
             CheckUncollapseNodeAndReNext(nd, self, cond=True)
             if prefs.vptIsLivePreview:
-                # print("."*100)
-                # print(f"{self.fotagoSk = }")
-                # print(f"{self.fotagoSk.tar = }")
                 VptPreviewFromSk(self, prefs, self.fotagoSk.tar)
             if prefs.vptRvEeIsColorOnionNodes: #帮助逆向工程 -- 不是用眼睛寻找细线, 而是快速视觉读取拓扑连接的节点.
                 SolderSkLinks(tree) #没有这个, 将不得不手动为接收节点着色, 以免“闪烁”.

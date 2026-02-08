@@ -4,7 +4,7 @@ from bpy.types import EnumProperty, UILayout
 from ..base_tool import VoronoiOpTool, VoronoiToolNd
 from ..common_forward_class import VestData
 from ..utils.ui import LyAddLeftProp, LyAddHandSplitProp, LyAddLabeledBoxCol
-from ..utils.node import GetListOfNdEnums, node_visible_menu_inputs, SelectAndActiveNdOnly
+from ..utils.node import node_enum_props, node_visible_menu_inputs, SelectAndActiveNdOnly
 from ..utils.drawing import TemplateDrawNodeFull
 
 domain_en = [
@@ -207,29 +207,19 @@ class VoronoiEnumSelectorTool(VoronoiToolNd):
             node = ftgNd.tar
             if node.type=='REROUTE': # 对于这个工具, reroute 会被跳过, 原因很明显.
                 continue
-            # if node.bl_idname in set_utilEquestrianPortalBlids:    # 注释掉
-            #     continue
-            # have_options = ["GeometryNodeBake", "GeometryNodeGroup",
-            #                 "GeometryNodeForeachGeometryElementInput", "ShaderNodeTexCoord"]
-            # if node.bl_idname not in have_options:
-            #     if not GetListOfNdEnums(node):    # 想只对有下拉列表选项的节点绘制-导致节点组、bake、serpens里很多节点的 隐藏选项失效
-            #         continue
-            # if node.hide: # 对于折叠的节点, 切换结果看不到, 所以忽略.
-            #     continue              # 折叠的节点同样绘制
             if self.isToggleOptions:
                 self.fotagoNd = ftgNd
                 # 和 VHT 的意思一样:
                 if prefs.vestIsToggleNodesOnDrag:
-                    # print(f"{self.firstResult = }")
                     if self.firstResult is None:
                         self.firstResult = self.ToggleOptionsFromNode(node, True)
                     self.ToggleOptionsFromNode(node, self.firstResult, True)
                 break
-            elif GetListOfNdEnums(node) or node_visible_menu_inputs(node): # 为什么不忽略没有枚举属性的节点呢?.
+            elif node_enum_props(node) or node_visible_menu_inputs(node): # 为什么不忽略没有枚举属性的节点呢?.
                 self.fotagoNd = ftgNd
                 break
     def DoActivation(self, prefs, tree):
-        def IsPtInRect(pos, rect): #return (pos[0]>rect[0])and(pos[1]>rect[1])and(pos[0]<rect[2])and(pos[1]>rect[3])
+        def IsPtInRect(pos, rect):
             if pos[0]<rect[0]:
                 return False
             elif pos[1]<rect[1]:
@@ -239,12 +229,8 @@ class VoronoiEnumSelectorTool(VoronoiToolNd):
             elif pos[1]>rect[3]:
                 return False
             return True
-        VestData.list_enumProp = GetListOfNdEnums(self.fotagoNd.tar)
+        VestData.list_enumProp = node_enum_props(self.fotagoNd.tar)
         VestData.list_menu_socket = node_visible_menu_inputs(self.fotagoNd.tar)
-        # VestData.domain_item_list = node_domain_item_list(self.fotagoNd.tar)  # 显示节点选项优化-根据选项重命名节点-domain
-        # print("-"*50)
-        # print(self.fotagoNd.tar.name)
-        # pprint(VestData.domain_item_list)
         # 如果什么都没有, 盒子调用还是会处理, 就像它存在一样, 导致不移动光标就无法再次调用工具.
         if VestData.list_enumProp or VestData.list_menu_socket: # 所以如果为空, 什么也不做. 还有 draw_enum_property_selectors() 中的 assert.
             ndTar = self.fotagoNd.tar

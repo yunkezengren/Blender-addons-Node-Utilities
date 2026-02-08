@@ -30,7 +30,6 @@ def RestoreCollapsedNodes(nodes):
         if dict_collapsedNodes.get(nd, None): # 工具在过程中可能会创建节点; 例如 vptRvEeIsSavePreviewResults.
             nd.hide = dict_collapsedNodes[nd]
 
-
 def GenFtgFromNd(nd: Node, pos: Vec2, uiScale: float): # 从 GetNearestNodesFtg 中提取出来, 本来没必要, 但 VLTT 逼我这么做.
     def DistanceField(field0: Vec2, boxbou: Vec2): # 感谢 RayMarching, 没有它我不会想到这个.
         field1 = Vec2(( (field0.x>0)*2-1, (field0.y>0)*2-1 ))
@@ -111,8 +110,6 @@ def GetNearestSocketsFtg(nd: Node, samplePos, uiScale): # 返回"最近的插槽
             label = nd.label or _iface(sk.name)
             return [Fotago(sk, dist=distance, pos=loc, dir=direction, boxHeiBound=(-1, -1), text=label)]
         return ftg_route(nd.inputs[0]), ftg_route(nd.outputs[0])
-        # ftg_route = lambda sk: Fotago(sk, dist=(samplePos - loc - Vec2((sk.is_output, 0))).length, pos=loc, dir=1 if sk.is_output else -1, boxHeiBound=(-1, -1), text=nd.label if nd.label else _iface(sk.name))
-        # return [ftg_route(nd.inputs[0])], [ftg_route(nd.outputs[0])]
 
     ftg_sks_in = GenFtgsFromPuts(nd, False, samplePos, uiScale)
     ftg_sks_out = GenFtgsFromPuts(nd, True, samplePos, uiScale)
@@ -120,21 +117,18 @@ def GetNearestSocketsFtg(nd: Node, samplePos, uiScale): # 返回"最近的插槽
     ftg_sks_out.sort(key=lambda a: a.dist)
     return ftg_sks_in, ftg_sks_out
 
-def GetListOfNdEnums(node: Node):   # 小王-判断节点是否有下拉列表
+def node_enum_props(node: Node) -> list[bpy.types.EnumProperty]:   # 小王-判断节点是否有下拉列表
     enum_l = []
-    for p in node.rna_type.properties:
-        if (p.type == 'ENUM') and (p.name != "Warning Propagation") and (not (p.is_readonly or p.is_registered)):
-            enum_l.append(p)
+    for prop in node.rna_type.properties:
+        if (prop.type == 'ENUM') and (prop.identifier != "warning_propagation") and (prop.identifier.startswith("note_")) and (not (prop.is_readonly or prop.is_registered)):
+            enum_l.append(prop)
     return enum_l
 
-# 小王-显示节点选项优化-根据选项重命名节点-domain
 def node_domain_item_list(node: Node):
     enum_list = []
-    for p in node.rna_type.properties:
-        if p.type == 'ENUM' and p.identifier == "domain":
-            enum_list = [item for item in p.enum_items]
-            # enum_list = [item.identifier for item in p.enum_items]
-            # enum_list = [[item.name, item.identifier] for item in p.enum_items]
+    for prop in node.rna_type.properties:
+        if prop.type == 'ENUM' and prop.identifier == "domain":
+            enum_list = [item for item in prop.enum_items]
     return enum_list
 
 def node_visible_menu_inputs(node: Node) -> list[NodeSocket]:
@@ -153,7 +147,7 @@ def IsClassicSk(sk: NodeSocket):
     else:
         return sk_type_to_idname(sk) in set_classicSocketsBlid
 
-def CompareSkLabelName(sk1, sk2, ignore_upper_lower=False):
+def CompareSkLabelName(sk1: NodeSocket, sk2: NodeSocket, ignore_upper_lower=False):
     if ignore_upper_lower:
         return sk_label_or_name(sk1).upper()==sk_label_or_name(sk2).upper()
     else:
@@ -165,8 +159,7 @@ def SelectAndActiveNdOnly(ndTar: Node):
     ndTar.id_data.nodes.active = ndTar
     ndTar.select = True
 
-def MinFromFtgs(ftg1, ftg2):
-    # print(type(ftg1))   # <class Fotago>
+def MinFromFtgs(ftg1: Fotago, ftg2: Fotago):
     if (ftg1)or(ftg2): # 如果至少有一个存在.
         if not ftg2: # 如果其中一个不存在,
             return ftg1

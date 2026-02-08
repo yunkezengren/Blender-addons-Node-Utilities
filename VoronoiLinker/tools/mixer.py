@@ -59,10 +59,8 @@ class VoronoiMixerTool(VoronoiToolTripleSk):
                     if self.fotagoSk1:
                         break
                 else:
-                    # print("\ncanPickThird==================================")
                     skOut1 = opt_ftg_socket(self.fotagoSk1)
                     for ftg in list_ftgSksOut:
-                        # if ftg.tar.type == skOut0.type:
                         self.fotagoSk2 = ftg
                         if (ftg.tar == skOut0) or (ftg.tar == skOut1):
                             self.fotagoSk2 = None

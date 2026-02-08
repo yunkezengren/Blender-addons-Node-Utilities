@@ -305,12 +305,7 @@ def TemplateDrawSksToolHh(drata: VlDrawData, *args_ftgSks, sideMarkHh=1, isDrawT
     # 主要部分:
     isOne = len(list_ftgSks)==1
 
-    # print("." * 100)
-    # print(list_ftgSks)
     for ftg in list_ftgSks:
-        # print(f"{type(ftg) = }")
-        # print("ftg.__dict__")
-        # pprint(ftg.__dict__)      # ftg.pos 这是接口的位置
         if (drata.dsIsDrawLine)and( (not isClassicFlow)or(isOne and drata.dsIsAlwaysLine) ):
             if drata.dsIsColoredLine:
                 col1 = get_sk_color_safe(ftg.tar)
@@ -341,7 +336,6 @@ def TemplateDrawSksToolHh(drata: VlDrawData, *args_ftgSks, sideMarkHh=1, isDrawT
             # 绘制工具提示
             ftg_show_name = copy.copy(ftg)
             ftg_show_name.soldText = _iface(tool_name).capitalize()
-            # print(f"{x_offset = }")
             if x_offset != 0:
                 cursorLoc2 = cursorLoc.copy() + Vec2((0, 50))  # 额外绘制
                 DrawVlSkText(drata, cursorLoc2, (x_offset, 0), ftg_show_name)

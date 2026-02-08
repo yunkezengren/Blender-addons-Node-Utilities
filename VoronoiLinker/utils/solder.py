@@ -50,14 +50,6 @@ def SolderThemeCols(themeNe: ThemeNodeEditor):
     SoldThemeCols.node_backdrop4 = Color4(themeNe.node_backdrop)
     SoldThemeCols.node_backdrop4pw = GetNiceColNone(SoldThemeCols.node_backdrop4) # 对于Ctrl-F: 它被使用了, 参见下面的 `+"4pw"`.
 
-    # theme = C.preferences.themes[0].node_editor
-    # getattr(theme, "attribute_node")
-    # for pr in theme.bl_rna.properties:
-    #     dnf = pr.identifier
-    #     if dnf.endswith("_node"):
-    #         print(f"{dnf = }")
-    # themeNe 是 context.preferences.themes[0].node_editor
-    # print("." * 50)
     for pr in themeNe.bl_rna.properties:
         dnf = pr.identifier
         if dnf.endswith("_node"):

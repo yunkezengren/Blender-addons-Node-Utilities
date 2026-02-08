@@ -27,7 +27,6 @@ class VoronoiInterfacerTool(VoronoiToolPairSk):
     toolMode: bpy.props.EnumProperty(name="Mode", default='NEW', items=fitVitModeItems)
 
     def CallbackDrawTool(self, drata):
-        # print(f"{self.toolMode = }")
         match self.toolMode:
             case 'NEW':
                 TemplateDrawSksToolHh(drata, self.fotagoSkRosw, self.fotagoSkMain, isClassicFlow=True, tool_name="Connect to Extend Socket")
@@ -76,8 +75,6 @@ class VoronoiInterfacerTool(VoronoiToolPairSk):
         if (self.toolMode=='PASTE')and(not self.clipboard): # 预料之中; 还有 #https://projects.blender.org/blender/blender/issues/113860
             return #Todo0VV 遍历版本并指出哪些会崩溃.
         for ftgNd in self.ToolGetNearestNodes(cur_x_off=0):
-            # print(ftgNd)
-            # pprint(ftgNd.__dict__)
             nd = ftgNd.tar
             if nd.type=='REROUTE':
                 continue

@@ -2,7 +2,7 @@ import bpy
 from bpy.types import NodeTree
 from ..base_tool import VoronoiToolTripleSk, CheckUncollapseNodeAndReNext
 from ..globals import AllQuickDimensions, Cursor_X_Offset
-from ..utils.node import GetListOfNdEnums, remember_add_link, opt_ftg_socket
+from ..utils.node import node_enum_props, remember_add_link, opt_ftg_socket
 from ..utils.drawing import TemplateDrawSksToolHh
 from .matrix_convert import Convert_Data, PIE_MT_Convert_Rotation_To, PIE_MT_Separate_Matrix
 
@@ -16,8 +16,6 @@ class VoronoiQuickDimensionsTool(VoronoiToolTripleSk):
     canDrawInAddonDiscl = False
     isPlaceImmediately: bpy.props.BoolProperty(name="Place immediately", default=False)
     def CallbackDrawTool(self, drata):
-        # print(f"Quick Dimensions 类里 {drata = }")
-        # TemplateDrawSksToolHh(drata, self.fotagoSk0, self.fotagoSk1, self.fotagoSk2)
         TemplateDrawSksToolHh(drata, self.fotagoSk0, self.fotagoSk1, self.fotagoSk2, tool_name="Quick Dimensions - Output only for now")
     def NextAssignmentTool(self, isFirstActivation, prefs, tree):
         if isFirstActivation:
@@ -108,7 +106,7 @@ class VoronoiQuickDimensionsTool(VoronoiToolTripleSk):
             if sk_out0.type in {'VECTOR', 'RGBA', 'ROTATION'}:  # 但这样做的好处是, 可以为每种类型节省显式的定义.
                 aNd.inputs[0].hide_value = True
             # 设置相同的模式 (例如, RGB 和 HSV):
-            for li in GetListOfNdEnums(aNd):
+            for li in node_enum_props(aNd):
                 if hasattr(sk_out0.node, li.identifier):
                     setattr(aNd, li.identifier, getattr(sk_out0.node, li.identifier))
             # 连接:

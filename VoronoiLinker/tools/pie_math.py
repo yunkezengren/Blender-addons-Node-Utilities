@@ -124,8 +124,6 @@ class VqmtPieMath(bpy.types.Menu):
                 if _sk0:
                     if VqmtData.qmSkType in ["VALUE", "INT"]:
                         float_or_int = True
-                        # print("=="*20)
-                        # print(VqmtData.qmSkType)
                         color = float_int_color[VqmtData.qmSkType]   # 只影响提示的接口颜色
                     else:
                         color = get_sk_color(_sk0)       # 原先情况：整数接口浮点饼是整数的颜色

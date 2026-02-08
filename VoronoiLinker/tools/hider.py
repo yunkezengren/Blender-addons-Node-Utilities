@@ -183,16 +183,6 @@ class VoronoiHiderTool(VoronoiToolAny):
                 except:
                     pass
             case 'SOCKETVAL':
-                # self.fotagoAny.tar.hide_value = not self.fotagoAny.tar.hide_value    # 插件作者方法,他对节点组方法不对,只要撤销就恢复了隐藏的接口值
-                # 隐藏接口值-节点组
-                # # type(self)             <class 'VoronoiLinker.VoronoiHiderTool'>
-                # # type(self.fotagoAny)   <class 'VoronoiLinker.Fotago'>
-                # print("开始" * 30)
-                # # pprint("self.__dict__")
-                # # pprint(self.__dict__)
-                # pprint("self.fotagoAny.__dict__")
-                # pprint(self.fotagoAny.__dict__)
-                # print("结束" * 30)
                 socket = self.fotagoAny.tar
                 node = socket.node
                 # if node.bl_idname == "GeometryNodeGroup":

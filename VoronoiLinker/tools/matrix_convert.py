@@ -14,11 +14,7 @@ def Do_Rot_or_Mat_Convert(context: Context, isS: bool, isA: bool, node_type: str
     sk0 = Convert_Data.sk0
     sk1 = Convert_Data.sk1
     sk2 = Convert_Data.sk2
-    # if "ToRotation" in aNd.bl_idname:
     if not sk0.is_output:
-        # print("." * 70)
-        # print(f"{Convert_Data.__dict__ = }")
-        # pprint(Convert_Data.__dict__)
         skIn = aNd.outputs[0]
         tree.links.new(skIn, sk0)
         if sk1:
