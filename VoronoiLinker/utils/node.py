@@ -8,7 +8,7 @@ import bpy
 from mathutils import Vector as Vec2
 from ..common_forward_func import sk_label_or_name, add_item_for_index_switch
 from ..common_forward_func import *
-from bpy.app.translations import pgettext_iface as TranslateIface
+from bpy.app.translations import pgettext_iface as _iface
 
 
 def sk_loc(sk: NodeSocket):
@@ -101,7 +101,7 @@ def GenFtgsFromPuts(nd, isSide, samplePos, uiScale): # 为 vptRvEeSksHighlightin
                 elif not( (nd.type in ('BSDF_PRINCIPLED','SUBSURFACE_SCATTERING'))and(not is_bl4_plus) )or( not(sk.name in ("Subsurface Radius","Radius"))):
                     hei = 3
             boxHeiBound = (pos.y-11-hei*20,  pos.y+11+max(sk.vl_sold_is_final_linked_cou-2,0)*5*(not isSide))
-            txt = TranslateIface(sk_label_or_name(sk)) if sk.bl_idname!='NodeSocketVirtual' else TranslateIface("Virtual" if not sk.name else sk_label_or_name(sk))
+            txt = _iface(sk_label_or_name(sk)) if sk.bl_idname!='NodeSocketVirtual' else _iface("Virtual" if not sk.name else sk_label_or_name(sk))
             results.append(Fotago(sk, dist=(samplePos-pos).length, pos=pos, dir= 1 if sk.is_output else -1 , boxHeiBound=boxHeiBound, text=txt))
     return results
 
@@ -112,10 +112,10 @@ def GetNearestSocketsFtg(nd, samplePos, uiScale): # 返回"最近的插槽"列�
             # 这样的话 鼠标位置在转接点左是输入,在转接点有是输出
             distance = (samplePos - loc - Vec2((sk.is_output, 0))).length
             direction = 1 if sk.is_output else -1
-            label = nd.label or TranslateIface(sk.name)
+            label = nd.label or _iface(sk.name)
             return [Fotago(sk, dist=distance, pos=loc, dir=direction, boxHeiBound=(-1, -1), text=label)]
         return ftg_route(nd.inputs[0]), ftg_route(nd.outputs[0])
-        # ftg_route = lambda sk: Fotago(sk, dist=(samplePos - loc - Vec2((sk.is_output, 0))).length, pos=loc, dir=1 if sk.is_output else -1, boxHeiBound=(-1, -1), text=nd.label if nd.label else TranslateIface(sk.name))
+        # ftg_route = lambda sk: Fotago(sk, dist=(samplePos - loc - Vec2((sk.is_output, 0))).length, pos=loc, dir=1 if sk.is_output else -1, boxHeiBound=(-1, -1), text=nd.label if nd.label else _iface(sk.name))
         # return [ftg_route(nd.inputs[0])], [ftg_route(nd.outputs[0])]
 
     ftg_sks_in = GenFtgsFromPuts(nd, False, samplePos, uiScale)

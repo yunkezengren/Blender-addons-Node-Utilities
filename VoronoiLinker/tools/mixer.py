@@ -11,7 +11,7 @@ from ..common_forward_func import *
 from ..common_forward_class import *
 from ..base_tool import VoronoiToolTripleSk
 from ..utils.color import power_color4, get_sk_color_safe
-from bpy.app.translations import pgettext_iface as TranslateIface
+from bpy.app.translations import pgettext_iface as _iface
 
 from .mixer_sub import *
 
@@ -120,7 +120,7 @@ class VoronoiMixerTool(VoronoiToolTripleSk):
         LyAddLeftProp(col, prefs,'vmtReroutesCanInAnyType')
     @classmethod
     def LyDrawInAppearance(cls, colLy, prefs):
-        colBox = LyAddLabeledBoxCol(colLy, text=TranslateIface("Pie")+f" ({cls.vlTripleName})")
+        colBox = LyAddLabeledBoxCol(colLy, text=_iface("Pie")+f" ({cls.vlTripleName})")
         tlw = cls.vlTripleName.lower()
         LyAddHandSplitProp(colBox, prefs,f'{tlw}PieType')
         colProps = colBox.column(align=True)

@@ -11,7 +11,7 @@ from ..base_tool import VoronoiOpTool
 from ..common_forward_class import VmtData
 from ..utils.node import DoLinkHh
 from ..utils.color import get_sk_color
-from bpy.app.translations import pgettext_iface as TranslateIface
+from bpy.app.translations import pgettext_iface as _iface
 
 from bpy.types import NodeTree, Node, GeometryNodeMenuSwitch, GeometryNodeIndexSwitch, ShaderNodeCombineXYZ, FunctionNodeCompare
 
@@ -94,7 +94,7 @@ class VmtPieMixer(bpy.types.Menu):
     bl_label = "" # 这里的文本将显示在饼菜单的中心.
     def draw(self, context):
         def LyVmAddOp(where: UILayout, txt):
-            where.operator(VmtOpMixer.bl_idname, text=TranslateIface(dict_vmtMixerNodesDefs[txt][2])).operation = txt
+            where.operator(VmtOpMixer.bl_idname, text=_iface(dict_vmtMixerNodesDefs[txt][2])).operation = txt
         def LyVmAddItem(where: UILayout, txt):
             ly = where.row(align=_align)
             soldPdsc = VmtData.pieDisplaySocketColor

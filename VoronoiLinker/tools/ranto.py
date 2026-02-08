@@ -9,7 +9,7 @@ from ..utils.drawing import *
 from ..common_forward_func import *
 from ..common_forward_class import *
 from ..base_tool import VoronoiToolNd
-from bpy.app.translations import pgettext_iface as TranslateIface
+from bpy.app.translations import pgettext_iface as _iface
 
 
 # 现在 RANTO 已经集成到 VL 中了. 连我自己都感到意外.
@@ -102,7 +102,7 @@ class VoronoiRantoTool(VoronoiToolNd): #完成了.
         #    self.ndMaxAccRoot = None
         #    self.lastNdProc = None
         self.DoRANTO(ndTar, tree, prefs.vrtIsFixIslands)
-        DisplayMessage("RANTO", TranslateIface("This tool is empty")+" ¯\_(ツ)_/¯")
+        DisplayMessage("RANTO", _iface("This tool is empty")+" ¯\_(ツ)_/¯")
     def InitTool(self, event, prefs, tree):
         self.lastNdProc = None
         #self.ndMaxAccRoot = None

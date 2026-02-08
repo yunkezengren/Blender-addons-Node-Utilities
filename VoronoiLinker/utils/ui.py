@@ -1,5 +1,5 @@
 from bpy.types import UILayout
-from bpy.app.translations import pgettext_iface as TranslateIface
+from bpy.app.translations import pgettext_iface as _iface
 
 class LyAddQuickInactiveCol():
     def __init__(self, layout: UILayout, att='row', align=True, active=False):
@@ -57,7 +57,7 @@ def LyAddNiceColorProp(layout: UILayout, who, att, align=False, txt="", ico='NON
     rowCol = layout.row(align=align)
     rowLabel = rowCol.row()
     rowLabel.alignment = 'LEFT'
-    rowLabel.label(text=txt if txt else TranslateIface(who.rna_type.properties[att].name)+":")
+    rowLabel.label(text=txt if txt else _iface(who.rna_type.properties[att].name)+":")
     rowLabel.active = decor%2
     rowProp = rowCol.row()
     rowProp.alignment = 'EXPAND'

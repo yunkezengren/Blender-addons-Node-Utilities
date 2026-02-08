@@ -1,9 +1,7 @@
 import bpy
-from pprint import pprint
 from mathutils import Vector as Vec2
 from bpy.types import Node, NodeSocket
-
-# 从 globals.py 中明确导入
+from bpy.app.translations import pgettext_iface as _iface
 from .globals import dict_typeSkToBlid
 
 try:
@@ -32,7 +30,7 @@ def DisplayMessage(title: str, text, icon='NONE'):
     bpy.context.window_manager.popup_menu(PopupMessage, title=title, icon='NONE')
 
 def format_tool_set(cls: bpy.types.Operator):
-    return cls.bl_label + " tool settings"
+    return _iface(cls.bl_label) + _iface(" tool settings")
 
 # ======================放在这避免循环导入
 # 关于节点的函数 和 common_class 都用到了

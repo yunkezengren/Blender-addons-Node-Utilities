@@ -274,12 +274,12 @@ translations_dict = {
         ("*", "Keymap"): "",
         ("*", "Info"): "",
         ("*", "This list is just a copy from the \"Preferences > Keymap\".\nResrore will restore everything \"Node Editor\", not just addon"): "Этот список лишь копия из настроек. \"Восстановление\" восстановит всё, а не только аддон",
-        ("*", "The Great Trio "): "Великое трио",
-        ("*", "Others "): "Другие",
-        ("*", "Specials "): "Специальные",
-        ("*", "Invalid "): "",
-        ("*", "Quick quick math "): "Быстрая быстрая математика",
-        ("*", "Custom "): "Кастомные",
+        ("*", "Most Useful"): "Наиболее полезные",
+        ("*", "Quite Useful"): "Весьма полезные",
+        ("*", "Maybe Useful"): "Возможно полезные",
+        ("*", "Invalid"): "",
+        ("*", "Quick Math"): "Быстрая математика",
+        ("*", "Custom"): "Кастомные",
         
         # Draw settings
         ("*", "Alternative uniform color"): "Альтернативный постоянный цвет",
@@ -320,7 +320,7 @@ translations_dict = {
         ("*", "Zoom max"): "Максимальный масштаб",
     },
     
-    "zh_CN": {
+    "zh_HANS": {
         # Addon description
         ("*", "Various utilities for nodes connecting, based on distance field."): "基于距离场的多种节点连接辅助工具。",
         ("*", "For Blender versions: "): "",
@@ -328,12 +328,12 @@ translations_dict = {
         
         # Operators
         ("Operator", "Copy addon settings as .py script"): "将插件设置复制为'.py'脚本,复制到粘贴板里",
-        ("Operator", "Check for updates yourself"): "",
+        # ("Operator", "Check for updates yourself"): "",
         ("Operator", "Restore"): "恢复",
         ("Operator", "Add New"): "添加",
-        ("Operator", "Auto-node"): "",
-        ("Operator", "For socket"): "",
-        ("Operator", "For node"): "",
+        # ("Operator", "Auto-node"): "",
+        # ("Operator", "For socket"): "",
+        # ("Operator", "For node"): "",
         ("Operator", "Swap"): "交换",
         ("Operator", "Add"): "添加",
         ("Operator", "Transfer"): "转移",
@@ -365,6 +365,7 @@ translations_dict = {
         ("Operator", "Mixer Mixer"): "混合饼菜单",
         ("Operator", "Quick Math"): "快速数学运算",
         ("Operator", "Voronoi Call Node Pie"): "Voronoi联动节点饼菜单插件",
+        ("*", " tool settings"): "工具设置",
         
         # Tool display names (tool_name)
         ("*", "Linker"): "连接器",
@@ -586,12 +587,12 @@ translations_dict = {
         
         # AddonPrefs
         ("*", "This list is just a copy from the \"Preferences > Keymap\".\nResrore will restore everything \"Node Editor\", not just addon"): "危险:\"恢复\"按钮将恢复整个快捷键里\"节点编辑器\"类中的所有设置,而不仅仅是恢复此插件!下面只显示本插件的快捷键。",
-        ("*", "The Great Trio "): "最有用",
-        ("*", "Others "): "很有用",
-        ("*", "Specials "): "可能有用",
-        ("*", "Invalid "): "无效",
-        ("*", "Quick quick math "): "快速数学运算细分后(我觉得没用,有人喜欢)",
-        ("*", "Custom "): "自定义",
+        ("*", "Most Useful"): "最有用",
+        ("*", "Quite Useful"): "很有用",
+        ("*", "Maybe Useful"): "可能有用",
+        ("*", "Invalid"): "无效",
+        ("*", "Quick Math"): "快速数学运算",
+        ("*", "Custom"): "自定义",
         
         # Draw settings
         ("*", "Alternative uniform color"): "自定义轮选时接口的颜色",

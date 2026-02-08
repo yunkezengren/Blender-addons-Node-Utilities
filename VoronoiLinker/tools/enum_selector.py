@@ -8,7 +8,7 @@ from ..utils.drawing import *
 from ..common_forward_func import *
 from ..common_forward_class import *
 from ..base_tool import VoronoiOpTool, VoronoiToolNd
-from bpy.app.translations import pgettext_iface as TranslateIface
+from bpy.app.translations import pgettext_iface as _iface
 from bpy.types import EnumProperty
 
 domain_en = [
@@ -314,7 +314,7 @@ class VoronoiEnumSelectorTool(VoronoiToolNd):
         LyAddLeftProp(col, prefs,'vestIsToggleNodesOnDrag')
     @staticmethod
     def LyDrawInAppearance(colLy, prefs): # 注意: 这是 @staticmethod.
-        colBox = LyAddLabeledBoxCol(colLy, text=TranslateIface("Box ").strip()+" (VEST)")
+        colBox = LyAddLabeledBoxCol(colLy, text=_iface("Box ").strip()+" (VEST)")
         LyAddHandSplitProp(colBox, prefs,'vestBoxScale')
         LyAddHandSplitProp(colBox, prefs,'vestDisplayLabels')
         LyAddHandSplitProp(colBox, prefs,'vestDarkStyle')

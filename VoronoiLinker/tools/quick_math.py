@@ -10,7 +10,7 @@ from ..utils.drawing import *
 from ..common_forward_func import *
 from ..common_forward_class import *
 from ..base_tool import VoronoiToolTripleSk
-from bpy.app.translations import pgettext_iface as TranslateIface
+from bpy.app.translations import pgettext_iface as _iface
 
 
 set_vqmtSkTypeFields = {'VALUE', 'RGBA', 'VECTOR', 'INT', 'BOOLEAN', 'ROTATION', 'MATRIX'}
@@ -213,7 +213,7 @@ class VoronoiQuickMathTool(VoronoiToolTripleSk):
     @classmethod
     def LyDrawInAppearance(cls, colLy, prefs):
         #VoronoiMixerTool.__dict__['LyDrawInAppearance'].__func__(cls, colLy, prefs) #该死. 由于 @classmethod 而绕过. 但现在没必要了, 因为有了 vqmtPieScaleExtra.
-        colBox = LyAddLabeledBoxCol(colLy, text=TranslateIface("Pie")+" (VQMT)")
+        colBox = LyAddLabeledBoxCol(colLy, text=_iface("Pie")+" (VQMT)")
         LyAddHandSplitProp(colBox, prefs,'vqmtPieType')
         colProps = colBox.column(align=True)
         LyAddHandSplitProp(colProps, prefs,'vqmtPieScale')

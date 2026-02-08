@@ -12,11 +12,11 @@ bl_info2 = {'name': "Voronoi Linker",
 
 from builtins import len as length       # 我超爱三个字母的变量名.没有像"len"这样的名字, 我会感到非常伤心和孤独... 😭 还有 'Vector.length' 也是.
 import bpy, rna_keymap_ui, bl_keymap_utils
-from bpy.types import UILayout
+from bpy.types import UILayout, KeyMapItem
 from bpy.props import (BoolProperty, EnumProperty, FloatProperty, FloatVectorProperty, IntProperty, IntVectorProperty, StringProperty)
-from bpy.app.translations import pgettext_iface as TranslateIface
+from bpy.app.translations import pgettext_iface as _iface
+from typing import Callable
 from time import perf_counter_ns
-from pprint import pprint
 
 from .base_tool import *
 from .globals import *
@@ -75,7 +75,7 @@ dict_classes = {} # 所有需要注册的类都放在这里. 使用字典是为�
 dict_vtClasses = {} # 只存放 V*T (Voronoi Tool) 工具.
 
 list_kmiDefs = []
-dict_setKmiCats = {'最有用':set(), '很有用':set(), '可能有用':set(), '无效':set(), 'qqm':set(), 'cus':set()}
+dict_setKmiCats = {'最有用':set(), '很有用':set(), '可能有用':set(), '无效':set(), 'qqm':set(), 'custom':set()}
 
 def smart_add_to_reg_and_kmiDefs(cls, txt, dict_props={}):
     dict_numToKey = {"1":'ONE', "2":'TWO', "3":'THREE', "4":'FOUR', "5":'FIVE', "6":'SIX', "7":'SEVEN', "8":'EIGHT', "9":'NINE', "0":'ZERO'}
@@ -443,7 +443,7 @@ class VoronoiOpAddonTabs(bpy.types.Operator):
         return {'FINISHED'}
 
 class VoronoiAddonPrefs(bpy.types.AddonPreferences):
-    bl_idname = __package__
+    bl_idname = __package__ # type: ignore
     # --- VoronoiLinkerTool
     vltRepickKey            : StringProperty(name="Repick Key", default='LEFT_ALT')
     vltReroutesCanInAnyType : BoolProperty(name="Reroutes can be connected to any type", default=True)
@@ -513,12 +513,12 @@ class VoronoiAddonPrefs(bpy.types.AddonPreferences):
     vaUiTabs             : EnumProperty(name="Addon Prefs Tabs", default='SETTINGS', items=fitTabItems)
     vaInfoRestore        : BoolProperty(name="", description="This list is just a copy from the \"Preferences > Keymap\".\nResrore will restore everything \"Node Editor\", not just addon")
     # Box disclosures:
-    vaKmiMainstreamDiscl : BoolProperty(name="The Great Trio ", default=True) # 注意: 空格对翻译很重要.
-    vaKmiOtjersDiscl     : BoolProperty(name="Others ", default=False)
-    vaKmiSpecialDiscl    : BoolProperty(name="Specials ", default=False)
-    vaKmiInvalidDiscl    : BoolProperty(name="Invalid ", default=False)
-    vaKmiQqmDiscl        : BoolProperty(name="Quick quick math ", default=False)
-    vaKmiCustomDiscl     : BoolProperty(name="Custom ", default=True)
+    vaKmiMainstreamDiscl : BoolProperty(name="Most Useful", default=True)
+    vaKmiOtjersDiscl     : BoolProperty(name="Quite Useful", default=False)
+    vaKmiSpecialDiscl    : BoolProperty(name="Maybe Useful", default=False)
+    vaKmiInvalidDiscl    : BoolProperty(name="Invalid", default=False)
+    vaKmiQqmDiscl        : BoolProperty(name="Quick Math", default=False)
+    vaKmiCustomDiscl     : BoolProperty(name="Custom", default=True)
     vaDecorLy            : FloatVectorProperty(name="DecorForLayout",   default=(0.01, 0.01, 0.01),   min=0, max=1, size=3, subtype='COLOR')
     vaDecorColSk         : FloatVectorProperty(name="DecorForColSk",    default=(1.0, 1.0, 1.0, 1.0), min=0, max=1, size=4, subtype='COLOR', update=VaUpdateDecorColSk)
     vaDecorColSkBack     : FloatVectorProperty(name="vaDecorColSkBack", default=(1.0, 1.0, 1.0, 1.0), min = 0, max=1, size=4, subtype='COLOR')
@@ -700,30 +700,30 @@ class VoronoiAddonPrefs(bpy.types.AddonPreferences):
         colList = colMain.column(align=True)
         node_kms = user_node_keymaps()
         ##
-        kmiCats = KmiCats()
-        kmiCats.cus = KmiCat('vaKmiCustomDiscl',     set())
-        kmiCats.qqm = KmiCat('vaKmiQqmDiscl',        set(), dict_setKmiCats["qqm"] )
-        kmiCats.useful_1 = KmiCat('vaKmiMainstreamDiscl', set(), dict_setKmiCats["最有用"] )
-        kmiCats.useful_2 = KmiCat('vaKmiOtjersDiscl',     set(), dict_setKmiCats["很有用"] )
-        kmiCats.useful_3 = KmiCat('vaKmiSpecialDiscl',    set(), dict_setKmiCats["可能有用"] )
-        kmiCats.useful_4 = KmiCat('vaKmiInvalidDiscl',    set(), dict_setKmiCats["无效"] )
-        kmiCats.cus.LCond = lambda a: a.id<0 # 负id用于自定义? 好吧. 就当是识别标准了.
-        kmiCats.qqm.LCond = lambda a: any(True for txt in {'quickOprFloat','quickOprVector','quickOprBool','quickOprColor','justPieCall','isRepeatLastOperation'} if getattr(a.properties, txt, None))
-        kmiCats.useful_1.LCond = lambda a: a.idname in kmiCats.useful_1.set_idn
-        kmiCats.useful_2.LCond = lambda a: a.idname in kmiCats.useful_2.set_idn
-        kmiCats.useful_3.LCond = lambda a: a.idname in kmiCats.useful_3.set_idn
-        kmiCats.useful_4.LCond = lambda a: True
+        kmiCats = KeymapItemCategoryContainer()
+        kmiCats.qqm = KeymapItemCategory('vaKmiQqmDiscl', set(), dict_setKmiCats["qqm"])
+        kmiCats.custom = KeymapItemCategory('vaKmiCustomDiscl', set())
+        kmiCats.useful_1 = KeymapItemCategory('vaKmiMainstreamDiscl', set(), dict_setKmiCats["最有用"])
+        kmiCats.useful_2 = KeymapItemCategory('vaKmiOtjersDiscl', set(), dict_setKmiCats["很有用"])
+        kmiCats.useful_3 = KeymapItemCategory('vaKmiSpecialDiscl', set(), dict_setKmiCats["可能有用"])
+        kmiCats.useful_4 = KeymapItemCategory('vaKmiInvalidDiscl', set(), dict_setKmiCats["无效"])
+        kmiCats.useful_1.filter_func = lambda kmi: kmi.idname in kmiCats.useful_1.item_idnames
+        kmiCats.useful_2.filter_func = lambda kmi: kmi.idname in kmiCats.useful_2.item_idnames
+        kmiCats.useful_3.filter_func = lambda kmi: kmi.idname in kmiCats.useful_3.item_idnames
+        kmiCats.useful_4.filter_func = lambda kmi: True
+        kmiCats.qqm.filter_func = lambda kmi: any(True for txt in {'quickOprFloat', 'quickOprVector', 'quickOprBool', 'quickOprColor', 'justPieCall', 'isRepeatLastOperation'} if getattr(kmi.properties, txt, None))
+        kmiCats.custom.filter_func = lambda kmi: kmi.id < 0  # 负id用于自定义
         # 在旧版插件中, 使用另一种搜索方法, "keymap" 标签页中的顺序与注册具有相同 `cls` 的 kmidef 的调用顺序相反.
         # 现在改成了这样. 之前的方法是如何工作的 -- 我完全不知道.
         scoAll = 0
         for li in node_kms.keymap_items:
             if li.idname.startswith("node.voronoi_"):
                 for dv in kmiCats.__dict__.values():
-                    if dv.LCond(li):
-                        dv.set_kmis.add(li)
-                        dv.sco += 1
+                    if dv.filter_func(li):
+                        dv.matched_items.add(li)
+                        dv.count += 1
                         break
-                scoAll += 1 # 热键现在变得非常非常多, 知道它们的数量会很不错.
+                scoAll += 1  # 热键现在变得非常非常多, 知道它们的数量会很不错.
         if node_kms.is_user_modified:
             rowRestore = rowLabelMain.row(align=True)
             with LyAddQuickInactiveCol(rowRestore, align=False, active=True) as row:
@@ -737,17 +737,17 @@ class VoronoiAddonPrefs(bpy.types.AddonPreferences):
         rowAddNew.separator()
         rowAddNew.operator(VoronoiOpAddonTabs.bl_idname, text="Add New", icon='ADD').opt = 'AddNewKmi' # NONE  ADD
         def LyAddKmisCategory(where: UILayout, cat):
-            if not cat.set_kmis:
+            if not cat.matched_items:
                 return
             colListCat = where.row().column(align=True)
-            txt = self.bl_rna.properties[cat.propName].name
-            if not LyAddDisclosureProp(colListCat, self, cat.propName, txt=TranslateIface(msgid=txt)+f" ({cat.sco})", isWide=1-1):
+            txt = self.bl_rna.properties[cat.prop_name].name
+            if not LyAddDisclosureProp(colListCat, self, cat.prop_name, txt=_iface(txt)+f" ({cat.count})", isWide=1-1):
                 return
-            # for li in cat.set_kmis:
-            for li in sorted(cat.set_kmis, key=lambda a:a.id):
+            # for li in cat.matched_items:
+            for li in sorted(cat.matched_items, key=lambda a:a.id):
                 colListCat.context_pointer_set('keymap', node_kms)
                 rna_keymap_ui.draw_kmi([], bpy.context.window_manager.keyconfigs.user, node_kms, li, colListCat, 0) # 注意: 如果 colListCat 不是 colListCat, 那么删除 kmi 的功能将不可用.
-        LyAddKmisCategory(colList, kmiCats.cus)
+        LyAddKmisCategory(colList, kmiCats.custom)
         LyAddKmisCategory(colList, kmiCats.useful_1)
         LyAddKmisCategory(colList, kmiCats.useful_2)
         LyAddKmisCategory(colList, kmiCats.useful_3)
@@ -845,7 +845,7 @@ class VoronoiAddonPrefs(bpy.types.AddonPreferences):
                     row.label(text=label+": ", translate=False)
                 row = rowRoot.row(align=True)
                 col = row.column(align=True)
-                text = TranslateIface(text)
+                text = _iface(text)
                 if text:
                     list_split = text.split("\n")
                     hig = length(list_split)-1
@@ -867,7 +867,7 @@ class VoronoiAddonPrefs(bpy.types.AddonPreferences):
             typeEnum = bpy.types.EnumProperty
             match self.vaLangDebEnum:
                 case 'FREE':
-                    txt = TranslateIface("Free")
+                    txt = _iface("Free")
                     col = LyAddAlertNested(colLangDebug, f"{txt}")
                     col.label(text="Virtual")
                     col.label(text="Colored")
@@ -896,7 +896,7 @@ class VoronoiAddonPrefs(bpy.types.AddonPreferences):
                     col.label(text=txt_copySettAsPyScript)
                     col.label(text=txt_checkForUpdatesYourself)
                 case 'SPECIAL':
-                    txt = TranslateIface("Special")
+                    txt = _iface("Special")
                     col0 = LyAddAlertNested(colLangDebug, f"[{txt}]")
                     col1 = LyAddAlertNested(col0, "VMT")
                     for dv in dict_vmtMixerNodesDefs.values():
@@ -941,7 +941,7 @@ class VoronoiAddonPrefs(bpy.types.AddonPreferences):
         # 而且现在它们被装饰得更像"标签页"了, 这是普通的 prop 布局 с 'expand=True' 无法做到的.
         for cyc, li in enumerate(en for en in self.rna_type.properties['vaUiTabs'].enum_items):
             col = rowTabs.row().column(align=True)
-            col.operator(VoronoiOpAddonTabs.bl_idname, text=TranslateIface(li.name), depress=self.vaUiTabs==li.identifier).opt = li.identifier
+            col.operator(VoronoiOpAddonTabs.bl_idname, text=_iface(li.name), depress=self.vaUiTabs==li.identifier).opt = li.identifier
             # 现在更像标签页了
             LyAddDecorLyColRaw(col.row(align=True)) # row.operator(VoronoiOpAddonTabs.bl_idname, text="", emboss=False) # 通过操作符也行.
             #col.scale_x = min(1.0, (5.5-cyc)/2)
@@ -967,15 +967,29 @@ for cls in dict_vtClasses:
     exec(f"class VoronoiAddonPrefs(VoronoiAddonPrefs): {cls.disclBoxPropName}: bpy.props.BoolProperty(name=\"\", default=False)")
     exec(f"class VoronoiAddonPrefs(VoronoiAddonPrefs): {cls.disclBoxPropNameInfo}: bpy.props.BoolProperty(name=\"\", default=False)")
 
-class KmiCat():
-    def __init__(self, propName='', set_kmis=set(), set_idn=set()):
-        self.propName = propName
-        self.set_kmis = set_kmis
-        self.set_idn = set_idn
-        self.sco = 0
+class KeymapItemCategory:
+    """快捷键项分类 - 用于组织和过滤keymap items"""
+    prop_name: str
+    matched_items: set
+    item_idnames: set
+    count: int
+    filter_func: Callable[[KeyMapItem], bool] | None
 
-class KmiCats:
-    pass
+    def __init__(self, prop_name='', matched_items=set(), item_idnames=set()):
+        self.prop_name = prop_name
+        self.matched_items = matched_items
+        self.item_idnames = item_idnames
+        self.count = 0
+        self.filter_func = None
+
+class KeymapItemCategoryContainer:
+    """快捷键项分类容器 - 管理多个KeymapItemCategory实例"""
+    useful_1: KeymapItemCategory
+    useful_2: KeymapItemCategory
+    useful_3: KeymapItemCategory
+    useful_4: KeymapItemCategory
+    qqm: KeymapItemCategory
+    custom: KeymapItemCategory
 
 _classes = [
     VmtOpMixer,
@@ -1000,6 +1014,7 @@ list_addonKeymaps = []
 register_from_main = False
 
 def register():
+    bpy.app.translations.register(__package__, translations_dict)
     for dk in dict_classes:
         bpy.utils.register_class(dk)
 
@@ -1022,13 +1037,11 @@ def register():
             for dk, dv in dict_props.items():
                 setattr(kmi.properties, dk, dv)
         list_addonKeymaps.append(kmi)
-    
-    bpy.app.translations.register(__package__, translations_dict)
+
     RegisterSolderings()
 
 def unregister():
     UnregisterSolderings()
-    bpy.app.translations.unregister(__package__)
 
     km = bpy.context.window_manager.keyconfigs.addon.keymaps["Node Editor"]
     for li in list_addonKeymaps:
@@ -1037,6 +1050,7 @@ def unregister():
 
     for dk in dict_classes:
         bpy.utils.unregister_class(dk)
+    bpy.app.translations.unregister(__package__)
 
 def DisableKmis(): # 用于重复运行脚本. 在第一次"恢复"之前有效.
     node_kms = user_node_keymaps()
