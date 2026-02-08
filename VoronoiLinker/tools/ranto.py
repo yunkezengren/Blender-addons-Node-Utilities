@@ -1,8 +1,8 @@
 import bpy
-from ..common_forward_func import DisplayMessage
-from ..base_tool import VoronoiToolNd
-from ..utils.ui import LyAddLeftProp
 from bpy.app.translations import pgettext_iface as _iface
+from ..base_tool import VoronoiToolNd
+from ..common_forward_func import DisplayMessage
+from ..utils.ui import LyAddLeftProp
 
 # 现在 RANTO 已经集成到 VL 中了. 连我自己都感到意外.
 # 参见原版: https://github.com/ugorek000/RANTO

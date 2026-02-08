@@ -1,5 +1,5 @@
-from bpy.types import UILayout
 from bpy.app.translations import pgettext_iface as _iface
+from bpy.types import UILayout
 
 class LyAddQuickInactiveCol():
     def __init__(self, layout: UILayout, att='row', align=True, active=False):

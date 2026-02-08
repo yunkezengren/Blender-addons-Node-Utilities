@@ -1,8 +1,8 @@
-from ..utils.solder import SolderSkLinks
-from ..utils.node import GenFtgFromNd
-from ..common_forward_func import sk_label_or_name
-from ..base_tool import VoronoiToolPairNd, TemplateDrawSksToolHh, TemplateDrawNodeFull
 import bpy
+from ..base_tool import TemplateDrawNodeFull, TemplateDrawSksToolHh, VoronoiToolPairNd
+from ..common_forward_func import sk_label_or_name
+from ..utils.node import GenFtgFromNd
+from ..utils.solder import SolderSkLinks
 
 class VoronoiLinksTransferTool(VoronoiToolPairNd): #Todo2v6 与 VST 合并并变成 "PairAny" 的候选者.
     bl_idname = 'node.voronoi_links_transfer'

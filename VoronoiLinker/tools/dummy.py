@@ -1,5 +1,5 @@
 import bpy
-from ..base_tool import VoronoiToolSk, TemplateDrawSksToolHh, CheckUncollapseNodeAndReNext
+from ..base_tool import CheckUncollapseNodeAndReNext, TemplateDrawSksToolHh, VoronoiToolSk
 from ..utils.node import MinFromFtgs, VlrtRememberLastSockets
 from ..utils.ui import LyAddNiceColorProp
 

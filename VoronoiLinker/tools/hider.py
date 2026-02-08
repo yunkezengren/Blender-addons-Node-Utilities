@@ -1,6 +1,6 @@
 import bpy
+from ..base_tool import CheckUncollapseNodeAndReNext, VoronoiToolAny
 from ..common_forward_func import sk_label_or_name
-from ..base_tool import VoronoiToolAny, CheckUncollapseNodeAndReNext
 from ..utils.node import MinFromFtgs
 from ..utils.ui import LyAddHandSplitProp, LyAddLeftProp
 

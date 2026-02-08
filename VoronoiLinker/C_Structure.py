@@ -2,7 +2,6 @@ import ctypes
 import bpy
 from bpy.types import NodeSocket
 from .globals import isWin, is_bl4_plus, is_bl5_plus
-# from typing import cast
 
 class StructBase(ctypes.Structure):
     _subclasses = []

@@ -1,15 +1,15 @@
-from ..utils.solder import SolderSkLinks, SoldThemeCols
-from ..utils.color import get_sk_color_safe, Color4, power_color4
-from ..base_tool import VoronoiToolSk, CheckUncollapseNodeAndReNext, is_builtin_tree_idname
-from ..globals import is_bl4_plus, voronoiAnchorCnName, voronoiSkPreviewName, voronoiAnchorDtName, voronoiPreviewResultNdName, Cursor_X_Offset
-from ..utils.ui import LyAddLeftProp, LyAddNoneBox
-from ..utils.node import VlrtRememberLastSockets, GenFtgsFromPuts, SelectAndActiveNdOnly
-from ..utils.drawing import DrawVlSocketArea, DrawVlSkText, TemplateDrawSksToolHh
-from ..common_forward_func import sk_type_to_idname
-from ..common_forward_class import VptData
-from ..C_Structure import BNode
 import bpy
 from mathutils import Vector as Vec2
+from ..base_tool import CheckUncollapseNodeAndReNext, VoronoiToolSk, is_builtin_tree_idname
+from ..C_Structure import BNode
+from ..common_forward_class import VptData
+from ..common_forward_func import sk_type_to_idname
+from ..globals import Cursor_X_Offset, is_bl4_plus, voronoiAnchorCnName, voronoiAnchorDtName, voronoiPreviewResultNdName, voronoiSkPreviewName
+from ..utils.color import Color4, get_sk_color_safe, power_color4
+from ..utils.drawing import DrawVlSkText, DrawVlSocketArea, TemplateDrawSksToolHh
+from ..utils.node import GenFtgsFromPuts, SelectAndActiveNdOnly, VlrtRememberLastSockets
+from ..utils.solder import SolderSkLinks, SoldThemeCols
+from ..utils.ui import LyAddLeftProp, LyAddNoneBox
 
 viaverSkfMethod = -1 # 用于成功交互方法的切换开关. 本可以按版本分布到映射表中, 但"根据实际情况"尝试有其独特的美学魅力.
 

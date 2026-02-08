@@ -1,8 +1,8 @@
 import bpy
-from ..common_forward_class import TryAndPass
-from ..utils.solder import SolderSkLinks
-from ..utils.drawing import TemplateDrawNodeFull
 from ..base_tool import VoronoiToolNd
+from ..common_forward_class import TryAndPass
+from ..utils.drawing import TemplateDrawNodeFull
+from ..utils.solder import SolderSkLinks
 
 class VoronoiResetNodeTool(VoronoiToolNd):
     bl_idname = 'node.voronoi_reset_node'

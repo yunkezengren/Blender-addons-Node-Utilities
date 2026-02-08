@@ -1,9 +1,9 @@
-from ..base_tool import VoronoiToolPairSk, CheckUncollapseNodeAndReNext
-from ..utils.ui import LyAddKeyTxtProp, LyAddLeftProp
-from ..utils.node import opt_ftg_socket, IsClassicSk, VlrtRememberLastSockets
-from ..utils.drawing import TemplateDrawSksToolHh
 import bpy
 from bpy.types import NodeTree
+from ..base_tool import CheckUncollapseNodeAndReNext, VoronoiToolPairSk
+from ..utils.drawing import TemplateDrawSksToolHh
+from ..utils.node import IsClassicSk, opt_ftg_socket, VlrtRememberLastSockets
+from ..utils.ui import LyAddKeyTxtProp, LyAddLeftProp
 
 def is_unlink_route(node):
     if node.type == 'REROUTE' and (not (node.inputs[0].links or node.outputs[0].links)):

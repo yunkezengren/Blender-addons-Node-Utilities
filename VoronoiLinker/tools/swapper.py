@@ -1,5 +1,5 @@
 import bpy
-from ..base_tool import VoronoiToolPairSk, CheckUncollapseNodeAndReNext
+from ..base_tool import CheckUncollapseNodeAndReNext, VoronoiToolPairSk
 from ..utils.drawing import TemplateDrawSksToolHh
 from ..utils.node import MinFromFtgs, opt_ftg_socket
 

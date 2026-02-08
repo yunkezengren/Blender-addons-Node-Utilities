@@ -1,11 +1,11 @@
 import bpy
 from bpy.types import UILayout
 from ..base_tool import VoronoiOpTool
-from ..globals import float_int_color, Color_Bar_Width, floatIntColorInverse, dict_vqmtQuickMathMain, dict_vqmtQuickPresets
-from ..utils.color import power_color4, get_sk_color
-from ..utils.node import DoQuickMath
 from ..common_forward_class import VqmtData
 from ..common_forward_func import Prefs
+from ..globals import Color_Bar_Width, dict_vqmtQuickMathMain, dict_vqmtQuickPresets, float_int_color, floatIntColorInverse
+from ..utils.color import get_sk_color, power_color4
+from ..utils.node import DoQuickMath
 
 class VqmtOpMain(VoronoiOpTool):
     bl_idname = 'node.voronoi_quick_math_main'

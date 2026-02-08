@@ -1,11 +1,11 @@
-from ..C_Structure import BNodeSocket
-from ..globals import is_bl4_plus, set_classicSocketsBlid, set_utilTypeSkFields, set_utilEquestrianPortalBlids, dict_vqmtDefaultDefault, dict_vqmtDefaultValueOperation, dict_vqmtEditorNodes
-from ..common_forward_class import Node_Items_Manager, Fotago, VqmtData
-from bpy.types import (NodeTree, Node, NodeSocket)
 import bpy
 from mathutils import Vector as Vec2
-from ..common_forward_func import sk_label_or_name, add_item_for_index_switch, is_builtin_tree_idname, sk_type_to_idname
 from bpy.app.translations import pgettext_iface as _iface
+from bpy.types import Node, NodeSocket, NodeTree
+from ..C_Structure import BNodeSocket
+from ..common_forward_class import Fotago, Node_Items_Manager, VqmtData
+from ..common_forward_func import add_item_for_index_switch, is_builtin_tree_idname, sk_label_or_name, sk_type_to_idname
+from ..globals import dict_vqmtDefaultDefault, dict_vqmtDefaultValueOperation, dict_vqmtEditorNodes, is_bl4_plus, set_classicSocketsBlid, set_utilEquestrianPortalBlids, set_utilTypeSkFields
 
 def sk_loc(sk: NodeSocket):
     return Vec2(BNodeSocket.GetFields(sk).runtime.contents.location[:]) if (sk.enabled) and (not sk.hide) else Vec2((0, 0))

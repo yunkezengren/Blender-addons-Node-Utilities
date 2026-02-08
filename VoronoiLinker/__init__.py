@@ -10,19 +10,20 @@ bl_info2 = {'name': "Voronoi Linker",
            'wiki_url': "https://github.com/neliut/VoronoiLinker/wiki",  # bl_info 因为4.2吗? 相同的键会被 blender_manifest 覆盖,不同的删除
            'tracker_url': "https://github.com/neliut/VoronoiLinker/issues"}
 
-import bpy, rna_keymap_ui, bl_keymap_utils
-from bpy.app.translations import pgettext_iface as _iface
-from bpy.props import (BoolProperty, EnumProperty, FloatProperty, FloatVectorProperty, IntProperty, IntVectorProperty, StringProperty)
-from bpy.types import UILayout, KeyMapItem, Operator
+import bl_keymap_utils
+import bpy
+import rna_keymap_ui
 from time import perf_counter_ns
 from typing import Callable
-
+from bpy.app.translations import pgettext_iface as _iface
+from bpy.props import BoolProperty, EnumProperty, FloatProperty, FloatVectorProperty, IntProperty, IntVectorProperty, StringProperty
+from bpy.types import KeyMapItem, Operator, UILayout
 from .common_forward_class import VlnstUpdateLastExecError
-from .common_forward_func import GetFirstUpperLetters, user_node_keymaps, format_tool_set, Prefs
+from .common_forward_func import GetFirstUpperLetters, Prefs, format_tool_set, user_node_keymaps
 from .globals import dict_vlHhTranslations, dict_vmtMixerNodesDefs, dict_vqmtQuickMathMain
 from .tools.call_node_pie import VoronoiCallNodePie
 from .tools.dummy import VoronoiDummyTool
-from .tools.enum_selector import VoronoiEnumSelectorTool, VestOpBox, VestPieBox, SNA_OT_Change_Node_Domain_And_Name
+from .tools.enum_selector import SNA_OT_Change_Node_Domain_And_Name, VestOpBox, VestPieBox, VoronoiEnumSelectorTool
 from .tools.hider import VoronoiHiderTool
 from .tools.interfacer import VoronoiInterfacerTool
 from .tools.lazy_node_stencils import VoronoiLazyNodeStencilsTool
@@ -30,7 +31,7 @@ from .tools.link_repeating import VoronoiLinkRepeatingTool
 from .tools.linker import VoronoiLinkerTool
 from .tools.links_transfer import VoronoiLinksTransferTool
 from .tools.mass_linker import VoronoiMassLinkerTool
-from .tools.matrix_convert import Rot_or_Mat_Convert, PIE_MT_Convert_To_Rotation, PIE_MT_Convert_Rotation_To, PIE_MT_Separate_Matrix, PIE_MT_Combine_Matrix
+from .tools.matrix_convert import PIE_MT_Combine_Matrix, PIE_MT_Convert_Rotation_To, PIE_MT_Convert_To_Rotation, PIE_MT_Separate_Matrix, Rot_or_Mat_Convert
 from .tools.mixer import VoronoiMixerTool
 from .tools.mixer_sub import VmtOpMixer, VmtPieMixer
 from .tools.pie_math import VqmtOpMain, VqmtPieMath
@@ -42,10 +43,10 @@ from .tools.quick_math import VoronoiQuickMathTool
 from .tools.reset_node import VoronoiResetNodeTool
 from .tools.swapper import VoronoiSwapperTool
 from .tools.warper import VoronoiWarperTool
-from .utils.drawing import TestDraw
-from .utils.solder import SolderClsToolNames, RegisterSolderings, UnregisterSolderings
-from .utils.ui import LyAddDisclosureProp, LyAddLabeledBoxCol, LyAddHandSplitProp, LyAddThinSep, LyAddQuickInactiveCol, LyAddEtb
 from .translations import translations_dict
+from .utils.drawing import TestDraw
+from .utils.solder import RegisterSolderings, SolderClsToolNames, UnregisterSolderings
+from .utils.ui import LyAddDisclosureProp, LyAddEtb, LyAddHandSplitProp, LyAddLabeledBoxCol, LyAddQuickInactiveCol, LyAddThinSep
 
 try:
     from rich import traceback

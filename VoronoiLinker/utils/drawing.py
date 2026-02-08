@@ -1,14 +1,18 @@
-import gpu, gpu_extras, blf, copy
+from __future__ import annotations
+import copy
+from math import cos, pi, sin
+import bpy, blf, gpu, gpu_extras
 from mathutils import Vector as Vec2
-from math import pi, cos, sin
-import bpy
 from bpy.app.translations import pgettext_iface as _iface
-from bpy.types import NodeSocket, Context
+from bpy.types import Context, NodeSocket
 from ..C_Structure import View2D
-from .node import node_abs_loc
-from .color import Color4, power_color4, clamp_color4, opaque_color4, get_color_black_alpha, get_sk_color_safe, get_sk_color
-from .solder import node_tag_color
 from ..common_forward_func import Prefs
+from .color import Color4, clamp_color4, get_color_black_alpha, get_sk_color, get_sk_color_safe, opaque_color4, power_color4
+from .node import node_abs_loc
+from .solder import node_tag_color
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from ..common_forward_class import Fotago
 
 tup_whiteCol4 = (1.0, 1.0, 1.0, 1.0)
 
@@ -273,9 +277,16 @@ def TemplateDrawNodeFull(drata: VlDrawData, ftgNd, *, side=1, tool_name=""): # �
 
 # 高级套接字绘制模板. 现在名称中有"Sk", 因为节点已完全进入 VL.
 # 在旧版本中的硬核之后, 使用这个模板简直是享受 (甚至不要看那里, 那里简直是地狱).
-def TemplateDrawSksToolHh(drata: VlDrawData, *args_ftgSks, sideMarkHh=1, isDrawText=True,
-                          isClassicFlow=False, isDrawMarkersMoreTharOne=False, tool_name=""): # 模板重新思考过了, 万岁. 感觉上并没有变得更好.
-    def GetPosFromFtg(ftg):
+def TemplateDrawSksToolHh(
+    drata: VlDrawData,
+    *args_ftgSks: Fotago,
+    sideMarkHh=1,
+    isDrawText=True,
+    isClassicFlow=False,
+    isDrawMarkersMoreTharOne=False,
+    tool_name="",
+):  # 模板重新思考过了, 万岁. 感觉上并没有变得更好.
+    def GetPosFromFtg(ftg: Fotago):
         return ftg.pos+Vec2((drata.dsPointOffsetX*ftg.dir, 0.0))
     list_ftgSks = [ar for ar in args_ftgSks if ar]
     cursorLoc = drata.cursorLoc
@@ -348,7 +359,7 @@ def TemplateDrawSksToolHh(drata: VlDrawData, *args_ftgSks, sideMarkHh=1, isDrawT
     #     txt_col = node_tag_color(list_ftgSks[0].tar.node)
     #     DrawVlSkText(drata, cursorLoc2, (0, 0), ftg_show_name, tool_color=txt_col)
     #     # DrawWorldText(drata, drata.cursorLoc, (0, 0), tool_name, text_color=colTx, colBg=colTx)
-    
+
     # 经典流程的光标下点
     if (isClassicFlow and isOne)and(drata.dsIsDrawPoint):
         DrawVlWidePoint(drata, cursorLoc, col1=drata.dsCursorColor, col2=drata.dsCursorColor)

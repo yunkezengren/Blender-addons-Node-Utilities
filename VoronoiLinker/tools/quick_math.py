@@ -1,13 +1,13 @@
 import bpy
 from bpy.app.translations import pgettext_iface as _iface
-from ..base_tool import VoronoiToolTripleSk, TemplateDrawSksToolHh, CheckUncollapseNodeAndReNext
+from ..base_tool import CheckUncollapseNodeAndReNext, TemplateDrawSksToolHh, VoronoiToolTripleSk
 from ..common_forward_class import VqmtData
-from ..common_forward_func import DisplayMessage, SetPieData, Prefs
-from ..globals import float_int_color, Cursor_X_Offset
-from ..utils.color import power_color4, get_sk_color_safe
-from ..utils.node import opt_ftg_socket, DoQuickMath
+from ..common_forward_func import DisplayMessage, Prefs, SetPieData
+from ..globals import Cursor_X_Offset, float_int_color
+from ..utils.color import get_sk_color_safe, power_color4
+from ..utils.node import DoQuickMath, opt_ftg_socket
 from ..utils.solder import dict_skTypeHandSolderingColor
-from ..utils.ui import LyAddLeftProp, LyAddKeyTxtProp, LyAddLabeledBoxCol, LyAddHandSplitProp
+from ..utils.ui import LyAddHandSplitProp, LyAddKeyTxtProp, LyAddLabeledBoxCol, LyAddLeftProp
 
 set_vqmtSkTypeFields = {'VALUE', 'RGBA', 'VECTOR', 'INT', 'BOOLEAN', 'ROTATION', 'MATRIX'}
 fitVqmtRloDescr = "Bypassing the pie call, activates the last used operation for the selected socket type.\n"+\

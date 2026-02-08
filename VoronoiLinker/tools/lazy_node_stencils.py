@@ -1,13 +1,13 @@
+import copy
 import bpy
 from mathutils import Vector as Vec2
-from ..base_tool import VoronoiToolPairSk, CheckUncollapseNodeAndReNext
-from ..globals import dict_typeSkToBlid
-from ..utils.ui import LyAddNiceColorProp
-from ..utils.node import sk_type_to_idname, opt_ftg_socket, MinFromFtgs
-from ..utils.drawing import TemplateDrawSksToolHh, DrawVlWidePoint
-from ..common_forward_func import sk_label_or_name
+from ..base_tool import CheckUncollapseNodeAndReNext, VoronoiToolPairSk
 from ..common_forward_class import VlnstData
-import copy
+from ..common_forward_func import sk_label_or_name
+from ..globals import dict_typeSkToBlid
+from ..utils.drawing import DrawVlWidePoint, TemplateDrawSksToolHh
+from ..utils.node import MinFromFtgs, opt_ftg_socket, sk_type_to_idname
+from ..utils.ui import LyAddNiceColorProp
 
 # 突然发现, 我以前对"懒人延续"工具的想法被封装在了这个工具里. 真是出乎意料.
 # 这个工具, 和 ^ (其中插槽和节点明确决定了下一个节点) 一样, 只不过是针对两个插槽的; 而且可能性更多!

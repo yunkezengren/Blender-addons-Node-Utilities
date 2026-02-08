@@ -1,8 +1,8 @@
-from ..utils.solder import SolderSkLinks
-from ..utils.node import DoLinkHh, CompareSkLabelName, VlrtRememberLastSockets, VlrtData
-from ..globals import Cursor_X_Offset, set_utilTypeSkFields
-from ..base_tool import VoronoiToolAny, CheckUncollapseNodeAndReNext
 import bpy
+from ..base_tool import CheckUncollapseNodeAndReNext, VoronoiToolAny
+from ..globals import Cursor_X_Offset, set_utilTypeSkFields
+from ..utils.node import CompareSkLabelName, DoLinkHh, VlrtData, VlrtRememberLastSockets
+from ..utils.solder import SolderSkLinks
 
 fitVlrtModeItems = ( ('SOCKET', "For socket", "Using the last link created by some from the tools, create the same for the specified socket"),
                      ('NODE',   "For node",   "Using name of the last socket, find and connect for a selected node") )

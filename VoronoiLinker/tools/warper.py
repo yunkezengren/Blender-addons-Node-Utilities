@@ -1,5 +1,5 @@
 import bpy
-from ..base_tool import VoronoiToolSk, CheckUncollapseNodeAndReNext
+from ..base_tool import CheckUncollapseNodeAndReNext, VoronoiToolSk
 from ..utils.node import MinFromFtgs
 from ..utils.ui import LyAddKeyTxtProp
 

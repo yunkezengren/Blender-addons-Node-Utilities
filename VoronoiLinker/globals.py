@@ -1,5 +1,5 @@
-from math import pi
 import platform
+from math import pi
 import bpy
 
 # 这两个变量会被更改,别的不会

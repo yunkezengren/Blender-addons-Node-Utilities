@@ -1,6 +1,6 @@
 import bpy
-from bpy.types import Node, NodeSocket, Panel, Operator
 from bpy.app.translations import pgettext_iface as _iface
+from bpy.types import Node, NodeSocket, Operator, Panel
 from .globals import dict_typeSkToBlid
 
 def Prefs():        # 很多局部变量也是prefs 还是改大写好点

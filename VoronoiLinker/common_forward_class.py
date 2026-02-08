@@ -1,8 +1,7 @@
 import bpy
 from mathutils import Vector as Vec2
-from bpy.types import NodeSocket, Node, NodeTree
-from .common_forward_func import (sk_label_or_name, add_item_for_index_switch, sk_type_to_idname,
-                                  is_builtin_tree_idname)
+from bpy.types import Node, NodeSocket, NodeTree
+from .common_forward_func import add_item_for_index_switch, is_builtin_tree_idname, sk_label_or_name, sk_type_to_idname
 from .globals import is_bl5_plus
 B = bpy.types
 

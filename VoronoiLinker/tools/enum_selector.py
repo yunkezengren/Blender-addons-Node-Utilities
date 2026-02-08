@@ -3,9 +3,9 @@ from bpy.app.translations import pgettext_iface as _iface
 from bpy.types import EnumProperty, UILayout
 from ..base_tool import VoronoiOpTool, VoronoiToolNd
 from ..common_forward_class import VestData
-from ..utils.ui import LyAddLeftProp, LyAddHandSplitProp, LyAddLabeledBoxCol
-from ..utils.node import node_enum_props, node_visible_menu_inputs, SelectAndActiveNdOnly
 from ..utils.drawing import TemplateDrawNodeFull
+from ..utils.node import node_enum_props, node_visible_menu_inputs, SelectAndActiveNdOnly
+from ..utils.ui import LyAddHandSplitProp, LyAddLabeledBoxCol, LyAddLeftProp
 
 domain_en = [
     'POINT',

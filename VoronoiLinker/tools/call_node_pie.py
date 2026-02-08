@@ -1,5 +1,5 @@
 import bpy
-from ..base_tool import VoronoiToolAny, CheckUncollapseNodeAndReNext
+from ..base_tool import CheckUncollapseNodeAndReNext, VoronoiToolAny
 from ..common_forward_class import Fotago
 
 class VoronoiCallNodePie(VoronoiToolAny):

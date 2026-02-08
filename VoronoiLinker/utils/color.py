@@ -1,5 +1,5 @@
-from mathutils import Vector as Color4
 import bpy
+from mathutils import Vector as Color4
 from bpy.types import NodeSocket
 
 float4 = tuple[float, float, float, float]

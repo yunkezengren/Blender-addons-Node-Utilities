@@ -1,10 +1,10 @@
+import bpy
+from mathutils import Vector as Vec
+from bpy.types import Node, NodeSocket, NodeTree, Operator, ThemeNodeEditor
 from ..C_Structure import BNode
+from ..common_forward_func import GetFirstUpperLetters
 from ..globals import dict_skTypeHandSolderingColor
 from .color import Color4, opaque_color4, power_color4
-from ..common_forward_func import GetFirstUpperLetters
-from mathutils import Vector as Vec
-import bpy
-from bpy.types import Node, NodeTree, NodeSocket, ThemeNodeEditor, Operator
 
 dict_solderedSkLinksFinal = {}
 def SkGetSolderedLinksFinal(self: NodeSocket): # .vl_sold_links_final
