@@ -1,5 +1,5 @@
 import bpy
-from bpy.types import Node, NodeSocket
+from bpy.types import Node, NodeSocket, Panel, Operator
 from bpy.app.translations import pgettext_iface as _iface
 from .globals import dict_typeSkToBlid
 
@@ -9,7 +9,7 @@ def Prefs():        # 很多局部变量也是prefs 还是改大写好点
 def user_node_keymaps():
     return bpy.context.window_manager.keyconfigs.user.keymaps['Node Editor']
 
-def GetFirstUpperLetters(txt):
+def GetFirstUpperLetters(txt: str):
     txtUppers = "ABCDEFGHIJKLMNOPQRSTUVWXYZ" #"".join([chr(cyc) for cyc in range(65, 91)])
     list_result = []
     for ch1, ch2 in zip(" "+txt, txt):
@@ -17,12 +17,12 @@ def GetFirstUpperLetters(txt):
             list_result.append(ch2)
     return "".join(list_result)
 
-def DisplayMessage(title: str, text, icon='NONE'):
-    def PopupMessage(self, _context):
+def DisplayMessage(title: str, text: str, icon='NONE'):
+    def PopupMessage(self: Panel, _context):
         self.layout.label(text=text, icon=icon, translate=False)
     bpy.context.window_manager.popup_menu(PopupMessage, title=title, icon='NONE')
-
-def format_tool_set(cls: bpy.types.Operator):
+ 
+def format_tool_set(cls: Operator):
     return _iface(cls.bl_label) + _iface(" tool settings")
 
 # ======================放在这避免循环导入
@@ -34,7 +34,7 @@ def sk_type_to_idname(sk: NodeSocket):
     """ 接口.label 是'',有特例吗? """
     return dict_typeSkToBlid.get(sk.type, "Vl_Unknow")
 
-def is_builtin_tree_idname(blid):
+def is_builtin_tree_idname(blid: str):
     set_quartetClassicTreeBlids = {'ShaderNodeTree','GeometryNodeTree','CompositorNodeTree','TextureNodeTree'}
     return blid in set_quartetClassicTreeBlids
 
@@ -53,7 +53,8 @@ def add_item_for_index_switch(node: Node):
 
 # ========================================
 
-def SetPieData(self, toolData, prefs, col):
+def SetPieData(self: Operator, toolData, prefs, col):
+# def SetPieData(self: Operator, toolData: "VmtData", prefs, col):
     def GetPiePref(name):
         return getattr(prefs, self.vlTripleName.lower()+name)
     toolData.isSpeedPie = GetPiePref("PieType")=='SPEED'

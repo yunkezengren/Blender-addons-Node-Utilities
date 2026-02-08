@@ -22,7 +22,7 @@ def LyAddDisclosureProp(layout: UILayout, who, att, *, txt=None, active=True, is
     rowMain = layout.row(align=True)
     rowProp = rowMain.row(align=True)
     rowProp.alignment = 'LEFT'
-    txt = txt if txt else None #+":"*tgl
+    txt = txt if txt else None #:"*tgl
     rowProp.prop(who, att, text=txt, icon='DISCLOSURE_TRI_DOWN' if tgl else 'DISCLOSURE_TRI_RIGHT', emboss=True)
     rowProp.active = active
     if isWide:

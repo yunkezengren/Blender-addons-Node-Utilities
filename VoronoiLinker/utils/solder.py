@@ -4,16 +4,17 @@ from .color import Color4, opaque_color4, power_color4
 from ..common_forward_func import GetFirstUpperLetters
 from mathutils import Vector as Vec
 import bpy
+from bpy.types import Node, NodeTree, NodeSocket, ThemeNodeEditor, Operator
 
 dict_solderedSkLinksFinal = {}
-def SkGetSolderedLinksFinal(self): # .vl_sold_links_final
+def SkGetSolderedLinksFinal(self: NodeSocket): # .vl_sold_links_final
     return dict_solderedSkLinksFinal.get(self, [])
 
 dict_solderedSkIsFinalLinkedCount = {}
-def SkGetSolderedIsFinalLinkedCount(self): # .vl_sold_is_final_linked_cou
+def SkGetSolderedIsFinalLinkedCount(self: NodeSocket): # .vl_sold_is_final_linked_cou
     return dict_solderedSkIsFinalLinkedCount.get(self, 0)
 
-def SolderSkLinks(tree):
+def SolderSkLinks(tree: NodeTree):
     def Update(dict_data, lk):
         dict_data.setdefault(lk.from_socket, []).append(lk)
         dict_data.setdefault(lk.to_socket, []).append(lk)
@@ -40,7 +41,7 @@ class SoldThemeCols:
                      12:'pattern_node',      13: 'texture_node', 32:'script_node',
                      33:'group_socket_node', 40: 'shader_node',  41:'geometry_node',
                      42:'attribute_node',    100:'layout_node'}
-def SolderThemeCols(themeNe):
+def SolderThemeCols(themeNe: ThemeNodeEditor):
     def GetNiceColNone(col4):
         return Color4(col4)
         # return Color4(power_color4(col4, pw=1/1.75))   # 小王 这个更像影响全体 这里使得Ctrl Shift E / Ctrl E / Alt E 等显示太浅
@@ -69,7 +70,7 @@ def SolderThemeCols(themeNe):
             setattr(SoldThemeCols, dnf+"4pw", GetNiceColNone(col4))
             setattr(SoldThemeCols, dnf+"3", Vec(col4[:3])) # 用于 vptRvEeIsSavePreviewResults.
 
-def node_tag_color(node: bpy.types.Node):
+def node_tag_color(node: Node):
     if bpy.app.version >= (5, 0, 0):
         color_tag = node.color_tag.lower() + "_node"
         if color_tag == "interface":
@@ -87,7 +88,7 @@ def node_tag_color(node: bpy.types.Node):
         else:
             return getattr(SoldThemeCols, SoldThemeCols.dict_mapNcAtt.get(BNode.GetFields(node).typeinfo.contents.nclass, 'node_backdrop')+"4pw")
 
-def SolderClsToolNames(class_dict: dict):
+def SolderClsToolNames(class_dict: dict[Operator]):
     for cls in class_dict:
         cls.vlTripleName = GetFirstUpperLetters(cls.bl_label)+"T" # 最初创建是"因为好玩", 但现在需要了; 参见 SetPieData().
         cls.disclBoxPropName = cls.vlTripleName[:-1].lower()+"BoxDiscl"
@@ -95,14 +96,14 @@ def SolderClsToolNames(class_dict: dict):
 
 def RegisterSolderings():
     txtDoc = "Property from and only for VoronoiLinker addon."
-    #bpy.types.NodeSocket.vl_sold_links_raw = property(SkGetSolderedLinksRaw)
-    bpy.types.NodeSocket.vl_sold_links_final = property(SkGetSolderedLinksFinal)
-    bpy.types.NodeSocket.vl_sold_is_final_linked_cou = property(SkGetSolderedIsFinalLinkedCount)
-    #bpy.types.NodeSocket.vl_sold_links_raw.__doc__ = txtDoc
-    bpy.types.NodeSocket.vl_sold_links_final.__doc__ = txtDoc
-    bpy.types.NodeSocket.vl_sold_is_final_linked_cou.__doc__ = txtDoc
+    #NodeSocket.vl_sold_links_raw = property(SkGetSolderedLinksRaw)
+    NodeSocket.vl_sold_links_final = property(SkGetSolderedLinksFinal)
+    NodeSocket.vl_sold_is_final_linked_cou = property(SkGetSolderedIsFinalLinkedCount)
+    #NodeSocket.vl_sold_links_raw.__doc__ = txtDoc
+    NodeSocket.vl_sold_links_final.__doc__ = txtDoc
+    NodeSocket.vl_sold_is_final_linked_cou.__doc__ = txtDoc
 
 def UnregisterSolderings():
-    #del bpy.types.NodeSocket.vl_sold_links_raw
-    del bpy.types.NodeSocket.vl_sold_links_final
-    del bpy.types.NodeSocket.vl_sold_is_final_linked_cou
+    #del NodeSocket.vl_sold_links_raw
+    del NodeSocket.vl_sold_links_final
+    del NodeSocket.vl_sold_is_final_linked_cou

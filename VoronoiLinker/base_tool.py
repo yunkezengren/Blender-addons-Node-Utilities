@@ -1,11 +1,8 @@
 from time import perf_counter
 import bpy
 from mathutils import Vector as Vec2
-
-from pprint import pprint
-from bpy.types import Node, Area, Context, Event
+from bpy.types import Operator, Node, Area, Context, Event, SpaceNodeEditor
 from bpy.types import View2D as View2d
-
 from .utils.node import GetNearestSocketsFtg, GetNearestNodesFtg, RestoreCollapsedNodes, SaveCollapsedNodes
 from .utils.solder import SolderSkLinks, SolderThemeCols
 from .utils.drawing import DrawDebug, TemplateDrawNodeFull, TemplateDrawSksToolHh, VlDrawData
@@ -14,8 +11,7 @@ from .common_forward_class import TryAndPass
 from .common_forward_func import Prefs, is_builtin_tree_idname, user_node_keymaps
 from .globals import set_utilTypeSkFields
 
-
-def GetOpKmi(self, event): 
+def GetOpKmi(self: type["VoronoiOpTool"], event: Event): 
     # Todo00: 有没有更正确的设计或方法?
     # 操作符可以有多种调用组合, 所有这些组合在 `keymap_items` 中的键都相同, 所以我们手动遍历所有
     blid = getattr(bpy.types, self.bl_idname).bl_idname
@@ -26,7 +22,7 @@ def GetOpKmi(self, event):
                 # 注意: 也可能有两个完全相同的调用热键, 但Blender只会执行其中一个 (至少对VL是这样), 即列表中排在前面的那个.
                 return li # 这个函数也只返回列表中的第一个.
 
-class VoronoiOpTool(bpy.types.Operator):
+class VoronoiOpTool(Operator):
     bl_options = {'UNDO'} # 手动创建的链接可以撤销, 所以在 VL 中也应如此. 对所有工具都一样.
     @classmethod
     def poll(cls, context):
@@ -38,13 +34,13 @@ class VoronoiToolFillers: #-1
     usefulnessForNoneTree = None
     canDrawInAddonDiscl = None
     canDrawInAppearance = None
-    def CallbackDrawTool(self, drata): pass
-    def NextAssignmentTool(self, isFirstActivation, prefs, tree): pass
-    def ModalTool(self, event, prefs): pass
+    def CallbackDrawTool(self, drata: VlDrawData): pass
+    def NextAssignmentTool(self, isFirstActivation: bool, prefs, tree): pass
+    def ModalTool(self, event: Event, prefs): pass
     #def MatterPurposePoll(self): return None
-    def MatterPurposeTool(self, event, prefs, tree): pass
-    def InitToolPre(self, event): return {}
-    def InitTool(self, event, prefs, tree): return {}
+    def MatterPurposeTool(self, event: Event, prefs, tree): pass
+    def InitToolPre(self, event: Event): return {}
+    def InitTool(self, event: Event, prefs, tree): return {}
     @staticmethod
     def LyDrawInAddonDiscl(col, prefs): pass
 
@@ -63,19 +59,19 @@ class VoronoiToolRoot(VoronoiOpTool, VoronoiToolFillers): #0
             DrawDebug(self, drata)
         if self.tree: # 现在对于没有树的情况可以不显示任何迹象; 由于拓扑结构的头疼问题以及在插件树中传递热键时工具的跳过问题而关闭 (?).
             self.CallbackDrawTool(drata)
-    def ToolGetNearestNodes(self, includePoorNodes=False, cur_x_off=0):
+    def ToolGetNearestNodes(self, includePoorNodes=False, cur_x_off: float=0):
         self.cursorLoc.x += cur_x_off    # 唤起位置偏移
         return GetNearestNodesFtg(self.tree.nodes[:], self.cursorLoc, self.uiScale, includePoorNodes)
-    def ToolGetNearestSockets(self, nd: Node, cur_x_off=0):
+    def ToolGetNearestSockets(self, nd: Node, cur_x_off: float=0):
         self.cursorLoc.x += cur_x_off    #     唤起位置偏移
         return GetNearestSocketsFtg(nd, self.cursorLoc, self.uiScale)
-    def NextAssignmentRoot(self, flag):
+    def NextAssignmentRoot(self, flag: bool):
         if self.tree:
             try:
                 self.NextAssignmentTool(flag, self.prefs, self.tree)
             except:
                 EdgePanData.isWorking = False # 现在只对 VLT 有效. 也许应该做个 ~self.ErrorToolProc, 并在 VLT 中 "退后一步".
-                bpy.types.SpaceNodeEditor.draw_handler_remove(self.handle, 'WINDOW')
+                SpaceNodeEditor.draw_handler_remove(self.handle, 'WINDOW')
                 raise
     def ModalMouseNext(self, event: Event, prefs):
         match event.type:
@@ -85,7 +81,7 @@ class VoronoiToolRoot(VoronoiOpTool, VoronoiToolFillers): #0
                 if event.value=='RELEASE':
                     return True
         return False
-    def modal(self, context, event):
+    def modal(self, context: Context, event: Event):
         context.area.tag_redraw()
         if num:=(event.type=='WHEELUPMOUSE')-(event.type=='WHEELDOWNMOUSE'):
             self.ctView2d.cur.Zooming(self.cursorLoc, 1.0-num*0.15)
@@ -97,7 +93,7 @@ class VoronoiToolRoot(VoronoiOpTool, VoronoiToolFillers): #0
         if event.type=='ESC': # 这正是 Escape 键应该做的.
             return {'CANCELLED'}
         with TryAndPass(): # 它可能已经被删除了, 参见第二个这样的情况.
-            bpy.types.SpaceNodeEditor.draw_handler_remove(self.handle, 'WINDOW')
+            SpaceNodeEditor.draw_handler_remove(self.handle, 'WINDOW')
         tree = self.tree
         if not tree:
             return {'FINISHED'}
@@ -110,7 +106,7 @@ class VoronoiToolRoot(VoronoiOpTool, VoronoiToolFillers): #0
         if result:=self.MatterPurposeTool(event, self.prefs, tree):
             return result
         return {'FINISHED'}
-    def invoke(self, context, event):
+    def invoke(self, context: Context, event: Event):
         tree = context.space_data.edit_tree
         self.tree = tree
         editorBlid = context.space_data.tree_type # 无需 `self.`?.
@@ -155,7 +151,7 @@ class VoronoiToolRoot(VoronoiOpTool, VoronoiToolFillers): #0
             return result
         EdgePanInit(self, context.area)
         ##
-        self.handle = bpy.types.SpaceNodeEditor.draw_handler_add(self.CallbackDrawRoot, (self.drata, context,), 'WINDOW', 'POST_PIXEL')
+        self.handle = SpaceNodeEditor.draw_handler_add(self.CallbackDrawRoot, (self.drata, context,), 'WINDOW', 'POST_PIXEL')
         if tree: # 注意: 参见本地拓扑结构, 工具本身可以, 但每个工具都明确地对缺失的树禁用了.
             SolderSkLinks(self.tree)
             SaveCollapsedNodes(tree.nodes)

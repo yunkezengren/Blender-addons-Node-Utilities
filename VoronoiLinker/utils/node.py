@@ -31,7 +31,7 @@ def RestoreCollapsedNodes(nodes):
             nd.hide = dict_collapsedNodes[nd]
 
 
-def GenFtgFromNd(nd, pos: Vec2, uiScale: float): # 从 GetNearestNodesFtg 中提取出来, 本来没必要, 但 VLTT 逼我这么做.
+def GenFtgFromNd(nd: Node, pos: Vec2, uiScale: float): # 从 GetNearestNodesFtg 中提取出来, 本来没必要, 但 VLTT 逼我这么做.
     def DistanceField(field0: Vec2, boxbou: Vec2): # 感谢 RayMarching, 没有它我不会想到这个.
         field1 = Vec2(( (field0.x>0)*2-1, (field0.y>0)*2-1 ))
         field0 = Vec2(( abs(field0.x), abs(field0.y) ))-boxbou/2
@@ -77,7 +77,7 @@ def GetNearestNodesFtg(nodes, samplePos, uiScale, includePoorNodes=True): # 返�
 # 另一方面, 自插件诞生以来, 从未遇到过性能问题, 所以... 只是为了美观.
 # 而且还需要考虑折叠的节点, 愿它们见鬼去吧, 它们可能在过程中展开, 破坏了缓存的所有美好.
 
-def GenFtgsFromPuts(nd, isSide, samplePos, uiScale): # 为 vptRvEeSksHighlighting 提取出来.
+def GenFtgsFromPuts(nd: Node, isSide, samplePos, uiScale): # 为 vptRvEeSksHighlighting 提取出来.
     # 注意: 这个函数应该自己从标记中获取方向, 因为 `reversed(nd.inputs)`.
     def SkIsLinkedVisible(sk: NodeSocket):
         if not sk.is_linked:
@@ -101,7 +101,7 @@ def GenFtgsFromPuts(nd, isSide, samplePos, uiScale): # 为 vptRvEeSksHighlightin
             results.append(Fotago(sk, dist=(samplePos-pos).length, pos=pos, dir= 1 if sk.is_output else -1 , boxHeiBound=boxHeiBound, text=txt))
     return results
 
-def GetNearestSocketsFtg(nd, samplePos, uiScale): # 返回"最近的插槽"列表. 真实的 Voronoi 图单元距离场. 没错, 这个插件就是因此得名的.
+def GetNearestSocketsFtg(nd: Node, samplePos, uiScale): # 返回"最近的插槽"列表. 真实的 Voronoi 图单元距离场. 没错, 这个插件就是因此得名的.
     if nd.type == 'REROUTE':
         def ftg_route(sk: NodeSocket):
             loc = node_abs_loc(nd)
@@ -159,7 +159,7 @@ def CompareSkLabelName(sk1, sk2, ignore_upper_lower=False):
     else:
         return sk_label_or_name(sk1)==sk_label_or_name(sk2)
 
-def SelectAndActiveNdOnly(ndTar):
+def SelectAndActiveNdOnly(ndTar: Node):
     for nd in ndTar.id_data.nodes:
         nd.select = False
     ndTar.id_data.nodes.active = ndTar
@@ -176,7 +176,7 @@ def MinFromFtgs(ftg1, ftg2):
             return ftg1 if ftg1.dist<ftg2.dist else ftg2
     return None
 
-def FindAnySk(nd, list_ftgSksIn, list_ftgSksOut): # Todo0NA: 需要泛化!, 用 lambda. 并且外部循环遍历列表, 而不是两个循环.
+def FindAnySk(nd: Node, list_ftgSksIn, list_ftgSksOut): # Todo0NA: 需要泛化!, 用 lambda. 并且外部循环遍历列表, 而不是两个循环.
     ftgSkOut, ftgSkIn = None, None
     for ftg in list_ftgSksOut:
         if (ftg.blid!='NodeSocketVirtual')and(Node_Items_Manager.IsSimRepCorrectSk(nd, ftg.tar)): # todo1v6: 这个函数到处都和 !=NodeSocketVirtual 一起使用, 需要重做拓扑.
@@ -191,7 +191,7 @@ def FindAnySk(nd, list_ftgSksIn, list_ftgSksOut): # Todo0NA: 需要泛化!, 用 
 # 注意: DoLinkHh 现在有太多其他依赖项, 想要把它单独抽离出来会更困难.
 # P.s. "HH" -- 意思是 "High Level", 但我打错字母了 D:
 
-def DoLinkHh(sko, ski, *, isReroutesToAnyType=True, isCanBetweenField=True, isCanFieldToShader=True):
+def DoLinkHh(sko: NodeSocket, ski: NodeSocket, *, isReroutesToAnyType=True, isCanBetweenField=True, isCanFieldToShader=True):
     # 多么意外的视觉巧合, 与 "sk0" 和 "sk1" 的序列号.
     # 既然我们现在是高级别的, 就得处理特殊情况:
     if not(sko and ski): # 它们必须存在.
@@ -214,7 +214,7 @@ def DoLinkHh(sko, ski, *, isReroutesToAnyType=True, isCanBetweenField=True, isCa
     isSkoField = sko.type in set_utilTypeSkFields
     isSkoNdReroute = sko.node.type=='REROUTE'
     isSkiNdReroute = ski.node.type=='REROUTE'
-    isSkoVirtual = (sko.bl_idname=='NodeSocketVirtual')and(not isSkoNdReroute) # 虚拟只对接口有效, 需要排除“冒名顶替的 reroute”.
+    isSkoVirtual = (sko.bl_idname=='NodeSocketVirtual')and(not isSkoNdReroute) # 虚拟只对接口有效, 需要排除"冒名顶替的 reroute".
     isSkiVirtual = (ski.bl_idname=='NodeSocketVirtual')and(not isSkiNdReroute) # 注意: 虚拟和插件套接字的 sk.type=='CUSTOM'.
     # 如果可以
     if not( (isReroutesToAnyType)and( (isSkoNdReroute)or(isSkiNdReroute) ) ): # 至少一个是 reroute.
@@ -301,22 +301,22 @@ def DoLinkHh(sko, ski, *, isReroutesToAnyType=True, isCanBetweenField=True, isCa
         return tree.links.new(sko, ski) #hi.
     return DoLinkLL(tree, sko, ski)
     # 注意: 从 b3.5 版本开始, 虚拟输入现在可以直接像多输入一样接收.
-    # 它们甚至可以相互多次连接, 太棒了. 开发者可以说“放手了”, 让它自由发展.
+    # 它们甚至可以相互多次连接, 太棒了. 开发者可以说"放手了", 让它自由发展.
 
-def VlrtRememberLastSockets(sko, ski):
+def VlrtRememberLastSockets(sko: NodeSocket, ski: NodeSocket):
     if sko:
         VlrtData.reprLastSkOut = repr(sko)
         # ski 对 VLRT 来说, 如果没有 sko 就没用
         if (ski)and(ski.id_data==sko.id_data):
             VlrtData.reprLastSkIn = repr(ski)
 
-def remember_add_link(sko, ski):
+def remember_add_link(sko: NodeSocket, ski: NodeSocket):
     DoLinkHh(sko, ski) #sko.id_data.links.new(sko, ski)
     VlrtRememberLastSockets(sko, ski)
 
-def DoQuickMath(event, tree, operation, isCombo=False):
+def DoQuickMath(event, tree: NodeTree, operation, isCombo=False):
     txt = dict_vqmtEditorNodes[VqmtData.qmSkType].get(tree.bl_idname, "")
-    if not txt: #如果不在列表中，则表示此节点在该类型的编辑器中不存在（根据列表的设计）=> 没有什么可以“混合”的，所以退出。
+    if not txt: #如果不在列表中，则表示此节点在该类型的编辑器中不存在（根据列表的设计）=> 没有什么可以"混合"的，所以退出。
         return {'CANCELLED'}
     #快速数学的核心，添加节点并创建连接：
     bpy.ops.node.add_node('INVOKE_DEFAULT', type=txt, use_transform=not VqmtData.isPlaceImmediately)
@@ -341,7 +341,7 @@ def DoQuickMath(event, tree, operation, isCombo=False):
         #     aNd.inputs[0].hide_value = True
         #使用event.shift的想法很棒。最初是为了单个连接到第二个接口，但由于下面的可视化搜索，它也可以交换两个连接。
         bl4ofs = 2 * is_bl4_plus        # byd 搞版本兼容真麻烦,删掉
-        #"Inx"，因为它是对整数“index”的模仿，但后来我意识到可以直接使用socket进行后续连接。
+        #"Inx"，因为它是对整数"index"的模仿，但后来我意识到可以直接使用socket进行后续连接。
         skInx = aNd.inputs[0] if VqmtData.qmSkType != 'RGBA' else aNd.inputs[-2 - bl4ofs]
         if event.shift:
             for sk in aNd.inputs:
@@ -352,9 +352,9 @@ def DoQuickMath(event, tree, operation, isCombo=False):
         if VqmtData.sk0:
             remember_add_link(VqmtData.sk0, skInx)
             if VqmtData.sk1:
-                #第二个是“可视化地”搜索的；这是为了'SCALE'（缩放）操作。
+                #第二个是"可视化地"搜索的；这是为了'SCALE'（缩放）操作。
                 for sk in aNd.inputs: #从上到下搜索。因为还有'MulAdd'（乘加）。
-                    if (sk.enabled)and(not sk.is_linked): #注意：“aNd”是新创建的；并且没有连接。因此使用is_linked。
+                    if (sk.enabled)and(not sk.is_linked): #注意："aNd"是新创建的；并且没有连接。因此使用is_linked。
                         #哦，这个缩放；唯一一个具有两种不同类型接口的。
                         if (sk.type==skInx.type)or(operation=='SCALE'): #寻找相同类型的。对 RGBA Mix 有效。
                             remember_add_link(VqmtData.sk1, sk)

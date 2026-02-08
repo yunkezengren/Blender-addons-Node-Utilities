@@ -2,6 +2,7 @@ import gpu, gpu_extras, blf, copy
 from mathutils import Vector as Vec2
 from math import pi, cos, sin
 import bpy
+from bpy.types import NodeSocket, Context
 from ..C_Structure import View2D
 from .node import node_abs_loc
 from .color import Color4, power_color4, clamp_color4, opaque_color4, get_color_black_alpha, get_sk_color_safe, get_sk_color
@@ -51,7 +52,7 @@ class VlDrawData():
         self.DrawCircle(loc, radHh, resl=resl, col=col1 * colFacOut)
         self.DrawCircle(loc, radHh / 1.5, resl=resl, col=col2)
 
-    def __init__(self, context, cursorLoc, uiScale, prefs):
+    def __init__(self, context: Context, cursorLoc, uiScale, prefs):
         self.shaderLine = gpu.shader.from_builtin('POLYLINE_SMOOTH_COLOR')
         # POLYLINE_FLAT_COLOR, POLYLINE_SMOOTH_COLOR, POLYLINE_UNIFORM_COLOR, FLAT_COLOR, SMOOTH_COLOR, [UNIFORM_COLOR]
         self.shaderArea = gpu.shader.from_builtin('UNIFORM_COLOR')
@@ -81,7 +82,7 @@ class VlDrawData():
 def DrawWorldStick(drata: VlDrawData, pos1, pos2, col1, col2):
     drata.DrawPathLL( (drata.VecUiViewToReg(pos1), drata.VecUiViewToReg(pos2)), (col1, col2), wid=drata.dsLineWidth )
 
-def DrawVlSocketArea(drata: VlDrawData, sk, bou, col):
+def DrawVlSocketArea(drata: VlDrawData, sk: NodeSocket, bou, col):
     loc = node_abs_loc(sk.node)
     pos1 = drata.VecUiViewToReg(Vec2( (loc.x,               bou[0]) ))
     pos2 = drata.VecUiViewToReg(Vec2( (loc.x+sk.node.width, bou[1]) ))
@@ -105,11 +106,11 @@ def DrawMarker(drata: VlDrawData, loc, col, *, style):
     ##
     drata.DrawRing((loc[0]+1.5, loc[1]+3.5), 9.0, wid=3.0, resl=resl, col=colSh)
     drata.DrawRing((loc[0]-3.5, loc[1]-5.0), 9.0, wid=3.0, resl=resl, col=colSh)
-    def DrawMarkerBacklight(spin: VlDrawData, col):
+    def DrawMarkerBacklight(spin, col):
         resl = (16, 4, 16)[style]
         drata.DrawRing((loc[0],     loc[1]+5.0), 9.0, wid=3.0, resl=resl, col=col, spin=spin)
         drata.DrawRing((loc[0]-5.0, loc[1]-3.5), 9.0, wid=3.0, resl=resl, col=col, spin=spin)
-    DrawMarkerBacklight(pi/resl, colHl) # 标记绘制时有“像素孔”伪影。通过旋转的重复绘制来修复它们。
+    DrawMarkerBacklight(pi/resl, colHl) # 标记绘制时有"像素孔"伪影。通过旋转的重复绘制来修复它们。
     DrawMarkerBacklight(0.0,     colHl) # 但因此需要将白色描边的 alpha 减半。
     drata.DrawRing((loc[0],     loc[1]+5.0), 9.0, wid=1.0, resl=resl, col=colMt)
     drata.DrawRing((loc[0]-5.0, loc[1]-3.5), 9.0, wid=1.0, resl=resl, col=colMt)
@@ -178,8 +179,8 @@ def DrawFramedText(drata: VlDrawData, pos1, pos2, txt, *, siz, adj, colTx, colFr
 def DrawWorldText(drata: VlDrawData, pos, ofsHh, text, *, text_color, colBg, fontSizeOverwrite=0): # fontSizeOverwrite 仅用于 vptRvEeSksHighlighting.
     siz = drata.dsFontSize*(not fontSizeOverwrite)+fontSizeOverwrite
     blf.size(drata.fontId, siz)
-    # 不计算“实际文本”的高度, 因为那样每个框每次的高度都会不同.
-    # 需要特殊字符作为“通用情况”来覆盖最大高度. 其他字符用于可能比“█”高的特殊字体.
+    # 不计算"实际文本"的高度, 因为那样每个框每次的高度都会不同.
+    # 需要特殊字符作为"通用情况"来覆盖最大高度. 其他字符用于可能比"█"高的特殊字体.
     dimDb = (blf.dimensions(drata.fontId, text)[0], blf.dimensions(drata.fontId, "█GJKLPgjklp!?")[1])
     pos = drata.VecUiViewToReg(pos)
     frameOffset = drata.dsFrameOffset
@@ -191,7 +192,7 @@ def DrawWorldText(drata: VlDrawData, pos, ofsHh, text, *, text_color, colBg, fon
     pos2 = (pos[0]+ofsHh[0]+ofsGap+dimDb[0]+frameOffset, pos[1]+placePosY+dimDb[1]+frameOffset)
     ##
     # 这个更像影响全体 这里使得Ctrl Shift E / Ctrl E / Alt E 等显示太浅
-    # return DrawFramedText(drata, pos1, pos2, text, siz=siz, adj=dimDb[1]*drata.dsManualAdjustment, colTx=power_color4(text_color, pw=1/1.975), colFr=power_color4(colBg, pw=1/1.5), colBg=colBg)
+    # return DrawFramedText(drata, pos1, pos2, txt, siz=siz, adj=dimDb[1]*drata.dsManualAdjustment, colTx=power_color4(text_color, pw=1/1.975), colFr=power_color4(colBg, pw=1/1.5), colBg=colBg)
     return DrawFramedText(drata, pos1, pos2, text, siz=siz, adj=dimDb[1]*drata.dsManualAdjustment, colTx=text_color, colFr=colBg, colBg=colBg)   # 绘制颜色加深
 
 def DrawVlSkText(drata: VlDrawData, pos, ofsHh, ftg, *, fontSizeOverwrite=0, tool_color=(0, 0, 0, 0)): # 注意: `pos` 总是为了 drata.cursorLoc, 但请参见 vptRvEeSksHighlighting.
@@ -269,7 +270,7 @@ def TemplateDrawNodeFull(drata: VlDrawData, ftgNd, *, side=1, tool_name=""): # �
         col = tup_whiteCol4 # 唯一剩下的未定义颜色. 'dsCursorColor' 在这里按设计不适合 (整个插件都是为了套接字, 对吧?).
         DrawVlWidePoint(drata, drata.cursorLoc, col1=Color4(col), col2=col)
 
-# 高级套接字绘制模板. 现在名称中有“Sk”, 因为节点已完全进入 VL.
+# 高级套接字绘制模板. 现在名称中有"Sk", 因为节点已完全进入 VL.
 # 在旧版本中的硬核之后, 使用这个模板简直是享受 (甚至不要看那里, 那里简直是地狱).
 def TemplateDrawSksToolHh(drata: VlDrawData, *args_ftgSks, sideMarkHh=1, isDrawText=True,
                           isClassicFlow=False, isDrawMarkersMoreTharOne=False, tool_name=""): # 模板重新思考过了, 万岁. 感觉上并没有变得更好.
@@ -365,7 +366,7 @@ class TestDraw:
         from mathutils.noise import noise
         return noise((cls.time, w, cls.rand))
     @classmethod
-    def Toggle(cls, context, tgl):
+    def Toggle(cls, context: Context, tgl):
         import random
         stNe = bpy.types.SpaceNodeEditor
         if tgl:
@@ -381,7 +382,7 @@ class TestDraw:
             del stNe.nsCur
             del stNe.nsReg
     @classmethod
-    def CallbackDrawTest(cls, context):
+    def CallbackDrawTest(cls, context: Context):
         from math import atan2
         stNe = bpy.types.SpaceNodeEditor
         if stNe.nsCur!=stNe.nsReg:
@@ -445,4 +446,4 @@ class TestDraw:
         import gpu_extras.presets; gpu_extras.presets.draw_circle_2d((256,256),(1,1,1,1),10)
         ##
         cls.time += 0.01
-        bpy.context.space_data.backdrop_zoom = bpy.context.space_data.backdrop_zoom # 火. 但有没有更“直接”的方法? 备受赞誉的 area.tag_redraw() 不起作用.
+        bpy.context.space_data.backdrop_zoom = bpy.context.space_data.backdrop_zoom # 火. 但有没有更"直接"的方法? 备受赞誉的 area.tag_redraw() 不起作用.

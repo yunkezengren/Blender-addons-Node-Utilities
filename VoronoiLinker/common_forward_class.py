@@ -298,17 +298,17 @@ class PieRootData:
     uiScale = 1.0
 
 class VmtData(PieRootData):
-    sk0: NodeSocket = None
-    sk1: NodeSocket = None
-    sk2: NodeSocket = None  # 小王
+    sk0: NodeSocket | None = None
+    sk1: NodeSocket | None = None
+    sk2: NodeSocket | None = None  # 小王
     skType = ""
     isHideOptions = False
     isPlaceImmediately = False
 
 class VqmtData(PieRootData):
     list_speedPieDisplayItems = []
-    sk0: NodeSocket = None
-    sk1: NodeSocket = None
+    sk0: NodeSocket | None = None
+    sk1: NodeSocket | None = None
     depth = 0
     qmSkType = ''
     qmTrueSkType = ''
@@ -325,7 +325,7 @@ class VestData:
     list_enumProps = []                      # 节点的下拉菜单/选项用于焊接，并在调用前检查是否存在。
     list_menu_socket: list[NodeSocket] = []  # 节点的菜单输入接口
     domain_item_list = []
-    list_length: int = []
+    list_length: int = 0
     nd = None
     boxScale = 1.0 # 如果忘记设置，至少盒子不会坍缩为零。
     isDarkStyle = False
@@ -340,7 +340,6 @@ class TryAndPass():
         pass
     def __exit__(self, *_):
         return True
-
 
 class VlnstData:
     lastLastExecError = "" # 用于用户编辑 vlnstLastExecError, 不能添加或修改, 但可以删除.

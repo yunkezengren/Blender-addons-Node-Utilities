@@ -9,8 +9,7 @@ tags = ["Node"]
 blender_version_min = "4.2.0"
 license = ["SPDX:GPL-3.0-or-later"]
 # 贡献最大的原作者: website = "https://github.com/neliut/VoronoiLinker"
-# 维护:
-website = "https://space.bilibili.com/1109241880"
+website = "https://space.bilibili.com/1109241880"  # 维护
 [build]
 paths_exclude_pattern = [
   "__pycache__/",

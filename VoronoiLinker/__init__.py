@@ -13,7 +13,7 @@ bl_info2 = {'name': "Voronoi Linker",
 import bpy, rna_keymap_ui, bl_keymap_utils
 from bpy.app.translations import pgettext_iface as _iface
 from bpy.props import (BoolProperty, EnumProperty, FloatProperty, FloatVectorProperty, IntProperty, IntVectorProperty, StringProperty)
-from bpy.types import UILayout, KeyMapItem
+from bpy.types import UILayout, KeyMapItem, Operator
 from time import perf_counter_ns
 from typing import Callable
 
@@ -66,7 +66,7 @@ dict_vtClasses = {} # 只存放 V*T (Voronoi Tool) 工具.
 list_kmiDefs = []
 dict_setKmiCats = {'最有用':set(), '很有用':set(), '可能有用':set(), '无效':set(), 'qqm':set(), 'custom':set()}
 
-def smart_add_to_reg_and_kmiDefs(cls, txt, dict_props={}):
+def smart_add_to_reg_and_kmiDefs(cls: Operator, txt: str, dict_props={}):
     dict_numToKey = {"1":'ONE', "2":'TWO', "3":'THREE', "4":'FOUR', "5":'FIVE', "6":'SIX', "7":'SEVEN', "8":'EIGHT', "9":'NINE', "0":'ZERO'}
     dict_classes[cls] = True
     dict_vtClasses[cls] = True
@@ -256,9 +256,9 @@ dict_toolLangSpecifDataPool[VoronoiDummyTool, "ru_RU"] = """"Ой дурачёк
 # =======
 
 def GetVlKeyconfigAsPy(): # 从 'bl_keymap_utils.io' 借来的. 我完全不知道它是如何工作的.
-    def Ind(num):
+    def Ind(num: int):
         return " "*num
-    def keyconfig_merge(kc1, kc2):
+    def keyconfig_merge(kc1: bpy.types.KeyConfig, kc2: bpy.types.KeyConfig):
         kc1_names = {km.name for km in kc1.keymaps}
         merged_keymaps = [(km, kc1) for km in kc1.keymaps]
         if kc1!=kc2:
@@ -334,7 +334,7 @@ def GetVlKeyconfigAsPy(): # 从 'bl_keymap_utils.io' 借来的. 我完全不知�
     result += f"    kd = bl_keymap_utils.versioning.keyconfig_update(list_keyconfigData, {bpy.app.version_file!r})"+"\n"
     result += "    bl_keymap_utils.io.keyconfig_init_from_data(kc, kd)"
     return result
-def GetVaSettAsPy(prefs):
+def GetVaSettAsPy(prefs: bpy.types.AddonPreferences):
     set_ignoredAddonPrefs = {'bl_idname', 'vaUiTabs', 'vaInfoRestore', 'dsIsFieldDebug', 'dsIsTestDrawing', # tovo2v6: 是全部吗?
                              'vaKmiMainstreamDiscl', 'vaKmiOtjersDiscl', 'vaKmiSpecialDiscl', 'vaKmiInvalidDiscl', 
                              'vaKmiQqmDiscl', 'vaKmiCustomDiscl'}
@@ -353,8 +353,8 @@ def GetVaSettAsPy(prefs):
     txt_vasp += f"prefs = bpy.context.preferences.addons['{__package__}'].preferences"+"\n\n"
     txt_vasp += "def SetProp(att, val):"+"\n"
     txt_vasp += "    if hasattr(prefs, att):"+"\n"
-    txt_vasp += "        setattr(prefs, att, val)"+"\n\n"
-    def AddAndProc(txt):
+    txt_vasp += " setattr(prefs, att, val)"+"\n\n"
+    def AddAndProc(txt: str):
         nonlocal txt_vasp
         len = txt.find(",")
         txt_vasp += txt.replace(", ",","+" "*(42-len), 1)
@@ -558,7 +558,7 @@ class VoronoiAddonPrefs(bpy.types.AddonPreferences):
     vOwZoomMin             : FloatProperty(name="Zoom min", default=0.05,  min=0.0078125, max=1.0,  precision=3)
     vOwZoomMax             : FloatProperty(name="Zoom max", default=2.301, min=1.0,       max=16.0, precision=3)
     # ------
-    def LyDrawTabSettings(self, where):
+    def LyDrawTabSettings(self, where: UILayout):
         def LyAddAddonBoxDiscl(where: UILayout, who, att, *, txt=None, isWide=False, align=False):
             colBox = where.box().column(align=True)
             if LyAddDisclosureProp(colBox, who, att, txt=txt, active=True, isWide=isWide):
@@ -572,7 +572,7 @@ class VoronoiAddonPrefs(bpy.types.AddonPreferences):
             if cls.canDrawInAddonDiscl:
                 if colDiscl:=LyAddAddonBoxDiscl(colMain, self, cls.disclBoxPropName, txt=format_tool_set(cls), align=True):
                     cls.LyDrawInAddonDiscl(colDiscl, self)
-    def LyDrawTabAppearance(self, where):
+    def LyDrawTabAppearance(self, where: UILayout):
         colMain = where.column()
         #LyAddHandSplitProp(LyAddLabeledBoxCol(colMain, text="Main"), self,'vSearchMethod')
         ##
@@ -588,7 +588,7 @@ class VoronoiAddonPrefs(bpy.types.AddonPreferences):
         for cls in dict_vtClasses:
             if cls.canDrawInAppearance:
                 cls.LyDrawInAppearance(colMain, self)
-    def LyDrawTabDraw(self, where):
+    def LyDrawTabDraw(self, where: UILayout):
         def LyAddPairProp(where: UILayout, txt):
             row = where.row(align=True)
             row.prop(self, txt)
@@ -845,10 +845,9 @@ class VoronoiAddonPrefs(bpy.types.AddonPreferences):
                 LyAddTran(col2, "Name", pr.name, dot="")
                 if pr.description:
                     LyAddTran(col2, "Description", pr.description, dot=dot)
-                if type(pr)==typeEnum:
+                if type(pr)==bpy.types.EnumProperty:
                     for en in pr.enum_items:
                         LyAddTranDataForProp(col2, en, dot="")
-            typeEnum = bpy.types.EnumProperty
             match self.vaLangDebEnum:
                 case 'FREE':
                     txt = _iface("Free")
