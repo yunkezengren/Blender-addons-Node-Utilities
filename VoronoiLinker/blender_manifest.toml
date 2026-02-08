@@ -8,5 +8,15 @@ type = "add-on"
 tags = ["Node"]
 blender_version_min = "4.2.0"
 license = ["SPDX:GPL-3.0-or-later"]
-website = "https://github.com/neliut/VoronoiLinker"
-# website = "https://space.bilibili.com/1109241880"
+# 贡献最大的原作者: website = "https://github.com/neliut/VoronoiLinker"
+# 维护:
+website = "https://space.bilibili.com/1109241880"
+[build]
+paths_exclude_pattern = [
+  "__pycache__/",
+  ".*",
+  "*.zip",
+  "*.log",
+  "*.md",
+  "无用/",
+]

@@ -9,3 +9,12 @@ tags = ["Node"]
 blender_version_min = "4.2.0"
 license = ["SPDX:GPL-3.0-or-later"]
 website = "https://space.bilibili.com/1109241880"
+[build]
+paths_exclude_pattern = [
+  "__pycache__/",
+  ".*",
+  "*.zip",
+  "*.log",
+  "*.md",
+  "未用到的图片/",
+]
