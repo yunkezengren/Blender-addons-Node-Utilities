@@ -1,10 +1,8 @@
 import bpy
-from builtins import len as length
 from mathutils import Vector as Vec2
 from bpy.types import NodeSocket, Node
-# from .common_forward_func import *
 from .common_forward_func import (sk_label_or_name, add_item_for_index_switch, sk_type_to_idname,
-                           is_builtin_tree_idname)
+                                  is_builtin_tree_idname)
 from .globals import is_bl5_plus
 
 # Equestrian 的意思是"骑手"或"马术的",取其驾驭、控制的寓意.似乎是专门用来操作管理有 item 的节点, 比如:
@@ -213,14 +211,14 @@ class Node_Items_Manager():
                 for li in list_panels[1:]:
                     li[0] = skft.new_panel(li[1], description=li[2], default_closed=li[3])
                 scoSkf = 0
-                scoPanel = length(list_panels)-1
+                scoPanel = len(list_panels)-1
                 tgl = False
                 for skf in reversed(skfa): # 从尾部开始，否则会多次遍历已移动到面板的项目。
                     if skf.item_type=='SOCKET':
                         if (skf.in_out=='OUTPUT')and(not tgl):
                             tgl = True
                             scoSkf = 0
-                            scoPanel = length(list_panels)-1
+                            scoPanel = len(list_panels)-1
                         if scoSkf==list_panels[scoPanel][4][tgl]:
                             scoPanel -= 1
                             while (scoPanel>0)and(not list_panels[scoPanel][4][tgl]): # 面板可能包含零个其侧的套接字。

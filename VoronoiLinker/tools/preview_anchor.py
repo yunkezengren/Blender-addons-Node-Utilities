@@ -1,14 +1,7 @@
-from ..base_tool import *
-from ..globals import *
-from ..utils.ui import *
-from ..utils.node import *
-from ..utils.color import *
-from ..utils.solder import *
-from ..utils.drawing import *
-from ..common_forward_func import *
-from ..common_forward_class import *
-from ..base_tool import *
-
+import bpy
+from ..base_tool import VoronoiToolSk
+from ..globals import voronoiAnchorDtName, voronoiAnchorCnName
+from ..common_forward_class import VptData
 
 class VoronoiPreviewAnchorTool(VoronoiToolSk): #嗯, 现在这是一个完整的工具了; 甚至可能需要在布局中为其创建一个新的独立类别.
     bl_idname = 'node.voronoi_preview_anchor'

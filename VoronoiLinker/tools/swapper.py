@@ -1,14 +1,7 @@
-from ..base_tool import *
-from ..globals import *
-from ..utils.ui import *
-from ..utils.node import *
-from ..utils.color import *
-from ..utils.solder import *
-from ..utils.drawing import *
-from ..common_forward_func import *
-from ..common_forward_class import *
-from ..base_tool import VoronoiToolPairSk
-
+import bpy
+from ..base_tool import VoronoiToolPairSk, CheckUncollapseNodeAndReNext
+from ..utils.drawing import TemplateDrawSksToolHh
+from ..utils.node import MinFromFtgs, opt_ftg_socket
 
 fitVstModeItems = ( ('SWAP', "Swap",     "All links from the first socket will be on the second, from the second on the first"),
                     ('ADD',  "Add",      "Add all links from the second socket to the first one"),

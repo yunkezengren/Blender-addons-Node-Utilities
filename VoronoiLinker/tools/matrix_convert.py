@@ -1,18 +1,7 @@
-from ..base_tool import *
-from ..globals import *
-from ..utils.ui import *
-from ..utils.node import *
-from ..utils.color import *
-from ..utils.solder import *
-from ..utils.drawing import *
-from ..common_forward_func import *
-from ..common_forward_class import *
 from ..base_tool import VoronoiOpTool
 from ..common_forward_class import VmtData
-
 import bpy
 from bpy.types import Context, NodeTree
-
 
 Convert_Data = VmtData()
 

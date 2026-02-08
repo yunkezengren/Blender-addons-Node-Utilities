@@ -1,20 +1,11 @@
 import bpy
-from pprint import pprint
 from bpy.types import (NodeSocket, UILayout, NodeTree)
 
 from .matrix_convert import Convert_Data, PIE_MT_Convert_To_Rotation, PIE_MT_Combine_Matrix
-from ..globals import Cursor_X_Offset
+from ..globals import Cursor_X_Offset, AllQuickConstant
 from ..utils.drawing import TemplateDrawSksToolHh
-from ..base_tool import *
-from ..globals import *
-from ..utils.ui import *
-from ..utils.node import *
-from ..utils.color import *
-from ..utils.solder import *
-from ..utils.drawing import *
-from ..common_forward_func import *
-from ..common_forward_class import *
-from ..base_tool import VoronoiToolTripleSk
+from ..base_tool import VoronoiToolTripleSk, CheckUncollapseNodeAndReNext
+from ..utils.node import opt_ftg_socket
 
 BT = bpy.types
 

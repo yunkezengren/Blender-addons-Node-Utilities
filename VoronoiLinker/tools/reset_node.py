@@ -1,15 +1,7 @@
+import bpy
 from ..common_forward_class import TryAndPass
 from ..utils.solder import SolderSkLinks
 from ..utils.drawing import TemplateDrawNodeFull
-from ..base_tool import *
-from ..globals import *
-from ..utils.ui import *
-from ..utils.node import *
-from ..utils.color import *
-from ..utils.solder import *
-from ..utils.drawing import *
-from ..common_forward_func import *
-from ..common_forward_class import *
 from ..base_tool import VoronoiToolNd
 
 class VoronoiResetNodeTool(VoronoiToolNd):

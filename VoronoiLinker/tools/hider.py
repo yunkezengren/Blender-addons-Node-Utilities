@@ -1,14 +1,8 @@
+import bpy
 from ..common_forward_func import sk_label_or_name
-from ..base_tool import *
-from ..globals import *
-from ..utils.ui import *
-from ..utils.node import *
-from ..utils.color import *
-from ..utils.solder import *
-from ..utils.drawing import *
-from ..common_forward_func import *
-from ..common_forward_class import *
-from ..base_tool import VoronoiToolAny
+from ..base_tool import VoronoiToolAny, CheckUncollapseNodeAndReNext
+from ..utils.node import MinFromFtgs
+from ..utils.ui import LyAddHandSplitProp, LyAddLeftProp
 
 def HideFromNode(prefs, ndTarget, lastResult, isCanDo=False): # 最初是我个人的实用工具, 在 VL 之前就创建了.
     set_equestrianHideVirtual = {'GROUP_INPUT','SIMULATION_INPUT','SIMULATION_OUTPUT','REPEAT_INPUT','REPEAT_OUTPUT'}
@@ -70,7 +64,7 @@ def HideFromNode(prefs, ndTarget, lastResult, isCanDo=False): # 最初是我个�
             return success
         # 如果虚拟节点是手动创建的, 就不要隐藏它们. 因为就是这样. 但如果组的输入不止一个, 还是要隐藏.
         # LVirtual 的最初意思是 "LCheckOver" -- "上层"检查, 点状的附加条件. 但后来只积累了虚拟节点的条件, 所以改了名.
-        isMoreNgInputs = False if ndTarget.type!='GROUP_INPUT' else length([True for nd in ndTarget.id_data.nodes if nd.type=='GROUP_INPUT'])>1
+        isMoreNgInputs = False if ndTarget.type!='GROUP_INPUT' else len([True for nd in ndTarget.id_data.nodes if nd.type=='GROUP_INPUT'])>1
         LVirtual = lambda sk: not( (sk.bl_idname=='NodeSocketVirtual')and # 这个 Labmda 的意思是, 对于那些虚拟的,
                                    (sk.node.type in {'GROUP_INPUT','GROUP_OUTPUT'})and # 在 io-骑士节点上的,
                                    (sk!=( sk.node.outputs if sk.is_output else sk.node.inputs )[-1])and # 并且不是最后一个的 (这才是重点),

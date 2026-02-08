@@ -1,19 +1,11 @@
-from ..base_tool import *
-from ..globals import *
-from ..utils.ui import *
-from ..utils.node import *
-from ..utils.color import *
-from ..utils.solder import *
-from ..utils.drawing import *
-from ..common_forward_func import *
-from ..common_forward_class import *
+from ..globals import Color_Bar_Width, mixer_default, mixer_tree_sk_nodes, SEPARATE, dict_vmtMixerNodesDefs, node_support_all_gn_sk
+from ..utils.node import DoLinkHh, remember_add_link
+from ..utils.color import get_sk_color
 from ..base_tool import VoronoiOpTool
 from ..common_forward_class import VmtData
-from ..utils.node import DoLinkHh
-from ..utils.color import get_sk_color
+import bpy
 from bpy.app.translations import pgettext_iface as _iface
-
-from bpy.types import NodeTree, Node, GeometryNodeMenuSwitch, GeometryNodeIndexSwitch, ShaderNodeCombineXYZ, FunctionNodeCompare
+from bpy.types import UILayout, NodeTree, GeometryNodeMenuSwitch, GeometryNodeIndexSwitch, ShaderNodeCombineXYZ, FunctionNodeCompare
 
 def DoMix(tree: NodeTree, isShift: bool, isAlt: bool, type: str):
     bpy.ops.node.add_node('INVOKE_DEFAULT', type=type, use_transform=not VmtData.isPlaceImmediately)

@@ -1,19 +1,13 @@
 import bpy
-from ..base_tool import *
-from ..globals import *
-from ..utils.ui import *
-from ..utils.node import *
-from ..utils.color import *
-from ..utils.solder import *
-from ..utils.drawing import *
-from ..common_forward_func import *
-from ..common_forward_class import *
-from ..base_tool import VoronoiToolPairSk
+from mathutils import Vector as Vec2
+from ..base_tool import VoronoiToolPairSk, CheckUncollapseNodeAndReNext
 from ..globals import dict_typeSkToBlid
-from ..utils.node import sk_type_to_idname
+from ..utils.ui import LyAddNiceColorProp
+from ..utils.node import sk_type_to_idname, opt_ftg_socket, MinFromFtgs
+from ..utils.drawing import TemplateDrawSksToolHh, DrawVlWidePoint
 from ..common_forward_func import sk_label_or_name
+from ..common_forward_class import VlnstData
 import copy
-
 
 # 突然发现, 我以前对"懒人延续"工具的想法被封装在了这个工具里. 真是出乎意料.
 # 这个工具, 和 ^ (其中插槽和节点明确决定了下一个节点) 一样, 只不过是针对两个插槽的; 而且可能性更多!
@@ -108,7 +102,7 @@ def DoLazyStencil(tree, skFirst, skSecond, lzSten):
         nd.location += li.locloc
         list_result.append(nd)
         for pr in li.list_props:
-            if length(pr)==2:
+            if len(pr)==2:
                 setattr(nd, pr[0], pr[1])
             else:
                 setattr( (nd.outputs if pr[0]>0 else nd.inputs)[abs(pr[0])-1], pr[1], pr[2] )

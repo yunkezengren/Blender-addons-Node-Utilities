@@ -1,15 +1,11 @@
-from ..base_tool import *
-from ..globals import *
-from ..utils.ui import *
-from ..utils.node import *
-from ..utils.color import *
-from ..utils.solder import *
-from ..utils.drawing import *
-from ..common_forward_func import *
-from ..common_forward_class import *
+import bpy
+from bpy.types import UILayout
 from ..base_tool import VoronoiOpTool
+from ..globals import float_int_color, Color_Bar_Width, floatIntColorInverse, dict_vqmtQuickMathMain, dict_vqmtQuickPresets
 from ..utils.color import power_color4, get_sk_color
-
+from ..utils.node import DoQuickMath
+from ..common_forward_class import VqmtData
+from ..common_forward_func import Prefs
 
 class VqmtOpMain(VoronoiOpTool):
     bl_idname = 'node.voronoi_quick_math_main'
@@ -55,7 +51,7 @@ class VqmtOpMain(VoronoiOpTool):
                                         canLk |= not tgl
                                         canSk |= tgl
                                     list_sks.append((sk, tgl))
-                                if (canLk and canSk)and(length(list_sks)>1):
+                                if (canLk and canSk)and(len(list_sks)>1):
                                     #注意：那些什么都没有的，会被上层拓扑忽略
                                     key = (nd.operation, *[li[0].default_value if type(li[0].default_value)==float else li[0].default_value[:] for li in list_sks if li[1]])
                                     VqmtData.dict_existingValues[key] = (nd, list_sks)

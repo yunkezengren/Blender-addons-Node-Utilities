@@ -1,14 +1,7 @@
 import bpy
-from mathutils import Vector as Vec2
 from bpy.types import Node, NodeSocket
 from bpy.app.translations import pgettext_iface as _iface
 from .globals import dict_typeSkToBlid
-
-try:
-    from rich.console import Console
-    print = Console(width=165, log_time=False).log    # 带有 时间戳 源文件路径 行号
-except ImportError:
-    pass
 
 def Prefs():        # 很多局部变量也是prefs 还是改大写好点
     return bpy.context.preferences.addons[__package__].preferences # type: ignore

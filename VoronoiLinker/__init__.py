@@ -10,53 +10,42 @@ bl_info2 = {'name': "Voronoi Linker",
            'wiki_url': "https://github.com/neliut/VoronoiLinker/wiki",  # bl_info 因为4.2吗? 相同的键会被 blender_manifest 覆盖,不同的删除
            'tracker_url': "https://github.com/neliut/VoronoiLinker/issues"}
 
-from builtins import len as length       # 我超爱三个字母的变量名.没有像"len"这样的名字, 我会感到非常伤心和孤独... 😭 还有 'Vector.length' 也是.
 import bpy, rna_keymap_ui, bl_keymap_utils
-from bpy.types import UILayout, KeyMapItem
-from bpy.props import (BoolProperty, EnumProperty, FloatProperty, FloatVectorProperty, IntProperty, IntVectorProperty, StringProperty)
 from bpy.app.translations import pgettext_iface as _iface
-from typing import Callable
+from bpy.props import (BoolProperty, EnumProperty, FloatProperty, FloatVectorProperty, IntProperty, IntVectorProperty, StringProperty)
+from bpy.types import UILayout, KeyMapItem
 from time import perf_counter_ns
+from typing import Callable
 
-from .base_tool import *
-from .globals import *
-from .utils.ui import *
-from .utils.node import *
-from .utils.color import *
-from .utils.solder import *
-from .utils.drawing import *
-from .common_forward_func import *
-from .common_forward_class import *
-from .translations import translations_dict
+from .common_forward_class import VlnstUpdateLastExecError
 from .common_forward_func import GetFirstUpperLetters, user_node_keymaps, format_tool_set, Prefs
-from .common_forward_class import TryAndPass
-from .utils.solder import SolderClsToolNames, RegisterSolderings, UnregisterSolderings
-from .utils.drawing import TestDraw
-
-from .base_tool import VoronoiToolRoot, VoronoiToolPairSk
+from .globals import dict_vlHhTranslations, dict_vmtMixerNodesDefs, dict_vqmtQuickMathMain
+from .tools.call_node_pie import VoronoiCallNodePie
+from .tools.dummy import VoronoiDummyTool
+from .tools.enum_selector import VoronoiEnumSelectorTool, VestOpBox, VestPieBox, SNA_OT_Change_Node_Domain_And_Name
+from .tools.hider import VoronoiHiderTool
+from .tools.interfacer import VoronoiInterfacerTool
+from .tools.lazy_node_stencils import VoronoiLazyNodeStencilsTool
+from .tools.link_repeating import VoronoiLinkRepeatingTool
+from .tools.linker import VoronoiLinkerTool
+from .tools.links_transfer import VoronoiLinksTransferTool
+from .tools.mass_linker import VoronoiMassLinkerTool
+from .tools.matrix_convert import Rot_or_Mat_Convert, PIE_MT_Convert_To_Rotation, PIE_MT_Convert_Rotation_To, PIE_MT_Separate_Matrix, PIE_MT_Combine_Matrix
+from .tools.mixer import VoronoiMixerTool
 from .tools.mixer_sub import VmtOpMixer, VmtPieMixer
 from .tools.pie_math import VqmtOpMain, VqmtPieMath
-from .tools.dummy import VoronoiDummyTool
-from .tools.hider import VoronoiHiderTool
-from .tools.mixer import VoronoiMixerTool
-from .tools.ranto import VoronoiRantoTool
-from .tools.call_node_pie import VoronoiCallNodePie
-from .tools.linker import VoronoiLinkerTool
-from .tools.warper import VoronoiWarperTool
 from .tools.preview import VoronoiPreviewTool
-from .tools.swapper import VoronoiSwapperTool
+from .tools.preview_anchor import VoronoiPreviewAnchorTool
 from .tools.quick_constant import VoronoiQuickConstant
+from .tools.quick_dimensions import VoronoiQuickDimensionsTool
 from .tools.quick_math import VoronoiQuickMathTool
 from .tools.reset_node import VoronoiResetNodeTool
-from .tools.mass_linker import VoronoiMassLinkerTool
-from .tools.interfacer import VoronoiInterfacerTool
-from .tools.enum_selector import VoronoiEnumSelectorTool, VestOpBox, VestPieBox, SNA_OT_Change_Node_Domain_And_Name
-from .tools.link_repeating import VoronoiLinkRepeatingTool
-from .tools.links_transfer import VoronoiLinksTransferTool
-from .tools.preview_anchor import VoronoiPreviewAnchorTool
-from .tools.quick_dimensions import VoronoiQuickDimensionsTool
-from .tools.lazy_node_stencils import VoronoiLazyNodeStencilsTool
-from .tools.matrix_convert import Rot_or_Mat_Convert, PIE_MT_Convert_To_Rotation, PIE_MT_Convert_Rotation_To, PIE_MT_Separate_Matrix, PIE_MT_Combine_Matrix
+from .tools.swapper import VoronoiSwapperTool
+from .tools.warper import VoronoiWarperTool
+from .utils.drawing import TestDraw
+from .utils.solder import SolderClsToolNames, RegisterSolderings, UnregisterSolderings
+from .utils.ui import LyAddDisclosureProp, LyAddLabeledBoxCol, LyAddHandSplitProp, LyAddThinSep, LyAddQuickInactiveCol, LyAddEtb
+from .translations import translations_dict
 
 try:
     from rich import traceback
@@ -111,11 +100,6 @@ class ToTimeNs(): # 我投降了. 🤷‍ 我不知道为什么在大型节点�
         dict_timeOutside[self.name] = tpcn
 
 # todo1v6: 当工具处于活动状态时, 按下 PrtScr 会在控制台刷屏 `WARN ... pyrna_enum_to_py: ... '171' matches no enum in 'Event'`.
-
-# 翻译字典由 translations.py 提供
-ru_RU = 'ru_RU'
-zh_CN = 'zh_CN'
-zh_HANS = 'zh_HANS'
 
 txtAddonVer = ".".join([str(v) for v in bl_info2['version']])
 txt_addonVerDateCreated = f"Version {txtAddonVer} created {bl_info2['created']}"
@@ -177,7 +161,7 @@ smart_add_to_reg_and_kmiDefs(VoronoiSwapperTool, "S#A_S", {'toolMode':'TRAN'})
 
 dict_toolLangSpecifDataPool[VoronoiSwapperTool, "ru_RU"] = """Инструмент для обмена линков у двух сокетов, или добавления их к одному из них.
 Для линка обмена не будет, если в итоге он окажется исходящим из своего же нода."""
-dict_toolLangSpecifDataPool[VoronoiSwapperTool, "zh_CN"] = "Alt是批量替换输出接口,Shift是互换接口"
+dict_toolLangSpecifDataPool[VoronoiSwapperTool, "zh_HANS"] = "Alt是批量替换输出接口,Shift是互换接口"
 
 smart_add_to_reg_and_kmiDefs(VoronoiCallNodePie, "#C#_LEFTMOUSE")
 
@@ -185,7 +169,7 @@ smart_add_to_reg_and_kmiDefs(VoronoiHiderTool, "S##_E", {'toolMode':'SOCKET'})
 smart_add_to_reg_and_kmiDefs(VoronoiHiderTool, "#CA_E", {'toolMode':'SOCKETVAL'})
 smart_add_to_reg_and_kmiDefs(VoronoiHiderTool, "SC#_E", {'toolMode':'NODE'})
 dict_toolLangSpecifDataPool[VoronoiHiderTool, "ru_RU"] = "Инструмент для наведения порядка и эстетики в дереве.\nСкорее всего 90% уйдёт на использование автоматического сокрытия нодов."
-dict_toolLangSpecifDataPool[VoronoiHiderTool, "zh_CN"] = "Shift是自动隐藏数值为0/颜色纯黑/未连接的接口,Ctrl是单个隐藏接口"
+dict_toolLangSpecifDataPool[VoronoiHiderTool, "zh_HANS"] = "Shift是自动隐藏数值为0/颜色纯黑/未连接的接口,Ctrl是单个隐藏接口"
 
 
 smart_add_to_reg_and_kmiDefs(VoronoiMassLinkerTool, "SCA_LEFTMOUSE")
@@ -235,7 +219,7 @@ dict_toolLangSpecifDataPool[VoronoiWarperTool, "ru_RU"] = "Мини-ответв
 smart_add_to_reg_and_kmiDefs(VoronoiLazyNodeStencilsTool, "S#A_Q")
 dict_toolLangSpecifDataPool[VoronoiLazyNodeStencilsTool, "ru_RU"] = """Мощь. Три буквы на инструмент, дожили... Инкапсулирует Ctrl-T от
 NodeWrangler'а, и никогда не реализованный 'VoronoiLazyNodeContinuationTool'. """ #"Больше лени богу лени!"
-dict_toolLangSpecifDataPool[VoronoiLazyNodeStencilsTool, "zh_CN"] = "代替NodeWrangler的ctrl+t"
+dict_toolLangSpecifDataPool[VoronoiLazyNodeStencilsTool, "zh_HANS"] = "代替NodeWrangler的ctrl+t"
 
 smart_add_to_reg_and_kmiDefs(VoronoiResetNodeTool, "###_BACK_SPACE")
 smart_add_to_reg_and_kmiDefs(VoronoiResetNodeTool, "S##_BACK_SPACE", {'isResetEnums':True})
@@ -848,7 +832,7 @@ class VoronoiAddonPrefs(bpy.types.AddonPreferences):
                 text = _iface(text)
                 if text:
                     list_split = text.split("\n")
-                    hig = length(list_split)-1
+                    hig = len(list_split)-1
                     for cyc, li in enumerate(list_split):
                         col.label(text=li+(dot if cyc==hig else ""), translate=False)
             def LyAddTranDataForProp(where: UILayout, pr, dot="."):

@@ -1,5 +1,5 @@
 from ..C_Structure import BNode
-from ..globals import *
+from ..globals import dict_skTypeHandSolderingColor
 from .color import Color4, opaque_color4, power_color4
 from ..common_forward_func import GetFirstUpperLetters
 from mathutils import Vector as Vec

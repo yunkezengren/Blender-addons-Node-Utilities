@@ -1,14 +1,7 @@
-from ..base_tool import *
-from ..globals import *
-from ..utils.ui import *
-from ..utils.node import *
-from ..utils.color import *
-from ..utils.solder import *
-from ..utils.drawing import *
-from ..common_forward_func import *
-from ..common_forward_class import *
-from ..base_tool import VoronoiToolSk
-
+import bpy
+from ..base_tool import VoronoiToolSk, CheckUncollapseNodeAndReNext
+from ..utils.node import MinFromFtgs
+from ..utils.ui import LyAddKeyTxtProp
 
 def GetSetOfKeysFromEvent(event, isSide=False):
     set_keys = {event.type}

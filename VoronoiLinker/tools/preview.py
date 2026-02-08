@@ -1,17 +1,15 @@
-from ..utils.node import RestoreCollapsedNodes
-from ..utils.solder import SolderSkLinks
-from ..utils.color import get_sk_color_safe, Color4
-from ..base_tool import *
-from ..globals import *
-from ..utils.ui import *
-from ..utils.node import *
-from ..utils.color import *
-from ..utils.solder import *
-from ..utils.drawing import *
-from ..common_forward_func import *
-from ..common_forward_class import *
-from ..base_tool import VoronoiToolSk
-
+from ..utils.solder import SolderSkLinks, SoldThemeCols
+from ..utils.color import get_sk_color_safe, Color4, power_color4
+from ..base_tool import VoronoiToolSk, CheckUncollapseNodeAndReNext, is_builtin_tree_idname
+from ..globals import is_bl4_plus, voronoiAnchorCnName, voronoiSkPreviewName, voronoiAnchorDtName, voronoiPreviewResultNdName, Cursor_X_Offset
+from ..utils.ui import LyAddLeftProp, LyAddNoneBox
+from ..utils.node import VlrtRememberLastSockets, GenFtgsFromPuts, SelectAndActiveNdOnly
+from ..utils.drawing import DrawVlSocketArea, DrawVlSkText, TemplateDrawSksToolHh
+from ..common_forward_func import sk_type_to_idname
+from ..common_forward_class import VptData
+from ..C_Structure import BNode
+import bpy
+from mathutils import Vector as Vec2
 
 viaverSkfMethod = -1 # 用于成功交互方法的切换开关. 本可以按版本分布到映射表中, 但"根据实际情况"尝试有其独特的美学魅力.
 
@@ -235,7 +233,7 @@ def DoPreviewCore(skTar, list_distAnchs, cursorLoc):
             ndNew.location.x += ndTar.width*2
         return ndNew
     list_way = VptGetTreesPath(skTar.node)
-    higWay = length(list_way)-1
+    higWay = len(list_way)-1
     list_way[higWay].nd = skTar.node # 通过默认的保证-流程进入的深度, 目标节点不会被处理, 所以需要明确指定. (别忘了把这段精灵语翻译成中文 😂)
     ##
     previewSkType = "RGBA" # 颜色, 而不是着色器 -- 因为有时需要在预览路径上插入节点.

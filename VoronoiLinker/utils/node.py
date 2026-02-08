@@ -1,15 +1,11 @@
-from ..C_Structure import BNode, BNodeSocket
-from ..globals import is_bl4_plus, set_classicSocketsBlid, dict_typeSkToBlid, set_utilTypeSkFields
-from ..globals import *
-from ..common_forward_class import Node_Items_Manager, Fotago
-from ..common_forward_class import *
-from bpy.types import (NodeTree, Node, NodeSocket, UILayout)
+from ..C_Structure import BNodeSocket
+from ..globals import is_bl4_plus, set_classicSocketsBlid, set_utilTypeSkFields, set_utilEquestrianPortalBlids, dict_vqmtDefaultDefault, dict_vqmtDefaultValueOperation, dict_vqmtEditorNodes
+from ..common_forward_class import Node_Items_Manager, Fotago, VqmtData
+from bpy.types import (NodeTree, Node, NodeSocket)
 import bpy
 from mathutils import Vector as Vec2
-from ..common_forward_func import sk_label_or_name, add_item_for_index_switch
-from ..common_forward_func import *
+from ..common_forward_func import sk_label_or_name, add_item_for_index_switch, is_builtin_tree_idname, sk_type_to_idname
 from bpy.app.translations import pgettext_iface as _iface
-
 
 def sk_loc(sk: NodeSocket):
     return Vec2(BNodeSocket.GetFields(sk).runtime.contents.location[:]) if (sk.enabled) and (not sk.hide) else Vec2((0, 0))
@@ -326,7 +322,7 @@ def DoQuickMath(event, tree, operation, isCombo=False):
     bpy.ops.node.add_node('INVOKE_DEFAULT', type=txt, use_transform=not VqmtData.isPlaceImmediately)
     aNd = tree.nodes.active
     preset = operation.split("|")
-    isPreset = length(preset)>1
+    isPreset = len(preset)>1
     if isPreset:
         operation = preset[0]
     if VqmtData.qmSkType!='RGBA': #哦，这个颜色。

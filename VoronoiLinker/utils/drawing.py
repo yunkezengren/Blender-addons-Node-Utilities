@@ -1,21 +1,12 @@
-from builtins import len as length
 import gpu, gpu_extras, blf, copy
 from mathutils import Vector as Vec2
 from math import pi, cos, sin
+import bpy
 from ..C_Structure import View2D
-
 from .node import node_abs_loc
-from .color import (Color4, power_color4, clamp_color4, opaque_color4, get_color_black_alpha,
-                      get_sk_color_safe, get_sk_color)
-from .node import *
-from .ui import *
-from .color import *
-from .solder import *
-from ..globals import *
-from ..common_forward_class import *
-from ..common_forward_func import *
-from ..base_tool import *
-
+from .color import Color4, power_color4, clamp_color4, opaque_color4, get_color_black_alpha, get_sk_color_safe, get_sk_color
+from .solder import node_tag_color
+from ..common_forward_func import Prefs
 
 tup_whiteCol4 = (1.0, 1.0, 1.0, 1.0)
 
@@ -289,7 +280,7 @@ def TemplateDrawSksToolHh(drata: VlDrawData, *args_ftgSks, sideMarkHh=1, isDrawT
     # 缺少目标
     if not list_ftgSks: # 方便地只为了现在不存在的 DrawDoubleNone() 使用模板, 通过向 args_ftgSks 发送 `None, None`.
         col = drata.dsCursorColor if drata.dsIsColoredPoint else drata.dsUniformColor
-        isPair = length(args_ftgSks)==2
+        isPair = len(args_ftgSks)==2
         vec = Vec2((drata.dsPointOffsetX*0.75, 0)) if (isPair)and(isClassicFlow) else Vec2((0.0, 0.0))
         if (isPair)and(drata.dsIsDrawLine)and(drata.dsIsAlwaysLine):
             DrawWorldStick(drata, cursorLoc-vec, cursorLoc+vec, col, col)
@@ -299,7 +290,7 @@ def TemplateDrawSksToolHh(drata: VlDrawData, *args_ftgSks, sideMarkHh=1, isDrawT
                 DrawVlWidePoint(drata, cursorLoc+vec, col1=col, col2=col)
         return
     # 经典流程线
-    if (isClassicFlow)and(drata.dsIsDrawLine)and(length(list_ftgSks)==2):
+    if (isClassicFlow)and(drata.dsIsDrawLine)and(len(list_ftgSks)==2):
         ftg1 = list_ftgSks[0]
         ftg2 = list_ftgSks[1]
         if ftg1.dir*ftg2.dir<0: # 对于 VMLT, 为了不为它的两个套接字绘制, 它们在同一侧.
@@ -310,7 +301,7 @@ def TemplateDrawSksToolHh(drata: VlDrawData, *args_ftgSks, sideMarkHh=1, isDrawT
                 col1 = col2 = drata.dsUniformColor
             DrawWorldStick(drata, GetPosFromFtg(ftg1), GetPosFromFtg(ftg2), col1, col2)
     # 主要部分:
-    isOne = length(list_ftgSks)==1
+    isOne = len(list_ftgSks)==1
 
     # print("." * 100)
     # print(list_ftgSks)
@@ -336,7 +327,7 @@ def TemplateDrawSksToolHh(drata: VlDrawData, *args_ftgSks, sideMarkHh=1, isDrawT
         x_offset = 0
         soldOverrideDir = abs(sideMarkHh) > 1 and (1 if sideMarkHh > 0 else -1)
         for list_ftgs in list_ftgSksIn, list_ftgSksOut:  # "累积", 天才! 意大利面条式代码的头疼消失了.
-            hig = length(list_ftgs) - 1
+            hig = len(list_ftgs) - 1
             for cyc, ftg in enumerate(list_ftgs):
                 ofsY = 0.75*hig - 1.5*cyc
                 dir = soldOverrideDir if soldOverrideDir else ftg.dir * sideMarkHh
@@ -350,13 +341,13 @@ def TemplateDrawSksToolHh(drata: VlDrawData, *args_ftgSks, sideMarkHh=1, isDrawT
             ftg_show_name.soldText = tool_name.capitalize()
             # print(f"{x_offset = }")
             if x_offset != 0:
-                cursorLoc2 = cursorLoc.copy() + Vec((0, 50))  # 额外绘制
+                cursorLoc2 = cursorLoc.copy() + Vec2((0, 50))  # 额外绘制
                 DrawVlSkText(drata, cursorLoc2, (x_offset, 0), ftg_show_name)
                 # DrawVlSkText(drata, cursorLoc, (20, 50), ftg_show_name)
     # todo tool_name 的绘制和接口文本的绘制要分开,tool_name 要始终绘制,不要受 isDrawText 影响
     # todo 但是如果在下面绘制,批量连线时只绘制一根线(虽然正常连接)
     # if not isDrawText:      # 屎山的形成
-    #     cursorLoc2 = cursorLoc.copy() + Vec((0, 50))
+    #     cursorLoc2 = cursorLoc.copy() + Vec2((0, 50))
     #     ftg_show_name = copy.copy(ftg)
     #     txt_col = node_tag_color(list_ftgSks[0].tar.node)
     #     DrawVlSkText(drata, cursorLoc2, (0, 0), ftg_show_name, tool_color=txt_col)

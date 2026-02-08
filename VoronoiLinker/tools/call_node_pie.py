@@ -1,15 +1,6 @@
 import bpy
-from ..base_tool import *
-from ..globals import *
-from ..utils.ui import *
-from ..utils.node import *
-from ..utils.color import *
-from ..utils.solder import *
-from ..utils.drawing import *
-from ..common_forward_func import *
-from ..common_forward_class import *
-from ..base_tool import VoronoiToolAny
-
+from ..base_tool import VoronoiToolAny, CheckUncollapseNodeAndReNext
+from ..common_forward_class import Fotago
 
 class VoronoiCallNodePie(VoronoiToolAny):
     """ Voronoi 联动 Node Pie """
