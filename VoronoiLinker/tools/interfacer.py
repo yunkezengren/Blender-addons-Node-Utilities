@@ -221,9 +221,9 @@ class VoronoiInterfacerTool(VoronoiToolPairSk):
                     list_ftgSksIn, list_ftgSksOut = self.ToolGetNearestSockets(ndTar)
                     for ftg in list_ftgSksIn if skMain.is_output else list_ftgSksOut:
                         if (ftg.blid!='NodeSocketVirtual')and(Node_Items_Manager.IsSimRepCorrectSk(ndTar, ftg.tar)):
-                            len = (ftgNdTar.pos-ftg.pos).length
-                            if min>len:
-                                min = len
+                            length = (ftgNdTar.pos-ftg.pos).length
+                            if min>length:
+                                min = length
                                 ftgNearest = ftg
                     if ftgNearest and (not equr.is_index_switch):
                         skfTo = equr.GetSkfFromSk(ftgNearest.tar)

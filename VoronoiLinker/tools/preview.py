@@ -344,9 +344,9 @@ def DoPreviewCore(skTar, list_distAnchs, cursorLoc):
         if (cyc==higWay)and(not ndAnchor)and(list_distAnchs): # 最近的从光标处搜索; 非目标深度从哪里获取光标?.
             min = 32768
             for nd in list_distAnchs:
-                len = (nd.location-cursorLoc).length
-                if min>len:
-                    min = len
+                length = (nd.location-cursorLoc).length
+                if min>length:
+                    min = length
                     ndAnchor = nd
         if ndAnchor: # 锚点使"计划有变", 并将流重定向到自己身上.
             lk = tree.links.new(portalSkFrom, ndAnchor.inputs[0])

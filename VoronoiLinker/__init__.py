@@ -355,8 +355,8 @@ def GetVaSettAsPy(prefs: bpy.types.AddonPreferences):
     txt_vasp += " setattr(prefs, att, val)"+"\n\n"
     def AddAndProc(txt: str):
         nonlocal txt_vasp
-        len = txt.find(",")
-        txt_vasp += txt.replace(", ",","+" "*(42-len), 1)
+        length = txt.find(",")
+        txt_vasp += txt.replace(", ",","+" "*(42-length), 1)
     for pr in prefs.rna_type.properties:
         if not pr.is_readonly:
             # '_BoxDiscl' 我没忽略, 留着吧.
