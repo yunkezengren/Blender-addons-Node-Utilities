@@ -120,7 +120,7 @@ def GetNearestSocketsFtg(nd: Node, samplePos, uiScale): # 返回"最近的插槽
 def node_enum_props(node: Node) -> list[bpy.types.EnumProperty]:   # 小王-判断节点是否有下拉列表
     enum_l = []
     for prop in node.bl_rna.properties:
-        if (prop.type == 'ENUM') and (prop.identifier != "warning_propagation") and (prop.identifier.startswith("note_")) and (not (prop.is_readonly or prop.is_registered)):
+        if (prop.type == 'ENUM') and (prop.identifier != "warning_propagation") and (not prop.identifier.startswith("note_")) and (not (prop.is_readonly or prop.is_registered)):
             enum_l.append(prop)
     return enum_l
 
