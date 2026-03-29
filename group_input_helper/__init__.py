@@ -17,7 +17,6 @@ from mathutils import Vector as Vec2
 
 from .translator import i18n as trans
 from typing import Union
-from ctypes import c_float, c_void_p
 
 # Todo 要让支持的接口类型更通用啊,而不是自己判断
 # Todo 很久之前写的了,层层嵌套的地方需要优化, 拆分移动合并要考虑复用代码
@@ -449,17 +448,23 @@ def has_link(node: Node):
             return True
     return False
 
-def sk_location(socket: NodeSocket):
+def sk_loc(socket: NodeSocket):
+    """这是运行时数据,界面刷新时才更新"""
     try:
-        offset = 520
+        from ctypes import c_float, c_void_p
+        runtime_offset = 520        # DNA_node_types.h    - bNodeSocket        - runtime  
+        location_offset = 24        # BKE_node_runtime.hh - bNodeSocketRuntime - location
         if bpy.app.version >= (5, 1, 0):
-            offset = 456  # 520-64  5.1移除了short_label https://projects.blender.org/blender/blender/pulls/148940/files
-        return Vec2((c_float * 2).from_address(c_void_p.from_address(socket.as_pointer() + offset).value + 24))
+            runtime_offset = 456
+        if bpy.app.version >= (5, 2, 0):
+            location_offset = 32
+        runtime = c_void_p.from_address(socket.as_pointer() + runtime_offset).value
+        return Vec2((c_float * 2).from_address(runtime + location_offset))
     except:
-        raise Exception("获取接口位置函数出错")
+        raise Exception("获取接口位置出错/Get socket location error")
 
 def move_nd_to_sk(input_nd: Node, to_socket: NodeSocket, offset: int):
-    input_nd.location = sk_location(to_socket) / ui_scale()
+    input_nd.location = sk_loc(to_socket) / ui_scale()
     input_nd.location.x -= 180
     input_nd.location.y += offset
     input_nd.parent = to_socket.node.parent
@@ -634,7 +639,7 @@ class NODE_OT_Split_All_And_Move(BaseOperator):
             for sk_out in node.outputs:
                 if not sk_out.hide and sk_out.enabled and sk_out.bl_idname != "NodeSocketVirtual":
                     if not offset:
-                        offset = node.location.y - sk_location(sk_out).y / ui_scale()
+                        offset = node.location.y - sk_loc(sk_out).y / ui_scale()
                     # 删掉组输入输出接口后面连的所有转接点
                     if is_del_reroute and sk_out.links:
                         delete_reroute(sk_out, nodes, links)
@@ -708,7 +713,7 @@ def split_all_and_merge_move(context: Context, is_pre_merge=False):
             if sk_out.hide or not sk_out.enabled or sk_out.bl_idname == "NodeSocketVirtual":
                 continue
             if not offset:
-                offset = node.location.y - sk_location(sk_out).y / ui_scale()
+                offset = node.location.y - sk_loc(sk_out).y / ui_scale()
             # 删掉组输入输出接口后面连的所有转接点
             if is_del_reroute and sk_out.links:
                 delete_reroute(sk_out, nodes, links)

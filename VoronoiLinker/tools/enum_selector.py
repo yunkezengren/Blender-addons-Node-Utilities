@@ -295,7 +295,7 @@ class VoronoiEnumSelectorTool(VoronoiToolNd):
         LyAddLeftProp(col, prefs,'vestIsToggleNodesOnDrag')
     @staticmethod
     def LyDrawInAppearance(colLy, prefs): # 注意: 这是 @staticmethod.
-        colBox = LyAddLabeledBoxCol(colLy, text=_iface("Box ").strip()+" (VEST)")
+        colBox = LyAddLabeledBoxCol(colLy, text="Enum Select Box")
         LyAddHandSplitProp(colBox, prefs,'vestBoxScale')
         LyAddHandSplitProp(colBox, prefs,'vestDisplayLabels')
         LyAddHandSplitProp(colBox, prefs,'vestDarkStyle')

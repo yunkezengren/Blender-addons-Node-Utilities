@@ -602,7 +602,7 @@ class VoronoiAddonPrefs(bpy.types.AddonPreferences):
         colDraw.prop(self,'dsIsDrawLine')
         colDraw.prop(self,'dsIsDrawSkArea')
         with LyAddQuickInactiveCol(colDraw, active=self.dsIsDrawText) as row:
-            row.prop(self,'dsIsDrawNodeNameLabel', text="Node text") # "Text for node"
+            row.prop(self,'dsIsDrawNodeNameLabel', text="Node label") # "Text for node"
         colCol = splDrawColor.column(align=True, heading='Colored')
         LyAddPairProp(colCol,'dsIsColoredText')
         LyAddPairProp(colCol,'dsIsColoredMarker')
@@ -613,31 +613,32 @@ class VoronoiAddonPrefs(bpy.types.AddonPreferences):
         with LyAddQuickInactiveCol(colCol, active=tgl) as row:
             row.prop(self,'dsIsColoredNodes')
         ##
-        colBox = LyAddLabeledBoxCol(colMain, text="Edge pan")
+        colBox = LyAddLabeledBoxCol(colMain, text="Behavior")
         #LyAddHandSplitProp(colBox, self,'dsIsDrawNodeNameLabel', active=self.dsIsDrawText)
         LyAddHandSplitProp(colBox, self,'dsIsAlwaysLine')
         LyAddHandSplitProp(colBox, self,'dsIsSlideOnNodes')
         ##
-        colBox = LyAddLabeledBoxCol(colMain, text="Edge pan")
+        colBox = LyAddLabeledBoxCol(colMain, text="Color")
         LyAddHandSplitProp(colBox, self,'dsSocketAreaAlpha', active=self.dsIsDrawSkArea)
         tgl = ( (self.dsIsDrawText   and not self.dsIsColoredText  )or
                 (self.dsIsDrawMarker and not self.dsIsColoredMarker)or
                 (self.dsIsDrawPoint  and not self.dsIsColoredPoint )or
                 (self.dsIsDrawLine   and not self.dsIsColoredLine  )or
                 (self.dsIsDrawSkArea and not self.dsIsColoredSkArea) )
-        LyAddHandSplitProp(colBox, self,'dsUniformColor', active=tgl)    # 小王 原先这样 不确定什么用
-        # LyAddHandSplitProp(colBox, self,'dsUniformColor', active=True)
+        if tgl:
+            LyAddHandSplitProp(colBox, self,'dsUniformColor')
         tgl = ( (self.dsIsDrawText   and self.dsIsColoredText  )or
                 (self.dsIsDrawPoint  and self.dsIsColoredPoint )or
                 (self.dsIsDrawLine   and self.dsIsColoredLine  ) )
-        LyAddHandSplitProp(colBox, self,'dsUniformNodeColor', active=(tgl)and(not self.dsIsColoredNodes))    # 原先这样 不确定什么用
+        if tgl and (not self.dsIsColoredNodes):
+            LyAddHandSplitProp(colBox, self,'dsUniformNodeColor')
         # LyAddHandSplitProp(colBox, self,'dsUniformNodeColor', active=True)
         tgl1 = (self.dsIsDrawPoint and self.dsIsColoredPoint)
         tgl2 = (self.dsIsDrawLine  and self.dsIsColoredLine)and(not not self.dsCursorColorAvailability)
         LyAddHandSplitProp(colBox, self,'dsCursorColor', active=tgl1 or tgl2)
         LyAddHandSplitProp(colBox, self,'dsCursorColorAvailability', active=self.dsIsDrawLine and self.dsIsColoredLine)
         ##
-        colBox = LyAddLabeledBoxCol(colMain, text="Edge pan")
+        colBox = LyAddLabeledBoxCol(colMain, text="Style")
         LyAddHandSplitProp(colBox, self,'dsDisplayStyle')
         LyAddHandSplitProp(colBox, self,'dsFontFile')
         if not self.dsFontFile.endswith((".ttf",".otf")):
@@ -650,20 +651,20 @@ class VoronoiAddonPrefs(bpy.types.AddonPreferences):
         LyAddHandSplitProp(colBox, self,'dsFontSize')
         LyAddHandSplitProp(colBox, self,'dsMarkerStyle')
         ##
-        colBox = LyAddLabeledBoxCol(colMain, text="Edge pan")
+        colBox = LyAddLabeledBoxCol(colMain, text="Offset")
         LyAddHandSplitProp(colBox, self,'dsManualAdjustment')
         LyAddHandSplitProp(colBox, self,'dsPointOffsetX')
         LyAddHandSplitProp(colBox, self,'dsFrameOffset')
         LyAddHandSplitProp(colBox, self,'dsDistFromCursor')
         LyAddThinSep(colBox, 0.25) # 间隔的空白会累加, 所以额外加个间隔来对齐.
         LyAddHandSplitProp(colBox, self,'dsIsAllowTextShadow')
-        colShadow = colBox.column(align=True)
-        LyAddHandSplitProp(colShadow, self,'dsShadowCol', active=self.dsIsAllowTextShadow)
-        LyAddHandSplitProp(colShadow, self,'dsShadowBlur') # 阴影模糊将它们分开, 以免在中间融合在一起.
-        row = LyAddHandSplitProp(colShadow, self,'dsShadowOffset', returnAsLy=True).row(align=True)
-        row.row().prop(self,'dsShadowOffset', text="X  ", translate=False, index=0, icon_only=True)
-        row.row().prop(self,'dsShadowOffset', text="Y  ", translate=False, index=1, icon_only=True)
-        colShadow.active = self.dsIsAllowTextShadow
+        if self.dsIsAllowTextShadow:
+            colShadow = colBox.column(align=True)
+            LyAddHandSplitProp(colShadow, self,'dsShadowCol')
+            LyAddHandSplitProp(colShadow, self,'dsShadowBlur') # 阴影模糊将它们分开, 以免在中间融合在一起.
+            row = LyAddHandSplitProp(colShadow, self,'dsShadowOffset', returnAsLy=True).row(align=True)
+            row.row().prop(self,'dsShadowOffset', text="X  ", translate=False, index=0, icon_only=True)
+            row.row().prop(self,'dsShadowOffset', text="Y  ", translate=False, index=1, icon_only=True)
         ##
         colDev = colMain.column(align=True)
         if (self.dsIncludeDev)or(self.dsIsFieldDebug)or(self.dsIsTestDrawing):
@@ -745,6 +746,15 @@ class VoronoiAddonPrefs(bpy.types.AddonPreferences):
                 txtHl = "#:~:text="+txtHl
             row.operator('wm.url_open', text=text, icon='URL').url=url+txtHl
             row.label()
+        
+        LyAddUrlHl(where, "Check for updates yourself", "https://github.com/yunkezengren/Blender-addons-Node-Utilities/releases")
+        panel, body = where.panel(idname="old", default_closed=True)
+        panel.label(text="Settings from original author (I don't understand some of them)")
+        
+        if not body: return
+        body = body.split(factor=0.05)
+        body.label()
+        where = body
         colMain = where.column()
         with LyAddQuickInactiveCol(colMain, att='column') as row:
             row.alignment = 'LEFT'

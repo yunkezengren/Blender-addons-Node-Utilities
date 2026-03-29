@@ -208,11 +208,12 @@ class VoronoiQuickMathTool(VoronoiToolTripleSk):
     @classmethod
     def LyDrawInAppearance(cls, colLy, prefs):
         #VoronoiMixerTool.__dict__['LyDrawInAppearance'].__func__(cls, colLy, prefs) #该死. 由于 @classmethod 而绕过. 但现在没必要了, 因为有了 vqmtPieScaleExtra.
-        colBox = LyAddLabeledBoxCol(colLy, text=_iface("Pie")+" (VQMT)")
+        colBox = LyAddLabeledBoxCol(colLy, text="Quick Math Pie")
         LyAddHandSplitProp(colBox, prefs,'vqmtPieType')
         colProps = colBox.column(align=True)
         LyAddHandSplitProp(colProps, prefs,'vqmtPieScale')
-        LyAddHandSplitProp(colProps, prefs,'vqmtPieScaleExtra')
+        # 预设(隐藏了) 比如 +-*/ 的 缩放,暂时用不到
+        # LyAddHandSplitProp(colProps, prefs,'vqmtPieScaleExtra')
         LyAddHandSplitProp(colProps, prefs,'vqmtPieAlignment')
         LyAddHandSplitProp(colProps, prefs,'vqmtPieSocketDisplayType')
         LyAddHandSplitProp(colProps, prefs,'vqmtPieDisplaySocketColor')

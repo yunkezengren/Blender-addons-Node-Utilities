@@ -112,7 +112,7 @@ class VoronoiMixerTool(VoronoiToolTripleSk):
         LyAddLeftProp(col, prefs,'vmtReroutesCanInAnyType')
     @classmethod
     def LyDrawInAppearance(cls, colLy, prefs):
-        colBox = LyAddLabeledBoxCol(colLy, text=_iface("Pie")+f" ({cls.vlTripleName})")
+        colBox = LyAddLabeledBoxCol(colLy, text="Mix Pie")
         tlw = cls.vlTripleName.lower()
         LyAddHandSplitProp(colBox, prefs,f'{tlw}PieType')
         colProps = colBox.column(align=True)

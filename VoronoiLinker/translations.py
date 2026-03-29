@@ -136,6 +136,7 @@ translations_dict = {
         ("*", "Control"): "Контроль",
         ("*", "Speed"): "Скорость",
         ("*", "Pie scale"): "Размер пирога",
+        ("*", "Pie scale extra"): "Размер дополнительных панелей пирога",
         ("*", "Alignment between items"): "Выравнивание между элементами",
         ("*", "0 – Flat.\n1 – Rounded docked.\n2 – Gap"): "0 – Гладко.\n1 – Скруглённые состыкованные.\n2 – Зазор",
         ("*", "Display socket type info"): "Отображение типа сокета",
@@ -296,7 +297,13 @@ translations_dict = {
         ("*", "Shadow offset"): "Смещение тени",
         ("*", "Shadow blur"): "Размытие тени",
         ("*", "Display text for node"): "Показывать заголовок для нода",
-        
+
+        # Draw tab sections
+        ("*", "Behavior"): "Поведение",
+        ("*", "Color"): "Цвет",
+        ("*", "Style"): "Стиль",
+        ("*", "Offset"): "Смещение",
+
         # Settings
         ("*", "Edge pan zoom factor"): "Фактор панорамирования масштаба",
         ("*", "0.0 – Shift only; 1.0 – Scale only"): "0.0 – Только сдвиг; 1.0 – Только масштаб",
@@ -335,6 +342,10 @@ translations_dict = {
         ("*", "MassLinker"): "Массовый линковщик",
         ("*", "Links Transfer"): "Перенос связей",
         ("*", "Transfer"): "Перенос",
+        ("*", "Quick Math Pie"): "Пирог быстрой математики",
+        ("*", "Enum Select Box"): "Окно выбора перечислений",
+        ("*", "Mix Pie"): "Пирог смешивания",
+        ("*", "Settings from original author (I don't understand some of them)"): "Некоторые настройки от оригинального автора (некоторые я тоже не совсем понимаю)",
     },
     
     "zh_HANS": {
@@ -345,7 +356,6 @@ translations_dict = {
         
         # Operators
         ("Operator", "Copy addon settings as .py script"): "将插件设置复制为'.py'脚本,复制到粘贴板里",
-        # ("Operator", "Check for updates yourself"): "",
         ("Operator", "Restore"): "恢复",
         ("Operator", "Add New"): "添加",
         # ("Operator", "Auto-node"): "",
@@ -359,6 +369,10 @@ translations_dict = {
         ("Operator", "Flip"): "移动",
         ("Operator", "New"): "新建",
         ("Operator", "Create"): "创建",
+        ("Operator", "Check for updates yourself"): "自行检查更新",
+        ("Operator", "Auto-node"): "自动节点",
+        ("Operator", "For socket"): "针对接口",
+        ("Operator", "For node"): "针对节点",
         
         # Tool labels
         ("*", "Voronoi Linker"): "Voronoi快速连接",
@@ -401,7 +415,7 @@ translations_dict = {
         ("*", "Pie"): "饼菜单",
         ("*", "Special"): "特殊",
         ("*", "Customization"): "自定义",
-        ("*", "Colored"): "根据端点类型自动设置颜色:",
+        ("*", "Colored"): "接口动态颜色:",
         
         # VMT mixer labels
         ("*", "Switch  "): "S切换",
@@ -416,7 +430,7 @@ translations_dict = {
         ("*", "Max Float "): "最大浮点",
         ("*", "Max Vector "): "最大矢量",
         ("*", "Mix Shader "): "混合着色器",
-        ("*", "Add Shader "): "添加着色器",
+        ("*", "Add Shader "): "相加着色器",
         ("*", "Join String "): "J 连接字符串",
         ("*", "String Length "): "字符串长度",
         ("*", "Replace String "): "替换字符串",
@@ -475,6 +489,7 @@ translations_dict = {
         ("*", "Control"): "控制(自定义)",
         ("*", "Speed"): "速度型(多层菜单)",
         ("*", "Pie scale"): "饼菜单大小",
+        ("*", "Pie scale extra"): "预设面板缩放",
         ("*", "Alignment between items"): "项目之间的对齐方式",
         ("*", "0 – Flat.\n1 – Rounded docked.\n2 – Gap"): "0 – 平面。\n1 – 圆角停靠。\n2 – 间隙",
         ("*", "Display socket type info"): "显示接口类型",
@@ -618,6 +633,9 @@ translations_dict = {
         ("*", "MassLinker"): "批量连接",
         ("*", "Links Transfer"): "连线转移",
         ("*", "Transfer"): "转移",
+        ("*", "Quick Math Pie"): "快速运算饼菜单",
+        ("*", "Enum Select Box"): "菜单枚举选择框",
+        ("*", "Mix Pie"): "混合饼菜单",
 
         # AddonPrefs
         ("*", "This list is just a copy from the \"Preferences > Keymap\".\nResrore will restore everything \"Node Editor\", not just addon"): "危险:\"恢复\"按钮将恢复整个快捷键里\"节点编辑器\"类中的所有设置,而不仅仅是恢复此插件!下面只显示本插件的快捷键。",
@@ -627,16 +645,26 @@ translations_dict = {
         ("*", "Invalid"): "无效",
         ("*", "Quick Math"): "快速数学运算",
         ("*", "Custom"): "自定义",
+        ("*", "Language bruteforce debug"): "语言暴力调试",
+        ("*", "Field debug"): "字段调试",
+        ("*", "Testing draw"): "测试绘制",
+        ("*", "Addon Prefs Tabs"): "插件偏好设置标签",
+        ("*", "Settings"): "设置",
+        ("*", "Appearance"): "外观",
+        ("*", "Draw"): "绘制",
+        ("*", "Keymap"): "快捷键",
+        ("*", "Info"): "信息",
         
         # Draw settings
-        ("*", "Alternative uniform color"): "自定义轮选时接口的颜色",
-        ("*", "Alternative nodes color"): "动态选择节点时标识的颜色(显示下拉列表时)",
+        ("*", "Alternative uniform color"): "备选颜色:统一颜色",
+        ("*", "Alternative nodes color"): "备选颜色:节点颜色",
         ("*", "Socket area alpha"): "接口区域的透明度",
         ("*", "Font file"): "字体文件",
         ("*", "Point offset X axis"): "X轴上的点偏移",
         ("*", "Frame size"): "边框大小",
         ("*", "Font size"): "字体大小",
-        ("*", "Socket area"): "高亮显示选中接口",
+        ("*", "Socket area"): "接口区域",
+        ("*", "Node label"): "节点标签",
         ("*", "Display frame style"): "边框显示样式",
         ("*", "Classic"): "经典",
         ("*", "Simplified"): "简化",
@@ -650,5 +678,29 @@ translations_dict = {
         ("*", "Shadow offset"): "阴影偏移",
         ("*", "Shadow blur"): "阴影模糊",
         ("*", "Display text for node"): "显示节点标签",
+
+        # Draw tab sections
+        ("*", "Behavior"): "行为",
+        ("*", "Color"): "颜色",
+        ("*", "Style"): "样式",
+        ("*", "Offset"): "偏移",
+
+        ("*", "Cursor color"): "光标颜色",
+        ("*", "Cursor color availability"): "光标颜色设置",
+        ("*", "If a line is drawn to the cursor, color part of it in the cursor color.\n0 – Disable.\n1 – For one line.\n2 – Always"): "如果绘制到光标的线条,将其中一部分着色为光标颜色。\n0 – 禁用。\n1 – 仅一条线。\n2 – 始终",
+        ("*", "Manual adjustment"): "手动调整",
+        ("*", "The Y-axis offset of text for this font"): "此字体文本的Y轴偏移量",
+        ("*", "Point scale"): "点缩放",
+        ("*", "Marker Style"): "标记样式",
+
+        # Settings
+        ("*", "Edge pan"): "边缘滑动",
+        ("*", "Edge pan zoom factor"): "边缘滑动缩放系数",
+        ("*", "0.0 – Shift only; 1.0 – Scale only"): "0.0 – 仅平移; 1.0 – 仅缩放",
+        ("*", "Edge pan speed"): "边缘滑动速度",
+        ("*", "Overwriting zoom limits"): "覆盖缩放限制",
+        ("*", "Zoom min"): "最小缩放",
+        ("*", "Zoom max"): "最大缩放",
+        ("*", "Settings from original author (I don't understand some of them)"): "原作者的一些设置(有些我也不太懂用处)",
     },
 }

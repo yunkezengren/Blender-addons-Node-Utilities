@@ -77,7 +77,7 @@ def LyAddLabeledBoxCol(layout: UILayout, *, text="", active=True, scale=1.0, ali
     box.scale_y = 0.5
     row = box.row(align=True)
     row.alignment = 'CENTER'
-    row.label(text=" ▶ ▶ ▶   " + text)
+    row.label(text=" ▶ ▶ ▶   " + _iface(text))
     row.active = active
     box = colMain.box()
     box.scale_y = scale

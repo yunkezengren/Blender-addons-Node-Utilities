@@ -7,8 +7,23 @@ from ..common_forward_class import Fotago, Node_Items_Manager, VqmtData
 from ..common_forward_func import add_item_for_index_switch, is_builtin_tree_idname, sk_label_or_name, sk_type_to_idname
 from ..globals import dict_vqmtDefaultDefault, dict_vqmtDefaultValueOperation, dict_vqmtEditorNodes, is_bl4_plus, set_classicSocketsBlid, set_utilEquestrianPortalBlids, set_utilTypeSkFields
 
-def sk_loc(sk: NodeSocket):
+def sk_loc_遗留(sk: NodeSocket):
     return Vec2(BNodeSocket.GetFields(sk).runtime.contents.location[:]) if (sk.enabled) and (not sk.hide) else Vec2((0, 0))
+
+def sk_loc(socket: NodeSocket):
+    """这是运行时数据,界面刷新时才更新"""
+    try:
+        from ctypes import c_float, c_void_p
+        runtime_offset = 520        # DNA_node_types.h    - bNodeSocket        - runtime  
+        location_offset = 24        # BKE_node_runtime.hh - bNodeSocketRuntime - location
+        if bpy.app.version >= (5, 1, 0):
+            runtime_offset = 456
+        if bpy.app.version >= (5, 2, 0):
+            location_offset = 32
+        runtime = c_void_p.from_address(socket.as_pointer() + runtime_offset).value
+        return Vec2((c_float * 2).from_address(runtime + location_offset))
+    except:
+        raise Exception("获取接口位置出错/Get socket location error")
 
 def node_abs_loc(nd: Node) -> Vec2:
     return nd.location + node_abs_loc(nd.parent) if nd.parent else nd.location
