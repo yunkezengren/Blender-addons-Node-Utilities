@@ -37,6 +37,7 @@ sk_name_cn = [
     "浮点",
     "整数",
     "矢量",
+    "整数矢量",
     "颜色",
     "旋转",
     "矩阵",
@@ -49,8 +50,14 @@ sk_name_cn = [
     # "纹理",
     "捆包",
     "闭包",
+    "字体",
+    # "声音",
+    # "场景",
+    # "文本",
+    # "遮罩",
 ]
 
+# todo 找一个更通用的方法 而不是每次更新后 添加
 sk_idnames = [
     "NodeSocketGeometry",
     "NodeSocketShader",
@@ -58,6 +65,7 @@ sk_idnames = [
     "NodeSocketFloat",
     "NodeSocketInt",
     "NodeSocketVector",
+    "NodeSocketIntVector3D",
     "NodeSocketColor",
     "NodeSocketRotation",
     "NodeSocketMatrix",
@@ -70,6 +78,11 @@ sk_idnames = [
     # "NodeSocketTexture",
     "NodeSocketBundle",
     "NodeSocketClosure",
+    "NodeSocketFont",
+    # "NodeSocketSound",
+    # "NodeSocketScene",
+    # "NodeSocketText",
+    # "NodeSocketMask",
 ]
 
 sk_icons = [
@@ -79,6 +92,7 @@ sk_icons = [
     "NODE_SOCKET_FLOAT",
     "NODE_SOCKET_INT",
     "NODE_SOCKET_VECTOR",
+    "NODE_SOCKET_INT_VECTOR",
     "NODE_SOCKET_RGBA",
     "NODE_SOCKET_ROTATION",
     "NODE_SOCKET_MATRIX",
@@ -91,9 +105,14 @@ sk_icons = [
     # "NODE_SOCKET_TEXTURE",
     "NODE_SOCKET_BUNDLE",
     "NODE_SOCKET_CLOSURE",
+    "NODE_SOCKET_FONT",
+    # "NODE_SOCKET_SOUND",
+    # "NODE_SOCKET_SCENE",
+    # "NODE_SOCKET_TEXT",
+    # "NODE_SOCKET_MASK",
 ]
 
-png_list = [
+遗留png_list = [
     '几何数据.png',
     '着色器.png',  # Shader接口也用几何数据
     '布尔.png',
@@ -112,7 +131,7 @@ png_list = [
     '空.png',
 ]
 
-sk_idname_to_png_name = {k:v for k, v in zip(sk_idnames, png_list)}
+sk_idname_to_png_name = {k:v for k, v in zip(sk_idnames, 遗留png_list)}
 sk_idname_to_cn = {k:v for k, v in zip(sk_idnames, sk_name_cn)}
 sk_idname_to_icon = {k:v for k, v in zip(sk_idnames, sk_icons)}
 
@@ -178,13 +197,15 @@ def ui_scale():
     return bpy.context.preferences.system.dpi / 72      # 类似于prefs.view.ui_scale, 但是不同的显示器dpi不一样吗
 
 def sk_idname_版本兼容(socket_id: str):
-    # 好像只3.6这样,4.0就都一种了
+    # 好像只3.6这样,4.0就都一种了,后面版本还有这个问题
     if socket_id.startswith("NodeSocketFloat"):
         socket_id = "NodeSocketFloat"
     if socket_id.startswith("NodeSocketInt"):
         socket_id = "NodeSocketInt"
     if socket_id.startswith("NodeSocketVector"):
         socket_id = "NodeSocketVector"
+    if socket_id.startswith("NodeSocketIntVector"):
+        socket_id = "NodeSocketIntVector3D"
     return socket_id
 
 def count_input_socket_recursive(item: Union[NodeTreeInterfaceItem, NodeTreeInterfacePanel, NodeTreeInterfaceSocket]) -> int:
@@ -324,16 +345,12 @@ def draw_add_hided_socket_group_input(layout: UILayout):
                 op.is_panel = True
         if item.item_type == 'SOCKET':
             socket_name = item.name if item.name else " "  # 文本为空时,菜单里按钮不对齐
+            socket_id = sk_idname_版本兼容(item.bl_socket_idname)
             if bpy.app.version >= (4, 5, 0):
-                op = layout.operator(NODE_OT_Add_Hided_Socket_Group_Input.bl_idname,
-                                     text=iface_(socket_name),
-                                     icon=sk_idname_to_icon[item.bl_socket_idname])
+                op = layout.operator(NODE_OT_Add_Hided_Socket_Group_Input.bl_idname, text=iface_(socket_name), icon=sk_idname_to_icon[socket_id])
             else:
-                socket_id = sk_idname_版本兼容(item.bl_socket_idname)
                 input_png = sk_idname_to_png_name[socket_id]
-                op = layout.operator(NODE_OT_Add_Hided_Socket_Group_Input.bl_idname,
-                                     text=iface_(socket_name),
-                                     icon_value=(_icons[input_png].icon_id))
+                op = layout.operator(NODE_OT_Add_Hided_Socket_Group_Input.bl_idname, text=iface_(socket_name), icon_value=(_icons[input_png].icon_id))
             in_panel = item.parent.index != -1
             op.in_panel = in_panel   # 不等于-1的话是面板内的接口
             if in_panel:
@@ -412,14 +429,20 @@ def draw_add_new_socket(layout: UILayout, context: Context):
         tree_type = context.space_data.edit_tree.bl_idname
         name = trans(socket_name)
         base_type = ["浮点", "整数", "布尔", "矢量", "颜色"]
-        if tree_type == "ShaderNodeTree" and socket_name not in ["着色器"] + base_type + ["菜单", "捆包", "闭包"]:
-            continue
-        if tree_type == "CompositorNodeTree" and socket_name not in base_type + ["菜单"]:
-            continue
-        if tree_type == "GeometryNodeTree" and socket_name == "着色器":
-            continue
-        if bpy.app.version < (5, 0, 0) and socket_name in ["捆包", "闭包"]:
-            continue
+        geometry_type = base_type + ["几何数据", "旋转", "矩阵", "菜单", "字符串", "材质", "物体", "集合", "图像"]
+        shader_type = base_type + ["着色器", "菜单", "捆包", "闭包"]
+        compositor_type = base_type + ["菜单", "字符串"]
+        if bpy.app.version >= (5, 0, 0):
+            shader_type += ["捆包", "闭包"]
+            geometry_type += ["捆包", "闭包"]
+        if bpy.app.version >= (5, 1, 0):
+            geometry_type += ["字体"]
+        if bpy.app.version >= (5, 2, 0): 
+            compositor_type += ["物体", "整数矢量", "矩阵"]
+        if tree_type == "ShaderNodeTree" and socket_name not in shader_type: continue
+        if tree_type == "CompositorNodeTree" and socket_name not in compositor_type: continue
+        if tree_type == "GeometryNodeTree" and socket_name not in geometry_type: continue
+
         if bpy.app.version >= (4, 5, 0):
             op = layout.operator('node.add_new_group_item', text=name, icon=sk_idname_to_icon[sk_idname])
         else:
@@ -452,7 +475,7 @@ def sk_loc(socket: NodeSocket):
     """这是运行时数据,界面刷新时才更新"""
     try:
         from ctypes import c_float, c_void_p
-        runtime_offset = 520        # DNA_node_types.h    - bNodeSocket        - runtime  
+        runtime_offset = 520        # DNA_node_types.h    - bNodeSocket        - runtime
         location_offset = 24        # BKE_node_runtime.hh - bNodeSocketRuntime - location
         if bpy.app.version >= (5, 1, 0):
             runtime_offset = 456
@@ -872,7 +895,7 @@ def register():
     if bpy.app.version >= (4, 5, 0):
         _icons.load('空.png', os.path.join(os.path.dirname(__file__), 'icons', '空.png'), "IMAGE")
     else:
-        for png in png_list:
+        for png in 遗留png_list:
             _icons.load(png, os.path.join(os.path.dirname(__file__), 'icons', png), "IMAGE")
 
     for i in classes:
