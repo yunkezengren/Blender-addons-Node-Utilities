@@ -179,7 +179,6 @@ class VoronoiToolPairSk(VoronoiToolSk): #2
         self.fotagoSk0 = None
         self.fotagoSk1 = None
 
-
 class VoronoiToolTripleSk(VoronoiToolPairSk): #3
     def ModalTool(self, event: Event, prefs):
         if (self.isStartWithModf)and(not self.canPickThird): # 谁会真的通过按下和释放某个修饰键来切换到选择第三个套接字呢?.

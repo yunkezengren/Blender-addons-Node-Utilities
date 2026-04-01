@@ -46,7 +46,20 @@ sk_type_idname_map = {
     'CUSTOM':    'NodeSocketVirtual',
 }
 
-TYPES_NO_CONVERT = ['STRING', 'GEOMETRY', 'OBJECT', 'COLLECTION', 'MATERIAL', 'TEXTURE', 'IMAGE', 'BUNDLE', 'CLOSURE']
+sk_types_no_convert = ['MENU', 'STRING', 'GEOMETRY', 'OBJECT', 'COLLECTION', 'MATERIAL', 'TEXTURE', 'IMAGE', 'BUNDLE', 'CLOSURE','FONT','SOUND','MASK','SCENE']
+
+base_types = ['VALUE', 'RGBA', 'VECTOR', 'INT_VECTOR', 'INT', 'BOOLEAN', "SHADER"]
+
+implicit_convert_map = {
+        "BOOLEAN" : base_types,
+        "VALUE" : base_types,
+        "INT" : base_types,
+        "VECTOR" : base_types + ['ROTATION'],
+        "INT_VECTOR" : base_types + ['ROTATION'], # todo 不确定是否支持
+        "RGBA" : base_types,
+        "MATRIX" : ["ROTATION"],
+        "ROTATION" : ["MATRIX", "VECTOR"],
+}
 
 set_utilTypeSkFields = {'VALUE', 'RGBA', 'VECTOR', 'INT', 'BOOLEAN', 'ROTATION', 'STRING', 'MATRIX'}       # Alt D 等多个操作 支持的接口
 

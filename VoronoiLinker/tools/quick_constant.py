@@ -18,7 +18,7 @@ class VoronoiQuickConstant(VoronoiToolTripleSk):
     canDrawInAddonDiscl = False
     isPlaceImmediately: bpy.props.BoolProperty(name="Place immediately", default=False)
     def CallbackDrawTool(self, drata):
-        TemplateDrawSksToolHh(drata, self.fotagoSk0, self.fotagoSk1, self.fotagoSk2, tool_name="Quick Constant - Input only for now")
+        TemplateDrawSksToolHh(drata, self.fotagoSk0, self.fotagoSk1, self.fotagoSk2, tool_name="Quick Constant")
     def NextAssignmentTool(self, isFirstActivation, prefs, tree):
         if isFirstActivation:
             self.fotagoSk0 = None
