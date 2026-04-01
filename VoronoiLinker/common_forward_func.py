@@ -1,7 +1,7 @@
 import bpy
 from bpy.app.translations import pgettext_iface as _iface
 from bpy.types import Node, NodeSocket, Operator, Panel
-from .globals import dict_typeSkToBlid
+from .globals import sk_type_idname_map
 
 def Prefs():        # 很多局部变量也是prefs 还是改大写好点
     return bpy.context.preferences.addons[__package__].preferences # type: ignore
@@ -31,8 +31,8 @@ def sk_label_or_name(sk: NodeSocket):
     return sk.label if sk.label else sk.name
 
 def sk_type_to_idname(sk: NodeSocket):
-    """ 接口.label 是'',有特例吗? """
-    return dict_typeSkToBlid.get(sk.type, "Vl_Unknow")
+    idname = sk_type_idname_map.get(sk.type, "")
+    return idname if idname else "NodeSocket" + sk.type.capitalize()
 
 def is_builtin_tree_idname(blid: str):
     set_quartetClassicTreeBlids = {'ShaderNodeTree','GeometryNodeTree','CompositorNodeTree','TextureNodeTree'}
@@ -45,11 +45,6 @@ def add_item_for_index_switch(node: Node):
     bpy.ops.node.index_switch_item_add()
     nodes.active = old_active
     return node.inputs[-2]
-    # old_active = nodes.active
-    # nodes.active = index_switch_node
-    # bpy.ops.node.index_switch_item_add()
-    # nodes.active = old_active
-    # return index_switch_node.inputs[-2]
 
 # ========================================
 

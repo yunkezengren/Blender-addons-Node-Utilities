@@ -27,7 +27,7 @@ floatIntColorInverse = {'INT': (0.63, 0.63, 0.63, 1), 'VALUE': (0.35, 0.55, 0.36
 is_bl4_plus = bpy.app.version[0] >= 4
 is_bl5_plus = bpy.app.version >= (5, 0, 0)
 
-dict_typeSkToBlid = {
+sk_type_idname_map = {
     'SHADER':    'NodeSocketShader',
     'RGBA':      'NodeSocketColor',
     'VECTOR':    'NodeSocketVector',
@@ -50,9 +50,23 @@ TYPES_NO_CONVERT = ['STRING', 'GEOMETRY', 'OBJECT', 'COLLECTION', 'MATERIAL', 'T
 
 set_utilTypeSkFields = {'VALUE', 'RGBA', 'VECTOR', 'INT', 'BOOLEAN', 'ROTATION', 'STRING', 'MATRIX'}       # Alt D 等多个操作 支持的接口
 
-set_classicSocketsBlid = {'NodeSocketShader',  'NodeSocketColor',   'NodeSocketVector', 'NodeSocketFloat',     'NodeSocketString',  'NodeSocketInt',    'NodeSocketBool',
-                          'NodeSocketRotation', 'NodeSocketGeometry', 'NodeSocketObject', 'NodeSocketCollection', 'NodeSocketMaterial', 'NodeSocketTexture', 'NodeSocketImage',
-                          'NodeSocketMatrix'}
+set_classicSocketsBlid = {
+    'NodeSocketShader',
+    'NodeSocketColor',
+    'NodeSocketVector',
+    'NodeSocketFloat',
+    'NodeSocketString',
+    'NodeSocketInt',
+    'NodeSocketBool',
+    'NodeSocketRotation',
+    'NodeSocketGeometry',
+    'NodeSocketObject',
+    'NodeSocketCollection',
+    'NodeSocketMaterial',
+    'NodeSocketTexture',
+    'NodeSocketImage',
+    'NodeSocketMatrix',
+}
 
 # 新建接口-用到了
 set_utilEquestrianPortalBlids = {'NodeGroupInput', 'NodeGroupOutput',

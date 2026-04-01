@@ -3,7 +3,7 @@ from mathutils import Vector as Vec2
 from bpy.app.translations import pgettext_iface as _iface
 from bpy.types import Node, NodeSocket, NodeTree
 from ..C_Structure import BNodeSocket
-from ..common_forward_class import Fotago, Node_Items_Manager, VqmtData
+from ..common_forward_class import Fotago, NodeItemsTool, VqmtData
 from ..common_forward_func import add_item_for_index_switch, is_builtin_tree_idname, sk_label_or_name, sk_type_to_idname
 from ..globals import dict_vqmtDefaultDefault, dict_vqmtDefaultValueOperation, dict_vqmtEditorNodes, is_bl4_plus, set_classicSocketsBlid, set_utilEquestrianPortalBlids, set_utilTypeSkFields
 
@@ -14,7 +14,7 @@ def sk_loc(socket: NodeSocket):
     """这是运行时数据,界面刷新时才更新"""
     try:
         from ctypes import c_float, c_void_p
-        runtime_offset = 520        # DNA_node_types.h    - bNodeSocket        - runtime  
+        runtime_offset = 520        # DNA_node_types.h    - bNodeSocket        - runtime
         location_offset = 24        # BKE_node_runtime.hh - bNodeSocketRuntime - location
         if bpy.app.version >= (5, 1, 0):
             runtime_offset = 456
@@ -187,11 +187,11 @@ def MinFromFtgs(ftg1: Fotago, ftg2: Fotago):
 def FindAnySk(nd: Node, list_ftgSksIn, list_ftgSksOut): # Todo0NA: 需要泛化!, 用 lambda. 并且外部循环遍历列表, 而不是两个循环.
     ftgSkOut, ftgSkIn = None, None
     for ftg in list_ftgSksOut:
-        if (ftg.blid!='NodeSocketVirtual')and(Node_Items_Manager.IsSimRepCorrectSk(nd, ftg.tar)): # todo1v6: 这个函数到处都和 !=NodeSocketVirtual 一起使用, 需要重做拓扑.
+        if (ftg.blid!='NodeSocketVirtual')and(NodeItemsTool.IsSimRepCorrectSk(nd, ftg.tar)): # todo1v6: 这个函数到处都和 !=NodeSocketVirtual 一起使用, 需要重做拓扑.
             ftgSkOut = ftg
             break
     for ftg in list_ftgSksIn:
-        if (ftg.blid!='NodeSocketVirtual')and(Node_Items_Manager.IsSimRepCorrectSk(nd, ftg.tar)):
+        if (ftg.blid!='NodeSocketVirtual')and(NodeItemsTool.IsSimRepCorrectSk(nd, ftg.tar)):
             ftgSkIn = ftg
             break
     return MinFromFtgs(ftgSkOut, ftgSkIn)
@@ -281,15 +281,15 @@ def DoLinkHh(sko: NodeSocket, ski: NodeSocket, *, isReroutesToAnyType=True, isCa
         # 创建接口
         match typeEq:
             case 0|1:
-                equr = Node_Items_Manager(ski if isSkiVirtual else sko)
-                skf = equr.NewSkfFromSk(skTar)
-                skNew = equr.GetSkFromSkf(skf, isOut=skf.in_out!='OUTPUT') # * 痛苦的声音 *
+                items_tool = NodeItemsTool(ski if isSkiVirtual else sko)
+                skf = items_tool.NewSkfFromSk(skTar)
+                skNew = items_tool.get_socket(skf, is_out=skf.in_out!='OUTPUT') # * 痛苦的声音 *
             case 2|3:       # [-2]  -1是扩展接口,-2是新添加的接口
                 _skf = (ndEq.state_items if typeEq==2 else ndEq.repeat_items).new({'VALUE':'FLOAT'}.get(skTar.type,skTar.type), sk_label_or_name(skTar))
                 if True: # SimRep 的重新选择是微不足道的; 因为它们没有面板, 所有新套接字都出现在底部.
                     skNew = ski.node.inputs[-2] if isSkiVirtual else sko.node.outputs[-2]
                 else:
-                    skNew = Node_Items_Manager(ski if isSkiVirtual else sko).GetSkFromSkf(_skf, isOut=isSkoVirtual)
+                    skNew = NodeItemsTool(ski if isSkiVirtual else sko).get_socket(_skf, is_out=isSkoVirtual)
             case 4:       # 新建接口-菜单切换
                 _skf = ndEq.enum_items.new(sk_label_or_name(skTar))
                 skNew = ski.node.inputs[-2] if isSkiVirtual else sko.node.outputs[-2]

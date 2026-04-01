@@ -53,7 +53,7 @@ class VoronoiLinkerTool(VoronoiToolPairSk): # 神圣中的神圣. 它存在的�
                         valid = True
                     elif (sk_out.type == 'CUSTOM') ^ (sk_in.type == 'CUSTOM'):  # 只有一个True时为True
                         valid = True
-                    elif sk_in.type == sk_out.type:
+                    elif sk_in.type == sk_out.type and sk_out.type != 'CUSTOM':
                         valid = True
                     # elif sk_out.type in TYPES_NO_CONVERT or sk_in.type in TYPES_NO_CONVERT:
                     #     valid = (sk_in.type == sk_out.type)

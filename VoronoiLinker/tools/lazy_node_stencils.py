@@ -4,7 +4,7 @@ from mathutils import Vector as Vec2
 from ..base_tool import CheckUncollapseNodeAndReNext, VoronoiToolPairSk
 from ..common_forward_class import VlnstData
 from ..common_forward_func import sk_label_or_name
-from ..globals import dict_typeSkToBlid
+from ..globals import sk_type_idname_map
 from ..utils.drawing import DrawVlWidePoint, TemplateDrawSksToolHh
 from ..utils.node import MinFromFtgs, opt_ftg_socket, sk_type_to_idname
 from ..utils.ui import LyAddNiceColorProp
@@ -16,11 +16,11 @@ lzAny = '!any'
 class LazyKey():
     def __init__(self, fnb, fst, fsn, fsg, snb=lzAny, sst=lzAny, ssn=lzAny, ssg=lzAny):
         self.firstNdBlid = fnb
-        self.firstSkBlid = dict_typeSkToBlid.get(fst, fst)
+        self.firstSkBlid = sk_type_idname_map.get(fst, fst)
         self.firstSkName = fsn
         self.firstSkGend = fsg
         self.secondNdBlid = snb
-        self.secondSkBlid = dict_typeSkToBlid.get(sst, sst)
+        self.secondSkBlid = sk_type_idname_map.get(sst, sst)
         self.secondSkName = ssn
         self.secondSkGend = ssg
 class LazyNode():
