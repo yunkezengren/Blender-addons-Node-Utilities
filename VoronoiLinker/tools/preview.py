@@ -1,7 +1,7 @@
 import bpy
 from mathutils import Vector as Vec2
 from ..base_tool import CheckUncollapseNodeAndReNext, VoronoiToolSk, is_builtin_tree_idname
-from ..C_Structure import BNode
+from ..Structure import BNode
 from ..common_forward_class import VptData
 from ..common_forward_func import sk_type_to_idname
 from ..globals import Cursor_X_Offset, is_bl4_plus, voronoiAnchorCnName, voronoiAnchorDtName, voronoiPreviewResultNdName, voronoiSkPreviewName

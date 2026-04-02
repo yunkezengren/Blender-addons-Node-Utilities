@@ -5,7 +5,7 @@ import bpy, blf, gpu, gpu_extras
 from mathutils import Vector as Vec2
 from bpy.app.translations import pgettext_iface as _iface
 from bpy.types import Context, NodeSocket
-from ..C_Structure import View2D
+from ..Structure import View2D
 from ..common_forward_func import Prefs
 from .color import Color4, clamp_color4, get_color_black_alpha, get_sk_color, get_sk_color_safe, opaque_color4, power_color4
 from .node import node_abs_loc

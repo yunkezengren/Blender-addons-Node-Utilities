@@ -2,7 +2,7 @@ import bpy
 from mathutils import Vector as Vec2
 from bpy.app.translations import pgettext_iface as _iface
 from bpy.types import Node, NodeSocket, NodeTree
-from ..C_Structure import BNodeSocket
+from ..Structure import BNodeSocket
 from ..common_forward_class import Fotago, NodeItemsTool, VqmtData
 from ..common_forward_func import add_item_for_index_switch, is_builtin_tree_idname, sk_label_or_name, sk_type_to_idname
 from ..globals import dict_vqmtDefaultDefault, dict_vqmtDefaultValueOperation, dict_vqmtEditorNodes, is_bl4_plus, set_classicSocketsBlid, set_utilEquestrianPortalBlids, set_utilTypeSkFields

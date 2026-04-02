@@ -1,7 +1,7 @@
 import bpy
 from mathutils import Vector as Vec
 from bpy.types import Node, NodeSocket, NodeTree, Operator, ThemeNodeEditor
-from ..C_Structure import BNode
+from ..Structure import BNode
 from ..common_forward_func import GetFirstUpperLetters
 from ..globals import dict_skTypeHandSolderingColor
 from .color import Color4, opaque_color4, power_color4

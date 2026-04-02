@@ -95,24 +95,24 @@ def HideFromNode(prefs, ndTarget, lastResult, isCanDo=False): # 最初是我个�
 
 # 只需要为了树中的整洁和美观.
 # 对于那些 (比如我) 觉得“无所事事”的空输出套接字, 或者值为零 (0.0, 黑色等) 的未使用输入套接字感到困扰的人.
-fitVhtModeItems = ( ('NODE',      "Auto-node",    "Automatically processing of hiding of sockets for a node"),
-                    ('SOCKET',    "Socket",       "Hiding the socket"),
-                    ('SOCKETVAL', "Socket value", "Switching the visibility of a socket contents") )
+hiderToolModeItems = ( ('HideNode',      "Auto-node",    "Automatically processing of hiding of sockets for a node"),
+                    ('HideSocket',    "Socket",       "Hiding the socket"),
+                    ('HideValue',     "Socket value", "Switching the visibility of a socket contents") )
 class VoronoiHiderTool(VoronoiToolAny):
     bl_idname = 'node.voronoi_hider'
     bl_label = "Voronoi Hider"
     usefulnessForCustomTree = True
     usefulnessForUndefTree = True
-    toolMode: bpy.props.EnumProperty(name="Mode", default='SOCKET', items=fitVhtModeItems)
+    toolMode: bpy.props.EnumProperty(name="Mode", default='HideSocket', items=hiderToolModeItems)
     isTriggerOnCollapsedNodes: bpy.props.BoolProperty(name="Trigger on collapsed nodes", default=True)
     def CallbackDrawTool(self, drata):
         # 模式名匹配
-        name = { 'NODE'     : "Auto Hide/Show Sockets",
-                 'SOCKET'   : "Hide Sockets",
-                 'SOCKETVAL': "Hide/Show Socket Values",
+        name = { 'HideNode'   : "Auto Hide/Show Sockets",
+                 'HideSocket' : "Hide Socket",
+                 'HideValue'  : "Hide/Show Socket Value",
                 }
         mode= name[self.toolMode]
-        self.TemplateDrawAny(drata, self.fotagoAny, cond=self.toolMode=='NODE', tool_name=mode)
+        self.TemplateDrawAny(drata, self.fotagoAny, cond=self.toolMode=='HideNode', tool_name=mode)
     def NextAssignmentTool(self, _isFirstActivation, prefs, tree):
         self.fotagoAny = None
         for ftgNd in self.ToolGetNearestNodes(cur_x_off=0):
@@ -123,7 +123,7 @@ class VoronoiHiderTool(VoronoiToolAny):
                 continue
             self.fotagoAny = ftgNd
             match self.toolMode:
-                case 'SOCKET'|'SOCKETVAL':
+                case 'HideSocket'|'HideValue':
                     # 对于套接字模式, 折叠处理和所有其他一样.
                     list_ftgSksIn, list_ftgSksOut = self.ToolGetNearestSockets(nd, cur_x_off=0)
                     def GetNotLinked(list_ftgSks): #Findanysk.
@@ -132,12 +132,12 @@ class VoronoiHiderTool(VoronoiToolAny):
                                 return ftg
                     ftgSkIn = GetNotLinked(list_ftgSksIn)
                     ftgSkOut = GetNotLinked(list_ftgSksOut)
-                    if self.toolMode=='SOCKET':
+                    if self.toolMode=='HideSocket':
                         self.fotagoAny = MinFromFtgs(ftgSkOut, ftgSkIn)
                     else:
                         self.fotagoAny = ftgSkIn
                     CheckUncollapseNodeAndReNext(nd, self, cond=self.fotagoAny) # 对于套接字模式也需要重绘, 因为连接的套接字节点可能是折叠的.
-                case 'NODE':
+                case 'HideNode':
                     # 对于节点模式, 展开光标下的所有节点或不展开, 没有区别.
                     if prefs.vhtIsToggleNodesOnDrag:
                         if self.firstResult is None:
@@ -156,11 +156,11 @@ class VoronoiHiderTool(VoronoiToolAny):
             break
     def MatterPurposeTool(self, event, prefs, tree):
         match self.toolMode:
-            case 'NODE':
+            case 'HideNode':
                 if not prefs.vhtIsToggleNodesOnDrag:
                     # 在隐藏套接字时, 需要所有套接字的信息, 因此执行两次. 第一次收集信息, 第二次执行.
                     HideFromNode(prefs, self.fotagoAny.tar, HideFromNode(prefs, self.fotagoAny.tar, True), True)
-            case 'SOCKET':
+            case 'HideSocket':
                 tar_socket = self.fotagoAny.tar
                 tar_socket.hide = True
                 # 自动隐藏接口优化-inline
@@ -182,15 +182,18 @@ class VoronoiHiderTool(VoronoiToolAny):
                             tar_node.outputs[socket_identifier].hide = True
                 except:
                     pass
-            case 'SOCKETVAL':
+            case 'HideValue':
                 socket = self.fotagoAny.tar
                 node = socket.node
-                # if node.bl_idname == "GeometryNodeGroup":
+                def hide_sk_value_in_tree(tar_tree: bpy.types.NodeTree):
+                    for item in tar_tree.interface.items_tree:
+                        if item.item_type == 'SOCKET' and item.identifier == socket.identifier:
+                            item.hide_value = not socket.hide_value
                 if node.type == "GROUP":
-                    for i in node.node_tree.interface.items_tree:
-                        if i.item_type == 'SOCKET':   # Panel没有identifier属性-AttributeError: 'NodeTreeInterfacePanel' object has no attribute 'identifier'
-                            if i.identifier == socket.identifier:
-                                i.hide_value = not socket.hide_value
+                    node: bpy.types.NodeGroup
+                    hide_sk_value_in_tree(node.node_tree)
+                elif isinstance(node, bpy.types.NodeGroupOutput):
+                    hide_sk_value_in_tree(bpy.context.space_data.edit_tree)
                 else:
                     socket.hide_value = not socket.hide_value
 
