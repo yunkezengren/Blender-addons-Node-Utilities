@@ -73,7 +73,7 @@ def node_tag_color(node: Node):
         color.v *= 0.9
         return Vec((*color, 1))
     else:
-        if node.bl_idname=='ShaderNodeMix':
+        if isinstance(node, bpy.types.ShaderNodeMix):
             match node.data_type:
                 case 'RGBA':   return SoldThemeCols.color_node4pw
                 case 'VECTOR': return SoldThemeCols.vector_node4pw

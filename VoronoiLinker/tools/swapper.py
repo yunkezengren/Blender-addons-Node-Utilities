@@ -1,25 +1,36 @@
+from enum import Enum
+
 import bpy
 from ..base_tool import CheckUncollapseNodeAndReNext, VoronoiToolPairSk
 from ..utils.drawing import TemplateDrawSksToolHh
 from ..utils.node import MinFromFtgs, opt_ftg_socket
 
-fitVstModeItems = ( ('SWAP', "Swap",     "All links from the first socket will be on the second, from the second on the first"),
-                    ('ADD',  "Add",      "Add all links from the second socket to the first one"),
-                    ('TRAN', "Transfer", "Move all links from the second socket to the first one with replacement") )
+class SwapperMode(Enum):
+    SWAP = 'SWAP'
+    ADD  = 'ADD'
+    TRAN = 'TRAN'
+
+eMode = SwapperMode
+
+ModeItems = (
+    (eMode.SWAP.value, "Swap",     "All links from the first socket will be on the second, from the second on the first"),
+    (eMode.ADD.value,  "Add",      "Add all links from the second socket to the first one"),
+    (eMode.TRAN.value, "Transfer", "Move all links from the second socket to the first one with replacement"),
+)
+
 class VoronoiSwapperTool(VoronoiToolPairSk):
     bl_idname = 'node.voronoi_swaper'
     bl_label = "Voronoi Swapper"
     usefulnessForCustomTree = True
     canDrawInAddonDiscl = False
-    toolMode:     bpy.props.EnumProperty(name="Mode", default='SWAP', items=fitVstModeItems)
+    toolMode:     bpy.props.EnumProperty(name="Mode", default=eMode.SWAP.value, items=ModeItems)
     isCanAnyType: bpy.props.BoolProperty(name="Can swap with any socket type", default=False)
     def CallbackDrawTool(self, drata):      # 我模仿着加的
         # 小王-模式名匹配
-        name = { 'SWAP': "交换连线",
-                 'ADD':  "移动并加入连线",
-                 'TRAN': "移动并替换连线",
-                }
-        mode= name[self.toolMode]
+        match eMode(self.toolMode):
+            case eMode.SWAP: mode = "交换连线"
+            case eMode.ADD:  mode = "移动并加入连线"
+            case eMode.TRAN: mode = "移动并替换连线"
         TemplateDrawSksToolHh(drata, self.fotagoSk0, self.fotagoSk1, tool_name=mode,)
     def NextAssignmentTool(self, isFirstActivation, prefs, tree):
         if isFirstActivation:
@@ -41,7 +52,7 @@ class VoronoiSwapperTool(VoronoiToolPairSk):
                         ftgSkIn = ftg
                         break
                 #也允许对输入接口使用“添加”功能，但仅限于多输入接口，因为这很明显
-                if (self.toolMode=='ADD')and(ftgSkIn):
+                if (self.toolMode==eMode.ADD.value)and(ftgSkIn):
                     #按类型检查，而不是按'is_multi_input'，这样就可以从常规输入添加到多输入.
                     if (ftgSkIn.blid not in ('NodeSocketGeometry','NodeSocketString')):#or(not ftgSkIn.tar.is_multi_input): #没有第二个条件可能性更多.
                         ftgSkIn = None
@@ -69,8 +80,8 @@ class VoronoiSwapperTool(VoronoiToolPairSk):
     def MatterPurposeTool(self, event, prefs, tree):
         skIo0 = self.fotagoSk0.tar
         skIo1 = self.fotagoSk1.tar
-        match self.toolMode:
-            case 'SWAP':
+        match eMode(self.toolMode):
+            case eMode.SWAP:
                 #交换第一个和第二个接口的所有连接:
                 list_memSks = []
                 if skIo0.is_output: #检查 is_output 的一致性是 NextAssignmentTool() 的任务.
@@ -96,9 +107,9 @@ class VoronoiSwapperTool(VoronoiToolPairSk):
                             tree.links.remove(lk)
                     for li in list_memSks:
                         tree.links.new(li, skIo1)
-            case 'ADD'|'TRAN':
+            case eMode.ADD|eMode.TRAN:
                 #只需将第一个接口的连接添加到第二个接口。即合并、添加.
-                if self.toolMode=='TRAN':
+                if self.toolMode==eMode.TRAN.value:
                     #与添加相同，只是第一个接口会丢失连接.
                     for lk in skIo1.vl_sold_links_final:
                         tree.links.remove(lk)

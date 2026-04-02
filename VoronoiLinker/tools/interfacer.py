@@ -1,3 +1,5 @@
+from enum import Enum
+
 import bpy
 from mathutils import Vector as Vec
 from bpy.types import NodeTree
@@ -10,27 +12,39 @@ from ..utils.drawing import DrawVlSocketArea
 from ..utils.node import DoLinkHh, FindAnySk, MinFromFtgs, opt_ftg_socket
 from ..utils.ui import LyAddLeftProp
 
-fitVitModeItems = ( ('COPY',   "Copy",   "Copy a socket name to clipboard"),
-                    ('PASTE',  "Paste",  "Paste the contents of clipboard into an interface name"),
-                    ('SWAP',   "Swap",   "Swap a two interfaces"),
-                    ('FLIP',   "Flip",   "Move the interface to a new location, shifting everyone else"),
-                    ('NEW',    "New",    "Create an interface using virtual sockets"),
-                    ('CREATE', "Create", "Create an interface from a selected socket, and paste it into a specified location"),
-                    # ('DELETE', "Delete", "Delete one socket"),
-                    ('SOC_TY', "Socket_Type", "Change socket type"),
-                    )
+class InterfacerMode(Enum):
+    COPY   = 'COPY'
+    PASTE  = 'PASTE'
+    SWAP   = 'SWAP'
+    FLIP   = 'FLIP'
+    NEW    = 'NEW'
+    CREATE = 'CREATE'
+    TYPE = 'TYPE'
+
+eMode = InterfacerMode
+
+ModeItems = (
+    (eMode.COPY.value,   "Copy",   "Copy a socket name to clipboard"),
+    (eMode.PASTE.value,  "Paste",  "Paste the contents of clipboard into an interface name"),
+    (eMode.SWAP.value,   "Swap",   "Swap a two interfaces"),
+    (eMode.FLIP.value,   "Flip",   "Move the interface to a new location, shifting everyone else"),
+    (eMode.NEW.value,    "New",    "Create an interface using virtual sockets"),
+    (eMode.CREATE.value, "Create", "Create an interface from a selected socket, and paste it into a specified location"),
+    # (eMode.DELETE.value, "Delete", "Delete one socket"),
+    (eMode.TYPE.value, "Type", "Change socket type"),
+)
 class VoronoiInterfacerTool(VoronoiToolPairSk):
     bl_idname = 'node.voronoi_interfacer'
     bl_label = "Voronoi Interfacer"
     usefulnessForCustomTree = False
     canDrawInAddonDiscl = False
-    toolMode: bpy.props.EnumProperty(name="Mode", default='NEW', items=fitVitModeItems)
+    toolMode: bpy.props.EnumProperty(name="Mode", default=eMode.NEW.value, items=ModeItems)
 
     def CallbackDrawTool(self, drata):
-        match self.toolMode:
-            case 'NEW':
+        match eMode(self.toolMode):
+            case eMode.NEW:
                 TemplateDrawSksToolHh(drata, self.fotagoSkRosw, self.fotagoSkMain, isClassicFlow=True, tool_name="Connect to Extend Socket")
-            case 'CREATE':
+            case eMode.CREATE:
                 ftgMain = self.fotagoSkMain
                 if ftgMain:
                     TemplateDrawSksToolHh(drata, ftgMain, sideMarkHh=-2, tool_name="Insert to Socket")
@@ -44,7 +58,7 @@ class VoronoiInterfacerTool(VoronoiToolPairSk):
                     y = ftgNdTar.pos.y
                     boxHeiBound = Vec((y - 7, y + 7))
                     DrawVlSocketArea(drata, near_group_in.tar, boxHeiBound, Color4(get_sk_color_safe(ftgMain.tar)))
-            case 'FLIP':  # 失败
+            case eMode.FLIP:  # 失败
                 # ftgMain = self.fotagoSkMain
                 # if ftgMain:
                 # TemplateDrawSksToolHh(drata, ftgMain, isFlipSide=True, tool_name="")
@@ -62,25 +76,23 @@ class VoronoiInterfacerTool(VoronoiToolPairSk):
                     # DrawVlSocketArea(drata, near_group_in.tar, near_group_in.boxHeiBound, Color4(get_sk_color_safe(near_group_in.tar)))
             case _:
                 # 小王-模式名匹配
-                name = {'COPY':  "Copy Socket Name",
-                        'PASTE': "Paste Socket Name",
-                        'SWAP':  "Swap Sockets",
-                        'SOC_TY':  "Change Socket Type",
-                        # 'FLIP':  "接口1移到接口2上",
-                        }
+                match eMode(self.toolMode):
+                    case eMode.COPY:   mode = "Copy Socket Name"
+                    case eMode.PASTE:  mode = "Paste Socket Name"
+                    case eMode.SWAP:   mode = "Swap Sockets"
+                    case eMode.TYPE:   mode = "Change Socket Type"
                 # todo 接口1移到接口2上  FLIP模式，在两个接口绘制名后加上 接口1 接口2
-                mode= name[self.toolMode]
                 TemplateDrawSksToolHh(drata, self.fotagoSkMain, self.fotagoSkRosw, tool_name=mode)
 
     def NextAssignmentToolCopyPaste(self, _isFirstActivation, prefs, tree):
         self.fotagoSkMain = None
-        if (self.toolMode == 'PASTE') and (not self.clipboard):  # 预料之中; 还有 #https://projects.blender.org/blender/blender/issues/113860
+        if (self.toolMode == eMode.PASTE.value) and (not self.clipboard):  # 预料之中; 还有 #https://projects.blender.org/blender/blender/issues/113860
             return  #Todo0VV 遍历版本并指出哪些会崩溃.
         for ftgNd in self.ToolGetNearestNodes(cur_x_off=0):
             nd = ftgNd.tar
             if nd.type == 'REROUTE':
                 continue
-            if (not prefs.vitPasteToAnySocket) and (self.toolMode == 'PASTE') and (nd.type not in NodeItemsTool.support_types):
+            if (not prefs.vitPasteToAnySocket) and (self.toolMode == eMode.PASTE.value) and (nd.type not in NodeItemsTool.support_types):
                 break  # 光标必须靠近骑士 (或组节点) (对于非 vitPasteToAnySocket). 还有 `continue` 不会有高级取消.
             list_ftgSksIn, list_ftgSksOut = self.ToolGetNearestSockets(nd, cur_x_off=0)
             self.fotagoSkMain = FindAnySk(nd, list_ftgSksIn, list_ftgSksOut)
@@ -116,8 +128,8 @@ class VoronoiInterfacerTool(VoronoiToolPairSk):
             if nd.type=='REROUTE':
                 continue
             list_ftgSksIn, list_ftgSksOut = self.ToolGetNearestSockets(nd, cur_x_off=0)
-            match self.toolMode:
-                case 'NEW':
+            match eMode(self.toolMode):
+                case eMode.NEW:
                     self.fotagoSkMain = None
                     if isFirstActivation:
                         self.fotagoSkRosw = None
@@ -135,7 +147,7 @@ class VoronoiInterfacerTool(VoronoiToolPairSk):
                         if (self.fotagoSkMain) and (self.fotagoSkMain.tar.node == skRosw.node):  #todo0NA 概括这种检查到类中.
                             self.fotagoSkMain = None
                     CheckUncollapseNodeAndReNext(nd, self, cond=self.fotagoSkMain, flag=True)
-                case 'CREATE':
+                case eMode.CREATE:
                     if isFirstActivation:
                         ftgSkOut, ftgSkIn = None, None
                         for ftg in list_ftgSksIn:
@@ -159,48 +171,48 @@ class VoronoiInterfacerTool(VoronoiToolPairSk):
                     self.fotagoNdTar = ftgNd
             break
     def NextAssignmentTool(self, isFirstActivation, prefs, tree):
-        match self.toolMode:
-            case 'COPY'|'PASTE':
+        match eMode(self.toolMode):
+            case eMode.COPY|eMode.PASTE:
                 self.NextAssignmentToolCopyPaste(isFirstActivation, prefs, tree)
-            case 'SWAP'|'FLIP':
+            case eMode.SWAP|eMode.FLIP:
                 self.NextAssignmentToolSwapFlip(isFirstActivation, prefs, tree)
-            case 'NEW'|'CREATE':
+            case eMode.NEW|eMode.CREATE:
                 self.NextAssignmentToolNewCreate(isFirstActivation, prefs, tree)
     def MatterPurposePoll(self):
-        match self.toolMode:
-            case 'COPY'|'PASTE':
+        match eMode(self.toolMode):
+            case eMode.COPY|eMode.PASTE:
                 return not not self.fotagoSkMain
-            case 'SWAP'|'FLIP':
+            case eMode.SWAP|eMode.FLIP:
                 return self.fotagoSkRosw and self.fotagoSkMain
-            case 'NEW':
+            case eMode.NEW:
                 for dk, dv in self.dict_ndHidingVirtualIn.items():
                     dk.inputs[-1].hide = dv
                 for dk, dv in self.dict_ndHidingVirtualOut.items():
                     dk.outputs[-1].hide = dv
                 return self.fotagoSkRosw and self.fotagoSkMain
-            case 'CREATE':
+            case eMode.CREATE:
                 return self.fotagoSkMain and self.fotagoNdTar
     def MatterPurposeTool(self, event, prefs, tree: NodeTree):
         links = tree.links
-        match self.toolMode:
-            case 'COPY':
+        match eMode(self.toolMode):
+            case eMode.COPY:
                 self.clipboard = sk_label_or_name(self.fotagoSkMain.tar)
-            case 'PASTE':
+            case eMode.PASTE:
                 #tovo1v6 添加一个按键, 按下后会“取消”--不进行粘贴; 因为此模式保证会粘附 (参见选项) 到任何套接字, 需要某种方式来“退后一步”.
                 skMain = self.fotagoSkMain.tar
                 if (skMain.node.type not in NodeItemsTool.support_types)and(prefs.vitPasteToAnySocket):
                     skMain.name = self.clipboard
                 else:
                     NodeItemsTool(skMain).get_item(skMain).name = self.clipboard
-            case 'SWAP'|'FLIP':
+            case eMode.SWAP|eMode.FLIP:
                 skMain = self.fotagoSkMain.tar
                 items_tool = NodeItemsTool(skMain)
                 skfFrom = items_tool.get_item(self.fotagoSkRosw.tar)
                 skfTo = items_tool.get_item(skMain)
-                items_tool.MoveBySkfs(skfFrom, skfTo, isSwap=self.toolMode=='SWAP')
-            case 'NEW':
+                items_tool.MoveBySkfs(skfFrom, skfTo, isSwap=self.toolMode==eMode.SWAP.value)
+            case eMode.NEW:
                 DoLinkHh(self.fotagoSkRosw.tar, self.fotagoSkMain.tar)
-            case 'CREATE':
+            case eMode.CREATE:
                 ftgNdTar = self.fotagoNdTar
                 tar_nd = ftgNdTar.tar
                 items_tool = NodeItemsTool(tar_nd)
@@ -257,8 +269,8 @@ class VoronoiInterfacerTool(VoronoiToolPairSk):
     def InitTool(self, event, prefs, tree):
         self.fotagoSkMain = None
         self.fotagoSkRosw = None #RootSwap
-        match self.toolMode:
-            case 'NEW':
+        match eMode(self.toolMode):
+            case eMode.NEW:
                 self.dict_ndHidingVirtualIn = {}
                 self.dict_ndHidingVirtualOut = {}
                 for nd in tree.nodes:
@@ -272,9 +284,9 @@ class VoronoiInterfacerTool(VoronoiToolPairSk):
                 self.tglCrossVirt = None
                 # 某个 bug, 如果不重绘, 第一个找到的虚拟的就无法正确选择.
                 bpy.ops.wm.redraw_timer(type='DRAW', iterations=0)
-            case 'CREATE':
+            case eMode.CREATE:
                 self.fotagoNdTar = None # 天啊.
-            case 'FLIP':
+            case eMode.FLIP:
                 self.fotagoNdTar = None
         VoronoiInterfacerTool.clipboard = property(lambda _:bpy.context.window_manager.clipboard, lambda _,v:setattr(bpy.context.window_manager,'clipboard', v))
     @staticmethod

@@ -24,10 +24,10 @@ from .globals import dict_vlHhTranslations, dict_vmtMixerNodesDefs, dict_vqmtQui
 from .tools.call_node_pie import VoronoiCallNodePie
 from .tools.dummy import VoronoiDummyTool
 from .tools.enum_selector import SNA_OT_Change_Node_Domain_And_Name, VestOpBox, VestPieBox, VoronoiEnumSelectorTool
-from .tools.hider import VoronoiHiderTool
-from .tools.interfacer import VoronoiInterfacerTool
+from .tools.hider import HiderMode, VoronoiHiderTool
+from .tools.interfacer import InterfacerMode, VoronoiInterfacerTool
 from .tools.lazy_node_stencils import VoronoiLazyNodeStencilsTool
-from .tools.link_repeating import VoronoiLinkRepeatingTool
+from .tools.link_repeating import LinkRepeatingMode, VoronoiLinkRepeatingTool
 from .tools.linker import VoronoiLinkerTool
 from .tools.links_transfer import VoronoiLinksTransferTool
 from .tools.mass_linker import VoronoiMassLinkerTool
@@ -41,7 +41,7 @@ from .tools.quick_constant import VoronoiQuickConstant
 from .tools.quick_dimensions import VoronoiQuickDimensionsTool
 from .tools.quick_math import VoronoiQuickMathTool
 from .tools.reset_node import VoronoiResetNodeTool
-from .tools.swapper import VoronoiSwapperTool
+from .tools.swapper import SwapperMode, VoronoiSwapperTool
 from .tools.warper import VoronoiWarperTool
 from .translations import translations_dict
 from .utils.drawing import TestDraw
@@ -156,9 +156,9 @@ dict_toolLangSpecifDataPool[VoronoiQuickMathTool, "ru_RU"] = """Полноцен
 # smart_add_to_reg_and_kmiDefs(VoronoiRantoTool, "S##_R", {'isAccumulate':True})
 # smart_add_to_reg_and_kmiDefs(VoronoiRantoTool, "#C#_R", {'isOnlySelected':2})
 # smart_add_to_reg_and_kmiDefs(VoronoiRantoTool, "#CA_R", {'isUniWid':True, 'isUncollapseNodes':True, 'isDeleteReroutes':True})
-smart_add_to_reg_and_kmiDefs(VoronoiSwapperTool, "S##_S", {'toolMode':'SWAP'})
-smart_add_to_reg_and_kmiDefs(VoronoiSwapperTool, "##A_S", {'toolMode':'ADD'})
-smart_add_to_reg_and_kmiDefs(VoronoiSwapperTool, "S#A_S", {'toolMode':'TRAN'})
+smart_add_to_reg_and_kmiDefs(VoronoiSwapperTool, "S##_S", {'toolMode':SwapperMode.SWAP.value})
+smart_add_to_reg_and_kmiDefs(VoronoiSwapperTool, "##A_S", {'toolMode':SwapperMode.ADD.value})
+smart_add_to_reg_and_kmiDefs(VoronoiSwapperTool, "S#A_S", {'toolMode':SwapperMode.TRAN.value})
 
 dict_toolLangSpecifDataPool[VoronoiSwapperTool, "ru_RU"] = """Инструмент для обмена линков у двух сокетов, или добавления их к одному из них.
 Для линка обмена не будет, если в итоге он окажется исходящим из своего же нода."""
@@ -166,9 +166,9 @@ dict_toolLangSpecifDataPool[VoronoiSwapperTool, "zh_HANS"] = "Alt是批量替换
 
 smart_add_to_reg_and_kmiDefs(VoronoiCallNodePie, "#C#_LEFTMOUSE")
 
-smart_add_to_reg_and_kmiDefs(VoronoiHiderTool, "S##_E", {'toolMode':'HideSocket'})
-smart_add_to_reg_and_kmiDefs(VoronoiHiderTool, "#CA_E", {'toolMode':'HideValue'})
-smart_add_to_reg_and_kmiDefs(VoronoiHiderTool, "SC#_E", {'toolMode':'HideNode'})
+smart_add_to_reg_and_kmiDefs(VoronoiHiderTool, "S##_E", {'toolMode':HiderMode.HIDE_SOCKET.value})
+smart_add_to_reg_and_kmiDefs(VoronoiHiderTool, "#CA_E", {'toolMode':HiderMode.HIDE_VALUE.value})
+smart_add_to_reg_and_kmiDefs(VoronoiHiderTool, "SC#_E", {'toolMode':HiderMode.HIDE_NODE.value})
 dict_toolLangSpecifDataPool[VoronoiHiderTool, "ru_RU"] = "Инструмент для наведения порядка и эстетики в дереве.\nСкорее всего 90% уйдёт на использование автоматического сокрытия нодов."
 dict_toolLangSpecifDataPool[VoronoiHiderTool, "zh_HANS"] = "Shift是自动隐藏数值为0/颜色纯黑/未连接的接口,Ctrl是单个隐藏接口"
 
@@ -185,8 +185,8 @@ dict_toolLangSpecifDataPool[VoronoiEnumSelectorTool, "ru_RU"] = """Инстру�
 Избавляет от прицеливания мышкой, клика, а потом ещё одного прицеливания и клика."""
 
 # 参见: VlrtData, VlrtRememberLastSockets() 和 remember_add_link().
-smart_add_to_reg_and_kmiDefs(VoronoiLinkRepeatingTool, "###_V", {'toolMode':'SOCKET'})
-smart_add_to_reg_and_kmiDefs(VoronoiLinkRepeatingTool, "S##_V", {'toolMode':'NODE'})
+smart_add_to_reg_and_kmiDefs(VoronoiLinkRepeatingTool, "###_V", {'toolMode':LinkRepeatingMode.SOCKET.value})
+smart_add_to_reg_and_kmiDefs(VoronoiLinkRepeatingTool, "S##_V", {'toolMode':LinkRepeatingMode.NODE.value})
 dict_toolLangSpecifDataPool[VoronoiLinkRepeatingTool, "ru_RU"] = """Полноценное ответвление от VLT, повторяет любой предыдущий линк от большинства
 других инструментов. Обеспечивает удобство соединения "один ко многим"."""
 
@@ -196,14 +196,14 @@ dict_toolLangSpecifDataPool[VoronoiQuickDimensionsTool, "ru_RU"] = "Инстру
 smart_add_to_reg_and_kmiDefs(VoronoiQuickConstant, "##A_C")
 dict_toolLangSpecifDataPool[VoronoiQuickConstant, "ru_RU"] = "Инструмент для ускорения нужд разделения и объединения векторов (и цвета).\nА ещё может разделить геометрию на составляющие."
 
-smart_add_to_reg_and_kmiDefs(VoronoiInterfacerTool, "SC#_A", {'toolMode':'NEW'})
-smart_add_to_reg_and_kmiDefs(VoronoiInterfacerTool, "S#A_A", {'toolMode':'CREATE'})
-smart_add_to_reg_and_kmiDefs(VoronoiInterfacerTool, "S#A_C", {'toolMode':'COPY'})
-smart_add_to_reg_and_kmiDefs(VoronoiInterfacerTool, "S#A_V", {'toolMode':'PASTE'})
-smart_add_to_reg_and_kmiDefs(VoronoiInterfacerTool, "S#A_X", {'toolMode':'SWAP'})
-smart_add_to_reg_and_kmiDefs(VoronoiInterfacerTool, "S#A_Z", {'toolMode':'FLIP'})
-# smart_add_to_reg_and_kmiDefs(VoronoiInterfacerTool, "S#A_Q", {'toolMode':'DELETE'})
-smart_add_to_reg_and_kmiDefs(VoronoiInterfacerTool, "S#A_E", {'toolMode':'SOC_TY'})
+smart_add_to_reg_and_kmiDefs(VoronoiInterfacerTool, "SC#_A", {'toolMode':InterfacerMode.NEW.value})
+smart_add_to_reg_and_kmiDefs(VoronoiInterfacerTool, "S#A_A", {'toolMode':InterfacerMode.CREATE.value})
+smart_add_to_reg_and_kmiDefs(VoronoiInterfacerTool, "S#A_C", {'toolMode':InterfacerMode.COPY.value})
+smart_add_to_reg_and_kmiDefs(VoronoiInterfacerTool, "S#A_V", {'toolMode':InterfacerMode.PASTE.value})
+smart_add_to_reg_and_kmiDefs(VoronoiInterfacerTool, "S#A_X", {'toolMode':InterfacerMode.SWAP.value})
+smart_add_to_reg_and_kmiDefs(VoronoiInterfacerTool, "S#A_Z", {'toolMode':InterfacerMode.FLIP.value})
+# smart_add_to_reg_and_kmiDefs(VoronoiInterfacerTool, "S#A_Q", {'toolMode':InterfacerMode.DELETE.value})
+# smart_add_to_reg_and_kmiDefs(VoronoiInterfacerTool, "S#A_E", {'toolMode':InterfacerMode.TYPE.value})
 dict_toolLangSpecifDataPool[VoronoiInterfacerTool, "ru_RU"] = """Инструмент на уровне "The Great Trio". Ответвление от VLT ради удобного ускорения
 процесса создания и спец-манипуляций с интерфейсами. "Менеджер интерфейсов"."""
 
