@@ -1,12 +1,12 @@
 import bpy
-from bpy.types import NodeSocket, NodeTree, UILayout
+from bpy.types import NodeSocket, NodeTree, UILayout, Node
 from ..base_tool import CheckUncollapseNodeAndReNext, VoronoiToolTripleSk
 from ..globals import AllQuickConstant, Cursor_X_Offset
 from ..utils.drawing import TemplateDrawSksToolHh
 from ..utils.node import opt_ftg_socket
 from .matrix_convert import Convert_Data, PIE_MT_Combine_Matrix, PIE_MT_Convert_To_Rotation
 
-BT = bpy.types
+B = bpy.types
 
 def get_const_node(tree: NodeTree, sk_type: str):
     return AllQuickConstant.get(tree.bl_idname, None).get(sk_type, None)
@@ -80,7 +80,7 @@ class VoronoiQuickConstant(VoronoiToolTripleSk):
                 if hasattr(skIn0, "default_value"):
                     bpy.ops.wm.call_menu_pie(name=PIE_MT_Convert_To_Rotation.bl_idname)
                 # return {'FINISHED'}       # 想松开按键确认
-                # active_node.width = 200   # md这里不行，运行ops后立马运行下面的了？放在Rotation_Convert里的invoke就行了？ (那里放好这里忘删了找了半天错误)
+                # new_node.width = 200   # md这里不行，运行ops后立马运行下面的了？放在Rotation_Convert里的invoke就行了？ (那里放好这里忘删了找了半天错误)
             if skIn0.type == "MATRIX":
                 bpy.ops.wm.call_menu_pie(name=PIE_MT_Combine_Matrix.bl_idname)
         else:
@@ -89,8 +89,8 @@ class VoronoiQuickConstant(VoronoiToolTripleSk):
                 bpy.ops.node.add_closure_zone('INVOKE_DEFAULT', use_transform=True)
             else:
                 bpy.ops.node.add_node('INVOKE_DEFAULT', type=node_type, use_transform=not self.isPlaceImmediately)
-            active_node = tree.nodes.active
-            sk_out = active_node.outputs[0]
+            new_node = tree.nodes.active
+            sk_out = new_node.outputs[0]
 
             tree.links.new(sk_out, skIn0)
             if self.fotagoSk1:
@@ -98,60 +98,67 @@ class VoronoiQuickConstant(VoronoiToolTripleSk):
             if self.fotagoSk2:
                 tree.links.new(sk_out, self.fotagoSk2.tar)
 
-            if isinstance(active_node, (BT.NodeClosureOutput, BT.NodeCombineBundle)):
+            if isinstance(new_node, (B.NodeClosureOutput, B.NodeCombineBundle)):
                 bpy.ops.node.sockets_sync()
                 return
-
+            
             if not hasattr(skIn0, "default_value"): return
             value = skIn0.default_value
 
-            if isinstance(active_node, BT.ShaderNodeValue):
-                active_node.outputs[0].default_value = value
+            if isinstance(new_node, B.ShaderNodeValue):
+                new_node.outputs[0].default_value = value
+            elif isinstance(new_node, (B.FunctionNodeInputColor, B.ShaderNodeRGB)):
+                new_node.value = value
+            elif isinstance(new_node, B.FunctionNodeInputInt):
+                new_node.integer = value
+            elif isinstance(new_node, B.FunctionNodeInputBool):
+                new_node.boolean = value
+            elif isinstance(new_node, B.FunctionNodeInputString):
+                new_node.string = value
+            elif isinstance(new_node, B.GeometryNodeInputImage):
+                new_node.image = value
+            elif isinstance(new_node, B.GeometryNodeInputMaterial):
+                new_node.material = value
+            elif isinstance(new_node, B.GeometryNodeInputObject):
+                new_node.object = value
+            elif isinstance(new_node, B.GeometryNodeInputCollection):
+                new_node.collection = value
+            elif isinstance(new_node, B.FunctionNodeEulerToRotation):
+                new_node.inputs[0].default_value = value
+            elif isinstance(new_node, B.ShaderNodeCombineXYZ):
+                dimension = len(value)
+                if dimension == 4:  # 暂时不实现
+                    pass
+                if dimension == 2:
+                    new_node.inputs[2].hide = True
+                for i in range(dimension):
+                    new_node.inputs[i].default_value = value[i]
+            elif isinstance(new_node, B.GeometryNodeIndexSwitch):
+                new_node.data_type = "MENU"
+                new_node.show_options = False
 
-            elif isinstance(active_node, (BT.FunctionNodeInputColor, BT.ShaderNodeRGB)):
-                active_node.value = value
+                new_node.inputs[-1].hide = True
+                items = get_menu_socket_options(skIn0)
+                fill_index_switch_inputs(new_node, items)
+                if skIn0.default_value != '':
+                    new_node.inputs[0].default_value = items.index(skIn0.default_value)
 
-            elif isinstance(active_node, BT.FunctionNodeInputInt):
-                active_node.integer = value
+def get_menu_socket_options(socket: NodeSocket) -> list[str]:
+    try:
+        socket.default_value = "__INVALID__"
+    except TypeError as e:
+        err_msg = str(e)
+        start = err_msg.index("not found in (") + len("not found in (")
+        end = err_msg.rindex(")")
+        items_str = err_msg[start:end]
+        if items_str:
+            return [x.strip().strip("'\"") for x in items_str.split(",")]
+    return []
 
-            elif isinstance(active_node, BT.FunctionNodeInputBool):
-                active_node.boolean = value
-
-            elif isinstance(active_node, BT.FunctionNodeInputString):
-                active_node.string = value
-
-            elif isinstance(active_node, BT.GeometryNodeInputImage):
-                active_node.image = value
-
-            elif isinstance(active_node, BT.GeometryNodeInputMaterial):
-                active_node.material = value
-
-            elif isinstance(active_node, BT.GeometryNodeInputObject):
-                active_node.object = value
-
-            elif isinstance(active_node, BT.GeometryNodeInputCollection):
-                active_node.collection = value
-
-            elif isinstance(active_node, BT.FunctionNodeEulerToRotation):
-                active_node.inputs[0].default_value = value
-
-            elif isinstance(active_node, BT.ShaderNodeCombineXYZ):
-                for i in range(3):
-                    active_node.inputs[i].default_value = value[i]
-
-            elif isinstance(active_node, BT.GeometryNodeIndexSwitch):
-                active_node.data_type = "MENU"
-                active_node.show_options = False
-                id_name = skIn0.node.bl_idname
-                if id_name == "GeometryNodeMenuSwitch":
-                    active_node.inputs[-1].hide = True
-                    items = skIn0.node.enum_items
-                    items_l = len(items)
-                    if items_l >= 2:
-                        for i in range(items_l - 2):
-                            bpy.ops.node.index_switch_item_add()
-                    for i in range(items_l):
-                        active_node.inputs[i + 1].default_value = items[i].name
-                if id_name == "GeometryNodeIndexSwitch":
-                    if skIn0.default_value != '':
-                        active_node.inputs[1].default_value = skIn0.default_value
+def fill_index_switch_inputs(node: Node, items: list[str]):
+    items_l = len(items)
+    if items_l >= 2:
+        for i in range(items_l - 2):
+            bpy.ops.node.index_switch_item_add()
+    for i in range(items_l):
+        node.inputs[i + 1].default_value = items[i]

@@ -374,34 +374,44 @@ AllQuickDimensions = {
                               }
         }
 
+base_constant = {
+        'BOOLEAN':   'FunctionNodeInputBool',
+        'VALUE':     'ShaderNodeValue',
+        'INT':       'FunctionNodeInputInt',
+        'VECTOR':    'ShaderNodeCombineXYZ',
+        'MENU':      'GeometryNodeIndexSwitch',
+        'BUNDLE':    'NodeCombineBundle',
+        'CLOSURE':   'NodeClosureOutput',
+        'MATRIX':    'FunctionNodeCombineTransform',
+        'ROTATION': ['FunctionNodeEulerToRotation',
+                     'FunctionNodeAxisAngleToRotation',
+                     'FunctionNodeQuaternionToRotation' ],
+        'OBJECT':    'GeometryNodeInputObject',
+}
+
+geo_constant = {
+    'RGBA': 'FunctionNodeInputColor',
+    'STRING': 'FunctionNodeInputString',
+    'MATERIAL': 'GeometryNodeInputMaterial',
+    'COLLECTION': 'GeometryNodeInputCollection',
+    'IMAGE': 'GeometryNodeInputImage',
+}
+geo_constant.update(base_constant)
+
+shader_constant = {
+    'RGBA':      'ShaderNodeRGB',
+}
+shader_constant.update(base_constant)
+
+cmp_constant = {
+    'RGBA': 'CompositorNodeRGB',
+}
+cmp_constant.update(base_constant)
+
+
 AllQuickConstant: dict[str, dict[str, str | list]] = {
-        'GeometryNodeTree':  {'BOOLEAN':   'FunctionNodeInputBool',
-                              'VALUE':     'ShaderNodeValue',
-                              'INT':       'FunctionNodeInputInt',
-                              'VECTOR':    'ShaderNodeCombineXYZ',
-                              'RGBA':      'FunctionNodeInputColor',
-                              'STRING':    'FunctionNodeInputString',
-                              'MENU':      'GeometryNodeIndexSwitch',
-                              'MATRIX':    'FunctionNodeCombineTransform',
-                              'ROTATION': ['FunctionNodeEulerToRotation',
-                                           'FunctionNodeAxisAngleToRotation',
-                                           'FunctionNodeQuaternionToRotation' ],
-                              'MATERIAL':  'GeometryNodeInputMaterial',
-                              'OBJECT':    'GeometryNodeInputObject',
-                              'COLLECTION':'GeometryNodeInputCollection',
-                              'IMAGE':     'GeometryNodeInputImage',
-                              'BUNDLE':    'NodeCombineBundle',
-                              'CLOSURE':   'NodeClosureOutput',
-                              },
-        'ShaderNodeTree':    {'VALUE':     'ShaderNodeValue',
-                              'VECTOR':    'ShaderNodeCombineXYZ',
-                              'RGBA':      'ShaderNodeRGB',
-                              'BUNDLE':    'NodeCombineBundle',
-                              'CLOSURE':   'NodeClosureOutput',
-                              },
-        'CompositorNodeTree':{'VALUE':     'ShaderNodeValue',
-                              'VECTOR':    'ShaderNodeCombineXYZ',
-                              'RGBA':      'CompositorNodeRGB',
-                              },
+        'GeometryNodeTree':  geo_constant,
+        'ShaderNodeTree':    shader_constant,
+        'CompositorNodeTree':cmp_constant,
         'TextureNodeTree':   { }
         }
