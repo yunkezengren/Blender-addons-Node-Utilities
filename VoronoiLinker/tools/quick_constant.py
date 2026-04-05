@@ -102,9 +102,7 @@ class VoronoiQuickConstant(VoronoiToolTripleSk):
                 bpy.ops.node.sockets_sync()
                 return
 
-            # 小王 transfer value
-            if not hasattr(skIn0, "default_value"):
-                return
+            if not hasattr(skIn0, "default_value"): return
             value = skIn0.default_value
 
             if isinstance(active_node, BT.ShaderNodeValue):

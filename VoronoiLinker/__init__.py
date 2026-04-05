@@ -118,22 +118,112 @@ txt_BooleanQuickMath = "Boolean Quick Math"
 txt_MatrixQuickMath = "Matrix Quick Math"
 txt_ColorQuickMode = "Color Quick Mode"
 
-dict_toolLangSpecifDataPool = {}
+def _tool_desc(tool_cls, /, ru="", en="", zh=""):
+    """注册工具的多语言描述"""
+    pool = {}
+    if ru: pool["ru_RU"] = ru
+    if en: pool["en_US"] = en
+    if zh: pool["zh_HANS"] = zh
+    dict_toolLangSpecifDataPool[tool_cls] = pool
 
-smart_add_to_reg_and_kmiDefs(VoronoiLinkerTool, "##A_RIGHTMOUSE") # "##A_RIGHTMOUSE"?
-dict_toolLangSpecifDataPool[VoronoiLinkerTool, "ru_RU"] = "Священный инструмент. Ради этого был создан весь аддон.\nМинута молчания в честь NodeWrangler'a-прародителя-первоисточника."
+dict_toolLangSpecifDataPool: dict[type, dict[str, str]] = {}
+
+_tool_desc(VoronoiLinkerTool,
+    ru="Священный инструмент. Ради этого был создан весь аддон.\nМинута молчания в честь NodeWrangler'a-прародителя-первоисточника.",
+    en="The sacred tool. The reason this entire addon was created.\nA moment of silence in honor of NodeWrangler, the original ancestor.",
+    zh="核心连线工具, 本插件的起源.\n致敬NodeWrangler的原始设计",
+)
+_tool_desc(VoronoiPreviewTool,
+    "Канонический инструмент для мгновенного перенаправления явного вывода дерева.\nЕщё более полезен при использовании совместно с VPAT.",
+    "The canonical tool for instant redirection of the tree's active output.\nEven more useful when used together with VPAT.",
+    "快速预览节点输出结果的工具.\n与预览锚点工具(VPAT)配合使用效果更佳",
+)
+_tool_desc(VoronoiPreviewAnchorTool,
+    "Вынужденное отделение от VPT, своеобразный \"менеджер-компаньон\" для VPT.\nЯвное указание сокета и создание рероут-якорей.",
+    "A forced separation from VPT, a kind of \"companion manager\" for VPT.\nExplicit socket specification and creation of reroute anchors.",
+    "预览锚点管理工具, 可指定预览接口并创建转接点锚点",
+)
+_tool_desc(VoronoiMixerTool,
+    "Канонический инструмент для частых нужд смешивания.\nСкорее всего 70% уйдёт на использование \"Instance on Points\".",
+    "The canonical tool for frequent mixing needs.\nMost likely 70% will go to using \"Instance on Points\".",
+    "快速混合工具, 常用于几何节点中的点实例等操作",
+)
+_tool_desc(VoronoiQuickMathTool,
+    "Полноценное ответвление от VMT. Быстрая и быстрая быстрая математика на спидах.\nИмеет дополнительный мини-функционал. Также см. \"Quick quick math\" в раскладе.",
+    "A full-fledged branch from VMT. Quick and quick-quick math at speeds.\nHas additional mini-functionality. Also see \"Quick quick math\" in the layout.",
+    "快速数学运算工具, 支持浮点/向量/布尔/颜色/整数等多种运算.\n可通过饼菜单快速选择运算类型",
+)
+_tool_desc(VoronoiSwapperTool,
+    "Инструмент для обмена линков у двух сокетов, или добавления их к одному из них.\nДля линка обмена не будет, если в итоге он окажется исходящим из своего же нода.",
+    "Tool for swapping links between two sockets, or adding them to one of them.\nNo link swap will occur if it ends up originating from its own node.",
+    "Alt是批量替换输出接口,Shift是互换接口",
+)
+_tool_desc(VoronoiHiderTool,
+    "Инструмент для наведения порядка и эстетики в дереве.\nСкорее всего 90% уйдёт на использование автоматического сокрытия нодов.",
+    "Tool for bringing order and aesthetics to the node tree.\nMost likely 90% will go to using automatic socket hiding.",
+    "Shift是自动隐藏数值为0/颜色纯黑/未连接的接口,Ctrl是单个隐藏接口",
+)
+_tool_desc(VoronoiMassLinkerTool,
+    "\"Малыш котопёс\", не ноды, не сокеты. Создан ради редких точечных спец-ускорений.\nVLT на максималках. В связи со своим принципом работы, по своему божественен.",
+    "\"Puppy cat-dog\", neither nodes nor sockets. Created for rare point special accelerations.\nVLT on max. Due to its working principle, divine in its own way.",
+    "批量连线工具, 可一次性将多个同名接口连接起来.\n左键选择节点, 右键可忽略已存在的连线",
+)
+_tool_desc(VoronoiEnumSelectorTool,
+    "Инструмент для удобно-ленивого переключения свойств перечисления.\nИзбавляет от прицеливания мышкой, клика, а потом ещё одного прицеливания и клика.",
+    "Tool for convenient lazy switching of enumeration properties.\nEliminates the need for mouse aiming, clicking, and then aiming and clicking again.",
+    "快速切换节点枚举属性的工具, 支持饼菜单选择.\nCtrl+E切换节点选项显示, Alt+E切换节点选项",
+)
+_tool_desc(VoronoiLinkRepeatingTool,
+    "Полноценное ответвление от VLT, повторяет любой предыдущий линк от большинства\nдругих инструментов. Обеспечивает удобство соединения \"один ко многим\".",
+    "A full-fledged branch from VLT, repeats any previous link from most\nother tools. Provides convenience for \"one to many\" connections.",
+    "重复上一次连线操作, 支持'一对多'快速连接.\nV键重复接口连线, Shift+V重复节点连线",
+)
+_tool_desc(VoronoiQuickDimensionsTool,
+    "Инструмент для ускорения нужд разделения и объединения векторов (и цвета).\nА ещё может разделить геометрию на составляющие.",
+    "Tool for accelerating the needs of separating and combining vectors (and color).\nAnd can also split geometry into components.",
+    "快速分离/合并向量、颜色、矩阵等数据.\n支持几何节点中的各种数据类型拆分",
+)
+_tool_desc(VoronoiQuickConstant,
+    "Инструмент для ускорения нужд разделения и объединения векторов (и цвета).\nА ещё может разделить геометрию на составляющие.",
+    "Tool for quickly adding constant value nodes.\nSupports various data types including vectors, colors, matrices and more.",
+    "快速添加常量值节点.\n支持向量、颜色、矩阵等多种数据类型",
+)
+_tool_desc(VoronoiInterfacerTool,
+    "Инструмент на уровне \"The Great Trio\". Ответвление от VLT ради удобного ускорения\nпроцесса создания и спец-манипуляций с интерфейсами. \"Менеджер интерфейсов\".",
+    "A tool on the level of \"The Great Trio\". A branch from VLT for convenient acceleration\nof the creation process and special manipulations with interfaces. \"Interface Manager\".",
+    "接口管理工具, 支持复制/粘贴/交换/翻转/创建接口.\nSCA+A新建虚拟接口, Shift+Alt+A从选中接口创建",
+)
+_tool_desc(VoronoiLinksTransferTool,
+    "Инструмент для редких нужд переноса всех линков с одного нода на другой.\nВ будущем скорее всего будет слито с VST.",
+    "Tool for rare needs of transferring all links from one node to another.\nIn the future, it will most likely be merged with VST.",
+    "将一个节点的所有连线转移到另一个节点.\nSCA+T按名称转移, Shift+T按索引转移",
+)
+_tool_desc(VoronoiWarperTool,
+    "Мини-ответвление реверс-инженеринга топологии, (как у VPT).\nИнструмент для \"точечных прыжков\" по сокетам.",
+    "A mini-branch of topology reverse-engineering (like VPT).\nTool for \"point jumps\" along sockets.",
+    "沿连线快速跳转定位到相关节点的工具.\nS+A+W跳转, SCA+W跳转但不缩放",
+)
+_tool_desc(VoronoiLazyNodeStencilsTool,
+    "Мощь. Три буквы на инструмент, дожили... Инкапсулирует Ctrl-T от\nNodeWrangler'а, и никогда не реализованный 'VoronoiLazyNodeContinuationTool'. ",
+    "Power. Three letters for a tool, we've come to this... Encapsulates Ctrl-T from\nNodeWrangler, and the never-implemented 'VoronoiLazyNodeContinuationTool'.",
+    "代替NodeWrangler的ctrl+t, 快速从接口延伸节点模板",
+)
+_tool_desc(VoronoiResetNodeTool,
+    "Инструмент для сброса нодов без нужды прицеливания, с удобствами ведения мышкой\nи игнорированием свойств перечислений. Был создан, потому что в NW было похожее.",
+    "Tool for resetting nodes without the need for aiming, with mouse guidance convenience\nand ignoring enumeration properties. Was created because NW had something similar.",
+    "快速重置节点到默认状态, 保留连线.\nBackSpace重置, Shift+BackSpace同时重置枚举属性",
+)
+
+smart_add_to_reg_and_kmiDefs(VoronoiLinkerTool, "##A_RIGHTMOUSE")
 
 smart_add_to_reg_and_kmiDefs(VoronoiPreviewTool, "SC#_LEFTMOUSE")
-dict_toolLangSpecifDataPool[VoronoiPreviewTool, "ru_RU"] = "Канонический инструмент для мгновенного перенаправления явного вывода дерева.\nЕщё более полезен при использовании совместно с VPAT."
 
 smart_add_to_reg_and_kmiDefs(VoronoiPreviewAnchorTool, "SC#_RIGHTMOUSE")
 smart_add_to_reg_and_kmiDefs(VoronoiPreviewAnchorTool, "SC#_1", {'anchorType':1})
 smart_add_to_reg_and_kmiDefs(VoronoiPreviewAnchorTool, "SC#_2", {'anchorType':2})
 smart_add_to_reg_and_kmiDefs(VoronoiPreviewAnchorTool, "SC#_ACCENT_GRAVE", {'isDeleteNonCanonAnchors':2})
-dict_toolLangSpecifDataPool[VoronoiPreviewAnchorTool, "ru_RU"] = "Вынужденное отделение от VPT, своеобразный \"менеджер-компаньон\" для VPT.\nЯвное указание сокета и создание рероут-якорей."
 
 smart_add_to_reg_and_kmiDefs(VoronoiMixerTool, "S#A_LEFTMOUSE") # 混合器移到了左键, 为 VQMT 减轻负担.
-dict_toolLangSpecifDataPool[VoronoiMixerTool, "ru_RU"] = "Канонический инструмент для частых нужд смешивания.\nСкорее всего 70% уйдёт на использование \"Instance on Points\"."
 
 smart_add_to_reg_and_kmiDefs(VoronoiQuickMathTool, "S#A_RIGHTMOUSE") # 留在了右键, 以免在'Speed Pie'类型的饼菜单下三击左键时抓狂.
 smart_add_to_reg_and_kmiDefs(VoronoiQuickMathTool, "##A_ACCENT_GRAVE", {'isRepeatLastOperation':True})
@@ -149,8 +239,6 @@ smart_add_to_reg_and_kmiDefs(VoronoiQuickMathTool, "S#A_2", {'justPieCall':2}) #
 smart_add_to_reg_and_kmiDefs(VoronoiQuickMathTool, "S#A_3", {'justPieCall':3}) # 所以必须通过光标位置来选择, 而不是点击.
 smart_add_to_reg_and_kmiDefs(VoronoiQuickMathTool, "S#A_4", {'justPieCall':4}) # 我原以为会不方便, 结果感觉还不错.
 smart_add_to_reg_and_kmiDefs(VoronoiQuickMathTool, "S#A_5", {'justPieCall':5}) # 整数饼菜单
-dict_toolLangSpecifDataPool[VoronoiQuickMathTool, "ru_RU"] = """Полноценное ответвление от VMT. Быстрая и быстрая быстрая математика на спидах.
-Имеет дополнительный мини-функционал. Также см. \"Quick quick math\" в раскладе."""
 
 # smart_add_to_reg_and_kmiDefs(VoronoiRantoTool, "###_R")
 # smart_add_to_reg_and_kmiDefs(VoronoiRantoTool, "S##_R", {'isAccumulate':True})
@@ -160,41 +248,27 @@ smart_add_to_reg_and_kmiDefs(VoronoiSwapperTool, "S##_S", {'toolMode':SwapperMod
 smart_add_to_reg_and_kmiDefs(VoronoiSwapperTool, "##A_S", {'toolMode':SwapperMode.ADD.value})
 smart_add_to_reg_and_kmiDefs(VoronoiSwapperTool, "S#A_S", {'toolMode':SwapperMode.TRAN.value})
 
-dict_toolLangSpecifDataPool[VoronoiSwapperTool, "ru_RU"] = """Инструмент для обмена линков у двух сокетов, или добавления их к одному из них.
-Для линка обмена не будет, если в итоге он окажется исходящим из своего же нода."""
-dict_toolLangSpecifDataPool[VoronoiSwapperTool, "zh_HANS"] = "Alt是批量替换输出接口,Shift是互换接口"
-
 smart_add_to_reg_and_kmiDefs(VoronoiCallNodePie, "#C#_LEFTMOUSE")
 
 smart_add_to_reg_and_kmiDefs(VoronoiHiderTool, "S##_E", {'toolMode':HiderMode.HIDE_SOCKET.value})
 smart_add_to_reg_and_kmiDefs(VoronoiHiderTool, "#CA_E", {'toolMode':HiderMode.HIDE_VALUE.value})
 smart_add_to_reg_and_kmiDefs(VoronoiHiderTool, "SC#_E", {'toolMode':HiderMode.HIDE_NODE.value})
-dict_toolLangSpecifDataPool[VoronoiHiderTool, "ru_RU"] = "Инструмент для наведения порядка и эстетики в дереве.\nСкорее всего 90% уйдёт на использование автоматического сокрытия нодов."
-dict_toolLangSpecifDataPool[VoronoiHiderTool, "zh_HANS"] = "Shift是自动隐藏数值为0/颜色纯黑/未连接的接口,Ctrl是单个隐藏接口"
 
 smart_add_to_reg_and_kmiDefs(VoronoiMassLinkerTool, "SCA_LEFTMOUSE")
 smart_add_to_reg_and_kmiDefs(VoronoiMassLinkerTool, "SCA_RIGHTMOUSE", {'isIgnoreExistingLinks':True})
-dict_toolLangSpecifDataPool[VoronoiMassLinkerTool, "ru_RU"] = """"Малыш котопёс", не ноды, не сокеты. Создан ради редких точечных спец-ускорений.
-VLT на максималках. В связи со своим принципом работы, по своему божественен."""
 
 # 最初想用 'V_Sca', 但手指伸到 V 太远了. 而且, 考虑到创建这个工具的原因, 需要最小化调用的复杂性.
 smart_add_to_reg_and_kmiDefs(VoronoiEnumSelectorTool, "#C#_R", {'isPieChoice':False, 'isSelectNode':1})
 smart_add_to_reg_and_kmiDefs(VoronoiEnumSelectorTool, "#C#_E", {'isInstantActivation':False})
 smart_add_to_reg_and_kmiDefs(VoronoiEnumSelectorTool, "##A_E", {'isToggleOptions':True})
-dict_toolLangSpecifDataPool[VoronoiEnumSelectorTool, "ru_RU"] = """Инструмент для удобно-ленивого переключения свойств перечисления.
-Избавляет от прицеливания мышкой, клика, а потом ещё одного прицеливания и клика."""
 
 # 参见: VlrtData, VlrtRememberLastSockets() 和 remember_add_link().
 smart_add_to_reg_and_kmiDefs(VoronoiLinkRepeatingTool, "###_V", {'toolMode':LinkRepeatingMode.SOCKET.value})
 smart_add_to_reg_and_kmiDefs(VoronoiLinkRepeatingTool, "S##_V", {'toolMode':LinkRepeatingMode.NODE.value})
-dict_toolLangSpecifDataPool[VoronoiLinkRepeatingTool, "ru_RU"] = """Полноценное ответвление от VLT, повторяет любой предыдущий линк от большинства
-других инструментов. Обеспечивает удобство соединения "один ко многим"."""
 
 smart_add_to_reg_and_kmiDefs(VoronoiQuickDimensionsTool, "##A_D")
-dict_toolLangSpecifDataPool[VoronoiQuickDimensionsTool, "ru_RU"] = "Инструмент для ускорения нужд разделения и объединения векторов (и цвета).\nА ещё может разделить геометрию на составляющие."
 
 smart_add_to_reg_and_kmiDefs(VoronoiQuickConstant, "##A_C")
-dict_toolLangSpecifDataPool[VoronoiQuickConstant, "ru_RU"] = "Инструмент для ускорения нужд разделения и объединения векторов (и цвета).\nА ещё может разделить геометрию на составляющие."
 
 smart_add_to_reg_and_kmiDefs(VoronoiInterfacerTool, "SC#_A", {'toolMode':InterfacerMode.NEW.value})
 smart_add_to_reg_and_kmiDefs(VoronoiInterfacerTool, "S#A_A", {'toolMode':InterfacerMode.CREATE.value})
@@ -204,35 +278,25 @@ smart_add_to_reg_and_kmiDefs(VoronoiInterfacerTool, "S#A_X", {'toolMode':Interfa
 smart_add_to_reg_and_kmiDefs(VoronoiInterfacerTool, "S#A_Z", {'toolMode':InterfacerMode.FLIP.value})
 # smart_add_to_reg_and_kmiDefs(VoronoiInterfacerTool, "S#A_Q", {'toolMode':InterfacerMode.DELETE.value})
 # smart_add_to_reg_and_kmiDefs(VoronoiInterfacerTool, "S#A_E", {'toolMode':InterfacerMode.TYPE.value})
-dict_toolLangSpecifDataPool[VoronoiInterfacerTool, "ru_RU"] = """Инструмент на уровне "The Great Trio". Ответвление от VLT ради удобного ускорения
-процесса создания и спец-манипуляций с интерфейсами. "Менеджер интерфейсов"."""
 
 smart_add_to_reg_and_kmiDefs(VoronoiLinksTransferTool, "SCA_T")
 smart_add_to_reg_and_kmiDefs(VoronoiLinksTransferTool, "S##_T", {'isByIndexes':True})
-dict_toolLangSpecifDataPool[VoronoiLinksTransferTool, "ru_RU"] = "Инструмент для редких нужд переноса всех линков с одного нода на другой.\nВ будущем скорее всего будет слито с VST."
 
 smart_add_to_reg_and_kmiDefs(VoronoiWarperTool, "S#A_W")
 smart_add_to_reg_and_kmiDefs(VoronoiWarperTool, "SCA_W", {'isZoomedTo':False})
-dict_toolLangSpecifDataPool[VoronoiWarperTool, "ru_RU"] = "Мини-ответвление реверс-инженеринга топологии, (как у VPT).\nИнструмент для \"точечных прыжков\" по сокетам."
 
 smart_add_to_reg_and_kmiDefs(VoronoiLazyNodeStencilsTool, "S#A_Q")
-dict_toolLangSpecifDataPool[VoronoiLazyNodeStencilsTool, "ru_RU"] = """Мощь. Три буквы на инструмент, дожили... Инкапсулирует Ctrl-T от
-NodeWrangler'а, и никогда не реализованный 'VoronoiLazyNodeContinuationTool'. """ #"Больше лени богу лени!"
-dict_toolLangSpecifDataPool[VoronoiLazyNodeStencilsTool, "zh_HANS"] = "代替NodeWrangler的ctrl+t"
 
 smart_add_to_reg_and_kmiDefs(VoronoiResetNodeTool, "###_BACK_SPACE")
 smart_add_to_reg_and_kmiDefs(VoronoiResetNodeTool, "S##_BACK_SPACE", {'isResetEnums':True})
-dict_toolLangSpecifDataPool[VoronoiResetNodeTool, "ru_RU"] = """Инструмент для сброса нодов без нужды прицеливания, с удобствами ведения мышкой
-и игнорированием свойств перечислений. Был создан, потому что в NW было похожее."""
 
-#smart_add_to_reg_and_kmiDefs(VoronoiDummyTool, "###_D", {'isDummy':True})
 
 dict_setKmiCats['最有用'].add(VoronoiLinkerTool.bl_idname)
 dict_setKmiCats['最有用'].add(VoronoiPreviewTool.bl_idname)
 dict_setKmiCats['最有用'].add(VoronoiMixerTool.bl_idname)
 dict_setKmiCats['最有用'].add(VoronoiQuickMathTool.bl_idname)
-dict_setKmiCats['最有用'].add(VoronoiCallNodePie.bl_idname)
 dict_setKmiCats['最有用'].add(VoronoiHiderTool.bl_idname)
+dict_setKmiCats['最有用'].add(VoronoiCallNodePie.bl_idname)
 
 dict_setKmiCats['很有用'].add(VoronoiMassLinkerTool.bl_idname)         # 批量连线
 dict_setKmiCats['很有用'].add(VoronoiQuickConstant.bl_idname)
@@ -241,16 +305,14 @@ dict_setKmiCats['很有用'].add(VoronoiQuickDimensionsTool.bl_idname)
 dict_setKmiCats['很有用'].add(VoronoiLinksTransferTool.bl_idname)
 dict_setKmiCats['很有用'].add(VoronoiEnumSelectorTool.bl_idname)
 dict_setKmiCats['很有用'].add(VoronoiSwapperTool.bl_idname)
-dict_setKmiCats['很有用'].add(VoronoiResetNodeTool.bl_idname)
 
 dict_setKmiCats['可能有用'].add(VoronoiLinkRepeatingTool.bl_idname)
+dict_setKmiCats['可能有用'].add(VoronoiResetNodeTool.bl_idname)
 dict_setKmiCats['可能有用'].add(VoronoiLazyNodeStencilsTool.bl_idname)
 dict_setKmiCats['可能有用'].add(VoronoiPreviewAnchorTool.bl_idname)
 dict_setKmiCats['可能有用'].add(VoronoiWarperTool.bl_idname)
 
 # dict_setKmiCats['无效'].add(VoronoiRantoTool.bl_idname)
-
-dict_toolLangSpecifDataPool[VoronoiDummyTool, "ru_RU"] = """"Ой дурачёк"."""
 
 # =======
 
@@ -748,177 +810,178 @@ class VoronoiAddonPrefs(bpy.types.AddonPreferences):
             row.label()
         
         LyAddUrlHl(where, "Check for updates yourself", "https://github.com/yunkezengren/Blender-addons-Node-Utilities/releases")
+        langCode = bpy.app.translations.locale
+        
+        panel, body = where.panel(idname="工具描述", default_closed=True)
+        panel.label(text="Description")
+        if body: 
+            body = body.split(factor=0.01)
+            body.label(text="")
+            body = body.box()
+            body.scale_y = 0.7
+            for cls in dict_vtClasses:
+                if lang_pool:=dict_toolLangSpecifDataPool.get(cls):
+                    txtToolInfo = lang_pool.get(langCode, "")
+                    if not txtToolInfo: continue
+                    colDiscl = body.column()
+                    _panel, _body = colDiscl.panel(idname=cls.bl_label)
+                    _panel.label(text=cls.bl_label)
+                    if not _body: continue
+                    rowTool = _body.column()
+                    for li in txtToolInfo.split("\n"):
+                        text_row = rowTool.row(align=True)
+                        text_row.label(icon='BLANK1')
+                        text_row.label(text=li, translate=False)
+        
         panel, body = where.panel(idname="old", default_closed=True)
         panel.label(text="Settings from original author (I don't understand some of them)")
-        
-        if not body: return
-        body = body.split(factor=0.05)
-        body.label()
-        where = body
-        colMain = where.column()
-        with LyAddQuickInactiveCol(colMain, att='column') as row:
+        if body:
+            body = body.split(factor=0.05)
+            body.label()
+            where = body
+            colMain = where.column()
+            with LyAddQuickInactiveCol(colMain, att='column') as row:
+                row.alignment = 'LEFT'
+                row.label(text=txt_addonVerDateCreated)
+                row.label(text=txt_addonBlVerSupporting)
+            colUrls = colMain.column()
+            LyAddUrlHl(colUrls, "Check for updates yourself", "https://github.com/ugorek000/VoronoiLinker", txtHl="Latest%20version")
+            LyAddUrlHl(colUrls, "VL Wiki", bl_info2['wiki_url'])
+            LyAddUrlHl(colUrls, "RANTO Git", "https://github.com/ugorek000/RANTO")
+            colUrls.separator()
+            LyAddUrlHl(colUrls, "Event Type Items", "https://docs.blender.org/api/current/bpy_types_enum_items/event_type_items.html")
+            LyAddUrlHl(colUrls, "Translator guide", "https://developer.blender.org/docs/handbook/translating/translator_guide/")
+            LyAddUrlHl(colUrls, "Translator dev guide", "https://developer.blender.org/docs/handbook/translating/developer_guide/")
+            ##
+            colMain.separator()
+            row = colMain.row(align=True)
             row.alignment = 'LEFT'
-            row.label(text=txt_addonVerDateCreated)
-            row.label(text=txt_addonBlVerSupporting)
-        colUrls = colMain.column()
-        LyAddUrlHl(colUrls, "Check for updates yourself", "https://github.com/ugorek000/VoronoiLinker", txtHl="Latest%20version")
-        LyAddUrlHl(colUrls, "VL Wiki", bl_info2['wiki_url'])
-        LyAddUrlHl(colUrls, "RANTO Git", "https://github.com/ugorek000/RANTO")
-        colUrls.separator()
-        LyAddUrlHl(colUrls, "Event Type Items", "https://docs.blender.org/api/current/bpy_types_enum_items/event_type_items.html")
-        LyAddUrlHl(colUrls, "Translator guide", "https://developer.blender.org/docs/handbook/translating/translator_guide/")
-        LyAddUrlHl(colUrls, "Translator dev guide", "https://developer.blender.org/docs/handbook/translating/developer_guide/")
-        ##
-        colMain.separator()
-        row = colMain.row(align=True)
-        row.alignment = 'LEFT'
-        row.operator(VoronoiOpAddonTabs.bl_idname, text=txt_copySettAsPyScript, icon='COPYDOWN').opt = 'GetPySett' # SCRIPT  COPYDOWN
-        with LyAddQuickInactiveCol(colMain, active=self.dsIncludeDev) as row:
-            row.prop(self,'dsIncludeDev')
-        ##
-        LyAddThinSep(colMain, 0.15)
-        rowSettings = colMain.box().row(align=True)
-        row = rowSettings.row(align=True)
-        row.ui_units_x = 20
-        view = bpy.context.preferences.view
-        row.prop(view,'language', text="")
-        row = rowSettings.row(align=True)
-        langCode = view.language
-        row.label(text=f"   '{langCode}'   ", translate=False)
-        #row = rowSettings.row(align=True)
-        #row.alignment = 'RIGHT'
-        row.prop(view,'use_translate_interface', text="Interface")
-        row.prop(view,'use_translate_tooltips', text="Tooltips")
-        ##
-        colVlTools = colMain.column(align=True)
-        for cls in dict_vtClasses:
-            if txtToolInfo:=dict_toolLangSpecifDataPool.get((cls, langCode), ""):
-                colDiscl = colVlTools.column(align=True)
-                rowLabel = colDiscl.row(align=True)
-                if LyAddDisclosureProp(rowLabel, self, cls.disclBoxPropNameInfo, txt=cls.bl_label+" Tool"):
-                    rowTool = colDiscl.row(align=True)
-                    rowTool.label(icon='BLANK1')
-                    rowTool.label(icon='BLANK1')
-                    text_color = rowTool.column(align=True)
-                    for li in txtToolInfo.split("\n"):
-                        text_color.label(text=li, translate=False)
-                with LyAddQuickInactiveCol(rowLabel, att='row') as row:
-                    row.alignment = 'LEFT'
-                    row.label(text=f"({cls.vlTripleName})", translate=False)
-                    row.alignment = 'EXPAND'
-                    #row.prop(self, cls.disclBoxPropNameInfo, text=" ", translate=False, emboss=False)
-        ##
-        colLangDebug = colMain.column(align=True)
-        if (self.dsIncludeDev)or(self.vaLangDebDiscl):
-            with LyAddQuickInactiveCol(colLangDebug, active=self.vaLangDebDiscl) as row:
-                row.prop(self,'vaLangDebDiscl')
-        if self.vaLangDebDiscl:
-            row = colLangDebug.row(align=True)
-            row.alignment = 'LEFT'
-            row.label(text=f"[{langCode}]", translate=False)
-            row.label(text="–", translate=False)
-            if langCode in dict_vlHhTranslations:
-                dict_copy = dict_vlHhTranslations[langCode].copy()
-                del dict_copy['trans']
-                row.label(text=repr(dict_copy), translate=False)
-            else:
-                with LyAddQuickInactiveCol(row) as row:
-                    row.label(text="{}", translate=False)
-            colLangDebug.row().prop(self,'vaLangDebEnum', expand=True)
-            def LyAddAlertNested(where: UILayout, text):
-                with LyAddQuickInactiveCol(where) as row:
-                    row.label(text=text, translate=False)
-                row = where.row(align=True)
-                row.label(icon='BLANK1')
-                return row.column(align=True)
-            def LyAddTran(where: UILayout, label, text, *, dot="."):
-                rowRoot = where.row(align=True)
-                with LyAddQuickInactiveCol(rowRoot) as row:
-                    row.alignment = 'LEFT'
-                    row.label(text=label+": ", translate=False)
-                row = rowRoot.row(align=True)
-                col = row.column(align=True)
-                text = _iface(text)
-                if text:
-                    list_split = text.split("\n")
-                    hig = len(list_split)-1
-                    for cyc, li in enumerate(list_split):
-                        col.label(text=li+(dot if cyc==hig else ""), translate=False)
-            def LyAddTranDataForProp(where: UILayout, pr, dot="."):
-                colRoot = where.column(align=True)
-                with LyAddQuickInactiveCol(colRoot) as row:
-                    row.label(text=pr.identifier, translate=False)
-                row = colRoot.row(align=True)
-                row.label(icon='BLANK1')
-                col2 = row.column(align=True)
-                LyAddTran(col2, "Name", pr.name, dot="")
-                if pr.description:
-                    LyAddTran(col2, "Description", pr.description, dot=dot)
-                if type(pr)==bpy.types.EnumProperty:
-                    for en in pr.enum_items:
-                        LyAddTranDataForProp(col2, en, dot="")
-            match self.vaLangDebEnum:
-                case 'FREE':
-                    txt = _iface("Free")
-                    col = LyAddAlertNested(colLangDebug, f"{txt}")
-                    col.label(text="Virtual")
-                    col.label(text="Colored")
-                    col.label(text="Restore")
-                    col.label(text="Add New")
-                    col.label(text="Edge pan")
-                    with LyAddQuickInactiveCol(col, att='column') as col0:
-                        col0.label(text="Zoom factor")
-                        col0.label(text="Speed")
-                    col.label(text="Pie")
-                    col.label(text="Box ")
-                    col.label(text="Special")
-                    col.label(text="Colors")
-                    col.label(text="Customization")
-                    col.label(text="Advanced")
-                    col.label(text=txt_FloatQuickMath)
-                    col.label(text=txt_VectorQuickMath)
-                    col.label(text=txt_BooleanQuickMath)
-                    col.label(text=txt_ColorQuickMode)
-                    col.label(text=txt_vmtNoMixingOptions)
-                    col.label(text=txt_vqmtThereIsNothing)
-                    col.label(text=bl_info2['description'])
-                    col.label(text=txt_addonVerDateCreated)
-                    col.label(text=txt_addonBlVerSupporting)
-                    col.label(text=txt_onlyFontFormat)
-                    col.label(text=txt_copySettAsPyScript)
-                    col.label(text=txt_checkForUpdatesYourself)
-                case 'SPECIAL':
-                    txt = _iface("Special")
-                    col0 = LyAddAlertNested(colLangDebug, f"[{txt}]")
-                    col1 = LyAddAlertNested(col0, "VMT")
-                    for dv in dict_vmtMixerNodesDefs.values():
-                        col1.label(text=dv[2])
-                    col1 = LyAddAlertNested(col0, "VQMT")
-                    for di in dict_vqmtQuickMathMain.items():
-                        col2 = LyAddAlertNested(col1, di[0])
-                        for ti in di[1]:
-                            if ti[0]:
-                                col2.label(text=ti[0])
-                case 'ADDONPREFS':
-                    col = LyAddAlertNested(colLangDebug, "[AddonPrefs]")
-                    set_toolBoxDisctPropNames = set([cls.disclBoxPropName for cls in dict_vtClasses])|set([cls.disclBoxPropNameInfo for cls in dict_vtClasses])
-                    set_toolBoxDisctPropNames.update({'vaLangDebEnum'})
-                    for pr in self.bl_rna.properties[2:]:
-                        if pr.identifier not in set_toolBoxDisctPropNames:
-                            LyAddTranDataForProp(col, pr)
-                case _:
-                    dict_toolBlabToCls = {cls.bl_label.upper():cls for cls in dict_vtClasses}
-                    set_alreadyDone = set() # 考虑到 vaLangDebEnum 的分离, 这已经没用了.
-                    col0 = colLangDebug.column(align=True)
-                    cls = dict_toolBlabToCls[self.vaLangDebEnum]
-                    col1 = LyAddAlertNested(col0, cls.bl_label)
-                    rna = eval(f"bpy.ops.{cls.bl_idname}.get_rna_type()") # 通过 getattr 不知道为什么 `getattr(bpy.ops, cls.bl_idname).get_rna_type()` 不起作用.
-                    for pr in rna.properties[1:]: # 跳过 rna_type.
-                        rowLabel = col1.row(align=True)
-                        if pr.identifier not in set_alreadyDone:
-                            LyAddTranDataForProp(rowLabel, pr)
-                            set_alreadyDone.add(pr.identifier)
-    # ------
+            row.operator(VoronoiOpAddonTabs.bl_idname, text=txt_copySettAsPyScript, icon='COPYDOWN').opt = 'GetPySett' # SCRIPT  COPYDOWN
+            with LyAddQuickInactiveCol(colMain, active=self.dsIncludeDev) as row:
+                row.prop(self,'dsIncludeDev')
+            ##
+            LyAddThinSep(colMain, 0.15)
+            rowSettings = colMain.box().row(align=True)
+            row = rowSettings.row(align=True)
+            row.ui_units_x = 20
+            view = bpy.context.preferences.view
+            row.prop(view,'language', text="")
+            row = rowSettings.row(align=True)
+            row.label(text=f"   '{langCode}'   ", translate=False)
+            row.prop(view,'use_translate_interface', text="Interface")
+            row.prop(view,'use_translate_tooltips', text="Tooltips")
+            ##
+            colLangDebug = colMain.column(align=True)
+            if (self.dsIncludeDev)or(self.vaLangDebDiscl):
+                with LyAddQuickInactiveCol(colLangDebug, active=self.vaLangDebDiscl) as row:
+                    row.prop(self,'vaLangDebDiscl')
+            if self.vaLangDebDiscl:
+                row = colLangDebug.row(align=True)
+                row.alignment = 'LEFT'
+                row.label(text=f"[{langCode}]", translate=False)
+                row.label(text="–", translate=False)
+                if langCode in dict_vlHhTranslations:
+                    dict_copy = dict_vlHhTranslations[langCode].copy()
+                    del dict_copy['trans']
+                    row.label(text=repr(dict_copy), translate=False)
+                else:
+                    with LyAddQuickInactiveCol(row) as row:
+                        row.label(text="{}", translate=False)
+                colLangDebug.row().prop(self,'vaLangDebEnum', expand=True)
+                def LyAddAlertNested(where: UILayout, text):
+                    with LyAddQuickInactiveCol(where) as row:
+                        row.label(text=text, translate=False)
+                    row = where.row(align=True)
+                    row.label(icon='BLANK1')
+                    return row.column(align=True)
+                def LyAddTran(where: UILayout, label, text, *, dot="."):
+                    rowRoot = where.row(align=True)
+                    with LyAddQuickInactiveCol(rowRoot) as row:
+                        row.alignment = 'LEFT'
+                        row.label(text=label+": ", translate=False)
+                    row = rowRoot.row(align=True)
+                    col = row.column(align=True)
+                    text = _iface(text)
+                    if text:
+                        list_split = text.split("\n")
+                        hig = len(list_split)-1
+                        for cyc, li in enumerate(list_split):
+                            col.label(text=li+(dot if cyc==hig else ""), translate=False)
+                def LyAddTranDataForProp(where: UILayout, pr, dot="."):
+                    colRoot = where.column(align=True)
+                    with LyAddQuickInactiveCol(colRoot) as row:
+                        row.label(text=pr.identifier, translate=False)
+                    row = colRoot.row(align=True)
+                    row.label(icon='BLANK1')
+                    col2 = row.column(align=True)
+                    LyAddTran(col2, "Name", pr.name, dot="")
+                    if pr.description:
+                        LyAddTran(col2, "Description", pr.description, dot=dot)
+                    if type(pr)==bpy.types.EnumProperty:
+                        for en in pr.enum_items:
+                            LyAddTranDataForProp(col2, en, dot="")
+                match self.vaLangDebEnum:
+                    case 'FREE':
+                        txt = _iface("Free")
+                        col = LyAddAlertNested(colLangDebug, f"{txt}")
+                        col.label(text="Virtual")
+                        col.label(text="Colored")
+                        col.label(text="Restore")
+                        col.label(text="Add New")
+                        col.label(text="Edge pan")
+                        with LyAddQuickInactiveCol(col, att='column') as col0:
+                            col0.label(text="Zoom factor")
+                            col0.label(text="Speed")
+                        col.label(text="Pie")
+                        col.label(text="Box ")
+                        col.label(text="Special")
+                        col.label(text="Colors")
+                        col.label(text="Customization")
+                        col.label(text="Advanced")
+                        col.label(text=txt_FloatQuickMath)
+                        col.label(text=txt_VectorQuickMath)
+                        col.label(text=txt_BooleanQuickMath)
+                        col.label(text=txt_ColorQuickMode)
+                        col.label(text=txt_vmtNoMixingOptions)
+                        col.label(text=txt_vqmtThereIsNothing)
+                        col.label(text=bl_info2['description'])
+                        col.label(text=txt_addonVerDateCreated)
+                        col.label(text=txt_addonBlVerSupporting)
+                        col.label(text=txt_onlyFontFormat)
+                        col.label(text=txt_copySettAsPyScript)
+                        col.label(text=txt_checkForUpdatesYourself)
+                    case 'SPECIAL':
+                        txt = _iface("Special")
+                        col0 = LyAddAlertNested(colLangDebug, f"[{txt}]")
+                        col1 = LyAddAlertNested(col0, "VMT")
+                        for dv in dict_vmtMixerNodesDefs.values():
+                            col1.label(text=dv[2])
+                        col1 = LyAddAlertNested(col0, "VQMT")
+                        for di in dict_vqmtQuickMathMain.items():
+                            col2 = LyAddAlertNested(col1, di[0])
+                            for ti in di[1]:
+                                if ti[0]:
+                                    col2.label(text=ti[0])
+                    case 'ADDONPREFS':
+                        col = LyAddAlertNested(colLangDebug, "[AddonPrefs]")
+                        set_toolBoxDisctPropNames = set([cls.disclBoxPropName for cls in dict_vtClasses])|set([cls.disclBoxPropNameInfo for cls in dict_vtClasses])
+                        set_toolBoxDisctPropNames.update({'vaLangDebEnum'})
+                        for pr in self.bl_rna.properties[2:]:
+                            if pr.identifier not in set_toolBoxDisctPropNames:
+                                LyAddTranDataForProp(col, pr)
+                    case _:
+                        dict_toolBlabToCls = {cls.bl_label.upper():cls for cls in dict_vtClasses}
+                        set_alreadyDone = set() # 考虑到 vaLangDebEnum 的分离, 这已经没用了.
+                        col0 = colLangDebug.column(align=True)
+                        cls = dict_toolBlabToCls[self.vaLangDebEnum]
+                        col1 = LyAddAlertNested(col0, cls.bl_label)
+                        rna = eval(f"bpy.ops.{cls.bl_idname}.get_rna_type()") # 通过 getattr 不知道为什么 `getattr(bpy.ops, cls.bl_idname).get_rna_type()` 不起作用.
+                        for pr in rna.properties[1:]: # 跳过 rna_type.
+                            rowLabel = col1.row(align=True)
+                            if pr.identifier not in set_alreadyDone:
+                                LyAddTranDataForProp(rowLabel, pr)
+                                set_alreadyDone.add(pr.identifier)
+
     def draw(self, context):
         def LyAddDecorLyColRaw(where: UILayout, sy=0.05, sx=1.0, en=False):
             where.prop(self,'vaDecorLy', text="")

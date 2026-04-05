@@ -313,8 +313,8 @@ translations_dict = {
         ("*", "Zoom max"): "Максимальный масштаб",
 
         # Tool descriptions
-        ("*", "Rename nodes when hiding options, currently only in Chinese"): "Переименовать ноды при скрытии опций, сейчас только на китайском",
-        ("*", "Rename nodes when toggling options, currently only in Chinese"): "Переименовать ноды при переключении опций, сейчас только на китайском",
+        ("*", "Rename nodes when hiding options, currently only support Chinese"): "Переименовать ноды при скрытии опций, сейчас только на китайском",
+        ("*", "Rename nodes when toggling options, currently only support Chinese"): "Переименовать ноды при переключении опций, сейчас только на китайском",
         ("*", "Hide Options"): "Скрыть опции",
         ("*", "Show Options"): "Показать опции",
         ("*", "Toggle Options"): "Переключить опции",
@@ -604,8 +604,9 @@ translations_dict = {
         ("*", "Fix islands"): "修复孤岛",
 
         # Tool descriptions
-        ("*", "Rename nodes when hiding options, currently only in Chinese"): "隐藏选项时重命名存储属性等一些节点,目前只有中文",
-        ("*", "Rename nodes when toggling options, currently only in Chinese"): "切换选项时重命名存储属性等一些节点,目前只有中文",
+        ("*", "Rename Node Only Chinese"): "重命名节点,仅中文",
+        ("*", "Rename nodes when hiding options, currently only support Chinese"): "隐藏选项时重命名存储属性等一些节点,目前只支持中文",
+        ("*", "Rename nodes when toggling options, currently only support Chinese"): "切换选项时重命名存储属性等一些节点,目前只支持中文",
 
         # Tool names
         ("*", "Hide Options"): "隐藏选项",

@@ -1,6 +1,6 @@
 import bpy
 from bpy.app.translations import pgettext_iface as _iface
-from bpy.types import EnumProperty, UILayout
+from bpy.types import EnumProperty, UILayout, Node
 from ..base_tool import VoronoiOpTool, VoronoiToolNd
 from ..common_forward_class import VestData
 from ..utils.drawing import TemplateDrawNodeFull
@@ -90,7 +90,7 @@ def draw_enum_property_selectors(parent_layout: UILayout, domain_layout=None):
 class VestOpBox(VoronoiOpTool):
     bl_idname = 'node.voronoi_enum_selector_box'
     bl_label = "Enum Selector"
-    rename_node:   bpy.props.BoolProperty(default=True, description="Rename nodes when hiding options, currently only in Chinese")
+    rename_node:   bpy.props.BoolProperty(default=True, description="Rename nodes when hiding options, currently only support Chinese")
     def execute(self, context): # 用于下面的 draw(), 否则不显示.
         pass
     def draw(self, _context):
@@ -103,8 +103,7 @@ class VestOpBox(VoronoiOpTool):
         return context.window_manager.invoke_popup(self, width=int(width))    # 必须要 int
         # return context.window_manager.invoke_popup(self, width=int(128*VestData.boxScale))
     def cancel(self, context):
-        if self.rename_node and bpy.context.preferences.view.language in ["zh_HANS", "ZH_HANT"]:
-            rename_node_based_option(VestData.nd)     # 显示节点选项优化-根据选项重命名节点-domain
+        run_rename_node(self.rename_node, VestData.nd)
 
 class VestPieBox(bpy.types.Menu):
     bl_idname = 'VL_MT_Voronoi_enum_selector_box'
@@ -121,7 +120,7 @@ class VestPieBox(bpy.types.Menu):
         VestData.list_menu_socket = []
         draw_enum_property_selectors(colAll, colDom)
 
-def rename_node_based_option(node):
+def rename_node_based_option(node: Node):
     """ 节点根据选项重命名 """
     nodes_has_domin = [ "GeometryNodeFieldOnDomain", "GeometryNodeFieldAtIndex",
                         "GeometryNodeSampleIndex", "GeometryNodeSampleNearest",
@@ -169,6 +168,10 @@ def rename_node_based_option(node):
             if node.invert:
                 node.label += " 反转"
 
+def run_rename_node(rename: bool, node: Node):
+    if rename and bpy.app.translations.locale in ["zh_Hans", "zh_CN", "zh_HANS", "ZH_HANT"]:
+        rename_node_based_option(node)
+
 class VoronoiEnumSelectorTool(VoronoiToolNd):
     bl_idname = 'node.voronoi_enum_selector'
     bl_label = "Voronoi Enum Selector"
@@ -178,7 +181,7 @@ class VoronoiEnumSelectorTool(VoronoiToolNd):
     isPieChoice:         bpy.props.BoolProperty(name="Pie choice",          default=False, description="Allows to select an enum by releasing the key")
     isToggleOptions:     bpy.props.BoolProperty(name="Toggle node options", default=False)
     isSelectNode:        bpy.props.IntProperty(name="Select target node",  default=1, min=0, max=3, description="0 – Do not select.\n1 – Select.\n2 – And center.\n3 – And zooming")
-    rename_node:         bpy.props.BoolProperty(default=True, description="Rename nodes when toggling options, currently only in Chinese")
+    rename_node:         bpy.props.BoolProperty(name="Rename Node Only Chinese", default=True, description="Rename nodes when toggling options, currently only support Chinese")
     def CallbackDrawTool(self, drata):              # 工具提示
         if self.isToggleOptions:
             mode = "Hide Options"
@@ -192,9 +195,7 @@ class VoronoiEnumSelectorTool(VoronoiToolNd):
         if lastResult:
             success = nd.show_options
             if isCanDo:
-                # 显示节点选项优化-根据选项重命名节点-domain
-                if self.rename_node and bpy.context.preferences.view.language in ["zh_HANS", "ZH_HANT"]:
-                    rename_node_based_option(nd)
+                run_rename_node(self.rename_node, nd)
                 nd.show_options = False
             return success
         elif isCanDo:
@@ -271,8 +272,7 @@ class VoronoiEnumSelectorTool(VoronoiToolNd):
                 # 更改节口类型-todo
                 bpy.ops.node.voronoi_enum_selector_box('INVOKE_DEFAULT')
             # ops运行唤出菜单后生效,再更改选项不生效，不是实时更改name
-            # # rename_node_based_option(ndTar)         # 显示节点选项优化-根据选项重命名节点-domain
-
+            # # rename_node_based_option(ndTar)
             return True # 用于 modal(), 返回成功.
     def MatterPurposeTool(self, event, prefs, tree):
         if self.isToggleOptions:
