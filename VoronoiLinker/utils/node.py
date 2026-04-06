@@ -28,6 +28,9 @@ def sk_loc(socket: NodeSocket):
 def node_abs_loc(nd: Node) -> Vec2:
     return nd.location + node_abs_loc(nd.parent) if nd.parent else nd.location
 
+def is_socket_visible(socket: NodeSocket):
+    return socket.enabled and (not socket.hide) and socket.is_icon_visible
+
 # 提供对折叠节点的支持:
 # 终于等到了... 当然, 这不是"真正的支持". 我鄙视折叠起来的节点; 我也不想去处理圆角和随之改变的绘制逻辑.
 # 所以, 在官方提供获取插槽位置的API之前, 这就是最好的办法了. 我们翘首以盼. 🙏
@@ -103,7 +106,7 @@ def GenFtgsFromPuts(nd: Node, isSide, samplePos, uiScale): # 为 vptRvEeSksHighl
         # 忽略禁用和隐藏的
         # todo 如果是被面板隐藏的话,动态开合最近的面板
         # todo 折叠节点如果展开导致重叠,就不展开?
-        if (sk.enabled) and (not sk.hide) and sk.is_icon_visible:
+        if is_socket_visible(sk):
             pos = sk_loc(sk)/uiScale # 该死, 这太棒了. 告别了过去版本的自制垃圾.
             # 但插槽也没有布局高度的API, 所以只能点对点地打补丁; 直到想出其他办法.
             hei = 0

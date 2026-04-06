@@ -1,8 +1,9 @@
 import bpy
 from ..base_tool import TemplateDrawNodeFull, TemplateDrawSksToolHh, VoronoiToolPairNd
 from ..common_forward_func import sk_label_or_name
-from ..utils.node import GenFtgFromNd
+from ..utils.node import GenFtgFromNd, is_socket_visible
 from ..utils.solder import SolderSkLinks
+B = bpy.types
 
 class VoronoiLinksTransferTool(VoronoiToolPairNd): #Todo2v6 与 VST 合并并变成 "PairAny" 的候选者.
     bl_idname = 'node.voronoi_links_transfer'
@@ -43,30 +44,30 @@ class VoronoiLinksTransferTool(VoronoiToolPairNd): #Todo2v6 与 VST 合并并变
                     self.fotagoNd0.pos = GenFtgFromNd(self.fotagoNd0.tar, self.cursorLoc, self.uiScale).pos
             break
     def MatterPurposeTool(self, event, prefs, tree):
-        ndFrom = self.fotagoNd0.tar
-        ndTo = self.fotagoNd1.tar
-        def NewLink(sk, lk):
+        from_node = self.fotagoNd0.tar
+        to_node = self.fotagoNd1.tar
+        def transfer_link(sk: B.NodeSocket, link: B.NodeLink):
             if sk.is_output:
-                tree.links.new(sk, lk.to_socket)
-                if lk.to_socket.is_multi_input:
-                    tree.links.remove(lk)
+                tree.links.new(sk, link.to_socket)
+                if link.to_socket.is_multi_input:
+                    tree.links.remove(link)
             else:
-                tree.links.new(lk.from_socket, sk)
-                tree.links.remove(lk)
-        def GetOnlyVisualSks(puts):
-            return [sk for sk in puts if sk.enabled and not sk.hide]
+                tree.links.new(link.from_socket, sk)
+                tree.links.remove(link)
+        def get_visible_sockets(sockets: list[B.NodeSocket]):
+            return [sk for sk in sockets if is_socket_visible(sk)]
         SolderSkLinks(tree) # 否则在 vl_sold_links_final 上会是 '... has been removed'; 但也可以用普通的 'sk.links'.
         if not self.isByIndexes:
-            for putsFrom, putsTo in [(ndFrom.inputs, ndTo.inputs), (ndFrom.outputs, ndTo.outputs)]:
-                for sk in putsFrom:
-                    for lk in sk.vl_sold_links_final:
-                        if not lk.is_muted:
-                            skTar = putsTo.get(sk_label_or_name(sk))
+            for from_sks, to_sks in [(from_node.inputs, to_node.inputs), (from_node.outputs, to_node.outputs)]:
+                for sk in from_sks:
+                    for link in sk.vl_sold_links_final:
+                        if not link.is_muted:
+                            skTar = to_sks.get(sk_label_or_name(sk))
                             if skTar:
-                                NewLink(skTar, lk)
+                                transfer_link(skTar, link)
         else:
-            for putsFrom, putsTo in [(ndFrom.inputs, ndTo.inputs), (ndFrom.outputs, ndTo.outputs)]:
-                for zp in zip(GetOnlyVisualSks(putsFrom), GetOnlyVisualSks(putsTo)):
-                    for lk in zp[0].vl_sold_links_final:
-                        if not lk.is_muted:
-                            NewLink(zp[1], lk)
+            for from_sks, to_sks in [(from_node.inputs, to_node.inputs), (from_node.outputs, to_node.outputs)]:
+                for pair in zip(get_visible_sockets(from_sks), get_visible_sockets(to_sks)):
+                    for link in pair[0].vl_sold_links_final:
+                        if not link.is_muted:
+                            transfer_link(pair[1], link)

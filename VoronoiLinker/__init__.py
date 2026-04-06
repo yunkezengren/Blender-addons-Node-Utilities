@@ -240,8 +240,8 @@ smart_add_to_reg_and_kmiDefs(VoronoiInterfacerTool, "S#A_Z", {'toolMode':Interfa
 # smart_add_to_reg_and_kmiDefs(VoronoiInterfacerTool, "S#A_Q", {'toolMode':InterfacerMode.DELETE.value})
 # smart_add_to_reg_and_kmiDefs(VoronoiInterfacerTool, "S#A_E", {'toolMode':InterfacerMode.TYPE.value})
 
-smart_add_to_reg_and_kmiDefs(VoronoiLinksTransferTool, "SCA_T")
-smart_add_to_reg_and_kmiDefs(VoronoiLinksTransferTool, "S##_T", {'isByIndexes':True})
+smart_add_to_reg_and_kmiDefs(VoronoiLinksTransferTool, "S##_T")
+smart_add_to_reg_and_kmiDefs(VoronoiLinksTransferTool, "SCA_T", {'isByIndexes':True})
 
 smart_add_to_reg_and_kmiDefs(VoronoiWarperTool, "S#A_W")
 smart_add_to_reg_and_kmiDefs(VoronoiWarperTool, "SCA_W", {'isZoomedTo':False})
