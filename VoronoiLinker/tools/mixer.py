@@ -7,7 +7,7 @@ from ..globals import Cursor_X_Offset
 from ..utils.color import get_sk_color_safe, power_color4
 from ..utils.drawing import TemplateDrawSksToolHh
 from ..utils.node import opt_ftg_socket
-from ..utils.ui import LyAddHandSplitProp, LyAddLabeledBoxCol, LyAddLeftProp
+from ..utils.ui import draw_hand_split_prop, draw_panel_column, draw_hand_split_prop
 from .mixer_sub import DoMix, mixer_default, mixer_tree_sk_nodes, VmtPieMixer
 
 class VoronoiMixerTool(VoronoiToolTripleSk):
@@ -108,17 +108,17 @@ class VoronoiMixerTool(VoronoiToolTripleSk):
             txt_vmtNoMixingOptions = "No mixing options"
             DisplayMessage(self.bl_label, txt_vmtNoMixingOptions, icon='RADIOBUT_OFF')
     @staticmethod
-    def LyDrawInAddonDiscl(col, prefs):
-        LyAddLeftProp(col, prefs,'vmtReroutesCanInAnyType')
+    def draw_in_pref_settings(col: bpy.types.UILayout, prefs):
+        draw_hand_split_prop(col, prefs,'vmtReroutesCanInAnyType')
     @classmethod
     def LyDrawInAppearance(cls, colLy, prefs):
-        colBox = LyAddLabeledBoxCol(colLy, text="Mix Pie")
-        tlw = cls.vlTripleName.lower()
-        LyAddHandSplitProp(colBox, prefs,f'{tlw}PieType')
-        colProps = colBox.column(align=True)
-        LyAddHandSplitProp(colProps, prefs,f'{tlw}PieScale')
-        LyAddHandSplitProp(colProps, prefs,f'{tlw}PieAlignment')
-        LyAddHandSplitProp(colProps, prefs,f'{tlw}PieSocketDisplayType')
-        LyAddHandSplitProp(colProps, prefs,f'{tlw}PieDisplaySocketColor')
-        colProps.active = getattr(prefs,f'{tlw}PieType')=='CONTROL'
+        if p_col := draw_panel_column(colLy, "Mix Pie"):
+            tlw = cls.vlTripleName.lower()
+            draw_hand_split_prop(p_col, prefs,f'{tlw}PieType')
+            colProps = p_col.column(align=True)
+            draw_hand_split_prop(colProps, prefs,f'{tlw}PieScale')
+            draw_hand_split_prop(colProps, prefs,f'{tlw}PieAlignment')
+            draw_hand_split_prop(colProps, prefs,f'{tlw}PieSocketDisplayType')
+            draw_hand_split_prop(colProps, prefs,f'{tlw}PieDisplaySocketColor')
+            colProps.active = getattr(prefs,f'{tlw}PieType')=='CONTROL'
 

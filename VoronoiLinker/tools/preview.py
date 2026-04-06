@@ -9,7 +9,7 @@ from ..utils.color import Color4, get_sk_color_safe, power_color4
 from ..utils.drawing import DrawVlSkText, DrawVlSocketArea, TemplateDrawSksToolHh
 from ..utils.node import GenFtgsFromPuts, SelectAndActiveNdOnly, VlrtRememberLastSockets
 from ..utils.solder import SolderSkLinks, SoldThemeCols
-from ..utils.ui import LyAddLeftProp, LyAddNoneBox
+from ..utils.ui import draw_hand_split_prop, LyAddNoneBox
 
 viaverSkfMethod = -1 # 用于成功交互方法的切换开关. 本可以按版本分布到映射表中, 但"根据实际情况"尝试有其独特的美学魅力.
 
@@ -46,10 +46,6 @@ def ViaVerSkfRemove(tree, isSide, name):
         tree.interface.remove(name)
     else:
         (tree.outputs if isSide else tree.inputs).remove(name)
-
-
-
-
 
 class VptWayTree():
     def __init__(self, tree=None, nd=None):
@@ -525,22 +521,18 @@ class VoronoiPreviewTool(VoronoiToolSk):
             rrAnch.label = voronoiAnchorCnName #这个设置只是加速了意识到的过程.
         self.isAnyAncohorExist = not not (rrAnch or list_distAnchs) #对于几何节点; 如果其中有锚点, 则不仅触发几何接口.
     @staticmethod
-    def LyDrawInAddonDiscl(col, prefs):
-        LyAddLeftProp(col, prefs,'vptAllowClassicGeoViewer')
-        LyAddLeftProp(col, prefs,'vptAllowClassicCompositorViewer')
-        LyAddLeftProp(col, prefs,'vptIsLivePreview')
-        row = col.row(align=True)
-        LyAddLeftProp(row, prefs,'vptRvEeIsColorOnionNodes')
+    def draw_in_pref_settings(col: bpy.types.UILayout, prefs):
+        draw_hand_split_prop(col, prefs,'vptAllowClassicGeoViewer')
+        draw_hand_split_prop(col, prefs,'vptAllowClassicCompositorViewer')
+        draw_hand_split_prop(col, prefs,'vptIsLivePreview')
+        draw_hand_split_prop(col, prefs,'vptRvEeIsColorOnionNodes')
         if prefs.vptRvEeIsColorOnionNodes:
+            split = col.split(factor=0.4)
+            split.label()
+            row = split.row(align=True)
             row.prop(prefs,'vptOnionColorIn', text="")
             row.prop(prefs,'vptOnionColorOut', text="")
-        else:
-            LyAddNoneBox(row)
-            LyAddNoneBox(row)
-        row = col.row().row(align=True)
-        LyAddLeftProp(row, prefs,'vptRvEeSksHighlighting')
-        if True:#prefs.vptRvEeSksHighlighting:
-            row = row.row(align=True)
-            row.prop(prefs,'vptHlTextScale', text="Scale")
-            row.active = prefs.vptRvEeSksHighlighting
-        LyAddLeftProp(col, prefs,'vptRvEeIsSavePreviewResults')
+        draw_hand_split_prop(col, prefs,'vptRvEeSksHighlighting')
+        if prefs.vptRvEeSksHighlighting:
+            draw_hand_split_prop(col, prefs,'vptHlTextScale')
+        draw_hand_split_prop(col, prefs,'vptRvEeIsSavePreviewResults')

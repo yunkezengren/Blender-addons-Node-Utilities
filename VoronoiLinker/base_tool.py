@@ -41,7 +41,7 @@ class VoronoiToolFillers: #-1
     def InitToolPre(self, event: Event): return {}
     def InitTool(self, event: Event, prefs, tree): return {}
     @staticmethod
-    def LyDrawInAddonDiscl(col, prefs): pass
+    def draw_in_pref_settings(col: bpy.types.UILayout, prefs): pass
 
 class VoronoiToolRoot(VoronoiOpTool, VoronoiToolFillers): #0
     usefulnessForUndefTree = False

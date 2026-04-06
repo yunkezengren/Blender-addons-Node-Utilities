@@ -7,7 +7,7 @@ from ..common_forward_func import sk_label_or_name
 from ..globals import sk_type_idname_map
 from ..utils.drawing import DrawVlWidePoint, TemplateDrawSksToolHh
 from ..utils.node import MinFromFtgs, opt_ftg_socket, sk_type_to_idname
-from ..utils.ui import LyAddNiceColorProp
+from ..utils.ui import LyAddNiceColorProp, draw_hand_split_prop
 
 # 突然发现, 我以前对"懒人延续"工具的想法被封装在了这个工具里. 真是出乎意料.
 # 这个工具, 和 ^ (其中插槽和节点明确决定了下一个节点) 一样, 只不过是针对两个插槽的; 而且可能性更多!
@@ -202,6 +202,7 @@ class VoronoiLazyNodeStencilsTool(VoronoiToolPairSk): # 第一个应外部请求
     def MatterPurposeTool(self, event, prefs, tree):
         VlnstLazyTemplate(prefs, tree, opt_ftg_socket(self.fotagoSk0), opt_ftg_socket(self.fotagoSk1), self.cursorLoc)
     @staticmethod
-    def LyDrawInAddonDiscl(col, prefs):
-        LyAddNiceColorProp(col, prefs,'vlnstNonColorName')
-        LyAddNiceColorProp(col, prefs,'vlnstLastExecError', ico='ERROR' if prefs.vlnstLastExecError else 'NONE', decor=0)
+    def draw_in_pref_settings(col: bpy.types.UILayout, prefs):
+        draw_hand_split_prop(col, prefs,'vlnstNonColorName')
+        if prefs.vlnstLastExecError:
+            draw_hand_split_prop(col, prefs,'vlnstLastExecError')

@@ -5,7 +5,7 @@ from ..base_tool import VoronoiOpTool, VoronoiToolNd
 from ..common_forward_class import VestData
 from ..utils.drawing import TemplateDrawNodeFull
 from ..utils.node import node_enum_props, node_visible_menu_inputs, SelectAndActiveNdOnly
-from ..utils.ui import LyAddHandSplitProp, LyAddLabeledBoxCol, LyAddLeftProp
+from ..utils.ui import draw_hand_split_prop, draw_panel_column, draw_hand_split_prop
 
 domain_en = [
     'POINT',
@@ -291,14 +291,14 @@ class VoronoiEnumSelectorTool(VoronoiToolNd):
             return {'FINISHED'} # 完成工具很重要.
         self.firstResult = None # 理想情况下也应该在上面, 但不是必须的, 参见 isToggleOptions 的拓扑.
     @staticmethod
-    def LyDrawInAddonDiscl(col, prefs):
-        LyAddLeftProp(col, prefs,'vestIsToggleNodesOnDrag')
+    def draw_in_pref_settings(col: bpy.types.UILayout, prefs):
+        draw_hand_split_prop(col, prefs,'vestIsToggleNodesOnDrag')
     @staticmethod
     def LyDrawInAppearance(colLy, prefs): # 注意: 这是 @staticmethod.
-        colBox = LyAddLabeledBoxCol(colLy, text="Enum Select Box")
-        LyAddHandSplitProp(colBox, prefs,'vestBoxScale')
-        LyAddHandSplitProp(colBox, prefs,'vestDisplayLabels')
-        LyAddHandSplitProp(colBox, prefs,'vestDarkStyle')
+        if p_col := draw_panel_column(colLy, "Enum Select Box"):
+            draw_hand_split_prop(p_col, prefs,'vestBoxScale')
+            draw_hand_split_prop(p_col, prefs,'vestDisplayLabels')
+            draw_hand_split_prop(p_col, prefs,'vestDarkStyle')
 
 
 # 显示节点选项优化-根据选项重命名节点-不好用-自定义ops,单击按钮立即运行(缺点：按钮文本居中对齐，按钮上文本翻译有问题)

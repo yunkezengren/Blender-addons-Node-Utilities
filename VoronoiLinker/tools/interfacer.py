@@ -10,7 +10,7 @@ from ..globals import set_utilEquestrianPortalBlids
 from ..utils.color import Color4, get_sk_color_safe
 from ..utils.drawing import DrawVlSocketArea
 from ..utils.node import DoLinkHh, FindAnySk, MinFromFtgs, opt_ftg_socket
-from ..utils.ui import LyAddLeftProp
+from ..utils.ui import draw_hand_split_prop
 
 class InterfacerMode(Enum):
     COPY   = 'COPY'
@@ -290,5 +290,5 @@ class VoronoiInterfacerTool(VoronoiToolPairSk):
                 self.fotagoNdTar = None
         VoronoiInterfacerTool.clipboard = property(lambda _:bpy.context.window_manager.clipboard, lambda _,v:setattr(bpy.context.window_manager,'clipboard', v))
     @staticmethod
-    def LyDrawInAddonDiscl(col, prefs):
-        LyAddLeftProp(col, prefs,'vitPasteToAnySocket')
+    def draw_in_pref_settings(col: bpy.types.UILayout, prefs):
+        draw_hand_split_prop(col, prefs,'vitPasteToAnySocket')

@@ -7,7 +7,7 @@ from ..globals import Cursor_X_Offset, float_int_color
 from ..utils.color import get_sk_color_safe, power_color4
 from ..utils.node import DoQuickMath, opt_ftg_socket
 from ..utils.solder import dict_skTypeHandSolderingColor
-from ..utils.ui import LyAddHandSplitProp, LyAddKeyTxtProp, LyAddLabeledBoxCol, LyAddLeftProp
+from ..utils.ui import draw_hand_split_prop, draw_panel_column, LyAddLeftProp
 
 set_vqmtSkTypeFields = {'VALUE', 'RGBA', 'VECTOR', 'INT', 'BOOLEAN', 'ROTATION', 'MATRIX'}
 fitVqmtRloDescr = "Bypassing the pie call, activates the last used operation for the selected socket type.\n"+\
@@ -198,24 +198,24 @@ class VoronoiQuickMathTool(VoronoiToolTripleSk):
             return {'FINISHED'}
         self.isQuickQuickMath = not not( (self.quickOprFloat)or(self.quickOprVector)or(self.quickOprBool)or(self.quickOprColor) )
     @staticmethod
-    def LyDrawInAddonDiscl(col, prefs):
-        LyAddLeftProp(col, prefs,'vqmtIncludeThirdSk')
+    def draw_in_pref_settings(col: bpy.types.UILayout, prefs):
+        draw_hand_split_prop(col, prefs,'vqmtIncludeThirdSk')
         tgl = prefs.vqmtPieType=='CONTROL'
-        LyAddLeftProp(col, prefs,'vqmtIncludeQuickPresets',   active=tgl)
-        LyAddLeftProp(col, prefs,'vqmtIncludeExistingValues', active=tgl)
-        LyAddLeftProp(col, prefs,'vqmtDisplayIcons',          active=tgl)
-        LyAddKeyTxtProp(col, prefs,'vqmtRepickKey')
+        draw_hand_split_prop(col, prefs,'vqmtIncludeQuickPresets',   active=tgl)
+        draw_hand_split_prop(col, prefs,'vqmtIncludeExistingValues', active=tgl)
+        draw_hand_split_prop(col, prefs,'vqmtDisplayIcons',          active=tgl)
+        draw_hand_split_prop(col, prefs,'vqmtRepickKey', link_btn=True)
     @classmethod
     def LyDrawInAppearance(cls, colLy, prefs):
         #VoronoiMixerTool.__dict__['LyDrawInAppearance'].__func__(cls, colLy, prefs) #该死. 由于 @classmethod 而绕过. 但现在没必要了, 因为有了 vqmtPieScaleExtra.
-        colBox = LyAddLabeledBoxCol(colLy, text="Quick Math Pie")
-        LyAddHandSplitProp(colBox, prefs,'vqmtPieType')
-        colProps = colBox.column(align=True)
-        LyAddHandSplitProp(colProps, prefs,'vqmtPieScale')
-        # 预设(隐藏了) 比如 +-*/ 的 缩放,暂时用不到
-        # LyAddHandSplitProp(colProps, prefs,'vqmtPieScaleExtra')
-        LyAddHandSplitProp(colProps, prefs,'vqmtPieAlignment')
-        LyAddHandSplitProp(colProps, prefs,'vqmtPieSocketDisplayType')
-        LyAddHandSplitProp(colProps, prefs,'vqmtPieDisplaySocketColor')
-        colProps.active = getattr(prefs,'vqmtPieType')=='CONTROL'
+        if p_col := draw_panel_column(colLy, "Quick Math Pie"):
+            draw_hand_split_prop(p_col, prefs,'vqmtPieType')
+            colProps = p_col.column(align=True)
+            draw_hand_split_prop(colProps, prefs,'vqmtPieScale')
+            # 预设(隐藏了) 比如 +-*/ 的 缩放,暂时用不到
+            # draw_hand_split_prop(colProps, prefs,'vqmtPieScaleExtra')
+            draw_hand_split_prop(colProps, prefs,'vqmtPieAlignment')
+            draw_hand_split_prop(colProps, prefs,'vqmtPieSocketDisplayType')
+            draw_hand_split_prop(colProps, prefs,'vqmtPieDisplaySocketColor')
+            colProps.active = getattr(prefs,'vqmtPieType')=='CONTROL'
 

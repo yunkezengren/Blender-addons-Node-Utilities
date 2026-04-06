@@ -3,7 +3,7 @@ from bpy.types import NodeTree
 from ..base_tool import CheckUncollapseNodeAndReNext, VoronoiToolPairSk
 from ..utils.drawing import TemplateDrawSksToolHh
 from ..utils.node import IsClassicSk, opt_ftg_socket, VlrtRememberLastSockets
-from ..utils.ui import LyAddKeyTxtProp, LyAddLeftProp
+from ..utils.ui import draw_hand_split_prop
 from ..globals import sk_types_no_convert, implicit_convert_map
 
 def is_unlink_route(node):
@@ -157,10 +157,10 @@ class VoronoiLinkerTool(VoronoiToolPairSk): # 神圣中的神圣. 它存在的�
             bpy.ops.node.select_all(action='DESELECT')
             tree.nodes.active = None
     @staticmethod
-    def LyDrawInAddonDiscl(col, prefs):
-        LyAddKeyTxtProp(col, prefs,'vltRepickKey')
-        LyAddLeftProp(col, prefs,'vltReroutesCanInAnyType')
-        LyAddLeftProp(col, prefs,'vltDeselectAllNodes')
-        LyAddLeftProp(col, prefs,'vltPriorityIgnoring')
-        LyAddLeftProp(col, prefs,'vltSelectingInvolved')
+    def draw_in_pref_settings(col: bpy.types.UILayout, prefs):
+        draw_hand_split_prop(col, prefs,'vltRepickKey', link_btn=True)
+        draw_hand_split_prop(col, prefs,'vltReroutesCanInAnyType')
+        draw_hand_split_prop(col, prefs,'vltDeselectAllNodes')
+        draw_hand_split_prop(col, prefs,'vltPriorityIgnoring')
+        draw_hand_split_prop(col, prefs,'vltSelectingInvolved')
 

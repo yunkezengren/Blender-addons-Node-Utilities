@@ -33,5 +33,5 @@ class VoronoiDummyTool(VoronoiToolSk):   # 快速便捷地添加新工具的模�
     def InitTool(self, event, prefs, tree):
         self.fotagoSk = None
     @staticmethod
-    def LyDrawInAddonDiscl(col, prefs):
+    def draw_in_pref_settings(col: bpy.types.UILayout, prefs):
         LyAddNiceColorProp(col, prefs,'vdtDummy')

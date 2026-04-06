@@ -46,7 +46,7 @@ from .tools.warper import VoronoiWarperTool
 from .translations import translations_dict
 from .utils.drawing import TestDraw
 from .utils.solder import RegisterSolderings, SolderClsToolNames, UnregisterSolderings
-from .utils.ui import LyAddDisclosureProp, LyAddEtb, LyAddHandSplitProp, LyAddLabeledBoxCol, LyAddQuickInactiveCol, LyAddThinSep
+from .utils.ui import LyAddEtb, draw_hand_split_prop, draw_panel_column, LyAddQuickInactiveCol, LyAddThinSep
 
 try:
     from rich import traceback
@@ -452,7 +452,7 @@ class VoronoiOpAddonTabs(bpy.types.Operator):
 class VoronoiAddonPrefs(bpy.types.AddonPreferences):
     bl_idname = __package__ # type: ignore
     # --- VoronoiLinkerTool
-    vltRepickKey            : StringProperty(name="Repick Key", default='LEFT_ALT')
+    vltRepickKey            : StringProperty(name="Repick Key", default='LEFT_ALT', description="Hold this key to re-pick target socket without releasing the mouse")
     vltReroutesCanInAnyType : BoolProperty(name="Reroutes can be connected to any type", default=True)
     vltDeselectAllNodes     : BoolProperty(name="Deselect all nodes on activate",        default=False)
     vltPriorityIgnoring     : BoolProperty(name="Priority ignoring",                     default=False, description=fitVltPiDescr)
@@ -480,7 +480,7 @@ class VoronoiAddonPrefs(bpy.types.AddonPreferences):
     vqmtIncludeThirdSk       : BoolProperty(name="Include third socket",    default=True)
     vqmtIncludeQuickPresets  : BoolProperty(name="Include quick presets",   default=False)
     vqmtIncludeExistingValues: BoolProperty(name="Include existing values", default=False)
-    vqmtRepickKey            : StringProperty(name="Repick Key", default='LEFT_ALT')
+    vqmtRepickKey            : StringProperty(name="Repick Key", default='LEFT_ALT', description="Hold this key to re-pick target socket without releasing the mouse")
     ##
     vqmtPieType              : EnumProperty( name="Pie Type", default='CONTROL', items=( ('CONTROL',"Control",""), ('SPEED',"Speed","") ))
     vqmtPieScale             : FloatProperty(name="Pie scale",                default=1.3,  min=1.0, max=2.0, subtype="FACTOR")
@@ -506,7 +506,7 @@ class VoronoiAddonPrefs(bpy.types.AddonPreferences):
     vestDisplayLabels        : BoolProperty(name="Display enum names",   default=True)
     vestDarkStyle            : BoolProperty(name="Dark style",           default=False)
     vitPasteToAnySocket      : BoolProperty(name="Allow paste to any socket", default=False)
-    vwtSelectTargetKey       : StringProperty(name="Select target Key", default='LEFT_ALT')
+    vwtSelectTargetKey       : StringProperty(name="Select target Key", default='LEFT_ALT', description="Hold this key to select the target node instead of just jumping to it")
     vlnstNonColorName        : StringProperty(name="Non-Color name",  default="Non-Color")
     vlnstLastExecError       : StringProperty(name="Last exec error", default="", update=VlnstUpdateLastExecError)
     vdtDummy                 : StringProperty(name="Dummy", default="Dummy")
@@ -582,31 +582,24 @@ class VoronoiAddonPrefs(bpy.types.AddonPreferences):
     vOwZoomMax             : FloatProperty(name="Zoom max", default=2.301, min=1.0,       max=16.0, precision=3)
     # ------
     def LyDrawTabSettings(self, where: UILayout):
-        def LyAddAddonBoxDiscl(where: UILayout, who, att, *, txt=None, isWide=False, align=False):
-            colBox = where.box().column(align=True)
-            if LyAddDisclosureProp(colBox, who, att, txt=txt, active=True, isWide=isWide):
-                rowTool = colBox.row()
-                rowTool.separator()
-                return rowTool.column(align=align)
-            return None
         colMain = where.column()
         LyAddThinSep(colMain, 0.1)
         for cls in dict_vtClasses:
             if cls.canDrawInAddonDiscl:
-                if colDiscl:=LyAddAddonBoxDiscl(colMain, self, cls.disclBoxPropName, txt=format_tool_set(cls), align=True):
-                    cls.LyDrawInAddonDiscl(colDiscl, self)
+                if colDiscl:=draw_panel_column(colMain, format_tool_set(cls)):
+                    cls.draw_in_pref_settings(colDiscl, self)
     def LyDrawTabAppearance(self, where: UILayout):
         colMain = where.column()
-        #LyAddHandSplitProp(LyAddLabeledBoxCol(colMain, text="Main"), self,'vSearchMethod')
+        #draw_hand_split_prop(draw_panel_column(colMain, text="Main"), self,'vSearchMethod')
         ##
-        colBox = LyAddLabeledBoxCol(colMain, text="Edge pan")
-        LyAddHandSplitProp(colBox, self,'vEdgePanFac', text="Zoom factor")
-        LyAddHandSplitProp(colBox, self,'vEdgePanSpeed', text="Speed")
-        if (self.dsIncludeDev)or(self.vIsOverwriteZoomLimits):
-            LyAddHandSplitProp(colBox, self,'vIsOverwriteZoomLimits', active=self.vIsOverwriteZoomLimits)
-            if self.vIsOverwriteZoomLimits:
-                LyAddHandSplitProp(colBox, self,'vOwZoomMin')
-                LyAddHandSplitProp(colBox, self,'vOwZoomMax')
+        if p_col := draw_panel_column(colMain, "Edge pan"):
+            draw_hand_split_prop(p_col, self,'vEdgePanFac', text="Zoom factor")
+            draw_hand_split_prop(p_col, self,'vEdgePanSpeed', text="Speed")
+            if (self.dsIncludeDev)or(self.vIsOverwriteZoomLimits):
+                draw_hand_split_prop(p_col, self,'vIsOverwriteZoomLimits', active=self.vIsOverwriteZoomLimits)
+                if self.vIsOverwriteZoomLimits:
+                    draw_hand_split_prop(p_col, self,'vOwZoomMin')
+                    draw_hand_split_prop(p_col, self,'vOwZoomMax')
         ##
         for cls in dict_vtClasses:
             if cls.canDrawInAppearance:
@@ -637,56 +630,56 @@ class VoronoiAddonPrefs(bpy.types.AddonPreferences):
         with LyAddQuickInactiveCol(colCol, active=tgl) as row:
             row.prop(self,'dsIsColoredNodes')
         ##
-        colBox = LyAddLabeledBoxCol(colMain, text="Behavior")
-        #LyAddHandSplitProp(colBox, self,'dsIsDrawNodeNameLabel', active=self.dsIsDrawText)
-        LyAddHandSplitProp(colBox, self,'dsIsAlwaysLine')
-        LyAddHandSplitProp(colBox, self,'dsIsSlideOnNodes')
+        if p_col := draw_panel_column(colMain, "Behavior"):
+            #draw_hand_split_prop(p_col, self,'dsIsDrawNodeNameLabel', active=self.dsIsDrawText)
+            draw_hand_split_prop(p_col, self,'dsIsAlwaysLine')
+            draw_hand_split_prop(p_col, self,'dsIsSlideOnNodes')
         ##
-        colBox = LyAddLabeledBoxCol(colMain, text="Color")
-        LyAddHandSplitProp(colBox, self,'dsSocketAreaAlpha', active=self.dsIsDrawSkArea)
-        tgl = ( (self.dsIsDrawText   and not self.dsIsColoredText  )or
-                (self.dsIsDrawMarker and not self.dsIsColoredMarker)or
-                (self.dsIsDrawPoint  and not self.dsIsColoredPoint )or
-                (self.dsIsDrawLine   and not self.dsIsColoredLine  )or
-                (self.dsIsDrawSkArea and not self.dsIsColoredSkArea) )
-        if tgl:
-            LyAddHandSplitProp(colBox, self,'dsUniformColor')
-        tgl = ( (self.dsIsDrawText   and self.dsIsColoredText  )or
-                (self.dsIsDrawPoint  and self.dsIsColoredPoint )or
-                (self.dsIsDrawLine   and self.dsIsColoredLine  ) )
-        if tgl and (not self.dsIsColoredNodes):
-            LyAddHandSplitProp(colBox, self,'dsUniformNodeColor')
-        # LyAddHandSplitProp(colBox, self,'dsUniformNodeColor', active=True)
-        tgl1 = (self.dsIsDrawPoint and self.dsIsColoredPoint)
-        tgl2 = (self.dsIsDrawLine  and self.dsIsColoredLine)and(not not self.dsCursorColorAvailability)
-        LyAddHandSplitProp(colBox, self,'dsCursorColor', active=tgl1 or tgl2)
-        LyAddHandSplitProp(colBox, self,'dsCursorColorAvailability', active=self.dsIsDrawLine and self.dsIsColoredLine)
+        if p_col := draw_panel_column(colMain, "Color"):
+            draw_hand_split_prop(p_col, self,'dsSocketAreaAlpha', active=self.dsIsDrawSkArea)
+            tgl = ( (self.dsIsDrawText   and not self.dsIsColoredText  )or
+                    (self.dsIsDrawMarker and not self.dsIsColoredMarker)or
+                    (self.dsIsDrawPoint  and not self.dsIsColoredPoint )or
+                    (self.dsIsDrawLine   and not self.dsIsColoredLine  )or
+                    (self.dsIsDrawSkArea and not self.dsIsColoredSkArea) )
+            if tgl:
+                draw_hand_split_prop(p_col, self,'dsUniformColor')
+            tgl = ( (self.dsIsDrawText   and self.dsIsColoredText  )or
+                    (self.dsIsDrawPoint  and self.dsIsColoredPoint )or
+                    (self.dsIsDrawLine   and self.dsIsColoredLine  ) )
+            if tgl and (not self.dsIsColoredNodes):
+                draw_hand_split_prop(p_col, self,'dsUniformNodeColor')
+            # draw_hand_split_prop(p_col, self,'dsUniformNodeColor', active=True)
+            tgl1 = (self.dsIsDrawPoint and self.dsIsColoredPoint)
+            tgl2 = (self.dsIsDrawLine  and self.dsIsColoredLine)and(not not self.dsCursorColorAvailability)
+            draw_hand_split_prop(p_col, self,'dsCursorColor', active=tgl1 or tgl2)
+            draw_hand_split_prop(p_col, self,'dsCursorColorAvailability', active=self.dsIsDrawLine and self.dsIsColoredLine)
         ##
-        colBox = LyAddLabeledBoxCol(colMain, text="Style")
-        LyAddHandSplitProp(colBox, self,'dsDisplayStyle')
-        LyAddHandSplitProp(colBox, self,'dsFontFile')
-        if not self.dsFontFile.endswith((".ttf",".otf")):
-            spl = colBox.split(factor=0.4, align=True)
-            spl.label(text="")
-            spl.label(text=txt_onlyFontFormat, icon='ERROR')
-        LyAddThinSep(colBox, 0.5)
-        LyAddHandSplitProp(colBox, self,'dsLineWidth')
-        LyAddHandSplitProp(colBox, self,'dsPointScale')
-        LyAddHandSplitProp(colBox, self,'dsFontSize')
-        LyAddHandSplitProp(colBox, self,'dsMarkerStyle')
+        if p_col := draw_panel_column(colMain, "Style"):
+            draw_hand_split_prop(p_col, self,'dsDisplayStyle')
+            draw_hand_split_prop(p_col, self,'dsFontFile')
+            if not self.dsFontFile.endswith((".ttf",".otf")):
+                spl = p_col.split(factor=0.4, align=True)
+                spl.label(text="")
+                spl.label(text=txt_onlyFontFormat, icon='ERROR')
+            LyAddThinSep(p_col, 0.5)
+            draw_hand_split_prop(p_col, self,'dsLineWidth')
+            draw_hand_split_prop(p_col, self,'dsPointScale')
+            draw_hand_split_prop(p_col, self,'dsFontSize')
+            draw_hand_split_prop(p_col, self,'dsMarkerStyle')
         ##
-        colBox = LyAddLabeledBoxCol(colMain, text="Offset")
-        LyAddHandSplitProp(colBox, self,'dsManualAdjustment')
-        LyAddHandSplitProp(colBox, self,'dsPointOffsetX')
-        LyAddHandSplitProp(colBox, self,'dsFrameOffset')
-        LyAddHandSplitProp(colBox, self,'dsDistFromCursor')
-        LyAddThinSep(colBox, 0.25) # 间隔的空白会累加, 所以额外加个间隔来对齐.
-        LyAddHandSplitProp(colBox, self,'dsIsAllowTextShadow')
-        if self.dsIsAllowTextShadow:
-            colShadow = colBox.column(align=True)
-            LyAddHandSplitProp(colShadow, self,'dsShadowCol')
-            LyAddHandSplitProp(colShadow, self,'dsShadowBlur') # 阴影模糊将它们分开, 以免在中间融合在一起.
-            row = LyAddHandSplitProp(colShadow, self,'dsShadowOffset', returnAsLy=True).row(align=True)
+        if p_col := draw_panel_column(colMain, "Offset"):
+            draw_hand_split_prop(p_col, self,'dsManualAdjustment')
+            draw_hand_split_prop(p_col, self,'dsPointOffsetX')
+            draw_hand_split_prop(p_col, self,'dsFrameOffset')
+            draw_hand_split_prop(p_col, self,'dsDistFromCursor')
+            LyAddThinSep(p_col, 0.25) # 间隔的空白会累加, 所以额外加个间隔来对齐.
+            draw_hand_split_prop(p_col, self,'dsIsAllowTextShadow')
+            if self.dsIsAllowTextShadow:
+                colShadow = p_col.column(align=True)
+                draw_hand_split_prop(colShadow, self,'dsShadowCol')
+                draw_hand_split_prop(colShadow, self,'dsShadowBlur') # 阴影模糊将它们分开, 以免在中间融合在一起.
+            row = draw_hand_split_prop(colShadow, self,'dsShadowOffset', returnAsLy=True).row(align=True)
             row.row().prop(self,'dsShadowOffset', text="X  ", translate=False, index=0, icon_only=True)
             row.row().prop(self,'dsShadowOffset', text="Y  ", translate=False, index=1, icon_only=True)
         ##
@@ -747,14 +740,13 @@ class VoronoiAddonPrefs(bpy.types.AddonPreferences):
         def LyAddKmisCategory(where: UILayout, cat):
             if not cat.matched_items:
                 return
-            colListCat = where.row().column(align=True)
             txt = self.bl_rna.properties[cat.prop_name].name
-            if not LyAddDisclosureProp(colListCat, self, cat.prop_name, txt=_iface(txt)+f" ({cat.count})", isWide=1-1):
-                return
-            # for li in cat.matched_items:
-            for li in sorted(cat.matched_items, key=lambda a:a.id):
-                colListCat.context_pointer_set('keymap', node_kms)
-                rna_keymap_ui.draw_kmi([], bpy.context.window_manager.keyconfigs.user, node_kms, li, colListCat, 0) # 注意: 如果 colListCat 不是 colListCat, 那么删除 kmi 的功能将不可用.
+            panel, body = where.panel(idname=cat.prop_name, default_closed=True)
+            panel.label(text=_iface(txt)+f" ({cat.count})")
+            if body:
+                for li in sorted(cat.matched_items, key=lambda a:a.id):
+                    body.context_pointer_set('keymap', node_kms)
+                    rna_keymap_ui.draw_kmi([], bpy.context.window_manager.keyconfigs.user, node_kms, li, body, 0)
         LyAddKmisCategory(colList, kmiCats.custom)
         LyAddKmisCategory(colList, kmiCats.useful_1)
         LyAddKmisCategory(colList, kmiCats.useful_2)
@@ -827,6 +819,7 @@ class VoronoiAddonPrefs(bpy.types.AddonPreferences):
             view = bpy.context.preferences.view
             row.prop(view,'language', text="")
             row = rowSettings.row(align=True)
+            langCode = bpy.app.translations.locale
             row.label(text=f"   '{langCode}'   ", translate=False)
             row.prop(view,'use_translate_interface', text="Interface")
             row.prop(view,'use_translate_tooltips', text="Tooltips")
@@ -960,9 +953,9 @@ class VoronoiAddonPrefs(bpy.types.AddonPreferences):
             # 现在更像标签页了
             LyAddDecorLyColRaw(col.row(align=True)) # row.operator(VoronoiOpAddonTabs.bl_idname, text="", emboss=False) # 通过操作符也行.
             #col.scale_x = min(1.0, (5.5-cyc)/2)
-        colBox = colTabs.column(align=True)
-        #LyAddDecorLyColRaw(colBox.row(align=True))
-        #LyAddDecorLyColRaw(colBox.row(align=True), sy=0.25) # 盒子无法收缩到比其空状态更小. 不得不寻找其他方法..
+        p_col = colTabs.column(align=True)
+        #LyAddDecorLyColRaw(p_col.row(align=True))
+        #LyAddDecorLyColRaw(p_col.row(align=True), sy=0.25) # 盒子无法收缩到比其空状态更小. 不得不寻找其他方法..
         try:
             match self.vaUiTabs:
                 case 'SETTINGS':

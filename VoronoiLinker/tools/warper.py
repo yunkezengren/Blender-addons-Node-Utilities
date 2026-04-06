@@ -1,7 +1,7 @@
 import bpy
 from ..base_tool import CheckUncollapseNodeAndReNext, VoronoiToolSk
 from ..utils.node import MinFromFtgs
-from ..utils.ui import LyAddKeyTxtProp
+from ..utils.ui import draw_hand_split_prop
 
 def GetSetOfKeysFromEvent(event, isSide=False):
     set_keys = {event.type}
@@ -83,5 +83,5 @@ class VoronoiWarperTool(VoronoiToolSk):
             if nd.type=='REROUTE':
                 self.dict_saveRestoreRerouteSelecting[nd] = nd.select
     @staticmethod
-    def LyDrawInAddonDiscl(col, prefs):
-        LyAddKeyTxtProp(col, prefs,'vwtSelectTargetKey')
+    def draw_in_pref_settings(col: bpy.types.UILayout, prefs):
+        draw_hand_split_prop(col, prefs,'vwtSelectTargetKey', link_btn=True)

@@ -3,7 +3,7 @@ from ..base_tool import CheckUncollapseNodeAndReNext, VoronoiToolRoot
 from ..globals import Cursor_X_Offset
 from ..utils.drawing import DrawVlWidePoint, TemplateDrawSksToolHh
 from ..utils.node import CompareSkLabelName, VlrtRememberLastSockets
-from ..utils.ui import LyAddLeftProp
+from ..utils.ui import draw_hand_split_prop
 
 #"批量链接器" -- 就像链接器一样, 只是一次性处理多个 (显而易见).
 #请查看 github 上的 wiki, 看看批量链接器的5个使用示例. 如果你发现这个工具还有其他不寻常的用法, 请告诉我.
@@ -107,5 +107,5 @@ class VoronoiMassLinkerTool(VoronoiToolRoot): #"猫狗合体", 既不是节点, 
         self.ndTar1 = None
         self.list_equalFtgSks = []
     @staticmethod
-    def LyDrawInAddonDiscl(col, prefs):
-        LyAddLeftProp(col, prefs,'vmltIgnoreCase')
+    def draw_in_pref_settings(col: bpy.types.UILayout, prefs):
+        draw_hand_split_prop(col, prefs,'vmltIgnoreCase')

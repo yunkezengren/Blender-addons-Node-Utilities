@@ -2,7 +2,7 @@ from bpy.app.translations import pgettext_iface as _iface
 from bpy.types import UILayout
 
 class LyAddQuickInactiveCol():
-    def __init__(self, layout: UILayout, att='row', align=True, active=False):
+    def __init__(self, layout: UILayout, att='row', align=True, active=True):
         self.ly = getattr(layout, att)(align=align)
         self.ly.active = active
     def __enter__(self):
@@ -17,6 +17,7 @@ def LyAddLeftProp(layout: UILayout, who, att, active=True):
     row.prop(who, att)
     row.active = active
 
+# 弃用
 def LyAddDisclosureProp(layout: UILayout, who, att, *, txt=None, active=True, isWide=False): # 注意: 如果 layout 是 row, 它不能占满整个宽度.
     tgl = getattr(who, att)
     rowMain = layout.row(align=True)
@@ -35,8 +36,8 @@ def LyAddNoneBox(layout: UILayout):
     box.label()
     box.scale_y = 0.5
 
-def LyAddHandSplitProp(layout: UILayout, who, att, *, text=None, active=True, returnAsLy=False, forceBoolean=0):
-    spl = layout.row().split(factor=0.42, align=True)
+def draw_hand_split_prop(layout: UILayout, who, att, *, text=None, active=True, returnAsLy=False, forceBoolean=0, link_btn=False):
+    spl = layout.row().split(factor=0.4, align=True)
     spl.active = active
     row = spl.row(align=True)
     row.alignment = 'RIGHT'
@@ -50,6 +51,10 @@ def LyAddHandSplitProp(layout: UILayout, who, att, *, text=None, active=True, re
         if not returnAsLy:
             txt = "" if forceBoolean!=2 else ("True" if getattr(who, att) else "False")
             spl.prop(who, att, text=txt if isNotBool^isForceBoolean else None)
+            if link_btn:
+                # 原作者: 我还是没搞懂你们的 prop event 怎么用, 太吓人了. 需要外部帮助.
+                with LyAddQuickInactiveCol(spl) as row:
+                    row.operator('wm.url_open', text="", icon='URL').url="https://docs.blender.org/api/current/bpy_types_enum_items/event_type_items.html#:~:text="+getattr(who, att)
         else:
             return spl
 
@@ -64,24 +69,13 @@ def LyAddNiceColorProp(layout: UILayout, who, att, align=False, txt="", ico='NON
     rowProp.prop(who, att, text="", icon=ico)
     rowProp.active = decor//2%2
 
-def LyAddKeyTxtProp(layout: UILayout, prefs, att):
-    rowProp = layout.row(align=True)
-    LyAddNiceColorProp(rowProp, prefs, att)
-    # Todo0: 我还是没搞懂你们的 prop event 怎么用, 太吓人了. 需要外部帮助.
-    with LyAddQuickInactiveCol(rowProp) as row:
-        row.operator('wm.url_open', text="", icon='URL').url="https://docs.blender.org/api/current/bpy_types_enum_items/event_type_items.html#:~:text="+getattr(prefs, att)
-
-def LyAddLabeledBoxCol(layout: UILayout, *, text="", active=True, scale=1.0, align=True):
-    colMain = layout.column(align=True)
-    box = colMain.box()
-    box.scale_y = 0.5
-    row = box.row(align=True)
-    row.alignment = 'CENTER'
-    row.label(text=" ▶ ▶ ▶   " + _iface(text))
-    row.active = active
-    box = colMain.box()
-    box.scale_y = scale
-    return box.column(align=align)
+def draw_panel_column(layout: UILayout, text="",  scale=1.0, align=True):
+    panel, body = layout.panel(idname=text, default_closed=False)
+    panel.label(text=text)
+    if body:
+        body.scale_y = scale
+        return body.column(align=align)
+    return None
 
 def LyAddTxtAsEtb(layout: UILayout, txt: str):
     row = layout.row(align=True)

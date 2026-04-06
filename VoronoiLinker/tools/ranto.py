@@ -99,6 +99,6 @@ class VoronoiRantoTool(VoronoiToolNd): #完成了.
         self.lastNdProc = None
         #self.ndMaxAccRoot = None
     @staticmethod
-    def LyDrawInAddonDiscl(col, prefs):
+    def draw_in_pref_settings(col: bpy.types.UILayout, prefs):
         LyAddLeftProp(col, prefs,'vrtIsLiveRanto')
         LyAddLeftProp(col, prefs,'vrtIsFixIslands')

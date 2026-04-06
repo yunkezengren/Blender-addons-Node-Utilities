@@ -1270,6 +1270,15 @@ _translations_dict: dict[tuple[context_s, str], dict[locale_s, str]] = {
         "zh_HANS": "快速重置节点到默认状态, 保留连线.\nBackSpace重置, Shift+BackSpace同时重置枚举属性",
         "ru_RU": "Инструмент для сброса нодов без нужды прицеливания, с удобствами ведения мышкой\nи игнорированием свойств перечислений. Был создан, потому что в NW было похожее.",
     },
+    # Key descriptions
+    ("*", "Hold this key to re-pick target socket without releasing the mouse"): {
+        "zh_HANS": "按住此键可在不释放鼠标的情况下重新选择目标接口",
+        "ru_RU": "Удерживайте эту клавишу, чтобы повторно выбрать целевой сокет, не отпуская мышь",
+    },
+    ("*", "Hold this key to select the target node instead of just jumping to it"): {
+        "zh_HANS": "按住此键可选择目标节点, 而非仅跳转到该节点",
+        "ru_RU": "Удерживайте эту клавишу, чтобы выбрать целевой узел, а не просто перейти к нему",
+    },
 }
 
 def convert_to_support_format(old_dict: dict[tuple[context_s, str], dict[locale_s, str]]):

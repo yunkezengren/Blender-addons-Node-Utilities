@@ -4,7 +4,7 @@ import bpy
 from ..base_tool import CheckUncollapseNodeAndReNext, VoronoiToolAny
 from ..common_forward_func import sk_label_or_name
 from ..utils.node import MinFromFtgs
-from ..utils.ui import LyAddHandSplitProp, LyAddLeftProp
+from ..utils.ui import draw_hand_split_prop, LyAddLeftProp
 
 def HideFromNode(prefs, ndTarget, lastResult, isCanDo=False): # 最初是我个人的实用工具, 在 VL 之前就创建了.
     set_equestrianHideVirtual = {'GROUP_INPUT','SIMULATION_INPUT','SIMULATION_OUTPUT','REPEAT_INPUT','REPEAT_OUTPUT'}
@@ -174,11 +174,11 @@ class VoronoiHiderTool(VoronoiToolAny):
                 tar_socket = self.fotagoAny.tar
                 tar_socket.hide = True
                 # 自动隐藏接口优化-inline
-                inline_socket_node_list = [ 
-                        'GeometryNodeSimulationInput', 'GeometryNodeSimulationOutput', 
+                inline_socket_node_list = [
+                        'GeometryNodeSimulationInput', 'GeometryNodeSimulationOutput',
                         'GeometryNodeRepeatInput', 'GeometryNodeRepeatOutput',
-                        'GeometryNodeForeachGeometryElementInput', 'GeometryNodeForeachGeometryElementOutput', 
-                        "GeometryNodeCaptureAttribute", "GeometryNodeBake", 
+                        'GeometryNodeForeachGeometryElementInput', 'GeometryNodeForeachGeometryElementOutput',
+                        "GeometryNodeCaptureAttribute", "GeometryNodeBake",
                                         ]
                 try:
                     tar_node = tar_socket.node
@@ -210,10 +210,9 @@ class VoronoiHiderTool(VoronoiToolAny):
     def InitTool(self, event, prefs, tree):
         self.firstResult = None # 从第一个节点获取“折叠”或“展开”的动作, 然后将其广播到所有其他遇到的节点.
     @staticmethod
-    def LyDrawInAddonDiscl(col, prefs):
-        LyAddHandSplitProp(col, prefs,'vhtHideBoolSocket')
-        LyAddHandSplitProp(col, prefs,'vhtHideHiddenBoolSocket')
-        LyAddHandSplitProp(col, prefs,'vhtNeverHideGeometry')
-        LyAddHandSplitProp(col, prefs,'vhtIsUnhideVirtual', forceBoolean=2)
-        LyAddLeftProp(col, prefs,'vhtIsToggleNodesOnDrag')
-
+    def draw_in_pref_settings(col: bpy.types.UILayout, prefs):
+        draw_hand_split_prop(col, prefs, 'vhtHideBoolSocket')
+        draw_hand_split_prop(col, prefs, 'vhtHideHiddenBoolSocket')
+        draw_hand_split_prop(col, prefs, 'vhtNeverHideGeometry')
+        draw_hand_split_prop(col, prefs, 'vhtIsUnhideVirtual', forceBoolean=2)
+        draw_hand_split_prop(col, prefs, 'vhtIsToggleNodesOnDrag', forceBoolean=2)
