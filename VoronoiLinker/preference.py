@@ -15,26 +15,17 @@ from .utils.drawing import TestDraw
 # 从 __init__.py 导入的变量，在模块底部通过 exec 动态添加工具相关的属性
 # 这些变量需要在 VoronoiAddonPrefs 定义之前定义
 
-bl_info2 = {'name': "Voronoi Linker", 
-           'author': "ugorek",       # 同样感谢"Oxicid"为VL提供的关键帮助.
-           'version': (5,1,2), 
-           'blender': (4,0,2), 
-           'created': "2024.03.06",           # 'created'键用于内部需求.
-           'info_supported_blvers': "b4.0.2 – b4.0.2", # 这也是内部使用的.
-           'description': "Various utilities for nodes connecting, based on distance field.", 'location':"Node Editor",  # 以前为了纪念这个插件的初衷, 这里写的是 'Node Editor > Alt + RMB'; 但现在 VL 已经"无处不在"了! 🚀
-           'warning': "",  # 希望永远不要有需要在这里添加警告的那一天. 之前在Linux上无法使用的问题已经非常接近这个地步了. 😬
-           'category': "Node",
-           'wiki_url': "https://github.com/neliut/VoronoiLinker/wiki",  # bl_info 因为4.2吗? 相同的键会被 blender_manifest 覆盖,不同的删除
-           'tracker_url': "https://github.com/neliut/VoronoiLinker/issues"}
+old_info = {
+    'description': "Various utilities for nodes connecting, based on distance field.",
+    'wiki_url': "https://github.com/neliut/VoronoiLinker/wiki",
+    'tracker_url': "https://github.com/neliut/VoronoiLinker/issues"
+}
 
 list_langDebEnumItems = []
 fitVltPiDescr = "High-level ignoring of \"annoying\" sockets during first search. (Currently, only the \"Alpha\" socket of the image nodes)"
 list_itemsProcBoolSocket = [('ALWAYS', "Always", "Always"), ('IF_FALSE', "If false", "If false"), ('NEVER', "Never", "Never"),
                             ('IF_TRUE', "If true", "If true")]
 
-txtAddonVer = ".".join([str(v) for v in bl_info2['version']])
-txt_addonVerDateCreated = f"Version {txtAddonVer} created {bl_info2['created']}"
-txt_addonBlVerSupporting = f"For Blender versions: {bl_info2['info_supported_blvers']}"
 txt_onlyFontFormat = "Only .ttf or .otf format"
 txt_copySettAsPyScript = "Copy addon settings as .py script"
 txt_checkForUpdatesYourself = "Check for updates yourself"
@@ -242,8 +233,8 @@ class VoronoiAddonPrefs(bpy.types.AddonPreferences):
         colMain = where.column()
         LyAddThinSep(colMain, 0.1)
         # 延迟导入以避免循环导入
-        from . import dict_vtClasses
-        for cls in dict_vtClasses:
+        from . import vt_classes
+        for cls in vt_classes:
             if cls.canDrawInAddonDiscl:
                 if colDiscl := draw_panel_column(colMain, format_tool_set(cls)):
                     cls.draw_in_pref_settings(colDiscl, self)
@@ -261,8 +252,8 @@ class VoronoiAddonPrefs(bpy.types.AddonPreferences):
                     draw_hand_split_prop(p_col, self, 'vOwZoomMin')
                     draw_hand_split_prop(p_col, self, 'vOwZoomMax')
         ##
-        from . import dict_vtClasses
-        for cls in dict_vtClasses:
+        from . import vt_classes
+        for cls in vt_classes:
             if cls.canDrawInAppearance:
                 cls.LyDrawInAppearance(colMain, self)
 
@@ -340,9 +331,9 @@ class VoronoiAddonPrefs(bpy.types.AddonPreferences):
                 colShadow = p_col.column(align=True)
                 draw_hand_split_prop(colShadow, self, 'dsShadowCol')
                 draw_hand_split_prop(colShadow, self, 'dsShadowBlur')  # 阴影模糊将它们分开, 以免在中间融合在一起.
-            row = draw_hand_split_prop(colShadow, self, 'dsShadowOffset', returnAsLy=True).row(align=True)
-            row.row().prop(self, 'dsShadowOffset', text="X  ", translate=False, index=0, icon_only=True)
-            row.row().prop(self, 'dsShadowOffset', text="Y  ", translate=False, index=1, icon_only=True)
+                row = draw_hand_split_prop(colShadow, self, 'dsShadowOffset', returnAsLy=True).row(align=True)
+                row.row().prop(self, 'dsShadowOffset', text="X  ", translate=False, index=0, icon_only=True)
+                row.row().prop(self, 'dsShadowOffset', text="Y  ", translate=False, index=1, icon_only=True)
         ##
         colDev = colMain.column(align=True)
         if (self.dsIncludeDev) or (self.dsIsFieldDebug) or (self.dsIsTestDrawing):
@@ -371,9 +362,9 @@ class VoronoiAddonPrefs(bpy.types.AddonPreferences):
         kmiCats.useful_2 = KeymapItemCategory('vaKmiOtjersDiscl', set(), keymap_categorys["很有用"])
         kmiCats.useful_3 = KeymapItemCategory('vaKmiSpecialDiscl', set(), keymap_categorys["可能有用"])
         kmiCats.useful_4 = KeymapItemCategory('vaKmiInvalidDiscl', set(), keymap_categorys["无效"])
-        kmiCats.useful_1.filter_func = lambda kmi: kmi.idname in kmiCats.useful_1.item_idnames
-        kmiCats.useful_2.filter_func = lambda kmi: kmi.idname in kmiCats.useful_2.item_idnames
-        kmiCats.useful_3.filter_func = lambda kmi: kmi.idname in kmiCats.useful_3.item_idnames
+        kmiCats.useful_1.filter_func = lambda kmi: kmi.idname in kmiCats.useful_1.idnames
+        kmiCats.useful_2.filter_func = lambda kmi: kmi.idname in kmiCats.useful_2.idnames
+        kmiCats.useful_3.filter_func = lambda kmi: kmi.idname in kmiCats.useful_3.idnames
         kmiCats.useful_4.filter_func = lambda kmi: True
         kmiCats.qqm.filter_func = lambda kmi: any(
             True for txt in {'quickOprFloat', 'quickOprVector', 'quickOprBool', 'quickOprColor', 'justPieCall', 'isRepeatLastOperation'}
@@ -441,8 +432,8 @@ class VoronoiAddonPrefs(bpy.types.AddonPreferences):
             body.label(text="")
             body = body.box()
             body.scale_y = 0.7
-            from . import dict_vtClasses
-            for cls in dict_vtClasses:
+            from . import vt_classes
+            for cls in vt_classes:
                 if hasattr(cls, 'bl_description') and cls.bl_description:
                     txtToolInfo = _iface(cls.bl_description)
                     colDiscl = body.column()
@@ -462,15 +453,9 @@ class VoronoiAddonPrefs(bpy.types.AddonPreferences):
             body.label()
             where = body
             colMain = where.column()
-            with LyAddQuickInactiveCol(colMain, att='column') as row:
-                row.alignment = 'LEFT'
-                from . import txt_addonVerDateCreated, txt_addonBlVerSupporting
-                row.label(text=txt_addonVerDateCreated)
-                row.label(text=txt_addonBlVerSupporting)
             colUrls = colMain.column()
-            from . import bl_info2
             LyAddUrlHl(colUrls, "Check for updates yourself", "https://github.com/ugorek000/VoronoiLinker", txtHl="Latest%20version")
-            LyAddUrlHl(colUrls, "VL Wiki", bl_info2['wiki_url'])
+            LyAddUrlHl(colUrls, "VL Wiki", old_info['wiki_url'])
             LyAddUrlHl(colUrls, "RANTO Git", "https://github.com/ugorek000/RANTO")
             colUrls.separator()
             LyAddUrlHl(colUrls, "Event Type Items", "https://docs.blender.org/api/current/bpy_types_enum_items/event_type_items.html")
@@ -480,7 +465,6 @@ class VoronoiAddonPrefs(bpy.types.AddonPreferences):
             colMain.separator()
             row = colMain.row(align=True)
             row.alignment = 'LEFT'
-            from . import txt_copySettAsPyScript
             row.operator(VoronoiOpAddonTabs.bl_idname, text=txt_copySettAsPyScript, icon='COPYDOWN').opt = 'GetPySett'  # SCRIPT  COPYDOWN
             with LyAddQuickInactiveCol(colMain, active=self.dsIncludeDev) as row:
                 row.prop(self, 'dsIncludeDev')
@@ -573,9 +557,7 @@ class VoronoiAddonPrefs(bpy.types.AddonPreferences):
                         col.label(text=txt_ColorQuickMode)
                         col.label(text=txt_vmtNoMixingOptions)
                         col.label(text=txt_vqmtThereIsNothing)
-                        col.label(text=bl_info2['description'])
-                        col.label(text=txt_addonVerDateCreated)
-                        col.label(text=txt_addonBlVerSupporting)
+                        col.label(text=old_info['description'])
                         col.label(text=txt_onlyFontFormat)
                         col.label(text=txt_copySettAsPyScript)
                         col.label(text=txt_checkForUpdatesYourself)
@@ -592,17 +574,17 @@ class VoronoiAddonPrefs(bpy.types.AddonPreferences):
                                 if ti[0]:
                                     col2.label(text=ti[0])
                     case 'ADDONPREFS':
-                        from . import dict_vtClasses
+                        from . import vt_classes
                         col = LyAddAlertNested(colLangDebug, "[AddonPrefs]")
-                        set_toolBoxDisctPropNames = set([cls.disclBoxPropName for cls in dict_vtClasses]) | set(
-                            [cls.disclBoxPropNameInfo for cls in dict_vtClasses])
+                        set_toolBoxDisctPropNames = set([cls.disclBoxPropName for cls in vt_classes]) | set(
+                            [cls.disclBoxPropNameInfo for cls in vt_classes])
                         set_toolBoxDisctPropNames.update({'vaLangDebEnum'})
                         for pr in self.bl_rna.properties[2:]:
                             if pr.identifier not in set_toolBoxDisctPropNames:
                                 LyAddTranDataForProp(col, pr)
                     case _:
-                        from . import dict_vtClasses
-                        dict_toolBlabToCls = {cls.bl_label.upper(): cls for cls in dict_vtClasses}
+                        from . import vt_classes
+                        dict_toolBlabToCls = {cls.bl_label.upper(): cls for cls in vt_classes}
                         set_alreadyDone = set()  # 考虑到 vaLangDebEnum 的分离, 这已经没用了.
                         col0 = colLangDebug.column(align=True)
                         cls = dict_toolBlabToCls[self.vaLangDebEnum]
@@ -737,7 +719,7 @@ def GetVlKeyconfigAsPy():  # 从 'bl_keymap_utils.io' 借来的. 我完全不知
     return result
 
 def GetVaSettAsPy(prefs: bpy.types.AddonPreferences):
-    from . import dict_vtClasses, txtAddonVer
+    from . import vt_classes, txtAddonVer
     set_ignoredAddonPrefs = {
         'bl_idname',
         'vaUiTabs',
@@ -751,7 +733,7 @@ def GetVaSettAsPy(prefs: bpy.types.AddonPreferences):
         'vaKmiQqmDiscl',
         'vaKmiCustomDiscl'
     }
-    for cls in dict_vtClasses:
+    for cls in vt_classes:
         set_ignoredAddonPrefs.add(cls.disclBoxPropName)
         set_ignoredAddonPrefs.add(cls.disclBoxPropNameInfo)
     txt_vasp = ""
@@ -806,18 +788,17 @@ def GetVaSettAsPy(prefs: bpy.types.AddonPreferences):
     return txt_vasp
 
 # 需要在 VoronoiAddonPrefs 类定义之后执行的动态属性添加函数
-def AddDynamicProperties(dict_vtClasses):
+def AddDynamicProperties(vt_classes):
     """为每个工具类动态添加 BoxDiscl 属性到 VoronoiAddonPrefs"""
-    for cls in dict_vtClasses:
+    for cls in vt_classes:
         setattr(VoronoiAddonPrefs, cls.disclBoxPropName, BoolProperty(name="", default=False))
         setattr(VoronoiAddonPrefs, cls.disclBoxPropNameInfo, BoolProperty(name="", default=False))
 
-def UpdateLangDebEnumItems(dict_vtClasses):
+def UpdateLangDebEnumItems(vt_classes):
     """更新语言调试枚举项列表"""
     global list_langDebEnumItems
     list_langDebEnumItems.clear()
-    for li in ["Free", "Special", "AddonPrefs"] + [cls.bl_label for cls in dict_vtClasses]:
+    for li in ["Free", "Special", "AddonPrefs"] + [cls.bl_label for cls in vt_classes]:
         list_langDebEnumItems.append((li.upper(), GetFirstUpperLetters(li), ""))
     # 更新 VoronoiAddonPrefs 中的 vaLangDebEnum 属性
     VoronoiAddonPrefs.vaLangDebEnum = EnumProperty(name="LangDebEnum", default='FREE', items=list_langDebEnumItems)
-
