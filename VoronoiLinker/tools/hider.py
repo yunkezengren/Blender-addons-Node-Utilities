@@ -215,5 +215,5 @@ class VoronoiHiderTool(VoronoiToolAny):
         draw_hand_split_prop(col, prefs, 'vhtHideBoolSocket')
         draw_hand_split_prop(col, prefs, 'vhtHideHiddenBoolSocket')
         draw_hand_split_prop(col, prefs, 'vhtNeverHideGeometry')
-        draw_hand_split_prop(col, prefs, 'vhtIsUnhideVirtual', forceBoolean=2)
-        draw_hand_split_prop(col, prefs, 'vhtIsToggleNodesOnDrag', forceBoolean=2)
+        draw_hand_split_prop(col, prefs, 'vhtIsUnhideVirtual', bool_label_left=True)
+        draw_hand_split_prop(col, prefs, 'vhtIsToggleNodesOnDrag', bool_label_left=True)

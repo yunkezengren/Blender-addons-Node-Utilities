@@ -36,27 +36,28 @@ def LyAddNoneBox(layout: UILayout):
     box.label()
     box.scale_y = 0.5
 
-def draw_hand_split_prop(layout: UILayout, who, att, *, text=None, active=True, returnAsLy=False, forceBoolean=0, link_btn=False):
-    spl = layout.row().split(factor=0.4, align=True)
-    spl.active = active
-    row = spl.row(align=True)
+def draw_hand_split_prop(layout: UILayout, who, att, *, text=None, active=True, returnAsLy=False, bool_label_left=False, link_btn=False):
+    split = layout.row().split(factor=0.4, align=True)
+    split.active = active
+    row = split.row(align=True)
     row.alignment = 'RIGHT'
-    pr = who.rna_type.properties[att]
-    isNotBool = pr.type!='BOOLEAN'
-    isForceBoolean = not not forceBoolean
-    row.label(text=pr.name*(isNotBool^isForceBoolean) if not text else text)
-    if (not active)and(pr.type=='FLOAT')and(pr.subtype=='COLOR'):
-        LyAddNoneBox(spl)
+    prop = who.rna_type.properties[att]
+    not_bool = prop.type != 'BOOLEAN'
+    row.label(text=prop.name * (not_bool or bool_label_left) if not text else text)
+    if (not active) and (prop.type == 'FLOAT') and (prop.subtype == 'COLOR'):
+        LyAddNoneBox(split)
     else:
         if not returnAsLy:
-            txt = "" if forceBoolean!=2 else ("True" if getattr(who, att) else "False")
-            spl.prop(who, att, text=txt if isNotBool^isForceBoolean else None)
+            txt = "True" if (bool_label_left and getattr(who, att)) else ("False" if bool_label_left else "")
+            split.prop(who, att, text=txt if not_bool or bool_label_left else None)
             if link_btn:
                 # 原作者: 我还是没搞懂你们的 prop event 怎么用, 太吓人了. 需要外部帮助.
-                with LyAddQuickInactiveCol(spl) as row:
-                    row.operator('wm.url_open', text="", icon='URL').url="https://docs.blender.org/api/current/bpy_types_enum_items/event_type_items.html#:~:text="+getattr(who, att)
+                with LyAddQuickInactiveCol(split) as row:
+                    row.operator(
+                        'wm.url_open', text="", icon='URL'
+                    ).url = "https://docs.blender.org/api/current/bpy_types_enum_items/event_type_items.html#:~:text=" + getattr(who, att)
         else:
-            return spl
+            return split
 
 def LyAddNiceColorProp(layout: UILayout, who, att, align=False, txt="", ico='NONE', decor=3):
     rowCol = layout.row(align=align)
@@ -76,17 +77,6 @@ def draw_panel_column(layout: UILayout, text="",  scale=1.0, align=True):
         body.scale_y = scale
         return body.column(align=align)
     return None
-
-def LyAddTxtAsEtb(layout: UILayout, txt: str):
-    row = layout.row(align=True)
-    row.label(icon='ERROR')
-    col = row.column(align=True)
-    for li in txt.split("\n")[:-1]:
-        col.label(text=li, translate=False)
-
-def LyAddEtb(layout: UILayout): # "你们修复bug吗? 不, 我们只发现bug."
-    import traceback
-    LyAddTxtAsEtb(layout, traceback.format_exc())
 
 def LyAddThinSep(layout: UILayout, scaleY):
     row = layout.row(align=True)

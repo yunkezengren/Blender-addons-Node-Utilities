@@ -298,6 +298,6 @@ class VoronoiEnumSelectorTool(VoronoiToolNd):
     def LyDrawInAppearance(colLy, prefs): # 注意: 这是 @staticmethod.
         if p_col := draw_panel_column(colLy, "Enum Select Box"):
             draw_hand_split_prop(p_col, prefs,'vestBoxScale')
-            draw_hand_split_prop(p_col, prefs,'vestDisplayLabels')
-            draw_hand_split_prop(p_col, prefs,'vestDarkStyle')
+            draw_hand_split_prop(p_col, prefs,'vestDisplayLabels', bool_label_left=True)
+            draw_hand_split_prop(p_col, prefs,'vestDarkStyle', bool_label_left=True)
 

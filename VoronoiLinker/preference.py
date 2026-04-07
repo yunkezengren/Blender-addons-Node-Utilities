@@ -9,7 +9,7 @@ from bpy.types import KeyMapItem, UILayout
 from .common_forward_class import VlnstUpdateLastExecError
 from .common_forward_func import GetFirstUpperLetters, Prefs, format_tool_set, user_node_keymaps
 from .globals import dict_vlHhTranslations, dict_vmtMixerNodesDefs, dict_vqmtQuickMathMain
-from .utils.ui import LyAddEtb, draw_hand_split_prop, draw_panel_column, LyAddQuickInactiveCol, LyAddThinSep
+from .utils.ui import draw_hand_split_prop, draw_panel_column, LyAddQuickInactiveCol, LyAddThinSep
 from .utils.drawing import TestDraw
 
 # 从 __init__.py 导入的变量，在模块底部通过 exec 动态添加工具相关的属性
@@ -383,10 +383,10 @@ class VoronoiAddonPrefs(bpy.types.AddonPreferences):
                 scoAll += 1  # 热键现在变得非常非常多, 知道它们的数量会很不错.
         if node_kms.is_user_modified:
             rowRestore = rowLabelMain.row(align=True)
-            with LyAddQuickInactiveCol(rowRestore, align=False, active=True) as row:
-                row.prop(self, 'vaInfoRestore', text="", icon='INFO')
+            # with LyAddQuickInactiveCol(rowRestore, align=False, active=True) as row:
+            #     row.prop(self, 'vaInfoRestore', text="", icon='INFO')
             rowRestore.context_pointer_set('keymap', node_kms)
-            rowRestore.operator('preferences.keymap_restore', text="Restore", icon="ERROR")
+            # rowRestore.operator('preferences.keymap_restore', text="Restore", icon="ERROR")
         else:
             rowLabelMain.label()
         rowAddNew = rowLabelMain.row(align=True)
@@ -620,20 +620,17 @@ class VoronoiAddonPrefs(bpy.types.AddonPreferences):
         p_col = colTabs.column(align=True)
         #LyAddDecorLyColRaw(p_col.row(align=True))
         #LyAddDecorLyColRaw(p_col.row(align=True), sy=0.25) # 盒子无法收缩到比其空状态更小. 不得不寻找其他方法..
-        try:
-            match self.vaUiTabs:
-                case 'SETTINGS':
-                    self.LyDrawTabSettings(colMain)
-                case 'APPEARANCE':
-                    self.LyDrawTabAppearance(colMain)
-                case 'DRAW':
-                    self.LyDrawTabDraw(colMain)
-                case 'KEYMAP':
-                    self.LyDrawTabKeymaps(colMain)
-                case 'INFO':
-                    self.LyDrawTabInfo(colMain)
-        except Exception as ex:
-            LyAddEtb(colMain)  # colMain.label(text=str(ex), icon='ERROR', translate=False)
+        match self.vaUiTabs:
+            case 'SETTINGS':
+                self.LyDrawTabSettings(colMain)
+            case 'APPEARANCE':
+                self.LyDrawTabAppearance(colMain)
+            case 'DRAW':
+                self.LyDrawTabDraw(colMain)
+            case 'KEYMAP':
+                self.LyDrawTabKeymaps(colMain)
+            case 'INFO':
+                self.LyDrawTabInfo(colMain)
 
 def GetVlKeyconfigAsPy():  # 从 'bl_keymap_utils.io' 借来的. 我完全不知道它是如何工作的.
 

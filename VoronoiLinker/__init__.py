@@ -78,10 +78,8 @@ vt_classes: dict[type[Operator], bool] = {}  # 只存放 V*T (Voronoi Tool) 工�
 keymap_item_defs: list[tuple[str, str, bool, bool, bool, bool, dict[str, Any]]] = []
 
 # yapf: disable
-num_to_word: dict[str, str] = {"1": 'ONE', "2": 'TWO', "3": 'THREE', "4": 'FOUR', "5": 'FIVE', "6": 'SIX', "7": 'SEVEN', "8": 'EIGHT', "9": 'NINE', "0": 'ZERO'}
-
 # 每个 Operator 类的 keymap 配置. 格式: "S#A_KEY" 或 ("S#A_KEY", {'prop': value})  S=Shift, C=Ctrl, A=Alt, #=忽略, + =repeat
-OPERATOR_KEYMAPS: dict[type[Operator], list[str | tuple[str, dict[str, Any]]]] = {
+operator_keymaps: dict[type[Operator], list[str | tuple[str, dict[str, Any]]]] = {
     VoronoiLinkerTool: ["##A_RIGHTMOUSE"],
     VoronoiPreviewTool: ["SC#_LEFTMOUSE"],
     VoronoiMixerTool: ["S#A_LEFTMOUSE"],
@@ -162,7 +160,8 @@ OPERATOR_KEYMAPS: dict[type[Operator], list[str | tuple[str, dict[str, Any]]]] =
     #     ("#CA_R", {'isUniWid':True, 'isUncollapseNodes':True, 'isDeleteReroutes':True}),
     # ],
 }
-for operator_cls, keymaps in OPERATOR_KEYMAPS.items():
+num_to_word: dict[str, str] = {"1": 'ONE', "2": 'TWO', "3": 'THREE', "4": 'FOUR', "5": 'FIVE', "6": 'SIX', "7": 'SEVEN', "8": 'EIGHT', "9": 'NINE', "0": 'ZERO'}
+for operator_cls, keymaps in operator_keymaps.items():
     all_classes[operator_cls] = True
     vt_classes[operator_cls] = True
     for km in keymaps:
