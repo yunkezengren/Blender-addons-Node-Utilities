@@ -1,5 +1,4 @@
 import bpy
-from time import perf_counter_ns
 from typing import Any
 from bpy.types import Operator
 from .common_forward_func import Prefs
@@ -236,8 +235,7 @@ _classes = [
 for cls in _classes:
     all_classes[cls] = True
 
-list_addonKeymaps = []
-register_from_main = False
+addon_keymaps = []
 
 def register():
     bpy.app.translations.register(__package__, translations_dict)
@@ -245,15 +243,11 @@ def register():
         bpy.utils.register_class(cls)
 
     prefs = Prefs()
-    if register_from_main:
-        if hasattr(bpy.types.SpaceNodeEditor, 'handle'):
-            bpy.types.SpaceNodeEditor.nsReg = perf_counter_ns()
-    else:
-        prefs.vlnstLastExecError = ""
-        prefs.vaLangDebDiscl = False
-        for cls in vt_classes:
-            setattr(prefs, cls.disclBoxPropNameInfo, False)
-        prefs.dsIsTestDrawing = False
+    prefs.vlnstLastExecError = ""
+    prefs.vaLangDebDiscl = False
+    for cls in vt_classes:
+        setattr(prefs, cls.disclBoxPropNameInfo, False)
+    prefs.dsIsTestDrawing = False
 
     km = bpy.context.window_manager.keyconfigs.addon.keymaps.new(name="Node Editor", space_type='NODE_EDITOR')
     for idname, key, shift, ctrl, alt, repeat, props in keymap_item_defs:
@@ -262,7 +256,7 @@ def register():
         if props:
             for dk, dv in props.items():
                 setattr(kmi.properties, dk, dv)
-        list_addonKeymaps.append(kmi)
+        addon_keymaps.append(kmi)
 
     RegisterSolderings()
 
@@ -270,24 +264,10 @@ def unregister():
     UnregisterSolderings()
 
     km = bpy.context.window_manager.keyconfigs.addon.keymaps["Node Editor"]
-    for li in list_addonKeymaps:
-        km.keymap_items.remove(li)
-    list_addonKeymaps.clear()
+    for kmi in addon_keymaps:
+        km.keymap_items.remove(kmi)
+    addon_keymaps.clear()
 
     for cls in all_classes:
         bpy.utils.unregister_class(cls)
     bpy.app.translations.unregister(__package__)
-
-def DisableKmis():  # 用于重复运行脚本. 在第一次"恢复"之前有效.
-    from .common_forward_func import user_node_keymaps
-    node_kms = user_node_keymaps()
-    for li, *oi in keymap_item_defs:
-        for kmiCon in node_kms.keymap_items:
-            if li == kmiCon.idname:
-                kmiCon.active = False  # 这会删除重复项. 是个 hack 吗?
-                kmiCon.active = True  # 如果是原始的, 就恢复.
-
-if __name__ == "__main__":
-    DisableKmis()  # 似乎在添加热键之前或之后调用都无所谓.
-    register_from_main = True
-    register()
