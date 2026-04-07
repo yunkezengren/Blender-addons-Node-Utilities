@@ -14,6 +14,7 @@ def get_const_node(tree: NodeTree, sk_type: str):
 class VoronoiQuickConstant(VoronoiToolTripleSk):
     bl_idname = 'node.voronoi_quick_constant'
     bl_label = "Voronoi Quick Constant"
+    bl_description = "Tool for quickly adding constant value nodes.\nSupports various data types including vectors, colors, matrices and more."
     usefulnessForCustomTree = False
     canDrawInAddonDiscl = False
     isPlaceImmediately: bpy.props.BoolProperty(name="Place immediately", default=False)

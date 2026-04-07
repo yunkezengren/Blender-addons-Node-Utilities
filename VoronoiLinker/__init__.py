@@ -81,51 +81,50 @@ keymap_item_defs: list[tuple[str, str, bool, bool, bool, bool, dict[str, Any]]] 
 # yapf: disable
 num_to_word: dict[str, str] = {"1": 'ONE', "2": 'TWO', "3": 'THREE', "4": 'FOUR', "5": 'FIVE', "6": 'SIX', "7": 'SEVEN', "8": 'EIGHT', "9": 'NINE', "0": 'ZERO'}
 
-# 每个 Operator 类的 keymap 配置
-OPERATOR_KEYMAPS: dict[type[Operator], list[tuple[str, dict[str, Any]]]] = {
-    VoronoiLinkerTool: [("##A_RIGHTMOUSE", {})],
-    VoronoiPreviewTool: [("SC#_LEFTMOUSE", {})],
-    VoronoiMixerTool: [("S#A_LEFTMOUSE", {})],
-    VoronoiCallNodePie: [("#C#_LEFTMOUSE", {})],
-    VoronoiQuickDimensionsTool: [("##A_D", {})],
-    VoronoiQuickConstant: [("##A_C", {})],
+# 每个 Operator 类的 keymap 配置. 格式: "S#A_KEY" 或 ("S#A_KEY", {'prop': value})  S=Shift, C=Ctrl, A=Alt, #=忽略, + =repeat
+OPERATOR_KEYMAPS: dict[type[Operator], list[str | tuple[str, dict[str, Any]]]] = {
+    VoronoiLinkerTool: ["##A_RIGHTMOUSE"],
+    VoronoiPreviewTool: ["SC#_LEFTMOUSE"],
+    VoronoiMixerTool: ["S#A_LEFTMOUSE"],
+    VoronoiCallNodePie: ["#C#_LEFTMOUSE"],
+    VoronoiQuickDimensionsTool: ["##A_D"],
+    VoronoiQuickConstant: ["##A_C"],
+    VoronoiMassLinkerTool: [
+        "SCA_LEFTMOUSE",
+        ("SCA_RIGHTMOUSE", {'isIgnoreExistingLinks': True}),
+        ],
+    VoronoiLinksTransferTool: [
+        "S##_T",
+        ("SCA_T", {'isByIndexes': True}),
+        ],
+    VoronoiWarperTool: [
+        "S#A_W",
+        ("SCA_W", {'isZoomedTo': False}),
+        ],
+    VoronoiResetNodeTool: [
+        "###_BACK_SPACE",
+        ("S##_BACK_SPACE", {'isResetEnums': True}),
+        ],
     VoronoiPreviewAnchorTool: [
-        ("SC#_RIGHTMOUSE", {}),
-        ("SC#_1", {'anchorType': 1}), ("SC#_2", {'anchorType': 2}),
-        ("SC#_ACCENT_GRAVE", {'isDeleteNonCanonAnchors': 2}),
+        "SC#_RIGHTMOUSE",
+        ("SC#_1", {'anchorType': 1}),
+        ("SC#_2", {'anchorType': 2}),
+        ("SC#_ACCENT_GRAVE", {'isDeleteNonCanonAnchors': 2}),  # ACCENT_GRAVE 是 `
     ],
-    VoronoiQuickMathTool: [
-        ("S#A_RIGHTMOUSE", {}),  # 留在了右键, 以免在'Speed Pie'类型的饼菜单下三击左键时抓狂.
-        ("##A_ACCENT_GRAVE", {'isRepeatLastOperation': True}),
-        # 快速数学运算的快速操作列表("x2 组合"):
-        # "3"键上的布尔运算存在两难选择, 它可以是减法, 像这个键上的所有操作一样, 也可以是否定, 作为前两个的逻辑延续. 在第二种情况下, "4"键上的布尔运算很可能得留空.
-        ("##A_1", {'quickOprFloat': 'ADD', 'quickOprVector': 'ADD', 'quickOprBool': 'OR', 'quickOprColor': 'ADD'}),
-        ("##A_2", {'quickOprFloat': 'SUBTRACT', 'quickOprVector': 'SUBTRACT', 'quickOprBool': 'NIMPLY', 'quickOprColor': 'SUBTRACT'}),
-        ("##A_3", {'quickOprFloat': 'MULTIPLY', 'quickOprVector': 'MULTIPLY', 'quickOprBool': 'AND', 'quickOprColor': 'MULTIPLY'}),
-        ("##A_4", {'quickOprFloat': 'DIVIDE', 'quickOprVector': 'DIVIDE', 'quickOprBool': 'NOT', 'quickOprColor': 'DIVIDE'}),
-        # 我本想为QuickMathMain实现这个功能, 但发现将技术操作符变成用户操作符太麻烦. 主要问题是VqmtData的饼菜单设置.
-        ("S#A_1", {'justPieCall': 1}),  # 出乎意料的是, 这样的热键用起来非常舒服.
-        ("S#A_2", {'justPieCall': 2}),  # 因为有两个修饰键, 必须按住,
-        ("S#A_3", {'justPieCall': 3}),  # 所以必须通过光标位置来选择, 而不是点击.
-        ("S#A_4", {'justPieCall': 4}),  # 我原以为会不方便, 结果感觉还不错.
-        ("S#A_5", {'justPieCall': 5}),  # 整数饼菜单
+    VoronoiEnumSelectorTool: [
+        ("#C#_R", {'isPieChoice': False, 'isSelectNode': 1}),
+        ("#C#_E", {'isInstantActivation': False}),
+        ("##A_E", {'isToggleOptions': True}),
     ],
     VoronoiSwapperTool: [
         ("S##_S", {'toolMode': SwapperMode.SWAP.value}),
-        ("##A_S", {'toolMode': SwapperMode.ADD.value}), ("S#A_S", {'toolMode': SwapperMode.TRAN.value}),
+        ("##A_S", {'toolMode': SwapperMode.ADD.value}),
+        ("S#A_S", {'toolMode': SwapperMode.TRAN.value}),
     ],
     VoronoiHiderTool: [
         ("S##_E", {'toolMode': HiderMode.HIDE_SOCKET.value}),
-        ("#CA_E", {'toolMode': HiderMode.HIDE_VALUE.value}), ("SC#_E", {'toolMode': HiderMode.HIDE_NODE.value}),
-    ],
-    VoronoiMassLinkerTool: [
-        ("SCA_LEFTMOUSE", {}), 
-        ("SCA_RIGHTMOUSE", {'isIgnoreExistingLinks': True}),
-        ],
-    VoronoiEnumSelectorTool: [
-        ("#C#_R", {'isPieChoice': False, 'isSelectNode': 1}),
-        ("#C#_E", {'isInstantActivation': False}), 
-        ("##A_E", {'isToggleOptions': True}),
+        ("#CA_E", {'toolMode': HiderMode.HIDE_VALUE.value}),
+        ("SC#_E", {'toolMode': HiderMode.HIDE_NODE.value}),
     ],
     VoronoiLinkRepeatingTool: [
         ("###_V", {'toolMode': LinkRepeatingMode.SOCKET.value}),
@@ -134,26 +133,29 @@ OPERATOR_KEYMAPS: dict[type[Operator], list[tuple[str, dict[str, Any]]]] = {
     VoronoiInterfacerTool: [
         ("SC#_A", {'toolMode': InterfacerMode.NEW.value}),
         ("S#A_A", {'toolMode': InterfacerMode.CREATE.value}),
-        ("S#A_C", {'toolMode': InterfacerMode.COPY.value}), 
+        ("S#A_C", {'toolMode': InterfacerMode.COPY.value}),
         ("S#A_V", {'toolMode': InterfacerMode.PASTE.value}),
-        ("S#A_X", {'toolMode': InterfacerMode.SWAP.value}), 
+        ("S#A_X", {'toolMode': InterfacerMode.SWAP.value}),
         ("S#A_Z", {'toolMode': InterfacerMode.FLIP.value}),
         # ("S#A_Q", {'toolMode':InterfacerMode.DELETE.value}), 
         # ("S#A_E", {'toolMode':InterfacerMode.TYPE.value}),
     ],
-    VoronoiLinksTransferTool: [
-        ("S##_T", {}),
-        ("SCA_T", {'isByIndexes': True}),
+    VoronoiQuickMathTool: [
+        "S#A_RIGHTMOUSE",  # 留在了右键, 以免在'Speed Pie'类型的饼菜单下三击左键时抓狂.
+        ("##A_ACCENT_GRAVE", {'isRepeatLastOperation': True}),
+        # 快速数学运算的快速操作列表("x2 组合"): "3"键上的布尔运算存在两难选择, 它可以是减法, 像这个键上的所有操作一样, 也可以是否定, 作为前两个的逻辑延续. 在第二种情况下, "4"键上的布尔运算很可能得留空.
+        ("##A_1", {'quickOprFloat': 'ADD',      'quickOprVector': 'ADD',      'quickOprBool': 'OR',     'quickOprColor': 'ADD'}),
+        ("##A_2", {'quickOprFloat': 'SUBTRACT', 'quickOprVector': 'SUBTRACT', 'quickOprBool': 'NIMPLY', 'quickOprColor': 'SUBTRACT'}),
+        ("##A_3", {'quickOprFloat': 'MULTIPLY', 'quickOprVector': 'MULTIPLY', 'quickOprBool': 'AND',    'quickOprColor': 'MULTIPLY'}),
+        ("##A_4", {'quickOprFloat': 'DIVIDE',   'quickOprVector': 'DIVIDE',   'quickOprBool': 'NOT',    'quickOprColor': 'DIVIDE'}),
+        # 我本想为QuickMathMain实现这个功能, 但发现将技术操作符变成用户操作符太麻烦. 主要问题是VqmtData的饼菜单设置. 出乎意料的是, 这样的热键用起来非常舒服.因为有两个修饰键, 必须按住,所以必须通过光标位置来选择, 而不是点击. 我原以为会不方便, 结果感觉还不错.
+        ("S#A_1", {'justPieCall': 1}),
+        ("S#A_2", {'justPieCall': 2}),
+        ("S#A_3", {'justPieCall': 3}),
+        ("S#A_4", {'justPieCall': 4}),
+        ("S#A_5", {'justPieCall': 5}),
     ],
-    VoronoiWarperTool: [
-        ("S#A_W", {}),
-        ("SCA_W", {'isZoomedTo': False}),
-    ],
-    VoronoiResetNodeTool: [
-        ("###_BACK_SPACE", {}),
-        ("S##_BACK_SPACE", {'isResetEnums': True}),
-    ],
-    # VoronoiLazyNodeStencilsTool: [("S#A_Q", {})],
+    # VoronoiLazyNodeStencilsTool: [("S#A_Q")],
     # VoronoiRantoTool: [
     #     ("###_R"),
     #     ("S##_R", {'isAccumulate':True}),
@@ -161,12 +163,14 @@ OPERATOR_KEYMAPS: dict[type[Operator], list[tuple[str, dict[str, Any]]]] = {
     #     ("#CA_R", {'isUniWid':True, 'isUncollapseNodes':True, 'isDeleteReroutes':True}),
     # ],
 }
-# yapf: enable
-
 for operator_cls, keymaps in OPERATOR_KEYMAPS.items():
     all_classes[operator_cls] = True
     vt_classes[operator_cls] = True
-    for keymap_str, props in keymaps:
+    for km in keymaps:
+        if isinstance(km, str):
+            keymap_str, props = km, {}
+        else:
+            keymap_str, props = km
         key = keymap_str[4:]
         keymap_item_defs.append((
             operator_cls.bl_idname,
@@ -177,6 +181,7 @@ for operator_cls, keymaps in OPERATOR_KEYMAPS.items():
             "+" in keymap_str,
             props,
         ))
+# yapf: enable
 
 keymap_categorys = {'最有用': set(), '很有用': set(), '可能有用': set(), '无效': set(), 'qqm': set(), 'custom': set()}
 keymap_categorys['最有用'] = {
@@ -204,29 +209,6 @@ keymap_categorys['可能有用'] = {
     VoronoiWarperTool.bl_idname,
 }
 # keymap_categorys['无效'].add(VoronoiRantoTool.bl_idname)
-
-
-def _tool_desc(tool_cls: Operator, /, desc=""):
-    """注册工具的多语言描述"""
-    if desc: tool_cls.bl_description = desc
-
-_tool_desc(VoronoiLinkerTool, "The sacred tool. The reason this entire addon was created.\nA moment of silence in honor of NodeWrangler, the original ancestor.")
-_tool_desc(VoronoiPreviewTool, "The canonical tool for instant redirection of the tree's active output.\nEven more useful when used together with VPAT.")
-_tool_desc(VoronoiPreviewAnchorTool, "A forced separation from VPT, a kind of \"companion manager\" for VPT.\nExplicit socket specification and creation of reroute anchors.")
-_tool_desc(VoronoiMixerTool, "The canonical tool for frequent mixing needs.\nMost likely 70% will go to using \"Instance on Points\".")
-_tool_desc(VoronoiQuickMathTool, "A full-fledged branch from VMT. Quick and quick-quick math at speeds.\nHas additional mini-functionality. Also see \"Quick quick math\" in the layout.")
-_tool_desc(VoronoiSwapperTool, "Tool for swapping links between two sockets, or adding them to one of them.\nNo link swap will occur if it ends up originating from its own node.")
-_tool_desc(VoronoiHiderTool, "Tool for bringing order and aesthetics to the node tree.\nMost likely 90% will go to using automatic socket hiding.")
-_tool_desc(VoronoiMassLinkerTool, "\"Puppy cat-dog\", neither nodes nor sockets. Created for rare point special accelerations.\nVLT on max. Due to its working principle, divine in its own way.")
-_tool_desc(VoronoiEnumSelectorTool, "Tool for convenient lazy switching of enumeration properties.\nEliminates the need for mouse aiming, clicking, and then aiming and clicking again.")
-_tool_desc(VoronoiLinkRepeatingTool, "A full-fledged branch from VLT, repeats any previous link from most\nother tools. Provides convenience for \"one to many\" connections.")
-_tool_desc(VoronoiQuickDimensionsTool, "Tool for accelerating the needs of separating and combining vectors (and color).\nAnd can also split geometry into components.")
-_tool_desc(VoronoiQuickConstant, "Tool for quickly adding constant value nodes.\nSupports various data types including vectors, colors, matrices and more.")
-_tool_desc(VoronoiInterfacerTool, "A tool on the level of \"The Great Trio\". A branch from VLT for convenient acceleration\nof the creation process and special manipulations with interfaces. \"Interface Manager\".")
-_tool_desc(VoronoiLinksTransferTool, "Tool for rare needs of transferring all links from one node to another.\nIn the future, it will most likely be merged with VST.")
-_tool_desc(VoronoiWarperTool, "A mini-branch of topology reverse-engineering (like VPT).\nTool for \"point jumps\" along sockets.")
-_tool_desc(VoronoiLazyNodeStencilsTool, "Power. Three letters for a tool, we've come to this... Encapsulates Ctrl-T from\nNodeWrangler, and the never-implemented 'VoronoiLazyNodeContinuationTool'.")
-_tool_desc(VoronoiResetNodeTool, "Tool for resetting nodes without the need for aiming, with mouse guidance convenience\nand ignoring enumeration properties. Was created because NW had something similar.")
 
 # =======
 

@@ -19,6 +19,7 @@ def GetSetOfKeysFromEvent(event, isSide=False):
 class VoronoiWarperTool(VoronoiToolSk):
     bl_idname = 'node.voronoi_warper'
     bl_label = "Voronoi Warper"
+    bl_description = "A mini-branch of topology reverse-engineering (like VPT).\nTool for \"point jumps\" along sockets."
     usefulnessForCustomTree = True
     isZoomedTo: bpy.props.BoolProperty(name="Zoom to", default=True)
     isSelectReroutes: bpy.props.IntProperty(name="Select reroutes", default=1, min=-1, max=1, description="-1 – All deselect.\n 0 – Do nothing.\n 1 – Selecting linked reroutes")

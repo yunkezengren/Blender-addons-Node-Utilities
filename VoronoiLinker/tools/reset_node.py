@@ -7,6 +7,7 @@ from ..utils.solder import SolderSkLinks
 class VoronoiResetNodeTool(VoronoiToolNd):
     bl_idname = 'node.voronoi_reset_node'
     bl_label = "Voronoi Reset Node"
+    bl_description = "Tool for resetting nodes without the need for aiming, with mouse guidance convenience\nand ignoring enumeration properties. Was created because NW had something similar."
     usefulnessForCustomTree = True
     canDrawInAddonDiscl = False
     isResetEnums: bpy.props.BoolProperty(name="Reset enums", default=False)

@@ -13,6 +13,7 @@ from .mixer_sub import DoMix, mixer_default, mixer_tree_sk_nodes, VmtPieMixer
 class VoronoiMixerTool(VoronoiToolTripleSk):
     bl_idname = 'node.voronoi_mixer'
     bl_label = "Voronoi Mixer"
+    bl_description = "The canonical tool for frequent mixing needs.\nMost likely 70% will go to using \"Instance on Points\"."
     usefulnessForCustomTree = False
     canDrawInAppearance = True
     isCanFromOne:       bpy.props.BoolProperty(name="Can from one socket", default=True) #放在第一位, 以便在 kmi 中与 VQMT 类似.

@@ -163,9 +163,10 @@ def VlnstLazyTemplate(prefs, tree, skFirst, skSecond, cursorLoc):
         bpy.ops.node.translate_attach('INVOKE_DEFAULT')
 
 
-class VoronoiLazyNodeStencilsTool(VoronoiToolPairSk): # 第一个应外部请求而非个人意愿创建的工具.
+class VoronoiLazyNodeStencilsTool(VoronoiToolPairSk):  # 第一个应外部请求而非个人意愿创建的工具.
     bl_idname = 'node.voronoi_lazy_node_stencils'
-    bl_label = "Voronoi Lazy Node Stencils" # 每个工具三个字母, 真是够了.
+    bl_label = "Voronoi Lazy Node Stencils"  # 每个工具三个字母, 真是够了.
+    bl_description = "Power. Three letters for a tool, we've come to this... Encapsulates Ctrl-T from\nNodeWrangler, and the never-implemented 'VoronoiLazyNodeContinuationTool'."
     def CallbackDrawTool(self, drata):
         # 注意: 对于不同的性别, 文本侧与套接字性别的对应关系不明显. 大概要接受了.
         TemplateDrawSksToolHh(drata, self.fotagoSk0, self.fotagoSk1, tool_name="Lazy Node Stencils")

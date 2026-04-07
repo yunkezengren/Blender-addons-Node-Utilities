@@ -175,6 +175,7 @@ def run_rename_node(rename: bool, node: Node):
 class VoronoiEnumSelectorTool(VoronoiToolNd):
     bl_idname = 'node.voronoi_enum_selector'
     bl_label = "Voronoi Enum Selector"
+    bl_description = "Tool for convenient lazy switching of enumeration properties.\nEliminates the need for mouse aiming, clicking, and then aiming and clicking again."
     usefulnessForCustomTree = True
     canDrawInAppearance = True
     isInstantActivation: bpy.props.BoolProperty(name="Instant activation",  default=True,  description="Skip drawing to a node and activation when release, and activate immediately when pressed")

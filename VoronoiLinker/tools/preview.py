@@ -362,6 +362,7 @@ def DoPreviewCore(skTar, list_distAnchs, cursorLoc):
 class VoronoiPreviewTool(VoronoiToolSk):
     bl_idname = 'node.voronoi_preview'
     bl_label = "Voronoi Preview"
+    bl_description = "The canonical tool for instant redirection of the tree's active output.\nEven more useful when used together with VPAT."
     usefulnessForCustomTree = True
     isSelectingPreviewedNode: bpy.props.BoolProperty(name="Select previewed node", default=True)
     isTriggerOnlyOnLink:      bpy.props.BoolProperty(name="Only linked",           default=False, description="Trigger only on linked socket") #最初在 prefs 中.

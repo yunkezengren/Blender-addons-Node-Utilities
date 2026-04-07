@@ -16,6 +16,7 @@ fitVqmtRloDescr = "Bypassing the pie call, activates the last used operation for
 class VoronoiQuickMathTool(VoronoiToolTripleSk):
     bl_idname = 'node.voronoi_quick_math'
     bl_label = "Voronoi Quick Math"
+    bl_description = "A full-fledged branch from VMT. Quick and quick-quick math at speeds.\nHas additional mini-functionality. Also see \"Quick quick math\" in the layout."
     usefulnessForCustomTree = False
     canDrawInAppearance = True
     quickOprFloat:         bpy.props.StringProperty(name="Float (quick)",  default="") #它们在前面, 以便在 kmi 中对齐显示.

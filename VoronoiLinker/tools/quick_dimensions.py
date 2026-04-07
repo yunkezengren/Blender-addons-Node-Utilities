@@ -12,6 +12,7 @@ def get_dimension_node(tree: NodeTree, sk_type: str):
 class VoronoiQuickDimensionsTool(VoronoiToolTripleSk):
     bl_idname = 'node.voronoi_quick_dimensions'
     bl_label = "Voronoi Quick Dimensions"
+    bl_description = "Tool for accelerating the needs of separating and combining vectors (and color).\nAnd can also split geometry into components."
     usefulnessForCustomTree = False
     canDrawInAddonDiscl = False
     isPlaceImmediately: bpy.props.BoolProperty(name="Place immediately", default=False)

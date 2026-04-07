@@ -112,6 +112,7 @@ ModeItems = (
 class VoronoiHiderTool(VoronoiToolAny):
     bl_idname = 'node.voronoi_hider'
     bl_label = "Voronoi Hider"
+    bl_description = "Tool for bringing order and aesthetics to the node tree.\nMost likely 90% will go to using automatic socket hiding."
     usefulnessForCustomTree = True
     usefulnessForUndefTree = True
     toolMode: bpy.props.EnumProperty(name="Mode", default=eMode.HIDE_SOCKET.value, items=ModeItems)

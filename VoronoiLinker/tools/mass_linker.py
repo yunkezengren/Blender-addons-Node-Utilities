@@ -7,9 +7,10 @@ from ..utils.ui import draw_hand_split_prop
 
 #"批量链接器" -- 就像链接器一样, 只是一次性处理多个 (显而易见).
 #请查看 github 上的 wiki, 看看批量链接器的5个使用示例. 如果你发现这个工具还有其他不寻常的用法, 请告诉我.
-class VoronoiMassLinkerTool(VoronoiToolRoot): #"猫狗合体", 既不是节点, 也不是接口.
+class VoronoiMassLinkerTool(VoronoiToolRoot):  # "猫狗合体", 既不是节点, 也不是接口.
     bl_idname = 'node.voronoi_mass_linker'
-    bl_label = "Voronoi MassLinker" #唯一一个没有空格的. 因为它太像猫狗了))00)0
+    bl_label = "Voronoi MassLinker"  # 唯一一个没有空格的. 因为它太像猫狗了))00)0
+    bl_description = "\"Puppy cat-dog\", neither nodes nor sockets. Created for rare point special accelerations.\nVLT on max. Due to its working principle, divine in its own way."
     # 说真的, 它的确是最奇怪的. 它模仿 VLT 的 dsIsAlwaysLine. 如果从多个连接到一个, SocketArea 会堆叠起来. 它在绘制函数中写入...
     # 而且, 正是它出现在/将出现在插件的预览图上, 因为它在所有工具中具有最大的视觉表现力 (而且没有上限).
     usefulnessForCustomTree = True

@@ -5,9 +5,10 @@ from ..utils.node import GenFtgFromNd, is_socket_visible
 from ..utils.solder import SolderSkLinks
 B = bpy.types
 
-class VoronoiLinksTransferTool(VoronoiToolPairNd): #Todo2v6 与 VST 合并并变成 "PairAny" 的候选者.
+class VoronoiLinksTransferTool(VoronoiToolPairNd):  # Todo2v6 与 VST 合并并变成 "PairAny" 的候选者.
     bl_idname = 'node.voronoi_links_transfer'
     bl_label = "Voronoi Links Transfer"
+    bl_description = "Tool for rare needs of transferring all links from one node to another.\nIn the future, it will most likely be merged with VST."
     usefulnessForCustomTree = True
     canDrawInAddonDiscl = False
     isByIndexes: bpy.props.BoolProperty(name="Transfer by indexes", default=False)

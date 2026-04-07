@@ -21,6 +21,7 @@ ModeItems = (
 class VoronoiSwapperTool(VoronoiToolPairSk):
     bl_idname = 'node.voronoi_swaper'
     bl_label = "Voronoi Swapper"
+    bl_description = "Tool for swapping links between two sockets, or adding them to one of them.\nNo link swap will occur if it ends up originating from its own node."
     usefulnessForCustomTree = True
     canDrawInAddonDiscl = False
     toolMode:     bpy.props.EnumProperty(name="Mode", default=eMode.SWAP.value, items=ModeItems)

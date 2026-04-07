@@ -36,6 +36,7 @@ ModeItems = (
 class VoronoiInterfacerTool(VoronoiToolPairSk):
     bl_idname = 'node.voronoi_interfacer'
     bl_label = "Voronoi Interfacer"
+    bl_description = "A tool on the level of \"The Great Trio\". A branch from VLT for convenient acceleration\nof the creation process and special manipulations with interfaces. \"Interface Manager\"."
     usefulnessForCustomTree = False
     canDrawInAddonDiscl = False
     toolMode: bpy.props.EnumProperty(name="Mode", default=eMode.NEW.value, items=ModeItems)
