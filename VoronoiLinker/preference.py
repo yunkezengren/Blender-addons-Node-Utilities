@@ -68,14 +68,14 @@ class KeymapItemCategory:
     """快捷键项分类 - 用于组织和过滤keymap items"""
     prop_name: str
     matched_items: set
-    item_idnames: set
+    idnames: set
     count: int
     filter_func: Callable[[KeyMapItem], bool] | None
 
-    def __init__(self, prop_name='', matched_items=set(), item_idnames=set()):
+    def __init__(self, prop_name='', matched_items=set(), idnames=set()):
         self.prop_name = prop_name
         self.matched_items = matched_items
-        self.item_idnames = item_idnames
+        self.idnames = idnames
         self.count = 0
         self.filter_func = None
 
@@ -363,14 +363,14 @@ class VoronoiAddonPrefs(bpy.types.AddonPreferences):
         colList = colMain.column(align=True)
         node_kms = user_node_keymaps()
         ##
-        from . import dict_setKmiCats
+        from . import keymap_categorys
         kmiCats = KeymapItemCategoryContainer()
-        kmiCats.qqm = KeymapItemCategory('vaKmiQqmDiscl', set(), dict_setKmiCats["qqm"])
+        kmiCats.qqm = KeymapItemCategory('vaKmiQqmDiscl', set(), keymap_categorys["qqm"])
         kmiCats.custom = KeymapItemCategory('vaKmiCustomDiscl', set())
-        kmiCats.useful_1 = KeymapItemCategory('vaKmiMainstreamDiscl', set(), dict_setKmiCats["最有用"])
-        kmiCats.useful_2 = KeymapItemCategory('vaKmiOtjersDiscl', set(), dict_setKmiCats["很有用"])
-        kmiCats.useful_3 = KeymapItemCategory('vaKmiSpecialDiscl', set(), dict_setKmiCats["可能有用"])
-        kmiCats.useful_4 = KeymapItemCategory('vaKmiInvalidDiscl', set(), dict_setKmiCats["无效"])
+        kmiCats.useful_1 = KeymapItemCategory('vaKmiMainstreamDiscl', set(), keymap_categorys["最有用"])
+        kmiCats.useful_2 = KeymapItemCategory('vaKmiOtjersDiscl', set(), keymap_categorys["很有用"])
+        kmiCats.useful_3 = KeymapItemCategory('vaKmiSpecialDiscl', set(), keymap_categorys["可能有用"])
+        kmiCats.useful_4 = KeymapItemCategory('vaKmiInvalidDiscl', set(), keymap_categorys["无效"])
         kmiCats.useful_1.filter_func = lambda kmi: kmi.idname in kmiCats.useful_1.item_idnames
         kmiCats.useful_2.filter_func = lambda kmi: kmi.idname in kmiCats.useful_2.item_idnames
         kmiCats.useful_3.filter_func = lambda kmi: kmi.idname in kmiCats.useful_3.item_idnames
@@ -678,7 +678,7 @@ def GetVlKeyconfigAsPy():  # 从 'bl_keymap_utils.io' 借来的. 我完全不知
     else:
         export_keymaps = keyconfig_merge(edited_kc, edited_kc)
     ##
-    from . import list_kmiDefs
+    from . import keymap_item_defs
     result = ""
     result += "list_keyconfigData = \\\n["
     sco = 0
@@ -821,14 +821,3 @@ def UpdateLangDebEnumItems(dict_vtClasses):
     # 更新 VoronoiAddonPrefs 中的 vaLangDebEnum 属性
     VoronoiAddonPrefs.vaLangDebEnum = EnumProperty(name="LangDebEnum", default='FREE', items=list_langDebEnumItems)
 
-# 导出需要在其他模块中使用的类和函数
-__all__ = [
-    'VoronoiAddonPrefs',
-    'VoronoiOpAddonTabs',
-    'KeymapItemCategory',
-    'KeymapItemCategoryContainer',
-    'GetVaSettAsPy',
-    'GetVlKeyconfigAsPy',
-    'AddDynamicProperties',
-    'UpdateLangDebEnumItems',
-]
