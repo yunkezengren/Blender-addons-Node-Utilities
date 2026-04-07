@@ -7,14 +7,14 @@ from ..globals import dict_skTypeHandSolderingColor
 from .color import Color4, opaque_color4, power_color4
 
 dict_solderedSkLinksFinal = {}
-def SkGetSolderedLinksFinal(self: NodeSocket): # .vl_sold_links_final
+def sk_get_soldered_links_final(self: NodeSocket): # .vl_sold_links_final
     return dict_solderedSkLinksFinal.get(self, [])
 
 dict_solderedSkIsFinalLinkedCount = {}
-def SkGetSolderedIsFinalLinkedCount(self: NodeSocket): # .vl_sold_is_final_linked_cou
+def sk_get_soldered_is_final_linked_count(self: NodeSocket): # .vl_sold_is_final_linked_cou
     return dict_solderedSkIsFinalLinkedCount.get(self, 0)
 
-def SolderSkLinks(tree: NodeTree):
+def solder_sk_links(tree: NodeTree):
     def Update(dict_data, lk):
         dict_data.setdefault(lk.from_socket, []).append(lk)
         dict_data.setdefault(lk.to_socket, []).append(lk)
@@ -30,7 +30,6 @@ def SolderSkLinks(tree: NodeTree):
             dict_solderedSkIsFinalLinkedCount.setdefault(lk.to_socket, 0)
             dict_solderedSkIsFinalLinkedCount[lk.to_socket] += 1
 
-
 for key, value in dict_skTypeHandSolderingColor.items():
     dict_skTypeHandSolderingColor[key] = power_color4(value, pw=2.2)
 
@@ -41,7 +40,7 @@ class SoldThemeCols:
                      12:'pattern_node',      13: 'texture_node', 32:'script_node',
                      33:'group_socket_node', 40: 'shader_node',  41:'geometry_node',
                      42:'attribute_node',    100:'layout_node'}
-def SolderThemeCols(themeNe: ThemeNodeEditor):
+def solder_theme_cols(themeNe: ThemeNodeEditor):
     def GetNiceColNone(col4):
         return Color4(col4)
         # return Color4(power_color4(col4, pw=1/1.75))   # 小王 这个更像影响全体 这里使得Ctrl Shift E / Ctrl E / Alt E 等显示太浅
@@ -81,22 +80,25 @@ def node_tag_color(node: Node):
         else:
             return getattr(SoldThemeCols, SoldThemeCols.dict_mapNcAtt.get(BNode.GetFields(node).typeinfo.contents.nclass, 'node_backdrop')+"4pw")
 
-def SolderClsToolNames(class_dict: dict[Operator]):
-    for cls in class_dict:
+def assign_tool_class_names(class_list: list[Operator]):
+    """为工具类分配名称属性，用于偏好设置中的折叠面板"""
+    for cls in class_list:
         cls.vlTripleName = GetFirstUpperLetters(cls.bl_label)+"T" # 最初创建是"因为好玩", 但现在需要了; 参见 SetPieData().
         cls.disclBoxPropName = cls.vlTripleName[:-1].lower()+"BoxDiscl"
         cls.disclBoxPropNameInfo = cls.disclBoxPropName+"Info"
 
-def RegisterSolderings():
+def register_socket_properties():
+    """为 NodeSocket 注册扩展属性，用于缓存链接信息"""
     txtDoc = "Property from and only for VoronoiLinker addon."
-    #NodeSocket.vl_sold_links_raw = property(SkGetSolderedLinksRaw)
-    NodeSocket.vl_sold_links_final = property(SkGetSolderedLinksFinal)
-    NodeSocket.vl_sold_is_final_linked_cou = property(SkGetSolderedIsFinalLinkedCount)
+    #NodeSocket.vl_sold_links_raw = property(sk_get_soldered_links_raw)
+    NodeSocket.vl_sold_links_final = property(sk_get_soldered_links_final)
+    NodeSocket.vl_sold_is_final_linked_cou = property(sk_get_soldered_is_final_linked_count)
     #NodeSocket.vl_sold_links_raw.__doc__ = txtDoc
     NodeSocket.vl_sold_links_final.__doc__ = txtDoc
     NodeSocket.vl_sold_is_final_linked_cou.__doc__ = txtDoc
 
-def UnregisterSolderings():
+def unregister_socket_properties():
+    """注销 NodeSocket 扩展属性"""
     #del NodeSocket.vl_sold_links_raw
     del NodeSocket.vl_sold_links_final
     del NodeSocket.vl_sold_is_final_linked_cou

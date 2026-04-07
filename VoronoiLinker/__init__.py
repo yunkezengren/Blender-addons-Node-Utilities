@@ -24,8 +24,8 @@ from .tools.reset_node import VoronoiResetNodeTool
 from .tools.swapper import SwapperMode, VoronoiSwapperTool
 from .tools.warper import VoronoiWarperTool
 from .translations import translations_dict
-from .utils.solder import RegisterSolderings, SolderClsToolNames, UnregisterSolderings
-from .preference import VoronoiAddonPrefs, VoronoiOpAddonTabs, AddDynamicProperties, UpdateLangDebEnumItems
+from .utils.solder import register_socket_properties, assign_tool_class_names, unregister_socket_properties
+from .preference import VoronoiAddonPrefs, VoronoiOpAddonTabs, add_dynamic_properties, update_lang_deb_enum_items
 
 try:
     from rich import traceback
@@ -42,7 +42,7 @@ except ImportError:
 
 #Todo0VV: 处理 n^3 种组合: space_data.tree_type 和 space_data.edit_tree.bl_idname; 包括经典的, 丢失的和插件的; 绑定和未绑定到编辑器的.
 # ^ 然后检查所有工具在这些组合中的可用性. 之后在现有节点树中检查所有工具与丢失节点的丢失插槽的交互情况.
-
+# todo1v6: 当工具处于活动状态时, 按下 PrtScr 会在控制台刷屏 `WARN ... pyrna_enum_to_py: ... '171' matches no enum in 'Event'.
 
 """ 
 dict_timeAvg = {}
@@ -69,13 +69,6 @@ class ToTimeNs():  # 我投降了. 🤷‍ 我不知道为什么在大型节点�
         txt = " ".join(("", self.name, txt1, "~~~", txt2, "===", txt3))
         dict_timeOutside[self.name] = tpcn 
 """
-
-# todo1v6: 当工具处于活动状态时, 按下 PrtScr 会在控制台刷屏 `WARN ... pyrna_enum_to_py: ... '171' matches no enum in 'Event'.
-
-
-all_classes: dict[type[Operator], bool] = {}  # 所有需要注册的类 (包括工具、偏好、饼菜单等),使用字典方便去重
-vt_classes: dict[type[Operator], bool] = {}  # 只存放 V*T (Voronoi Tool) 工具
-keymap_item_defs: list[tuple[str, str, bool, bool, bool, bool, dict[str, Any]]] = []
 
 # yapf: disable
 # 每个 Operator 类的 keymap 配置. 格式: "S#A_KEY" 或 ("S#A_KEY", {'prop': value})  S=Shift, C=Ctrl, A=Alt, #=忽略, + =repeat
@@ -160,23 +153,27 @@ operator_keymaps: dict[type[Operator], list[str | tuple[str, dict[str, Any]]]] =
     #     ("#CA_R", {'isUniWid':True, 'isUncollapseNodes':True, 'isDeleteReroutes':True}),
     # ],
 }
+
+all_classes: list[type[Operator]] = []  # 所有需要注册的类 (包括工具、偏好、饼菜单等)
+vt_classes: list[type[Operator]] = []  # 只存放 V*T (Voronoi Tool) 工具
+keymap_item_defs: list[tuple[str, str, bool, bool, bool, bool, dict[str, Any]]] = []
+
 num_to_word: dict[str, str] = {"1": 'ONE', "2": 'TWO', "3": 'THREE', "4": 'FOUR', "5": 'FIVE', "6": 'SIX', "7": 'SEVEN', "8": 'EIGHT', "9": 'NINE', "0": 'ZERO'}
 for operator_cls, keymaps in operator_keymaps.items():
-    all_classes[operator_cls] = True
-    vt_classes[operator_cls] = True
+    vt_classes.append(operator_cls)
     for km in keymaps:
         if isinstance(km, str):
             keymap_str, props = km, {}
         else:
             keymap_str, props = km
-        key = keymap_str[4:]
+        mods, key = keymap_str[:4], keymap_str[4:]
         keymap_item_defs.append((
             operator_cls.bl_idname,
             num_to_word.get(key, key),
-            "S" in keymap_str,
-            "C" in keymap_str,
-            "A" in keymap_str,
-            "+" in keymap_str,
+            "S" in mods,
+            "C" in mods,
+            "A" in mods,
+            "+" in mods,
             props,
         ))
 # yapf: enable
@@ -208,13 +205,10 @@ keymap_categorys['可能有用'] = {
 }
 # keymap_categorys['无效'].add(VoronoiRantoTool.bl_idname)
 
-# =======
-
-SolderClsToolNames(vt_classes)
-
+assign_tool_class_names(vt_classes)
 # 更新语言调试枚举项并添加动态属性
-UpdateLangDebEnumItems(vt_classes)
-AddDynamicProperties(vt_classes)
+update_lang_deb_enum_items(vt_classes)
+add_dynamic_properties(vt_classes)
 
 _classes = [
     VmtOpMixer,
@@ -231,8 +225,7 @@ _classes = [
     VoronoiOpAddonTabs,
     VoronoiAddonPrefs,
 ]
-for cls in _classes:
-    all_classes[cls] = True
+all_classes = vt_classes + _classes
 
 addon_keymaps = []
 
@@ -253,14 +246,14 @@ def register():
         kmi = km.keymap_items.new(idname=idname, type=key, value='PRESS', shift=shift, ctrl=ctrl, alt=alt, repeat=repeat)
         kmi.active = idname != 'node.voronoi_dummy'
         if props:
-            for dk, dv in props.items():
-                setattr(kmi.properties, dk, dv)
+            for key, value in props.items():
+                setattr(kmi.properties, key, value)
         addon_keymaps.append(kmi)
 
-    RegisterSolderings()
+    register_socket_properties()
 
 def unregister():
-    UnregisterSolderings()
+    unregister_socket_properties()
 
     km = bpy.context.window_manager.keyconfigs.addon.keymaps["Node Editor"]
     for kmi in addon_keymaps:

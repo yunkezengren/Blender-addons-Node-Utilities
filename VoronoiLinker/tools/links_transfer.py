@@ -2,7 +2,7 @@ import bpy
 from ..base_tool import TemplateDrawNodeFull, TemplateDrawSksToolHh, VoronoiToolPairNd
 from ..common_forward_func import sk_label_or_name
 from ..utils.node import GenFtgFromNd, is_socket_visible
-from ..utils.solder import SolderSkLinks
+from ..utils.solder import solder_sk_links
 B = bpy.types
 
 class VoronoiLinksTransferTool(VoronoiToolPairNd):  # Todo2v6 与 VST 合并并变成 "PairAny" 的候选者.
@@ -57,7 +57,7 @@ class VoronoiLinksTransferTool(VoronoiToolPairNd):  # Todo2v6 与 VST 合并并�
                 tree.links.remove(link)
         def get_visible_sockets(sockets: list[B.NodeSocket]):
             return [sk for sk in sockets if is_socket_visible(sk)]
-        SolderSkLinks(tree) # 否则在 vl_sold_links_final 上会是 '... has been removed'; 但也可以用普通的 'sk.links'.
+        solder_sk_links(tree) # 否则在 vl_sold_links_final 上会是 '... has been removed'; 但也可以用普通的 'sk.links'.
         if not self.isByIndexes:
             for from_sks, to_sks in [(from_node.inputs, to_node.inputs), (from_node.outputs, to_node.outputs)]:
                 for sk in from_sks:

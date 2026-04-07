@@ -8,7 +8,7 @@ from ..globals import Cursor_X_Offset, is_bl4_plus, voronoiAnchorCnName, voronoi
 from ..utils.color import Color4, get_sk_color_safe, power_color4
 from ..utils.drawing import DrawVlSkText, DrawVlSocketArea, TemplateDrawSksToolHh
 from ..utils.node import GenFtgsFromPuts, SelectAndActiveNdOnly, VlrtRememberLastSockets
-from ..utils.solder import SolderSkLinks, SoldThemeCols
+from ..utils.solder import solder_sk_links, SoldThemeCols
 from ..utils.ui import draw_hand_split_prop, LyAddNoneBox
 
 viaverSkfMethod = -1 # 用于成功交互方法的切换开关. 本可以按版本分布到映射表中, 但"根据实际情况"尝试有其独特的美学魅力.
@@ -369,7 +369,7 @@ class VoronoiPreviewTool(VoronoiToolSk):
     isEqualAnchorType:        bpy.props.BoolProperty(name="Equal anchor type",     default=False, description="Trigger only on anchor type sockets")
     def CallbackDrawTool(self, drata):
         if (self.prefs.vptRvEeSksHighlighting)and(self.fotagoSk): #帮助逆向工程 -- 高亮连接点, 并同时显示这些接口的名称.
-            SolderSkLinks(self.tree) #否则在 `ftg.tar==sk:` 上会崩溃.
+            solder_sk_links(self.tree) #否则在 `ftg.tar==sk:` 上会崩溃.
             #确定标签的缩放比例:
             soldCursorLoc = drata.cursorLoc
             #绘制:
@@ -408,7 +408,7 @@ class VoronoiPreviewTool(VoronoiToolSk):
             else:
                 return nd.color.copy()
     def NextAssignmentTool(self, _isFirstActivation, prefs, tree):
-        SolderSkLinks(tree) #否则会崩溃.
+        solder_sk_links(tree) #否则会崩溃.
         isGeoTree = tree.bl_idname=='GeometryNodeTree'
         if False:
             #我已经为Viewer添加了一个粘附在字段上的功能, 但后来我意识到没有API可以取代它的预览类型. 又来了. 我们必须保持低调. 用于粘附到几何查看器的字段.
@@ -461,7 +461,7 @@ class VoronoiPreviewTool(VoronoiToolSk):
             if prefs.vptIsLivePreview:
                 VptPreviewFromSk(self, prefs, self.fotagoSk.tar)
             if prefs.vptRvEeIsColorOnionNodes: #帮助逆向工程 -- 不是用眼睛寻找细线, 而是快速视觉读取拓扑连接的节点.
-                SolderSkLinks(tree) #没有这个, 将不得不手动为接收节点着色, 以免“闪烁”.
+                solder_sk_links(tree) #没有这个, 将不得不手动为接收节点着色, 以免“闪烁".
                 ndTar = self.fotagoSk.tar.node
                 #不要费心记住最后一个, 每次都把它们全部关闭. 简单粗暴
                 for nd in tree.nodes:
@@ -481,7 +481,7 @@ class VoronoiPreviewTool(VoronoiToolSk):
                 for sk in ndTar.inputs:
                     RecrRerouteWalkerPainter(sk, prefs.vptOnionColorIn)
     def MatterPurposeTool(self, event, prefs, tree):
-        SolderSkLinks(tree) #否则会崩溃.
+        solder_sk_links(tree) #否则会崩溃.
         VptPreviewFromSk(self, prefs, self.fotagoSk.tar)
         VlrtRememberLastSockets(self.fotagoSk.tar, None)
         if prefs.vptRvEeIsColorOnionNodes:

@@ -8,7 +8,7 @@ from .common_forward_func import Prefs, is_builtin_tree_idname, user_node_keymap
 from .globals import set_utilTypeSkFields
 from .utils.drawing import DrawDebug, TemplateDrawNodeFull, TemplateDrawSksToolHh, VlDrawData
 from .utils.node import GetNearestNodesFtg, GetNearestSocketsFtg, RestoreCollapsedNodes, SaveCollapsedNodes
-from .utils.solder import SolderSkLinks, SolderThemeCols
+from .utils.solder import solder_sk_links, solder_theme_cols
 
 def GetOpKmi(self: type["VoronoiOpTool"], event: Event): 
     # Todo00: 有没有更正确的设计或方法?
@@ -137,7 +137,7 @@ class VoronoiToolRoot(VoronoiOpTool, VoronoiToolFillers): #0
         self.uiScale = context.preferences.system.dpi/72
         self.cursorLoc: Vec2 = context.space_data.cursor_location # 这是 class Vector, 通过引用复制; 所以可以在这里设置(绑定)一次, 就不用担心了.
         self.drata = VlDrawData(context, self.cursorLoc, self.uiScale, self.prefs)
-        SolderThemeCols(context.preferences.themes[0].node_editor) # 和 fontId 一样; 虽然在大多数情况下主题在整个会话期间不会改变.
+        solder_theme_cols(context.preferences.themes[0].node_editor) # 和 fontId 一样; 虽然在大多数情况下主题在整个会话期间不会改变.
         self.region = context.region
         self.ctView2d = View2D.GetFields(context.region.view2d)
         if self.prefs.vIsOverwriteZoomLimits:
@@ -152,7 +152,7 @@ class VoronoiToolRoot(VoronoiOpTool, VoronoiToolFillers): #0
         ##
         self.handle = SpaceNodeEditor.draw_handler_add(self.CallbackDrawRoot, (self.drata, context,), 'WINDOW', 'POST_PIXEL')
         if tree: # 注意: 参见本地拓扑结构, 工具本身可以, 但每个工具都明确地对缺失的树禁用了.
-            SolderSkLinks(self.tree)
+            solder_sk_links(self.tree)
             SaveCollapsedNodes(tree.nodes)
             self.NextAssignmentRoot(True) # 原来只需要在 modal_handler_add() 之前移动它. #https://projects.blender.org/blender/blender/issues/113479
         ##

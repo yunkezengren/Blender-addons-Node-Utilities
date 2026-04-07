@@ -4,7 +4,7 @@ import bpy
 from ..base_tool import CheckUncollapseNodeAndReNext, VoronoiToolAny
 from ..globals import Cursor_X_Offset, set_utilTypeSkFields
 from ..utils.node import CompareSkLabelName, DoLinkHh, VlrtData, VlrtRememberLastSockets
-from ..utils.solder import SolderSkLinks
+from ..utils.solder import solder_sk_links
 
 class LinkRepeatingMode(Enum):
     SOCKET = 'SOCKET'
@@ -32,7 +32,7 @@ class VoronoiLinkRepeatingTool(VoronoiToolAny):  # 分离成单独的工具, 以
         skLastIn = self.skLastIn
         if not skLastOut:
             return
-        SolderSkLinks(tree) # 好像不重新焊接也能工作.
+        solder_sk_links(tree) # 好像不重新焊接也能工作.
         self.fotagoAny = None
         cur_x_off_repeat = -Cursor_X_Offset if self.toolMode==eMode.SOCKET.value else 0     # 小王 这个有点特殊
         for ftgNd in self.ToolGetNearestNodes(cur_x_off=cur_x_off_repeat):

@@ -174,14 +174,14 @@ dict_vmtMixerNodesDefs = { # '-1' 表示这里的视觉标记，它们的连接�
         'FunctionNodeCompare':            (-1, -1, 'Compare  '),
         'ShaderNodeMath':                 (0, 1, 'Max Float '),
         'ShaderNodeMixRGB':               (1, 2, 'Mix RGB '),
-        'ShaderNodeMix':           (1, 2, 'Mix '),
+        'ShaderNodeMix':                  (1, 2, 'Mix '),
         'CompositorNodeSwitch':           (0, 1, 'Switch '),
         'CompositorNodeSplitViewer':      (0, 1, 'Split Viewer '),
         'CompositorNodeSwitchView':       (0, 1, 'Switch View '),
         'TextureNodeMixRGB':              (1, 2, 'Mix '),
         'TextureNodeTexture':             (0, 1, 'Texture '),
         'ShaderNodeVectorMath':           (0, 1, 'Max Vector '),
-        'ShaderNodeMath':             (0, 1, 'Max Float '),
+        'ShaderNodeMath':                 (0, 1, 'Max Float '),
         'TextureNodeMath':                (0, 1, 'Max Float '),
         'ShaderNodeMixShader':            (1, 2, 'Mix Shader '),
         'ShaderNodeAddShader':            (0, 1, 'Add Shader '),
@@ -354,8 +354,8 @@ AllQuickDimensions = {
                               'VALUE':    ('ShaderNodeCombineXYZ', 'FunctionNodeCombineColor', 'FunctionNodeQuaternionToRotation'),
                               'INT':      ('ShaderNodeCombineXYZ',),
                               'BOOLEAN':  ('ShaderNodeCombineXYZ',),
-                              'STRING':   ('GeometryNodeStringToCurves',),   # Alt D 字符串接口
-                              'MATRIX':   ('FunctionNodeSeparateTransform',),   # Alt D 矩阵接口
+                              'STRING':   ('GeometryNodeStringToCurves',),
+                              'MATRIX':   ('FunctionNodeSeparateTransform',),
                               'ROTATION': ('FunctionNodeRotationToQuaternion',),
                               'GEOMETRY': ('GeometryNodeSeparateGeometry',), # GeometryNodeSeparateComponents更合适, 但SeparateGeometry更常用
                               'BUNDLE':   ('NodeSeparateBundle', ),

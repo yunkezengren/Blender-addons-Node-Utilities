@@ -12,6 +12,7 @@ from ..utils.drawing import DrawVlSocketArea
 from ..utils.node import DoLinkHh, FindAnySk, MinFromFtgs, opt_ftg_socket
 from ..utils.ui import draw_hand_split_prop
 
+# yapf: disable
 class InterfacerMode(Enum):
     COPY   = 'COPY'
     PASTE  = 'PASTE'
@@ -19,10 +20,9 @@ class InterfacerMode(Enum):
     FLIP   = 'FLIP'
     NEW    = 'NEW'
     CREATE = 'CREATE'
-    TYPE = 'TYPE'
+    TYPE   = 'TYPE'
 
 eMode = InterfacerMode
-
 ModeItems = (
     (eMode.COPY.value,   "Copy",   "Copy a socket name to clipboard"),
     (eMode.PASTE.value,  "Paste",  "Paste the contents of clipboard into an interface name"),
@@ -33,6 +33,8 @@ ModeItems = (
     # (eMode.DELETE.value, "Delete", "Delete one socket"),
     (eMode.TYPE.value, "Type", "Change socket type"),
 )
+# yapf: enable
+
 class VoronoiInterfacerTool(VoronoiToolPairSk):
     bl_idname = 'node.voronoi_interfacer'
     bl_label = "Voronoi Interfacer"
@@ -171,6 +173,7 @@ class VoronoiInterfacerTool(VoronoiToolPairSk):
                     if not skMain.is_output and nd.type in NodeItemsTool.only_inputs: continue
                     self.fotagoNdTar = ftgNd
             break
+
     def NextAssignmentTool(self, isFirstActivation, prefs, tree):
         match eMode(self.toolMode):
             case eMode.COPY|eMode.PASTE:
@@ -179,6 +182,7 @@ class VoronoiInterfacerTool(VoronoiToolPairSk):
                 self.NextAssignmentToolSwapFlip(isFirstActivation, prefs, tree)
             case eMode.NEW|eMode.CREATE:
                 self.NextAssignmentToolNewCreate(isFirstActivation, prefs, tree)
+
     def MatterPurposePoll(self):
         match eMode(self.toolMode):
             case eMode.COPY|eMode.PASTE:
@@ -193,6 +197,7 @@ class VoronoiInterfacerTool(VoronoiToolPairSk):
                 return self.fotagoSkRosw and self.fotagoSkMain
             case eMode.CREATE:
                 return self.fotagoSkMain and self.fotagoNdTar
+
     def MatterPurposeTool(self, event, prefs, tree: NodeTree):
         links = tree.links
         match eMode(self.toolMode):
@@ -267,6 +272,7 @@ class VoronoiInterfacerTool(VoronoiToolPairSk):
                     links.new(skMain, items_tool.get_socket(items_tool.skfa.get(item_name), is_out=not skMain.is_output))
                 if is_group:
                     links.new(skMain, items_tool.get_socket(skfNew, is_out=(skfNew.in_out=='OUTPUT')^(items_tool.type!='GROUP')))
+
     def InitTool(self, event, prefs, tree):
         self.fotagoSkMain = None
         self.fotagoSkRosw = None #RootSwap
@@ -290,6 +296,7 @@ class VoronoiInterfacerTool(VoronoiToolPairSk):
             case eMode.FLIP:
                 self.fotagoNdTar = None
         VoronoiInterfacerTool.clipboard = property(lambda _:bpy.context.window_manager.clipboard, lambda _,v:setattr(bpy.context.window_manager,'clipboard', v))
+
     @staticmethod
     def draw_in_pref_settings(col: bpy.types.UILayout, prefs):
         draw_hand_split_prop(col, prefs,'vitPasteToAnySocket')

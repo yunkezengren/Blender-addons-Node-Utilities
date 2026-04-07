@@ -785,13 +785,13 @@ def GetVaSettAsPy(prefs: bpy.types.AddonPreferences):
     return txt_vasp
 
 # 需要在 VoronoiAddonPrefs 类定义之后执行的动态属性添加函数
-def AddDynamicProperties(vt_classes):
+def add_dynamic_properties(vt_classes):
     """为每个工具类动态添加 BoxDiscl 属性到 VoronoiAddonPrefs"""
     for cls in vt_classes:
         setattr(VoronoiAddonPrefs, cls.disclBoxPropName, BoolProperty(name="", default=False))
         setattr(VoronoiAddonPrefs, cls.disclBoxPropNameInfo, BoolProperty(name="", default=False))
 
-def UpdateLangDebEnumItems(vt_classes):
+def update_lang_deb_enum_items(vt_classes):
     """更新语言调试枚举项列表"""
     global list_langDebEnumItems
     list_langDebEnumItems.clear()

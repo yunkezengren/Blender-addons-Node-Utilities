@@ -2,7 +2,7 @@ import bpy
 from ..base_tool import VoronoiToolNd
 from ..common_forward_class import TryAndPass
 from ..utils.drawing import TemplateDrawNodeFull
-from ..utils.solder import SolderSkLinks
+from ..utils.solder import solder_sk_links
 
 class VoronoiResetNodeTool(VoronoiToolNd):
     bl_idname = 'node.voronoi_reset_node'
@@ -41,7 +41,7 @@ class VoronoiResetNodeTool(VoronoiToolNd):
         ndNew.select = self.isSelectResetedNode
         return ndNew
     def NextAssignmentTool(self, isFirstActivation, prefs, tree):
-        SolderSkLinks(tree)
+        solder_sk_links(tree)
         self.fotagoNd = None
         for ftgNd in self.ToolGetNearestNodes(includePoorNodes=True, cur_x_off=0):
             nd = ftgNd.tar
