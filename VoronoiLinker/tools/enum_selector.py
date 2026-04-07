@@ -300,17 +300,3 @@ class VoronoiEnumSelectorTool(VoronoiToolNd):
             draw_hand_split_prop(p_col, prefs,'vestDisplayLabels')
             draw_hand_split_prop(p_col, prefs,'vestDarkStyle')
 
-
-# 显示节点选项优化-根据选项重命名节点-不好用-自定义ops,单击按钮立即运行(缺点：按钮文本居中对齐，按钮上文本翻译有问题)
-class SNA_OT_Change_Node_Domain_And_Name(bpy.types.Operator):
-    bl_idname = "vor.change_node_domain_and_name"
-    bl_label = ""
-    bl_description = ""
-    bl_options = {"REGISTER", "UNDO"}
-    domain_item:  bpy.props.StringProperty(name='name', description='', default='', subtype='NONE', maxlen=0)
-
-    def execute(self, context):
-        node = VestData.nd
-        node.domain = self.domain_item
-        rename_node_based_option(node)
-        return {"FINISHED"}
