@@ -380,8 +380,8 @@ class NODE_OT_voronoi_preview(SingleSocketTool):
                         sk = lk.to_socket if isSide else lk.from_socket
                         nd = sk.node
                         if (nd.type!='REROUTE')and(not nd.hide):
-                            list_ftgSks = GenFtgsFromPuts(nd, not isSide, soldCursorLoc, drata.uiScale)
-                            for ftg in list_ftgSks:
+                            tar_sks = GenFtgsFromPuts(nd, not isSide, soldCursorLoc, drata.uiScale)
+                            for ftg in tar_sks:
                                 if ftg.tar==sk:
                                     #不支持遍历转接点. 因为懒, 而且懒得为此重写代码.
                                     if drata.dsIsDrawSkArea:
@@ -436,8 +436,8 @@ class NODE_OT_voronoi_preview(SingleSocketTool):
             if ( (nd.type=='REROUTE')and(nd.name==voronoiAnchorCnName) ):
                 continue
             #如果成功, 则转到接口:
-            list_ftgSksOut = self.get_nearest_sockets(nd, cur_x_off=Cursor_X_Offset)[1]
-            for ftg in list_ftgSksOut:
+            tar_sks_out = self.get_nearest_sockets(nd, cur_x_off=Cursor_X_Offset)[1]
+            for ftg in tar_sks_out:
                 #在这里忽略自己的桥接接口. 这对于节点组节点是必要的, 它们的桥接接口“伸出”并且没有这个检查就会被粘住; 之后它们将在 VptPreviewFromSk() 中被删除.
                 if ftg.tar.name==voronoiSkPreviewName:
                     continue

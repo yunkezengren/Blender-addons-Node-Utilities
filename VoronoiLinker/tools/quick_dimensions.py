@@ -3,7 +3,7 @@ from bpy.types import NodeTree
 from ..base_tool import unhide_node_reassign, TripleSocketTool
 from ..globals import AllQuickDimensions, Cursor_X_Offset
 from ..utils.drawing import TemplateDrawSksToolHh
-from ..utils.node import node_enum_props, opt_ftg_socket, remember_add_link
+from ..utils.node import node_enum_props, opt_tar_socket, remember_add_link
 from .matrix_convert import Convert_Data, PIE_MT_Convert_Rotation_To, PIE_MT_Separate_Matrix
 
 def get_dimension_node(tree: NodeTree, sk_type: str):
@@ -25,11 +25,11 @@ class NODE_OT_voronoi_quick_dimensions(TripleSocketTool):
             self.target_sk1 = None
         for tar_nd in self.get_nearest_nodes(cur_x_off=Cursor_X_Offset):
             nd = tar_nd.tar
-            list_ftgSksOut = self.get_nearest_sockets(nd, cur_x_off=Cursor_X_Offset)[1]
-            if not list_ftgSksOut:
+            tar_sks_out = self.get_nearest_sockets(nd, cur_x_off=Cursor_X_Offset)[1]
+            if not tar_sks_out:
                 continue
             if isFirstActivation:
-                for ftg in list_ftgSksOut:
+                for ftg in tar_sks_out:
                     # set_utilTypeSkFields 小王-Alt D 支持的接口
                     # if (ftg.tar.type in set_utilTypeSkFields)or(ftg.tar.type=='GEOMETRY'):
                     if get_dimension_node(tree, ftg.tar.type):
@@ -38,12 +38,12 @@ class NODE_OT_voronoi_quick_dimensions(TripleSocketTool):
                 unhide_node_reassign(nd, self, cond=True, flag=True)
                 break
             unhide_node_reassign(nd, self, cond=self.target_sk1, flag=False)
-            sk_out0 = opt_ftg_socket(self.target_sk0)
+            sk_out0 = opt_tar_socket(self.target_sk0)
             if sk_out0:
                 if not get_dimension_node(tree, sk_out0.type):
                     break
                 if not self.canPickThird:
-                    for ftg in list_ftgSksOut:
+                    for ftg in tar_sks_out:
                         if ftg.tar.type==sk_out0.type:
                             self.target_sk1 = ftg
                             break
@@ -54,8 +54,8 @@ class NODE_OT_voronoi_quick_dimensions(TripleSocketTool):
                     if self.target_sk1:
                         break
                 else:
-                    skOut1 = opt_ftg_socket(self.target_sk1)
-                    for ftg in list_ftgSksOut:
+                    skOut1 = opt_tar_socket(self.target_sk1)
+                    for ftg in tar_sks_out:
                         if ftg.tar.type==sk_out0.type:
                             self.target_sk2 = ftg
                             break

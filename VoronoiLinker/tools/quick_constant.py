@@ -3,7 +3,7 @@ from bpy.types import NodeSocket, NodeTree, UILayout, Node
 from ..base_tool import unhide_node_reassign, TripleSocketTool
 from ..globals import AllQuickConstant, Cursor_X_Offset
 from ..utils.drawing import TemplateDrawSksToolHh
-from ..utils.node import opt_ftg_socket
+from ..utils.node import opt_tar_socket
 from .matrix_convert import Convert_Data, PIE_MT_Combine_Matrix, PIE_MT_Convert_To_Rotation
 
 B = bpy.types
@@ -27,11 +27,11 @@ class NODE_OT_voronoi_quick_constant(TripleSocketTool):
             self.target_sk1 = None
         for tar_nd in self.get_nearest_nodes(cur_x_off= -Cursor_X_Offset):
             nd = tar_nd.tar
-            list_ftgSksOut = self.get_nearest_sockets(nd, cur_x_off= -Cursor_X_Offset)[0]
-            if not list_ftgSksOut:
+            tar_sks_out = self.get_nearest_sockets(nd, cur_x_off= -Cursor_X_Offset)[0]
+            if not tar_sks_out:
                 continue
             if isFirstActivation:
-                for ftg in list_ftgSksOut:
+                for ftg in tar_sks_out:
                     # ! AllQuickConstant 新的接口类型要在这里更新
                     if get_const_node(tree, ftg.tar.type):
                         self.target_sk0 = ftg
@@ -39,13 +39,13 @@ class NODE_OT_voronoi_quick_constant(TripleSocketTool):
                 unhide_node_reassign(nd, self, cond=True, flag=True)
                 break
             unhide_node_reassign(nd, self, cond=self.target_sk1, flag=False)
-            sk_out0 = opt_ftg_socket(self.target_sk0)
+            sk_out0 = opt_tar_socket(self.target_sk0)
             if sk_out0:
                 only_single_link = {'MENU'}
                 if sk_out0.type in only_single_link:     # 小王 输出接口类型 不允许同时连到多个输入接口
                     break
                 if not self.canPickThird:
-                    for ftg in list_ftgSksOut:
+                    for ftg in tar_sks_out:
                         if ftg.tar.type==sk_out0.type:
                             self.target_sk1 = ftg
                             break
@@ -56,8 +56,8 @@ class NODE_OT_voronoi_quick_constant(TripleSocketTool):
                     if self.target_sk1:
                         break
                 else:
-                    sk_out1 = opt_ftg_socket(self.target_sk1)
-                    for ftg in list_ftgSksOut:
+                    sk_out1 = opt_tar_socket(self.target_sk1)
+                    for ftg in tar_sks_out:
                         if ftg.tar.type==sk_out0.type:
                             self.target_sk2 = ftg
                             break

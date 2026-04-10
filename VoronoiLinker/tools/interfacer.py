@@ -9,7 +9,7 @@ from ..common_func import sk_label_or_name
 from ..globals import set_utilEquestrianPortalBlids
 from ..utils.color import Color4, get_sk_color_safe
 from ..utils.drawing import DrawVlSocketArea
-from ..utils.node import DoLinkHh, FindAnySk, MinFromFtgs, opt_ftg_socket
+from ..utils.node import DoLinkHh, FindAnySk, MinFromFtgs, opt_tar_socket
 from ..utils.ui import draw_hand_split_prop
 
 # yapf: disable
@@ -54,9 +54,9 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
                 ftgNdTar = self.target_ndTar
                 if ftgNdTar:
                     TemplateDrawNodeFull(drata, ftgNdTar, tool_name="Node Group")
-                    list_ftgSksIn, list_ftgSksOut = self.get_nearest_sockets(ftgNdTar.tar, cur_x_off=0)
-                    if not list_ftgSksIn: return
-                    near_group_in = list_ftgSksIn[0]  # 节点组可能没有输入接口:
+                    tar_sks_in, tar_sks_out = self.get_nearest_sockets(ftgNdTar.tar, cur_x_off=0)
+                    if not tar_sks_in: return
+                    near_group_in = tar_sks_in[0]  # 节点组可能没有输入接口:
 
                     y = ftgNdTar.pos.y
                     boxHeiBound = Vec((y - 7, y + 7))
@@ -70,8 +70,8 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
                 ftgNdTar = self.target_ndTar
                 if ftgNdTar:
                     # TemplateDrawNodeFull(drata, ftgNdTar, tool_name="Interfacer")
-                    list_ftgSksIn, list_ftgSksOut = self.get_nearest_sockets(ftgNdTar.tar, cur_x_off=0)
-                    near_group_in = list_ftgSksIn[0]
+                    tar_sks_in, tar_sks_out = self.get_nearest_sockets(ftgNdTar.tar, cur_x_off=0)
+                    near_group_in = tar_sks_in[0]
 
                     y = ftgNdTar.pos.y
                     boxHeiBound = Vec((y-20, y+20 ))
@@ -97,8 +97,8 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
                 continue
             if (not prefs.vitPasteToAnySocket) and (self.toolMode == eMode.PASTE.value) and (nd.type not in NodeItemsUtils.support_types):
                 break  # 光标必须靠近骑士 (或组节点) (对于非 vitPasteToAnySocket). 还有 `continue` 不会有高级取消.
-            list_ftgSksIn, list_ftgSksOut = self.get_nearest_sockets(nd, cur_x_off=0)
-            self.target_skMain = FindAnySk(nd, list_ftgSksIn, list_ftgSksOut)
+            tar_sks_in, tar_sks_out = self.get_nearest_sockets(nd, cur_x_off=0)
+            self.target_skMain = FindAnySk(nd, tar_sks_in, tar_sks_out)
             if self.target_skMain:
                 unhide_node_reassign(nd, self, cond=self.target_skMain.tar.node == nd, flag=True)
             break
@@ -112,13 +112,13 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
                 break # 光标必须靠近骑士 (或组节点); 但也可以通过选择同一个套接字来取消, 所以不确定.
             if (self.target_skRosw)and(self.target_skRosw.tar.node!=nd):
                 continue
-            list_ftgSksIn, list_ftgSksOut = self.get_nearest_sockets(nd, cur_x_off=0)
+            tar_sks_in, tar_sks_out = self.get_nearest_sockets(nd, cur_x_off=0)
             if isFirstActivation:
-                self.target_skRosw = FindAnySk(nd, list_ftgSksIn, list_ftgSksOut)
+                self.target_skRosw = FindAnySk(nd, tar_sks_in, tar_sks_out)
             unhide_node_reassign(nd, self, cond=self.target_skRosw, flag=True)
-            skRosw = opt_ftg_socket(self.target_skRosw)
+            skRosw = opt_tar_socket(self.target_skRosw)
             if skRosw:
-                for ftg in list_ftgSksOut if skRosw.is_output else list_ftgSksIn:
+                for ftg in tar_sks_out if skRosw.is_output else tar_sks_in:
                     if (ftg.blid!='NodeSocketVirtual')and(NodeItemsUtils.IsSimRepCorrectSk(nd, ftg.tar)):
                         self.target_skMain = ftg
                         break
@@ -130,20 +130,20 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
             nd = tar_nd.tar
             if nd.type=='REROUTE':
                 continue
-            list_ftgSksIn, list_ftgSksOut = self.get_nearest_sockets(nd, cur_x_off=0)
+            tar_sks_in, tar_sks_out = self.get_nearest_sockets(nd, cur_x_off=0)
             match eMode(self.toolMode):
                 case eMode.NEW:
                     self.target_skMain = None
                     if isFirstActivation:
                         self.target_skRosw = None
-                        for ftg in list_ftgSksOut:
+                        for ftg in tar_sks_out:
                             self.target_skRosw = ftg
                             self.tglCrossVirt = ftg.blid == 'NodeSocketVirtual'
                             break
                         unhide_node_reassign(nd, self, cond=self.target_skRosw, flag=True)
-                    skRosw = opt_ftg_socket(self.target_skRosw)
+                    skRosw = opt_tar_socket(self.target_skRosw)
                     if skRosw:
-                        for ftg in list_ftgSksIn:
+                        for ftg in tar_sks_in:
                             if (ftg.blid == 'NodeSocketVirtual') ^ self.tglCrossVirt:
                                 self.target_skMain = ftg
                                 break
@@ -152,18 +152,18 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
                     unhide_node_reassign(nd, self, cond=self.target_skMain, flag=True)
                 case eMode.CREATE:
                     if isFirstActivation:
-                        ftgSkOut, ftgSkIn = None, None
-                        for ftg in list_ftgSksIn:
+                        tar_sk_out, tar_sk_in = None, None
+                        for ftg in tar_sks_in:
                             if (ftg.blid != 'NodeSocketVirtual') and (NodeItemsUtils.IsSimRepCorrectSk(nd, ftg.tar)):
-                                ftgSkIn = ftg
+                                tar_sk_in = ftg
                                 break
-                        for ftg in list_ftgSksOut:
+                        for ftg in tar_sks_out:
                             if (ftg.blid != 'NodeSocketVirtual') and (NodeItemsUtils.IsSimRepCorrectSk(nd, ftg.tar)):
-                                ftgSkOut = ftg
+                                tar_sk_out = ftg
                                 break
-                        self.target_skMain = MinFromFtgs(ftgSkOut, ftgSkIn)
+                        self.target_skMain = MinFromFtgs(tar_sk_out, tar_sk_in)
                     self.target_ndTar = None
-                    skMain = opt_ftg_socket(self.target_skMain)
+                    skMain = opt_tar_socket(self.target_skMain)
                     if not skMain: continue
                     if nd == skMain.node:
                         break
@@ -235,10 +235,10 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
                             break
                 if can:  #tovo0v6 还有面板.
                     item_name = skfNew.name
-                    ftgNearest = None  # MinFromFtgs(list_ftgSksIn[0] if list_ftgSksIn else None, list_ftgSksOut[0] if list_ftgSksOut else None)
+                    ftgNearest = None  # MinFromFtgs(tar_sks_in[0] if tar_sks_in else None, tar_sks_out[0] if tar_sks_out else None)
                     min = 16777216.0
-                    list_ftgSksIn, list_ftgSksOut = self.get_nearest_sockets(_tar_nd)
-                    for ftg in list_ftgSksIn if skMain.is_output else list_ftgSksOut:
+                    tar_sks_in, tar_sks_out = self.get_nearest_sockets(_tar_nd)
+                    for ftg in tar_sks_in if skMain.is_output else tar_sks_out:
                         if (ftg.blid != 'NodeSocketVirtual') and (NodeItemsUtils.IsSimRepCorrectSk(_tar_nd, ftg.tar)):
                             length = (ftgNdTar.pos - ftg.pos).length
                             if min > length:

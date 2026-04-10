@@ -5,7 +5,7 @@ from ..common_func import DisplayMessage, SetPieData
 from ..preference import pref
 from ..globals import Cursor_X_Offset, float_int_color
 from ..utils.color import get_sk_color_safe, power_color4
-from ..utils.node import DoQuickMath, opt_ftg_socket
+from ..utils.node import DoQuickMath, opt_tar_socket
 from ..utils.solder import dict_skTypeHandSolderingColor
 from ..utils.ui import draw_hand_split_prop, draw_panel_column
 
@@ -40,13 +40,13 @@ class NODE_OT_voronoi_quick_math(TripleSocketTool):
             self.target_sk1 = None
         for tar_nd in self.get_nearest_nodes(cur_x_off=Cursor_X_Offset):
             nd = tar_nd.tar
-            list_ftgSksIn, list_ftgSksOut = self.get_nearest_sockets(nd, cur_x_off=Cursor_X_Offset)
-            if not list_ftgSksOut:
+            tar_sks_in, tar_sks_out = self.get_nearest_sockets(nd, cur_x_off=Cursor_X_Offset)
+            if not tar_sks_out:
                 continue
             #这个工具只触发字段输出.
             if isFirstActivation:
                 isSucessOut = False
-                for ftg in list_ftgSksOut:
+                for ftg in tar_sks_out:
                     if not self.isRepeatLastOperation:
                         if not self.isQuickQuickMath:
                             if ftg.tar.type in set_vqmtSkTypeFields:
@@ -74,11 +74,11 @@ class NODE_OT_voronoi_quick_math(TripleSocketTool):
                 #对于下一个 `continue`, 因为如果接下来激活 continue 失败, 将会重新选择 isFirstActivation
                 isFirstActivation = False #但考虑到当前的选择拓扑, 这没有必要.
             unhide_node_reassign(nd, self, cond=self.target_sk0, flag=True) #todo0NA 参见上面一行, 这个 'cond' 不应该来自 isFirstActivation.
-            skOut0 = opt_ftg_socket(self.target_sk0)
+            skOut0 = opt_tar_socket(self.target_sk0)
             if isNotCanPickThird:
                 #对于第二个, 根据条件:
                 if skOut0:
-                    for ftg in list_ftgSksOut:
+                    for ftg in tar_sks_out:
                         if self.check_between_sk_fields(skOut0, ftg.tar):
                             self.target_sk1 = ftg
                             break
@@ -90,8 +90,8 @@ class NODE_OT_voronoi_quick_math(TripleSocketTool):
             else:
                 self.target_sk2 = None #为了方便高级取消而清空.
                 #对于第三个, 如果不是前两个的节点.
-                skOut1 = opt_ftg_socket(self.target_sk1)
-                for ftg in list_ftgSksIn:
+                skOut1 = opt_tar_socket(self.target_sk1)
+                for ftg in tar_sks_in:
                     skIn = ftg.tar
                     if skIn.type in set_vqmtSkTypeFields:
                         tgl0 = (not skOut0)or(skOut0.node!=skIn.node)
@@ -128,8 +128,8 @@ class NODE_OT_voronoi_quick_math(TripleSocketTool):
         return (self.target_sk0)and(self.isCanFromOne or self.target_sk1)
     def run(self, event, prefs, tree):
         VqmtData.sk0 = self.target_sk0.tar
-        VqmtData.sk1 = opt_ftg_socket(self.target_sk1)
-        VqmtData.sk2 = opt_ftg_socket(self.target_sk2)
+        VqmtData.sk1 = opt_tar_socket(self.target_sk1)
+        VqmtData.sk2 = opt_tar_socket(self.target_sk2)
         VqmtData.qmSkType = VqmtData.sk0.type #注意: 只有字段套接字是更高级别的问题.
         VqmtData.qmTrueSkType = VqmtData.qmSkType #这个信息对于“最后的操作”是必需的.
         self.int_default_float = False

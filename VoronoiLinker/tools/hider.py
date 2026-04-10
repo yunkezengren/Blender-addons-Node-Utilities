@@ -3,6 +3,7 @@ from enum import Enum
 import bpy
 from ..base_tool import unhide_node_reassign, AnyTargetTool
 from ..common_func import sk_label_or_name
+from ..common_class import Target
 from ..utils.node import MinFromFtgs
 from ..utils.ui import draw_hand_split_prop, LyAddLeftProp
 
@@ -136,17 +137,17 @@ class NODE_OT_voronoi_hider(AnyTargetTool):
             match eMode(self.toolMode):
                 case eMode.HIDE_SOCKET|eMode.HIDE_VALUE:
                     # 对于套接字模式, 折叠处理和所有其他一样.
-                    list_ftgSksIn, list_ftgSksOut = self.get_nearest_sockets(nd, cur_x_off=0)
-                    def GetNotLinked(list_ftgSks): #Findanysk.
-                        for ftg in list_ftgSks:
+                    tar_sks_in, tar_sks_out = self.get_nearest_sockets(nd, cur_x_off=0)
+                    def not_linked_tars(tar_sks: list[Target]): #Findanysk.
+                        for ftg in tar_sks:
                             if not ftg.tar.vl_sold_is_final_linked_cou:
                                 return ftg
-                    ftgSkIn = GetNotLinked(list_ftgSksIn)
-                    ftgSkOut = GetNotLinked(list_ftgSksOut)
+                    tar_sk_in = not_linked_tars(tar_sks_in)
+                    tar_sk_out = not_linked_tars(tar_sks_out)
                     if self.toolMode==eMode.HIDE_SOCKET.value:
-                        self.target_any = MinFromFtgs(ftgSkOut, ftgSkIn)
+                        self.target_any = MinFromFtgs(tar_sk_out, tar_sk_in)
                     else:
-                        self.target_any = ftgSkIn
+                        self.target_any = tar_sk_in
                     unhide_node_reassign(nd, self, cond=self.target_any) # 对于套接字模式也需要重绘, 因为连接的套接字节点可能是折叠的.
                 case eMode.HIDE_NODE:
                     # 对于节点模式, 展开光标下的所有节点或不展开, 没有区别.

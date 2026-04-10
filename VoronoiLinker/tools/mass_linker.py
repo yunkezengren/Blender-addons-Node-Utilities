@@ -23,17 +23,17 @@ class NODE_OT_voronoi_mass_linker(BaseTool):  # "猫狗合体", 既不是节点,
         if not self.ndTar0:
             TemplateDrawSksToolHh(drata, None, None, isClassicFlow=True, tool_name="MassLinker")
         elif (self.ndTar0)and(not self.ndTar1):
-            list_ftgSksOut = self.get_nearest_sockets(self.ndTar0)[1]
-            if list_ftgSksOut:
+            tar_sks_out = self.get_nearest_sockets(self.ndTar0)[1]
+            if tar_sks_out:
                 #不知道它会连接到谁, 以及会成功连接到谁 -- 从所有接口开始绘制.
-                TemplateDrawSksToolHh(drata, *list_ftgSksOut, isDrawText=False, isClassicFlow=True, tool_name="MassLinker") #"全体到光标!"
+                TemplateDrawSksToolHh(drata, *tar_sks_out, isDrawText=False, isClassicFlow=True, tool_name="MassLinker") #"全体到光标!"
             else:
                 TemplateDrawSksToolHh(drata, None, None, isClassicFlow=True, tool_name="MassLinker")
         else:
-            list_ftgSksOut = self.get_nearest_sockets(self.ndTar0)[1]
-            list_ftgSksIn = self.get_nearest_sockets(self.ndTar1)[0]
-            for ftgo in list_ftgSksOut:
-                for ftgi in list_ftgSksIn:
+            tar_sks_out = self.get_nearest_sockets(self.ndTar0)[1]
+            tar_sks_in = self.get_nearest_sockets(self.ndTar1)[0]
+            for ftgo in tar_sks_out:
+                for ftgi in tar_sks_in:
                     #因为是“批量”的 -- 标准必须自动化, 并对所有情况都统一.
                     if CompareSkLabelName(ftgo.tar, ftgi.tar, self.prefs.vmltIgnoreCase): #只与名称相同的接口连接.
                         tgl = False
@@ -66,8 +66,8 @@ class NODE_OT_voronoi_mass_linker(BaseTool):  # "猫狗合体", 既不是节点,
                 self.ndTar1 = None #这里的输入节点在失败时每次都会被清空.
             #注意: 第一次找到 ndTar1 时 -- list_equalFtgSks == [].
             if self.ndTar1:
-                list_ftgSksIn = self.get_nearest_sockets(self.ndTar1)[0] #仅为了展开的条件. 也可以用 list_equalFtgSks, 但又会有跳帧问题.
-                unhide_node_reassign(nd, self, cond=list_ftgSksIn, flag=False)
+                tar_sks_in = self.get_nearest_sockets(self.ndTar1)[0] #仅为了展开的条件. 也可以用 list_equalFtgSks, 但又会有跳帧问题.
+                unhide_node_reassign(nd, self, cond=tar_sks_in, flag=False)
             break
     def can_run(self):
         return self.list_equalFtgSks

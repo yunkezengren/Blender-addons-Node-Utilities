@@ -11,7 +11,7 @@ from .common_class import Target
 from .globals import set_utilTypeSkFields
 from .preference import pref, VoronoiAddonPrefs
 from .utils.drawing import DrawDebug, TemplateDrawNodeFull, TemplateDrawSksToolHh, DrawDataTool
-from .utils.node import nearest_nodes_ftg, nearest_sockets_ftg, RestoreCollapsedNodes, SaveCollapsedNodes
+from .utils.node import nearest_nodes_tar, nearest_sockets_tar, RestoreCollapsedNodes, SaveCollapsedNodes
 from .utils.solder import solder_sk_links, solder_theme_cols
 
 def get_operator_keymap_item(self: type["BaseOperator"], event: Event):
@@ -69,11 +69,11 @@ class BaseTool(BaseOperator, VlToolMixin):  #0
 
     def get_nearest_nodes(self, includePoorNodes=False, cur_x_off: float = 0):
         self.cursorLoc.x += cur_x_off  # 唤起位置偏移
-        return nearest_nodes_ftg(self.tree.nodes[:], self.cursorLoc, self.uiScale, includePoorNodes)
+        return nearest_nodes_tar(self.tree.nodes[:], self.cursorLoc, self.uiScale, includePoorNodes)
 
     def get_nearest_sockets(self, nd: Node, cur_x_off: float = 0):
         self.cursorLoc.x += cur_x_off  #     唤起位置偏移
-        return nearest_sockets_ftg(nd, self.cursorLoc, self.uiScale)
+        return nearest_sockets_tar(nd, self.cursorLoc, self.uiScale)
 
     def find_targets_base(self, flag: bool):
         if self.tree:

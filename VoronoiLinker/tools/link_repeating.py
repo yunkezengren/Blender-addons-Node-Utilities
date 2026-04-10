@@ -41,9 +41,9 @@ class NODE_OT_voronoi_link_repeating(AnyTargetTool):  # 分离成单独的工具
             if nd==skLastOut.node: # 排除自身节点.
                 break #continue
             if self.toolMode==eMode.SOCKET.value:
-                list_ftgSksIn, list_ftgSksOut = self.get_nearest_sockets(nd, cur_x_off=-Cursor_X_Offset)
+                tar_sks_in, tar_sks_out = self.get_nearest_sockets(nd, cur_x_off=-Cursor_X_Offset)
                 if skLastOut:
-                    for ftg in list_ftgSksIn:
+                    for ftg in tar_sks_in:
                         if (skLastOut.bl_idname==ftg.blid)or(IsSkBetweenFields(skLastOut, ftg.tar)):
                             can = True
                             for lk in ftg.tar.vl_sold_links_final:

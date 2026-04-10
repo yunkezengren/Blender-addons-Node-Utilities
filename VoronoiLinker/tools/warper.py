@@ -24,22 +24,22 @@ class NODE_OT_voronoi_warper(SingleSocketTool):
     isSelectReroutes: bpy.props.IntProperty(name="Select reroutes", default=1, min=-1, max=1, description="-1 – All deselect.\n 0 – Do nothing.\n 1 – Selecting linked reroutes")
     def find_targets_tool(self, _isFirstActivation, prefs, tree):
         def FindAnySk():
-            ftgSkOut, ftgSkIn = None, None
-            for ftg in list_ftgSksOut:
+            tar_sk_out, tar_sk_in = None, None
+            for ftg in tar_sks_out:
                 if (ftg.tar.vl_sold_is_final_linked_cou)and(ftg.blid!='NodeSocketVirtual'):
-                    ftgSkOut = ftg
+                    tar_sk_out = ftg
                     break
-            for ftg in list_ftgSksIn:
+            for ftg in tar_sks_in:
                 if (ftg.tar.vl_sold_is_final_linked_cou)and(ftg.blid!='NodeSocketVirtual'):
-                    ftgSkIn = ftg
+                    tar_sk_in = ftg
                     break
-            return MinFromFtgs(ftgSkOut, ftgSkIn)
+            return MinFromFtgs(tar_sk_out, tar_sk_in)
         self.target_sk = None
         for tar_nd in self.get_nearest_nodes(cur_x_off=0):
             nd = tar_nd.tar
-            list_ftgSksIn, list_ftgSksOut = self.get_nearest_sockets(nd, cur_x_off=0)
+            tar_sks_in, tar_sks_out = self.get_nearest_sockets(nd, cur_x_off=0)
             if nd.type=='REROUTE': #todo0NA 以及这个要加入到通用的通用部分中.
-                self.target_sk = list_ftgSksIn[0] if self.cursorLoc.x<nd.location.x else list_ftgSksOut[0]
+                self.target_sk = tar_sks_in[0] if self.cursorLoc.x<nd.location.x else tar_sks_out[0]
             else:
                 self.target_sk = FindAnySk()
             if self.target_sk:

@@ -3,7 +3,7 @@ from enum import Enum
 import bpy
 from ..base_tool import unhide_node_reassign, PairSocketTool
 from ..utils.drawing import TemplateDrawSksToolHh
-from ..utils.node import MinFromFtgs, opt_ftg_socket
+from ..utils.node import MinFromFtgs, opt_tar_socket
 
 class SwapperMode(Enum):
     SWAP = 'SWAP'
@@ -40,28 +40,28 @@ class NODE_OT_voronoi_swapper(PairSocketTool):
         for tar_nd in self.get_nearest_nodes(cur_x_off=0):
             nd = tar_nd.tar
             unhide_node_reassign(nd, self, cond=isFirstActivation, flag=True)
-            list_ftgSksIn, list_ftgSksOut = self.get_nearest_sockets(nd, cur_x_off=0)
+            tar_sks_in, tar_sks_out = self.get_nearest_sockets(nd, cur_x_off=0)
             #基于Mixer的标准.
             if isFirstActivation:
-                ftgSkOut, ftgSkIn = None, None
-                for ftg in list_ftgSksOut: #todo0NA 但这不就是Findanysk吗!?
+                tar_sk_out, tar_sk_in = None, None
+                for ftg in tar_sks_out: #todo0NA 但这不就是Findanysk吗!?
                     if ftg.blid!='NodeSocketVirtual':
-                        ftgSkOut = ftg
+                        tar_sk_out = ftg
                         break
-                for ftg in list_ftgSksIn:
+                for ftg in tar_sks_in:
                     if ftg.blid!='NodeSocketVirtual':
-                        ftgSkIn = ftg
+                        tar_sk_in = ftg
                         break
                 #也允许对输入接口使用“添加”功能，但仅限于多输入接口，因为这很明显
-                if (self.toolMode==eMode.ADD.value)and(ftgSkIn):
+                if (self.toolMode==eMode.ADD.value)and(tar_sk_in):
                     #按类型检查，而不是按'is_multi_input'，这样就可以从常规输入添加到多输入.
-                    if (ftgSkIn.blid not in ('NodeSocketGeometry','NodeSocketString')):#or(not ftgSkIn.tar.is_multi_input): #没有第二个条件可能性更多.
-                        ftgSkIn = None
-                self.target_sk0 = MinFromFtgs(ftgSkOut, ftgSkIn)
+                    if (tar_sk_in.blid not in ('NodeSocketGeometry','NodeSocketString')):#or(not tar_sk_in.tar.is_multi_input): #没有第二个条件可能性更多.
+                        tar_sk_in = None
+                self.target_sk0 = MinFromFtgs(tar_sk_out, tar_sk_in)
             #这里积累了很多奇怪的关于None等的检查 -- 这是我将自己发明的许多高级函数连接在一起的结果.
-            skOut0 = opt_ftg_socket(self.target_sk0)
+            skOut0 = opt_tar_socket(self.target_sk0)
             if skOut0:
-                for ftg in list_ftgSksOut if skOut0.is_output else list_ftgSksIn:
+                for ftg in tar_sks_out if skOut0.is_output else tar_sks_in:
                     if ftg.blid=='NodeSocketVirtual':
                         continue
                     if (self.isCanAnyType)or(skOut0.bl_idname==ftg.blid)or(self.check_between_sk_fields(skOut0, ftg.tar)):

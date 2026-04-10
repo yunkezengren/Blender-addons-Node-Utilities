@@ -217,22 +217,22 @@ def DrawDebug(self, drata: DrawDataTool):
     if not self.tree:
         return
     col = Color4((1.0, 0.5, 0.5, 1.0))
-    list_ftgNodes = self.get_nearest_nodes(cur_x_off=0)
-    if not list_ftgNodes:
+    list_tarNodes = self.get_nearest_nodes(cur_x_off=0)
+    if not list_tarNodes:
         return
-    DrawWorldStick(drata, drata.cursorLoc, list_ftgNodes[0].pos, col, col)
-    for cyc, li in enumerate(list_ftgNodes):
+    DrawWorldStick(drata, drata.cursorLoc, list_tarNodes[0].pos, col, col)
+    for cyc, li in enumerate(list_tarNodes):
         DrawVlWidePoint(drata, li.pos, col1=col, col2=col, resl=4, forciblyCol=True)
         DebugTextDraw(drata.VecUiViewToReg(li.pos), str(cyc)+" Node goal here", col.x, col.y, col.z)
-    list_ftgSksIn, list_ftgSksOut = self.get_nearest_sockets(list_ftgNodes[0].tar)
-    if list_ftgSksIn:
+    tar_sks_in, tar_sks_out = self.get_nearest_sockets(list_tarNodes[0].tar)
+    if tar_sks_in:
         col = Color4((0.5, 1, 0.5, 1))
-        DrawVlWidePoint(drata, list_ftgSksIn[0].pos, col1=col, col2=col, resl=4, forciblyCol=True)
-        DebugTextDraw(drata.VecUiViewToReg(list_ftgSksIn[0].pos), "Nearest socketIn here", 0.5, 1, 0.5)
-    if list_ftgSksOut:
+        DrawVlWidePoint(drata, tar_sks_in[0].pos, col1=col, col2=col, resl=4, forciblyCol=True)
+        DebugTextDraw(drata.VecUiViewToReg(tar_sks_in[0].pos), "Nearest socketIn here", 0.5, 1, 0.5)
+    if tar_sks_out:
         col = Color4((0.5, 0.5, 1, 1))
-        DrawVlWidePoint(drata, list_ftgSksOut[0].pos, col1=col, col2=col, resl=4, forciblyCol=True)
-        DebugTextDraw(drata.VecUiViewToReg(list_ftgSksOut[0].pos), "Nearest socketOut here", 0.75, 0.75, 1)
+        DrawVlWidePoint(drata, tar_sks_out[0].pos, col1=col, col2=col, resl=4, forciblyCol=True)
+        DebugTextDraw(drata.VecUiViewToReg(tar_sks_out[0].pos), "Nearest socketOut here", 0.75, 0.75, 1)
 
 def TemplateDrawNodeFull(drata: DrawDataTool, tar_nd: Target, *, side=1, tool_name=""): # 模板重新思考过了; 很好. 现在它变得像其他所有的一样了.. 至少没有旧版本中的意大利面条式代码了.
     #todo1v6 模板只有一个 ftg, 没有分层, 两个调用会从一个绘制点和线到另一个的文本上方.
@@ -276,7 +276,7 @@ def TemplateDrawNodeFull(drata: DrawDataTool, tar_nd: Target, *, side=1, tool_na
 # 在旧版本中的硬核之后, 使用这个模板简直是享受 (甚至不要看那里, 那里简直是地狱).
 def TemplateDrawSksToolHh(
     drata: DrawDataTool,
-    *args_ftgSks: Target,
+    *args_tarSks: Target,
     sideMarkHh=1,
     isDrawText=True,
     isClassicFlow=False,
@@ -285,12 +285,12 @@ def TemplateDrawSksToolHh(
 ):  # 模板重新思考过了, 万岁. 感觉上并没有变得更好.
     def GetPosFromFtg(ftg: Target):
         return ftg.pos+Vec2((drata.dsPointOffsetX*ftg.dir, 0.0))
-    list_ftgSks = [ar for ar in args_ftgSks if ar]
+    tar_sks = [ar for ar in args_tarSks if ar]
     cursorLoc = drata.cursorLoc
     # 缺少目标
-    if not list_ftgSks: # 方便地只为了现在不存在的 DrawDoubleNone() 使用模板, 通过向 args_ftgSks 发送 `None, None`.
+    if not tar_sks: # 方便地只为了现在不存在的 DrawDoubleNone() 使用模板, 通过向 args_tarSks 发送 `None, None`.
         col = drata.dsCursorColor if drata.dsIsColoredPoint else drata.dsUniformColor
-        isPair = len(args_ftgSks)==2
+        isPair = len(args_tarSks)==2
         vec = Vec2((drata.dsPointOffsetX*0.75, 0)) if (isPair)and(isClassicFlow) else Vec2((0.0, 0.0))
         if (isPair)and(drata.dsIsDrawLine)and(drata.dsIsAlwaysLine):
             DrawWorldStick(drata, cursorLoc-vec, cursorLoc+vec, col, col)
@@ -300,9 +300,9 @@ def TemplateDrawSksToolHh(
                 DrawVlWidePoint(drata, cursorLoc+vec, col1=col, col2=col)
         return
     # 经典流程线
-    if (isClassicFlow)and(drata.dsIsDrawLine)and(len(list_ftgSks)==2):
-        ftg1 = list_ftgSks[0]
-        ftg2 = list_ftgSks[1]
+    if (isClassicFlow)and(drata.dsIsDrawLine)and(len(tar_sks)==2):
+        ftg1 = tar_sks[0]
+        ftg2 = tar_sks[1]
         if ftg1.dir*ftg2.dir<0: # 对于 VMLT, 为了不为它的两个套接字绘制, 它们在同一侧.
             if drata.dsIsColoredLine:
                 col1 = get_sk_color_safe(ftg1.tar)
@@ -311,9 +311,9 @@ def TemplateDrawSksToolHh(
                 col1 = col2 = drata.dsUniformColor
             DrawWorldStick(drata, GetPosFromFtg(ftg1), GetPosFromFtg(ftg2), col1, col2)
     # 主要部分:
-    isOne = len(list_ftgSks)==1
+    isOne = len(tar_sks)==1
 
-    for ftg in list_ftgSks:
+    for ftg in tar_sks:
         if (drata.dsIsDrawLine)and( (not isClassicFlow)or(isOne and drata.dsIsAlwaysLine) ):
             if drata.dsIsColoredLine:
                 col1 = get_sk_color_safe(ftg.tar)
@@ -327,13 +327,13 @@ def TemplateDrawSksToolHh(
             DrawVlWidePoint(drata, GetPosFromFtg(ftg), col1=Color4(clamp_color4(get_sk_color(ftg.tar))), col2=Color4(get_sk_color_safe(ftg.tar)))
     # 文本
     if isDrawText:  # 文本应该在所有其他 ^ 之上.
-        list_ftgSksIn = [ftg for ftg in list_ftgSks if ftg.dir < 0]
-        list_ftgSksOut = [ftg for ftg in list_ftgSks if ftg.dir > 0]
+        tar_sks_in = [ftg for ftg in tar_sks if ftg.dir < 0]
+        tar_sks_out = [ftg for ftg in tar_sks if ftg.dir > 0]
         x_offset = 0
         soldOverrideDir = abs(sideMarkHh) > 1 and (1 if sideMarkHh > 0 else -1)
-        for list_ftgs in list_ftgSksIn, list_ftgSksOut:  # "累积", 天才! 意大利面条式代码的头疼消失了.
-            hig = len(list_ftgs) - 1
-            for cyc, ftg in enumerate(list_ftgs):
+        for list_tars in tar_sks_in, tar_sks_out:  # "累积", 天才! 意大利面条式代码的头疼消失了.
+            hig = len(list_tars) - 1
+            for cyc, ftg in enumerate(list_tars):
                 ofsY = 0.75*hig - 1.5*cyc
                 dir = soldOverrideDir if soldOverrideDir else ftg.dir * sideMarkHh
                 x_offset = drata.dsDistFromCursor * dir
@@ -353,7 +353,7 @@ def TemplateDrawSksToolHh(
     # if not isDrawText:      # 屎山的形成
     #     cursorLoc2 = cursorLoc.copy() + Vec2((0, 50))
     #     ftg_show_name = copy.copy(ftg)
-    #     txt_col = node_tag_color(list_ftgSks[0].tar.node)
+    #     txt_col = node_tag_color(tar_sks[0].tar.node)
     #     DrawVlSkText(drata, cursorLoc2, (0, 0), ftg_show_name, tool_color=txt_col)
     #     # DrawWorldText(drata, drata.cursorLoc, (0, 0), tool_name, text_color=colTx, colBg=colTx)
 

@@ -27,15 +27,15 @@ class NODE_OT_voronoi_call_node_pie(AnyTargetTool):
             ftg_sockets.extend(ftg_sks_in)
             ftg_sockets.extend(ftg_sks_out)
         ftg_sockets.sort(key=lambda soc: soc.dist)
-        near_ftg_soc = None
+        near_tar_sk = None
         for ftg_sk in ftg_sockets:
             if ftg_sk.blid != "NodeSocketVirtual":
-                near_ftg_soc = ftg_sk
+                near_tar_sk = ftg_sk
                 break
-        self.target_any = near_ftg_soc
-        if near_ftg_soc:
+        self.target_any = near_tar_sk
+        if near_tar_sk:
             unhide_node_reassign(
-                near_ftg_soc.tar.node, self,
+                near_tar_sk.tar.node, self,
                 cond=self.target_any)  #Для режима сокетов тоже нужно перерисовывать, ибо нод у прицепившегося сокета может быть свёрнут.
 
     def run(self, event, prefs, tree):

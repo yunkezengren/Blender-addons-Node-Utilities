@@ -6,7 +6,7 @@ from ..common_func import DisplayMessage, SetPieData
 from ..globals import Cursor_X_Offset
 from ..utils.color import get_sk_color_safe, power_color4
 from ..utils.drawing import TemplateDrawSksToolHh
-from ..utils.node import opt_ftg_socket
+from ..utils.node import opt_tar_socket
 from ..utils.ui import draw_hand_split_prop, draw_panel_column, draw_hand_split_prop
 from .mixer_sub import DoMix, mixer_default, mixer_tree_sk_nodes, NODE_MT_mixer_pie
 
@@ -30,19 +30,19 @@ class NODE_OT_voronoi_mixer(TripleSocketTool):
         for tar_nd in self.get_nearest_nodes(cur_x_off=Cursor_X_Offset):
             nd = tar_nd.tar
             unhide_node_reassign(nd, self, cond=isFirstActivation, flag=True)
-            list_ftgSksOut = self.get_nearest_sockets(nd, cur_x_off=Cursor_X_Offset)[1]
-            if not list_ftgSksOut:
+            tar_sks_out = self.get_nearest_sockets(nd, cur_x_off=Cursor_X_Offset)[1]
+            if not tar_sks_out:
                 continue
             #节点过滤器没有必要.
             #这个工具会触发第一个遇到的任何输出 (现在除了虚拟接口).
             if isFirstActivation:
-                self.target_sk0 = list_ftgSksOut[0] if list_ftgSksOut else None
+                self.target_sk0 = tar_sks_out[0] if tar_sks_out else None
             #对于第二个, 根据条件:
-            skOut0 = opt_ftg_socket(self.target_sk0)
+            skOut0 = opt_tar_socket(self.target_sk0)
             # todo 做一些接口类型判断,比如 一个是 geometry 剩下的也要是
             if skOut0:
                 if not self.canPickThird:
-                    for ftg in list_ftgSksOut:
+                    for ftg in tar_sks_out:
                         skOut1 = ftg.tar
                         if skOut0 == skOut1:
                             break
@@ -60,8 +60,8 @@ class NODE_OT_voronoi_mixer(TripleSocketTool):
                     if self.target_sk1:
                         break
                 else:
-                    skOut1 = opt_ftg_socket(self.target_sk1)
-                    for ftg in list_ftgSksOut:
+                    skOut1 = opt_tar_socket(self.target_sk1)
+                    for ftg in tar_sks_out:
                         self.target_sk2 = ftg
                         if (ftg.tar == skOut0) or (ftg.tar == skOut1):
                             self.target_sk2 = None
@@ -82,10 +82,10 @@ class NODE_OT_voronoi_mixer(TripleSocketTool):
             return self.target_sk1
     def run(self, event, prefs, tree):
         VmtData.sk0 = self.target_sk0.tar
-        socket1 = opt_ftg_socket(self.target_sk1)
+        socket1 = opt_tar_socket(self.target_sk1)
         VmtData.sk1 = socket1
         #对虚拟接口的支持已关闭; 只从第一个读取
-        VmtData.sk2 = opt_ftg_socket(self.target_sk2)
+        VmtData.sk2 = opt_tar_socket(self.target_sk2)
         VmtData.skType = VmtData.sk0.type if VmtData.sk0.bl_idname!='NodeSocketVirtual' else socket1.type
         VmtData.isHideOptions = self.isHideOptions
         VmtData.isPlaceImmediately = self.isPlaceImmediately
