@@ -13,7 +13,7 @@ from .utils.drawing import DrawDebug, TemplateDrawNodeFull, TemplateDrawSksToolH
 from .utils.node import GetNearestNodesFtg, GetNearestSocketsFtg, RestoreCollapsedNodes, SaveCollapsedNodes
 from .utils.solder import solder_sk_links, solder_theme_cols
 
-def get_operator_keymap_item(self: type["VoronoiOpTool"], event: Event):
+def get_operator_keymap_item(self: type["BaseOperator"], event: Event):
     # Todo00: 有没有更正确的设计或方法?
     # 操作符可以有多种调用组合, 所有这些组合在 `keymap_items` 中的键都相同, 所以我们手动遍历所有
     idname = getattr(bpy.types, self.bl_idname).bl_idname
@@ -24,7 +24,7 @@ def get_operator_keymap_item(self: type["VoronoiOpTool"], event: Event):
             # 注意: 也可能有两个完全相同的调用热键, 但Blender只会执行其中一个 (至少对VL是这样), 即列表中排在前面的那个.
             return item  # 这个函数也只返回列表中的第一个.
 
-class VoronoiOpTool(Operator):
+class BaseOperator(Operator):
     bl_options = {'UNDO'}  # 手动创建的链接可以撤销, 所以在 VL 中也应如此. 对所有工具都一样.
 
     @classmethod
@@ -48,7 +48,7 @@ class VlToolMixin: #-1
     @staticmethod
     def draw_in_pref_settings(col: UILayout, prefs: VoronoiAddonPrefs): pass
 
-class VlToolBase(VoronoiOpTool, VlToolMixin):  #0
+class BaseTool(BaseOperator, VlToolMixin):  #0
     usefulnessForUndefTree = False
     usefulnessForNoneTree = False
     canDrawInAddonDiscl = True
@@ -177,7 +177,8 @@ class VlToolBase(VoronoiOpTool, VlToolMixin):  #0
         context.window_manager.modal_handler_add(self)
         return {'RUNNING_MODAL'}
 
-class VlToolSocket(VlToolBase):  #1
+# One  Pair  Triple
+class Target1SocketTool(BaseTool):  #1
 
     def CallbackDrawTool(self, drata: VlDrawData):
         TemplateDrawSksToolHh(drata, self.fotagoSk)
@@ -188,7 +189,7 @@ class VlToolSocket(VlToolBase):  #1
     def InitToolPre(self, event: Event):
         self.fotagoSk = None
 
-class VlToolPairSocket(VlToolSocket):  #2
+class Target2SocketTool(Target1SocketTool):  #2
     isCanBetweenFields: bpy.props.BoolProperty(name="Can between fields",
                                                default=True,
                                                description="Tool can connecting between different field types")
@@ -205,7 +206,7 @@ class VlToolPairSocket(VlToolSocket):  #2
         self.fotagoSk0 = None
         self.fotagoSk1 = None
 
-class VlToolTripleSocket(VlToolPairSocket):  #3
+class Target3SocketTool(Target2SocketTool):  #3
 
     def ModalTool(self, event: Event, prefs: VoronoiAddonPrefs):
         if (self.isStartWithModf) and (not self.canPickThird):  # 谁会真的通过按下和释放某个修饰键来切换到选择第三个套接字呢?.
@@ -217,7 +218,7 @@ class VlToolTripleSocket(VlToolPairSocket):  #3
         self.canPickThird = False
         self.isStartWithModf = (event.shift) or (event.ctrl) or (event.alt)
 
-class VlToolNode(VlToolBase):  #1
+class Target1NodeTool(BaseTool):  #1
 
     def CallbackDrawTool(self, drata: VlDrawData):
         TemplateDrawNodeFull(drata, self.fotagoNd)
@@ -228,7 +229,7 @@ class VlToolNode(VlToolBase):  #1
     def InitToolPre(self, event: Event):
         self.fotagoNd = None
 
-class VlToolPairNode(VlToolSocket):  #2
+class Target2NodeTool(Target1SocketTool):  #2
 
     def MatterPurposePoll(self):
         return self.fotagoNd0 and self.fotagoNd1
@@ -237,7 +238,7 @@ class VlToolPairNode(VlToolSocket):  #2
         self.fotagoNd0 = None
         self.fotagoNd1 = None
 
-class VlToolAnyTarget(VlToolSocket, VlToolNode):  #2
+class AnyTargetTool(Target1SocketTool, Target1NodeTool):  #2
 
     @staticmethod
     def TemplateDrawAny(drata: VlDrawData, ftg: Fotago, *, cond: bool, tool_name=""):
@@ -252,7 +253,7 @@ class VlToolAnyTarget(VlToolSocket, VlToolNode):  #2
     def InitToolPre(self, event: Event):
         self.fotagoAny = None
 
-def unhide_node_reassign(nd: Node, self: VlToolBase, *, cond: bool, flag=None):  # 我是多么鄙视折叠起来的节点啊.
+def unhide_node_reassign(nd: Node, self: BaseTool, *, cond: bool, flag=None):  # 我是多么鄙视折叠起来的节点啊.
     if nd.hide and cond:
         nd.hide = False
         # 注意: 在 NextAssignmentTool 的拓扑结构中要小心无限循环.
@@ -274,7 +275,7 @@ class EdgePan:
     zoomFac = 0.5
     speed = 1.0
 
-def edge_pan_init(self: VlToolBase, area: Area):
+def edge_pan_init(self: BaseTool, area: Area):
     EdgePan.area = area
     EdgePan.ctCur = self.ctView2d.cur
     EdgePan.isWorking = True

@@ -10,7 +10,7 @@ from .tools.link_repeating import LinkRepeatingMode, NODE_OT_voronoi_link_repeat
 from .tools.linker import NODE_OT_voronoi_linker
 from .tools.links_transfer import NODE_OT_voronoi_links_transfer
 from .tools.mass_linker import NODE_OT_voronoi_mass_linker
-from .tools.matrix_convert import PIE_MT_Combine_Matrix, PIE_MT_Convert_Rotation_To, PIE_MT_Convert_To_Rotation, PIE_MT_Separate_Matrix, Rot_or_Mat_Convert
+from .tools.matrix_convert import PIE_MT_Combine_Matrix, PIE_MT_Convert_Rotation_To, PIE_MT_Convert_To_Rotation, PIE_MT_Separate_Matrix, NODE_OT_rot_or_mat_convert
 from .tools.mixer import NODE_OT_voronoi_mixer
 from .tools.mixer_sub import VmtOpMixer, VmtPieMixer
 from .tools.pie_math import VqmtOpMain, VqmtPieMath
@@ -216,7 +216,7 @@ _classes = [
     VqmtPieMath,
     VestOpBox,
     VestPieBox,
-    Rot_or_Mat_Convert,
+    NODE_OT_rot_or_mat_convert,
     PIE_MT_Convert_To_Rotation,
     PIE_MT_Convert_Rotation_To,
     PIE_MT_Separate_Matrix,

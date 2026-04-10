@@ -1,7 +1,6 @@
 import bpy
-from bpy.app.translations import pgettext_iface as _iface
-from bpy.types import EnumProperty, UILayout, Node
-from ..base_tool import VoronoiOpTool, VlToolNode
+from bpy.types import EnumProperty, UILayout, Node, Menu
+from ..base_tool import BaseOperator, Target1NodeTool
 from ..common_class import VestData
 from ..utils.drawing import TemplateDrawNodeFull
 from ..utils.node import node_enum_props, node_visible_menu_inputs, SelectAndActiveNdOnly
@@ -87,7 +86,7 @@ def draw_enum_property_selectors(parent_layout: UILayout, domain_layout=None):
 
     # 在我最初的想法中, 我错误地称这个工具为“Prop Selector”. 需要想办法区分节点的通用属性和在选项中绘制的属性.
     # 幸运的是, 每个节点没有不同的枚举...
-class VestOpBox(VoronoiOpTool):
+class VestOpBox(BaseOperator):
     bl_idname = 'node.voronoi_enum_selector_box'
     bl_label = "Enum Selector"
     rename_node:   bpy.props.BoolProperty(default=True, description="Rename nodes when hiding options, currently only support Chinese")
@@ -105,7 +104,7 @@ class VestOpBox(VoronoiOpTool):
     def cancel(self, context):
         run_rename_node(self.rename_node, VestData.nd)
 
-class VestPieBox(bpy.types.Menu):
+class VestPieBox(Menu):
     bl_idname = 'VL_MT_Voronoi_enum_selector_box'
     bl_label = "Enum Selector"
     def draw(self, _context):
@@ -172,7 +171,7 @@ def run_rename_node(rename: bool, node: Node):
     if rename and bpy.app.translations.locale in ["zh_Hans", "zh_CN", "zh_HANS", "ZH_HANT"]:
         rename_node_based_option(node)
 
-class NODE_OT_voronoi_enum_selector(VlToolNode):
+class NODE_OT_voronoi_enum_selector(Target1NodeTool):
     bl_idname = 'node.voronoi_enum_selector'
     bl_label = "Voronoi Enum Selector"
     bl_description = "Tool for convenient lazy switching of enumeration properties.\nEliminates the need for mouse aiming, clicking, and then aiming and clicking again."

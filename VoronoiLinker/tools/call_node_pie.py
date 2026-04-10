@@ -1,8 +1,8 @@
 import bpy
-from ..base_tool import unhide_node_reassign, VlToolAnyTarget
+from ..base_tool import unhide_node_reassign, AnyTargetTool
 from ..common_class import Fotago
 
-class NODE_OT_voronoi_call_node_pie(VlToolAnyTarget):
+class NODE_OT_voronoi_call_node_pie(AnyTargetTool):
     """ Voronoi 联动 Node Pie """
     bl_idname = 'node.voronoi_call_node_pie'
     bl_label = "Voronoi Call Node Pie"

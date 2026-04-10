@@ -1,5 +1,5 @@
 import bpy
-from ..base_tool import unhide_node_reassign, VlToolSocket
+from ..base_tool import unhide_node_reassign, Target1SocketTool
 from ..utils.node import MinFromFtgs
 from ..utils.ui import draw_hand_split_prop
 
@@ -15,8 +15,7 @@ def GetSetOfKeysFromEvent(event, isSide=False):
         set_keys.add('OSKEY' if isSide else 'OSKEY')
     return set_keys
 
-
-class NODE_OT_voronoi_warper(VlToolSocket):
+class NODE_OT_voronoi_warper(Target1SocketTool):
     bl_idname = 'node.voronoi_warper'
     bl_label = "Voronoi Warper"
     bl_description = "A mini-branch of topology reverse-engineering (like VPT).\nTool for \"point jumps\" along sockets."

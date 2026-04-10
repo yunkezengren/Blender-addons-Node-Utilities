@@ -1,11 +1,11 @@
 import bpy
 from bpy.types import Context, NodeTree
-from ..base_tool import VoronoiOpTool
+from ..base_tool import BaseOperator
 from ..common_class import VmtData
 
 Convert_Data = VmtData()
 
-def Do_Rot_or_Mat_Convert(context: Context, isS: bool, isA: bool, node_type: str):
+def do_rot_or_mat_convert(context: Context, isS: bool, isA: bool, node_type: str):
     tree: NodeTree = context.space_data.edit_tree
     if not tree:
         return
@@ -40,13 +40,13 @@ def Do_Rot_or_Mat_Convert(context: Context, isS: bool, isA: bool, node_type: str
         tree.links.new(sk0, skOut)
         # if Convert_Data.sk1:     tree.links.new(Convert_Data.sk1, skOut)    # 只有sk0,旋转节口不会触发更多
 
-# Rot_or_Mat_Convert 只被快速维度和常量使用
-class Rot_or_Mat_Convert(VoronoiOpTool):
+# NODE_OT_rot_or_mat_convert 只被快速维度和常量使用
+class NODE_OT_rot_or_mat_convert(BaseOperator):
     bl_idname = "node.rot_or_mat_convert"
     bl_label = "Mixer Mixer"
     node_type: bpy.props.StringProperty()
     def invoke(self, context, event):
-        Do_Rot_or_Mat_Convert(context, event.shift, event.alt, self.node_type)
+        do_rot_or_mat_convert(context, event.shift, event.alt, self.node_type)
         return {'FINISHED'}
 
 class PIE_MT_Combine_Matrix(bpy.types.Menu):
@@ -55,9 +55,9 @@ class PIE_MT_Combine_Matrix(bpy.types.Menu):
 
     def draw(self, context):
         pie = self.layout.menu_pie()
-        op = pie.operator(Rot_or_Mat_Convert.bl_idname, text='Combine Transform')
+        op = pie.operator(NODE_OT_rot_or_mat_convert.bl_idname, text='Combine Transform')
         op.node_type = 'FunctionNodeCombineTransform'
-        op = pie.operator(Rot_or_Mat_Convert.bl_idname, text='Combine Matrix')
+        op = pie.operator(NODE_OT_rot_or_mat_convert.bl_idname, text='Combine Matrix')
         op.node_type = 'FunctionNodeCombineMatrix'
 
 class PIE_MT_Separate_Matrix(bpy.types.Menu):
@@ -66,9 +66,9 @@ class PIE_MT_Separate_Matrix(bpy.types.Menu):
 
     def draw(self, context):
         pie = self.layout.menu_pie()
-        op = pie.operator(Rot_or_Mat_Convert.bl_idname, text='Separate Matrix')
+        op = pie.operator(NODE_OT_rot_or_mat_convert.bl_idname, text='Separate Matrix')
         op.node_type = 'FunctionNodeSeparateMatrix'
-        op = pie.operator(Rot_or_Mat_Convert.bl_idname, text='Separate Transform')
+        op = pie.operator(NODE_OT_rot_or_mat_convert.bl_idname, text='Separate Transform')
         op.node_type = 'FunctionNodeSeparateTransform'
 
 class PIE_MT_Convert_Rotation_To(bpy.types.Menu):
@@ -77,13 +77,13 @@ class PIE_MT_Convert_Rotation_To(bpy.types.Menu):
 
     def draw(self, context):
         pie = self.layout.menu_pie()
-        op = pie.operator(Rot_or_Mat_Convert.bl_idname, text='Rotation > Euler')
+        op = pie.operator(NODE_OT_rot_or_mat_convert.bl_idname, text='Rotation > Euler')
         op.node_type = 'FunctionNodeRotationToEuler'
-        op = pie.operator(Rot_or_Mat_Convert.bl_idname, text='Rotation > Axis Angle')
+        op = pie.operator(NODE_OT_rot_or_mat_convert.bl_idname, text='Rotation > Axis Angle')
         op.node_type = 'FunctionNodeRotationToAxisAngle'
-        op = pie.operator(Rot_or_Mat_Convert.bl_idname, text='Rotation > Quaternion')
+        op = pie.operator(NODE_OT_rot_or_mat_convert.bl_idname, text='Rotation > Quaternion')
         op.node_type = 'FunctionNodeRotationToQuaternion'
-        op = pie.operator(Rot_or_Mat_Convert.bl_idname, text='Rotation > Separate XYZ')
+        op = pie.operator(NODE_OT_rot_or_mat_convert.bl_idname, text='Rotation > Separate XYZ')
         op.node_type = 'ShaderNodeSeparateXYZ'
 
 class PIE_MT_Convert_To_Rotation(bpy.types.Menu):
@@ -92,11 +92,11 @@ class PIE_MT_Convert_To_Rotation(bpy.types.Menu):
 
     def draw(self, context):
         pie = self.layout.menu_pie()
-        op = pie.operator(Rot_or_Mat_Convert.bl_idname, text='Euler > Rotation')
+        op = pie.operator(NODE_OT_rot_or_mat_convert.bl_idname, text='Euler > Rotation')
         op.node_type = 'FunctionNodeEulerToRotation'
-        op = pie.operator(Rot_or_Mat_Convert.bl_idname, text='Axis Angle > Rotation')
+        op = pie.operator(NODE_OT_rot_or_mat_convert.bl_idname, text='Axis Angle > Rotation')
         op.node_type = 'FunctionNodeAxisAngleToRotation'
-        op = pie.operator(Rot_or_Mat_Convert.bl_idname, text='Quaternion > Rotation')
+        op = pie.operator(NODE_OT_rot_or_mat_convert.bl_idname, text='Quaternion > Rotation')
         op.node_type = 'FunctionNodeQuaternionToRotation'
-        op = pie.operator(Rot_or_Mat_Convert.bl_idname, text='Combine XYZ > Rotation')
+        op = pie.operator(NODE_OT_rot_or_mat_convert.bl_idname, text='Combine XYZ > Rotation')
         op.node_type = 'ShaderNodeCombineXYZ'
