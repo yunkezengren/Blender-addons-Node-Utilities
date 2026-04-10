@@ -19,8 +19,8 @@ def VrtDoRecursiveAutomaticNodeTopologyOrganization(rada, ndRoot):
 class NODE_OT_voronoi_ranto(SingleNodeTool): #完成了.
     bl_idname = 'node.voronoi_ranto'
     bl_label = "Voronoi RANTO"
-    usefulnessForCustomTree = True
-    usefulnessForUndefTree = True
+    use_for_custom_tree = True
+    use_for_none_tree = True
     isOnlySelected: bpy.props.IntProperty(name="Only selected", default=0, min=0, max=2, description="0 – Any node.\n1 – Selected + reroutes.\n2 – Only selected")
     isUniWid:       bpy.props.BoolProperty(name="Uniform width", default=False)
     widthNd: bpy.props.IntProperty(name="Node width", default=140, soft_min=100, soft_max=180, subtype='FACTOR')
@@ -76,7 +76,7 @@ class NODE_OT_voronoi_ranto(SingleNodeTool): #完成了.
             for nd in rada.dict_ndTopoWorking:
                 nd.select = True
         #ndTar.location = ndTar.location #bpy.ops.wm.redraw_timer(type='DRAW', iterations=0)
-    def find_targets_tool(self, _isFirstActivation, prefs, tree):
+    def find_targets_tool(self, _is_first_active, prefs, tree):
         self.target_nd = None
         for tar_nd in self.get_nearest_nodes(cur_x_off=0):
             nd = tar_nd.tar

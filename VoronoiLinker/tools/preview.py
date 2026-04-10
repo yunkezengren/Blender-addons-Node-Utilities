@@ -363,7 +363,7 @@ class NODE_OT_voronoi_preview(SingleSocketTool):
     bl_idname = 'node.voronoi_preview'
     bl_label = "Voronoi Preview"
     bl_description = "The canonical tool for instant redirection of the tree's active output.\nEven more useful when used together with VPAT."
-    usefulnessForCustomTree = True
+    use_for_custom_tree = True
     isSelectingPreviewedNode: bpy.props.BoolProperty(name="Select previewed node", default=True)
     isTriggerOnlyOnLink:      bpy.props.BoolProperty(name="Only linked",           default=False, description="Trigger only on linked socket") #最初在 prefs 中.
     isEqualAnchorType:        bpy.props.BoolProperty(name="Equal anchor type",     default=False, description="Trigger only on anchor type sockets")
@@ -407,7 +407,7 @@ class NODE_OT_voronoi_preview(SingleSocketTool):
                 nd.color = col
             else:
                 return nd.color.copy()
-    def find_targets_tool(self, _isFirstActivation, prefs, tree):
+    def find_targets_tool(self, _is_first_active, prefs, tree):
         solder_sk_links(tree) #否则会崩溃.
         isGeoTree = tree.bl_idname=='GeometryNodeTree'
         if False:

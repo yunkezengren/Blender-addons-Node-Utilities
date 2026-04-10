@@ -14,28 +14,28 @@ class NODE_OT_voronoi_mixer(TripleSocketTool):
     bl_idname = 'node.voronoi_mixer'
     bl_label = "Voronoi Mixer"
     bl_description = "The canonical tool for frequent mixing needs.\nMost likely 70% will go to using \"Instance on Points\"."
-    usefulnessForCustomTree = False
-    canDrawInAppearance = True
+    use_for_custom_tree = False
+    can_draw_in_appearence = True
     isCanFromOne:       bpy.props.BoolProperty(name="Can from one socket", default=True) #放在第一位, 以便在 kmi 中与 VQMT 类似.
     isHideOptions:      bpy.props.BoolProperty(name="Hide node options",   default=False)
     isPlaceImmediately: bpy.props.BoolProperty(name="Place immediately",   default=False)
     def callback_draw_tool(self, drata):
         TemplateDrawSksToolHh(drata, self.target_sk0, self.target_sk1, self.target_sk2, tool_name="Quick Mix")
-    def find_targets_tool(self, isFirstActivation, prefs, tree):
-        if isFirstActivation:
+    def find_targets_tool(self, is_first_active, prefs, tree):
+        if is_first_active:
             self.target_sk0 = None #需要清空, 因为下面有两个 continue.
         if not self.canPickThird:
             self.target_sk1 = None
         soldReroutesCanInAnyType = prefs.vmtReroutesCanInAnyType
         for tar_nd in self.get_nearest_nodes(cur_x_off=Cursor_X_Offset):
             nd = tar_nd.tar
-            unhide_node_reassign(nd, self, cond=isFirstActivation, flag=True)
+            unhide_node_reassign(nd, self, cond=is_first_active, flag=True)
             tar_sks_out = self.get_nearest_sockets(nd, cur_x_off=Cursor_X_Offset)[1]
             if not tar_sks_out:
                 continue
             #节点过滤器没有必要.
             #这个工具会触发第一个遇到的任何输出 (现在除了虚拟接口).
-            if isFirstActivation:
+            if is_first_active:
                 self.target_sk0 = tar_sks_out[0] if tar_sks_out else None
             #对于第二个, 根据条件:
             skOut0 = opt_tar_socket(self.target_sk0)
@@ -94,7 +94,7 @@ class NODE_OT_voronoi_mixer(TripleSocketTool):
             VmtData.skType = "MATRIX"
             _sk = VmtData.sk1
         SetPieData(self, VmtData, prefs, power_color4(get_sk_color_safe(_sk), pw=2.2))
-        if not self.in_builtin_tree: #由于 usefulnessForCustomTree, 这是个无用的检查.
+        if not self.in_builtin_tree: #由于 use_for_custom_tree, 这是个无用的检查.
             return {'CANCELLED'} #如果操作地点不在经典编辑器中, 就直接退出. 因为经典编辑器对所有人都一样, 而插件编辑器有无数种.
 
         default_nodes = mixer_default.get(tree.bl_idname, None)

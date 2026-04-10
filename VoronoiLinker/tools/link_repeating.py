@@ -21,12 +21,12 @@ class NODE_OT_voronoi_link_repeating(AnyTargetTool):  # 分离成单独的工具
     bl_idname = 'node.voronoi_link_repeating'
     bl_label = "Voronoi Link Repeating"
     bl_description = "A full-fledged branch from VLT, repeats any previous link from most\nother tools. Provides convenience for \"one to many\" connections."
-    usefulnessForCustomTree = True
-    canDrawInAddonDiscl = False
+    use_for_custom_tree = True
+    can_draw_in_pref_setting = False
     toolMode: bpy.props.EnumProperty(name="Mode", default=eMode.SOCKET.value, items=ModeItems)
     def callback_draw_tool(self, drata):
-        self.TemplateDrawAny(drata, self.target_any, cond=self.toolMode==eMode.NODE.value)
-    def find_targets_tool(self, _isFirstActivation, prefs, tree):
+        self.template_draw_any(drata, self.target_any, cond=self.toolMode==eMode.NODE.value)
+    def find_targets_tool(self, _is_first_active, prefs, tree):
         def IsSkBetweenFields(sk1, sk2):
             return (sk1.type in set_utilTypeSkFields)and( (sk2.type in set_utilTypeSkFields)or(sk1.type==sk2.type) )
         skLastOut = self.skLastOut

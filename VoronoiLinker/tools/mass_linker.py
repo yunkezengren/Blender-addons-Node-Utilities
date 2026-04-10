@@ -13,7 +13,7 @@ class NODE_OT_voronoi_mass_linker(BaseTool):  # "猫狗合体", 既不是节点,
     bl_description = "\"Puppy cat-dog\", neither nodes nor sockets. Created for rare point special accelerations.\nVLT on max. Due to its working principle, divine in its own way."
     # 说真的, 它的确是最奇怪的. 它模仿 VLT 的 dsIsAlwaysLine. 如果从多个连接到一个, SocketArea 会堆叠起来. 它在绘制函数中写入...
     # 而且, 正是它出现在/将出现在插件的预览图上, 因为它在所有工具中具有最大的视觉表现力 (而且没有上限).
-    usefulnessForCustomTree = True
+    use_for_custom_tree = True
     isIgnoreExistingLinks: bpy.props.BoolProperty(name="Ignore existing links", default=False)
     def callback_draw_tool(self, drata):
         # TemplateDrawSksToolHh(drata, self.target_sk0, self.target_sk1, self.target_sk2, tool_name="Quick Dimensions - 暂时只输出有效")
@@ -52,15 +52,15 @@ class NODE_OT_voronoi_mass_linker(BaseTool):  # "猫狗合体", 既不是节点,
             for li in self.list_equalTarSks:
                 #因为是按名称搜索, 所以这里会绘制并可能在下面同时从两个 (或更多) 接口连接到同一个接口. 就像同名“冲突”一样.
                 TemplateDrawSksToolHh(drata, li[0], li[1], isDrawText=False, isClassicFlow=True, tool_name="MassLinker") #*[ti for li in self.list_equalTarSks for ti in li]
-    def find_targets_tool(self, isFirstActivation, prefs, tree):
+    def find_targets_tool(self, is_first_active, prefs, tree):
         for tar_nd in self.get_nearest_nodes(cur_x_off=Cursor_X_Offset):
             nd = tar_nd.tar
-            unhide_node_reassign(nd, self, cond=isFirstActivation, flag=True)
+            unhide_node_reassign(nd, self, cond=is_first_active, flag=True)
             #除了折叠的节点, 还忽略了转接点, 因为它们的输入总是相同的, 并且名称相同.
             if nd.type=='REROUTE':
                 continue
             self.ndTar1 = nd
-            if isFirstActivation:
+            if is_first_active:
                 self.ndTar0 = nd #这里的输出节点只设置一次.
             if self.ndTar0==self.ndTar1: #检查是否是自我复制.
                 self.ndTar1 = None #这里的输入节点在失败时每次都会被清空.

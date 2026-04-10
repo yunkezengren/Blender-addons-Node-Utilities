@@ -9,8 +9,8 @@ class NODE_OT_voronoi_links_transfer(PairNodeTool):
     bl_idname = 'node.voronoi_links_transfer'
     bl_label = "Voronoi Links Transfer"
     bl_description = "Tool for rare needs of transferring all links from one node to another.\nIn the future, it will most likely be merged with VST."
-    usefulnessForCustomTree = True
-    canDrawInAddonDiscl = False
+    use_for_custom_tree = True
+    can_draw_in_pref_setting = False
     isByIndexes: bpy.props.BoolProperty(name="Transfer by indexes", default=False)
     def callback_draw_tool(self, drata):
         # VLT 模式
@@ -22,15 +22,15 @@ class NODE_OT_voronoi_links_transfer(PairNodeTool):
         else:
             TemplateDrawNodeFull(drata, self.target_nd0, side=-1, tool_name="Transfer")
             TemplateDrawNodeFull(drata, self.target_nd1, side=1, tool_name="Transfer")
-    def find_targets_tool(self, isFirstActivation, prefs, tree):
-        if isFirstActivation:
+    def find_targets_tool(self, is_first_active, prefs, tree):
+        if is_first_active:
             self.target_nd0 = None
         self.target_nd1 = None
         for tar_nd in self.get_nearest_nodes(includePoorNodes=False, cur_x_off=0):
             nd = tar_nd.tar
             if nd.type=='REROUTE':
                 continue
-            if isFirstActivation:
+            if is_first_active:
                 self.target_nd0 = tar_nd
             self.target_nd1 = tar_nd
             if self.target_nd0.tar==self.target_nd1.tar:

@@ -22,8 +22,8 @@ class NODE_OT_voronoi_swapper(PairSocketTool):
     bl_idname = 'node.voronoi_swaper'
     bl_label = "Voronoi Swapper"
     bl_description = "Tool for swapping links between two sockets, or adding them to one of them.\nNo link swap will occur if it ends up originating from its own node."
-    usefulnessForCustomTree = True
-    canDrawInAddonDiscl = False
+    use_for_custom_tree = True
+    can_draw_in_pref_setting = False
     toolMode:     bpy.props.EnumProperty(name="Mode", default=eMode.SWAP.value, items=ModeItems)
     isCanAnyType: bpy.props.BoolProperty(name="Can swap with any socket type", default=False)
     def callback_draw_tool(self, drata):      # 我模仿着加的
@@ -33,16 +33,16 @@ class NODE_OT_voronoi_swapper(PairSocketTool):
             case eMode.ADD:  mode = "移动并加入连线"
             case eMode.TRAN: mode = "移动并替换连线"
         TemplateDrawSksToolHh(drata, self.target_sk0, self.target_sk1, tool_name=mode,)
-    def find_targets_tool(self, isFirstActivation, prefs, tree):
-        if isFirstActivation:
+    def find_targets_tool(self, is_first_active, prefs, tree):
+        if is_first_active:
             self.target_sk0 = None
         self.target_sk1 = None
         for tar_nd in self.get_nearest_nodes(cur_x_off=0):
             nd = tar_nd.tar
-            unhide_node_reassign(nd, self, cond=isFirstActivation, flag=True)
+            unhide_node_reassign(nd, self, cond=is_first_active, flag=True)
             tar_sks_in, tar_sks_out = self.get_nearest_sockets(nd, cur_x_off=0)
             #基于Mixer的标准.
-            if isFirstActivation:
+            if is_first_active:
                 tar_sk_out, tar_sk_in = None, None
                 for tar in tar_sks_out: #todo0NA 但这不就是Findanysk吗!?
                     if tar.blid!='NodeSocketVirtual':
@@ -70,9 +70,9 @@ class NODE_OT_voronoi_swapper(PairSocketTool):
                         break
                 if (self.target_sk1)and(skOut0==self.target_sk1.tar): #检查是否为自我复制.
                     self.target_sk1 = None
-                    break #当isFirstActivation==False且接口为自我复制时，为isCanAnyType中断循环；以免一次找到两个节点.
+                    break #当is_first_active==False且接口为自我复制时，为isCanAnyType中断循环；以免一次找到两个节点.
                 if not self.isCanAnyType:
-                    if not(self.target_sk1 or isFirstActivation): #如果没有结果，则继续搜索.
+                    if not(self.target_sk1 or is_first_active): #如果没有结果，则继续搜索.
                         continue
                 unhide_node_reassign(nd, self, cond=self.target_sk1, flag=False)
             break

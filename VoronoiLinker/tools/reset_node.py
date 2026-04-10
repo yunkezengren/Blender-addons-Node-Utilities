@@ -8,8 +8,8 @@ class NODE_OT_voronoi_reset_node(SingleNodeTool):
     bl_idname = 'node.voronoi_reset_node'
     bl_label = "Voronoi Reset Node"
     bl_description = "Tool for resetting nodes without the need for aiming, with mouse guidance convenience\nand ignoring enumeration properties. Was created because NW had something similar."
-    usefulnessForCustomTree = True
-    canDrawInAddonDiscl = False
+    use_for_custom_tree = True
+    can_draw_in_pref_setting = False
     isResetEnums: bpy.props.BoolProperty(name="Reset enums", default=False)
     isResetOnDrag: bpy.props.BoolProperty(name="Reset on grag (not recommended)", default=False)
     isSelectResetedNode: bpy.props.BoolProperty(name="Select reseted node", default=True)
@@ -19,7 +19,7 @@ class NODE_OT_voronoi_reset_node(SingleNodeTool):
         else:
             mode = "重置节点"
         TemplateDrawNodeFull(drata, self.target_nd, tool_name=mode)
-        # self.TemplateDrawAny(drata, self.target_any, cond=self.toolMode=='NODE', tool_name=name)
+        # self.template_draw_any(drata, self.target_any, cond=self.toolMode=='NODE', tool_name=name)
     def VrntDoResetNode(self, ndTar, tree):
         ndNew = tree.nodes.new(ndTar.bl_idname)
         ndNew.location = ndTar.location
@@ -40,7 +40,7 @@ class NODE_OT_voronoi_reset_node(SingleNodeTool):
         tree.nodes.active = ndNew
         ndNew.select = self.isSelectResetedNode
         return ndNew
-    def find_targets_tool(self, isFirstActivation, prefs, tree):
+    def find_targets_tool(self, is_first_active, prefs, tree):
         solder_sk_links(tree)
         self.target_nd = None
         for tar_nd in self.get_nearest_nodes(includePoorNodes=True, cur_x_off=0):
@@ -50,7 +50,7 @@ class NODE_OT_voronoi_reset_node(SingleNodeTool):
             self.target_nd = tar_nd
             if (self.isResetOnDrag)and(nd not in self.set_done):
                 self.set_done.add(self.VrntDoResetNode(self.target_nd.tar, tree))
-                self.find_targets_tool(isFirstActivation, prefs, tree)
+                self.find_targets_tool(is_first_active, prefs, tree)
                 #总的来说'isResetOnDrag'有点问题 -- 需要为新创建的节点重绘以获取其高度；或者我没什么好主意.
                 #并且点会吸附到节点角落一帧.
             break

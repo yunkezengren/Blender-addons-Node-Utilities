@@ -17,8 +17,8 @@ class NODE_OT_voronoi_quick_math(TripleSocketTool):
     bl_idname = 'node.voronoi_quick_math'
     bl_label = "Voronoi Quick Math"
     bl_description = "A full-fledged branch from VMT. Quick and quick-quick math at speeds.\nHas additional mini-functionality. Also see \"Quick quick math\" in the layout."
-    usefulnessForCustomTree = False
-    canDrawInAppearance = True
+    use_for_custom_tree = False
+    can_draw_in_appearence = True
     quickOprFloat:         bpy.props.StringProperty(name="Float (quick)",  default="") #它们在前面, 以便在 kmi 中对齐显示.
     quickOprInt:           bpy.props.StringProperty(name="Int (quick)",  default="") #它们在前面, 以便在 kmi 中对齐显示.
     quickOprVector:        bpy.props.StringProperty(name="Vector (quick)", default="") #quick 在第二位, 以便在空间不足时显示第一个词, 所以不得不用括号括起来.
@@ -32,8 +32,8 @@ class NODE_OT_voronoi_quick_math(TripleSocketTool):
                                                  description="Call pie to add a node, bypassing the sockets selection.\n0–Disable.\n1–Float.\n2–Vector.\n3–Boolean.\n4–Color.\n5–Int")
     def callback_draw_tool(self, drata):
         TemplateDrawSksToolHh(drata, self.target_sk0, self.target_sk1, self.target_sk2, tool_name="Quick Math")
-    def find_targets_tool(self, isFirstActivation, prefs, tree):
-        if isFirstActivation:
+    def find_targets_tool(self, is_first_active, prefs, tree):
+        if is_first_active:
             self.target_sk0 = None
         isNotCanPickThird = not self.canPickThird if prefs.vqmtIncludeThirdSk else True
         if isNotCanPickThird:
@@ -44,7 +44,7 @@ class NODE_OT_voronoi_quick_math(TripleSocketTool):
             if not tar_sks_out:
                 continue
             #这个工具只触发字段输出.
-            if isFirstActivation:
+            if is_first_active:
                 isSucessOut = False
                 for tar in tar_sks_out:
                     if not self.isRepeatLastOperation:
@@ -70,10 +70,10 @@ class NODE_OT_voronoi_quick_math(TripleSocketTool):
                             self.target_sk0 = tar
                             break
                 if not isSucessOut:
-                    continue #寻找 isFirstActivation 的节点, 该节点将命中字段套接字.
-                #对于下一个 `continue`, 因为如果接下来激活 continue 失败, 将会重新选择 isFirstActivation
-                isFirstActivation = False #但考虑到当前的选择拓扑, 这没有必要.
-            unhide_node_reassign(nd, self, cond=self.target_sk0, flag=True) #todo0NA 参见上面一行, 这个 'cond' 不应该来自 isFirstActivation.
+                    continue #寻找 is_first_active 的节点, 该节点将命中字段套接字.
+                #对于下一个 `continue`, 因为如果接下来激活 continue 失败, 将会重新选择 is_first_active
+                is_first_active = False #但考虑到当前的选择拓扑, 这没有必要.
+            unhide_node_reassign(nd, self, cond=self.target_sk0, flag=True) #todo0NA 参见上面一行, 这个 'cond' 不应该来自 is_first_active.
             skOut0 = opt_tar_socket(self.target_sk0)
             if isNotCanPickThird:
                 #对于第二个, 根据条件:

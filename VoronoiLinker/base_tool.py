@@ -34,13 +34,13 @@ class BaseOperator(Operator):
 
 # 定义了一组 抽象方法/占位方法 ，供子类实现。这实际上是 Mixin 模式 或 接口/协议类 。
 class VlToolMixin: #-1
-    usefulnessForCustomTree = None
-    usefulnessForUndefTree = None
-    usefulnessForNoneTree = None
-    canDrawInAddonDiscl = None
-    canDrawInAppearance = None
+    use_for_custom_tree = None
+    use_for_undef_tree = None
+    use_for_none_tree = None
+    can_draw_in_pref_setting = None
+    can_draw_in_appearence = None
     def callback_draw_tool(self, drata: DrawDataTool): pass
-    def find_targets_tool(self, isFirstActivation: bool, prefs: VoronoiAddonPrefs, tree: NodeTree): pass
+    def find_targets_tool(self, is_first_active: bool, prefs: VoronoiAddonPrefs, tree: NodeTree): pass
     def handle_modal(self, event: Event, prefs: VoronoiAddonPrefs): pass
     def run(self, event: Event, prefs: VoronoiAddonPrefs, tree: NodeTree): pass
     def initialize_pre(self, event: Event): return {}
@@ -49,10 +49,10 @@ class VlToolMixin: #-1
     def draw_in_pref_settings(col: UILayout, prefs: VoronoiAddonPrefs): pass
 
 class BaseTool(BaseOperator, VlToolMixin):  #0
-    usefulnessForUndefTree = False
-    usefulnessForNoneTree = False
-    canDrawInAddonDiscl = True
-    canDrawInAppearance = False
+    use_for_undef_tree = False
+    use_for_none_tree = False
+    can_draw_in_pref_setting = True
+    can_draw_in_appearence = False
     # 点击节点编辑器总是不可避免的, 那里有节点, 所以对于所有工具
     isPassThrough: BoolProperty(name="Pass through node selecting",
                                 default=False,
@@ -124,11 +124,11 @@ class BaseTool(BaseOperator, VlToolMixin):  #0
         self.tree = tree
         editorBlid = context.space_data.tree_type  # 无需 `self.`?.
         self.in_builtin_tree = is_builtin_tree_idname(editorBlid)
-        if not (self.usefulnessForCustomTree or self.in_builtin_tree):
+        if not (self.use_for_custom_tree or self.in_builtin_tree):
             return {'PASS_THROUGH'}  #'CANCELLED'?.
-        if (not self.usefulnessForUndefTree) and (editorBlid == 'NodeTreeUndefined'):
+        if (not self.use_for_undef_tree) and (editorBlid == 'NodeTreeUndefined'):
             return {'CANCELLED'}  # 为了不绘制而离开.
-        if not (self.usefulnessForNoneTree or tree):
+        if not (self.use_for_none_tree or tree):
             return {'FINISHED'}
         # 对所有工具相同的跳过选择处理
         if (self.isPassThrough) and (tree) and ('FINISHED' in bpy.ops.node.select('INVOKE_DEFAULT')):  # 检查树是第二位的, 为了美学优化.
@@ -241,7 +241,7 @@ class PairNodeTool(SingleSocketTool):  #2
 class AnyTargetTool(SingleSocketTool, SingleNodeTool):  #2
 
     @staticmethod
-    def TemplateDrawAny(drata: DrawDataTool, tar: Target, *, cond: bool, tool_name=""):
+    def template_draw_any(drata: DrawDataTool, tar: Target, *, cond: bool, tool_name=""):
         if cond:
             TemplateDrawNodeFull(drata, tar, tool_name=tool_name)
         else:

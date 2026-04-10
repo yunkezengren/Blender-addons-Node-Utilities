@@ -175,8 +175,8 @@ class NODE_OT_voronoi_enum_selector(SingleNodeTool):
     bl_idname = 'node.voronoi_enum_selector'
     bl_label = "Voronoi Enum Selector"
     bl_description = "Tool for convenient lazy switching of enumeration properties.\nEliminates the need for mouse aiming, clicking, and then aiming and clicking again."
-    usefulnessForCustomTree = True
-    canDrawInAppearance = True
+    use_for_custom_tree = True
+    can_draw_in_appearence = True
     isInstantActivation: bpy.props.BoolProperty(name="Instant activation",  default=True,  description="Skip drawing to a node and activation when release, and activate immediately when pressed")
     isPieChoice:         bpy.props.BoolProperty(name="Pie choice",          default=False, description="Allows to select an enum by releasing the key")
     isToggleOptions:     bpy.props.BoolProperty(name="Toggle node options", default=False)
@@ -190,7 +190,7 @@ class NODE_OT_voronoi_enum_selector(SingleNodeTool):
         else:
             mode = "Toggle Options"
         TemplateDrawNodeFull(drata, self.target_nd, tool_name=mode)
-        # self.TemplateDrawAny(drata, self.target_any, cond=self.toolMode=='NODE', tool_name=name)
+        # self.template_draw_any(drata, self.target_any, cond=self.toolMode=='NODE', tool_name=name)
     def ToggleOptionsFromNode(self, nd, lastResult, isCanDo=False): # 工作原理复制自 VHT HideFromNode().
         if lastResult:
             success = nd.show_options
@@ -202,7 +202,7 @@ class NODE_OT_voronoi_enum_selector(SingleNodeTool):
             success = not nd.show_options
             nd.show_options = True
             return success
-    def find_targets_tool(self, _isFirstActivation, prefs, tree):
+    def find_targets_tool(self, _is_first_active, prefs, tree):
         self.target_nd = None
         for tar_nd in self.get_nearest_nodes(cur_x_off=0):
             node = tar_nd.tar

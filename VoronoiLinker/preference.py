@@ -234,7 +234,7 @@ class VoronoiAddonPrefs(bpy.types.AddonPreferences):
         # 延迟导入以避免循环导入
         from . import vt_classes
         for cls in vt_classes:
-            if cls.canDrawInAddonDiscl:
+            if cls.can_draw_in_pref_setting:
                 if colDiscl := draw_panel_column(colMain, format_tool_set(cls)):
                     cls.draw_in_pref_settings(colDiscl, self)
 
@@ -253,7 +253,7 @@ class VoronoiAddonPrefs(bpy.types.AddonPreferences):
         ##
         from . import vt_classes
         for cls in vt_classes:
-            if cls.canDrawInAppearance:
+            if cls.can_draw_in_appearence:
                 cls.LyDrawInAppearance(colMain, self)
 
     def LyDrawTabDraw(self, where: UILayout):

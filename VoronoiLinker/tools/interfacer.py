@@ -39,8 +39,8 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
     bl_idname = 'node.voronoi_interfacer'
     bl_label = "Voronoi Interfacer"
     bl_description = "A tool on the level of \"The Great Trio\". A branch from VLT for convenient acceleration\nof the creation process and special manipulations with interfaces. \"Interface Manager\"."
-    usefulnessForCustomTree = False
-    canDrawInAddonDiscl = False
+    use_for_custom_tree = False
+    can_draw_in_pref_setting = False
     toolMode: bpy.props.EnumProperty(name="Mode", default=eMode.NEW.value, items=ModeItems)
 
     def callback_draw_tool(self, drata):
@@ -87,7 +87,7 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
                 # todo 接口1移到接口2上  FLIP模式，在两个接口绘制名后加上 接口1 接口2
                 TemplateDrawSksToolHh(drata, self.target_skMain, self.target_skRosw, tool_name=mode)
 
-    def find_targets_toolCopyPaste(self, _isFirstActivation, prefs, tree):
+    def find_targets_toolCopyPaste(self, _is_first_active, prefs, tree):
         self.target_skMain = None
         if (self.toolMode == eMode.PASTE.value) and (not self.clipboard):  # 预料之中; 还有 #https://projects.blender.org/blender/blender/issues/113860
             return  #Todo0VV 遍历版本并指出哪些会崩溃.
@@ -102,7 +102,7 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
             if self.target_skMain:
                 unhide_node_reassign(nd, self, cond=self.target_skMain.tar.node == nd, flag=True)
             break
-    def find_targets_toolSwapFlip(self, isFirstActivation, prefs, tree):
+    def find_targets_toolSwapFlip(self, is_first_active, prefs, tree):
         self.target_skMain = None
         for tar_nd in self.get_nearest_nodes(cur_x_off=0):
             nd = tar_nd.tar
@@ -113,7 +113,7 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
             if (self.target_skRosw)and(self.target_skRosw.tar.node!=nd):
                 continue
             tar_sks_in, tar_sks_out = self.get_nearest_sockets(nd, cur_x_off=0)
-            if isFirstActivation:
+            if is_first_active:
                 self.target_skRosw = FindAnySk(nd, tar_sks_in, tar_sks_out)
             unhide_node_reassign(nd, self, cond=self.target_skRosw, flag=True)
             skRosw = opt_tar_socket(self.target_skRosw)
@@ -125,7 +125,7 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
                 if (self.target_skMain)and(self.target_skMain.tar==skRosw):
                     self.target_skMain = None
             break
-    def find_targets_toolNewCreate(self, isFirstActivation, prefs, tree):
+    def find_targets_toolNewCreate(self, is_first_active, prefs, tree):
         for tar_nd in self.get_nearest_nodes(includePoorNodes=True, cur_x_off=0):
             nd = tar_nd.tar
             if nd.type=='REROUTE':
@@ -134,7 +134,7 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
             match eMode(self.toolMode):
                 case eMode.NEW:
                     self.target_skMain = None
-                    if isFirstActivation:
+                    if is_first_active:
                         self.target_skRosw = None
                         for tar in tar_sks_out:
                             self.target_skRosw = tar
@@ -151,7 +151,7 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
                             self.target_skMain = None
                     unhide_node_reassign(nd, self, cond=self.target_skMain, flag=True)
                 case eMode.CREATE:
-                    if isFirstActivation:
+                    if is_first_active:
                         tar_sk_out, tar_sk_in = None, None
                         for tar in tar_sks_in:
                             if (tar.blid != 'NodeSocketVirtual') and (NodeItemsUtils.IsSimRepCorrectSk(nd, tar.tar)):
@@ -174,14 +174,14 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
                     self.target_ndTar = tar_nd
             break
 
-    def find_targets_tool(self, isFirstActivation, prefs, tree):
+    def find_targets_tool(self, is_first_active, prefs, tree):
         match eMode(self.toolMode):
             case eMode.COPY | eMode.PASTE:
-                self.find_targets_toolCopyPaste(isFirstActivation, prefs, tree)
+                self.find_targets_toolCopyPaste(is_first_active, prefs, tree)
             case eMode.SWAP | eMode.FLIP:
-                self.find_targets_toolSwapFlip(isFirstActivation, prefs, tree)
+                self.find_targets_toolSwapFlip(is_first_active, prefs, tree)
             case eMode.NEW | eMode.CREATE:
-                self.find_targets_toolNewCreate(isFirstActivation, prefs, tree)
+                self.find_targets_toolNewCreate(is_first_active, prefs, tree)
 
     def can_run(self):
         match eMode(self.toolMode):

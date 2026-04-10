@@ -19,10 +19,10 @@ class NODE_OT_voronoi_warper(SingleSocketTool):
     bl_idname = 'node.voronoi_warper'
     bl_label = "Voronoi Warper"
     bl_description = "A mini-branch of topology reverse-engineering (like VPT).\nTool for \"point jumps\" along sockets."
-    usefulnessForCustomTree = True
+    use_for_custom_tree = True
     isZoomedTo: bpy.props.BoolProperty(name="Zoom to", default=True)
     isSelectReroutes: bpy.props.IntProperty(name="Select reroutes", default=1, min=-1, max=1, description="-1 – All deselect.\n 0 – Do nothing.\n 1 – Selecting linked reroutes")
-    def find_targets_tool(self, _isFirstActivation, prefs, tree):
+    def find_targets_tool(self, _is_first_active, prefs, tree):
         def FindAnySk():
             tar_sk_out, tar_sk_in = None, None
             for tar in tar_sks_out:

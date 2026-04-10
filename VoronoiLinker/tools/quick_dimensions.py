@@ -13,13 +13,13 @@ class NODE_OT_voronoi_quick_dimensions(TripleSocketTool):
     bl_idname = 'node.voronoi_quick_dimensions'
     bl_label = "Voronoi Quick Dimensions"
     bl_description = "Tool for accelerating the needs of separating and combining vectors (and color).\nAnd can also split geometry into components."
-    usefulnessForCustomTree = False
-    canDrawInAddonDiscl = False
+    use_for_custom_tree = False
+    can_draw_in_pref_setting = False
     isPlaceImmediately: bpy.props.BoolProperty(name="Place immediately", default=False)
     def callback_draw_tool(self, drata):
         TemplateDrawSksToolHh(drata, self.target_sk0, self.target_sk1, self.target_sk2, tool_name="Quick Dimensions")
-    def find_targets_tool(self, isFirstActivation, prefs, tree):
-        if isFirstActivation:
+    def find_targets_tool(self, is_first_active, prefs, tree):
+        if is_first_active:
             self.target_sk0 = None
         if not self.canPickThird:
             self.target_sk1 = None
@@ -28,7 +28,7 @@ class NODE_OT_voronoi_quick_dimensions(TripleSocketTool):
             tar_sks_out = self.get_nearest_sockets(nd, cur_x_off=Cursor_X_Offset)[1]
             if not tar_sks_out:
                 continue
-            if isFirstActivation:
+            if is_first_active:
                 for tar in tar_sks_out:
                     # set_utilTypeSkFields 小王-Alt D 支持的接口
                     # if (tar.tar.type in set_utilTypeSkFields)or(tar.tar.type=='GEOMETRY'):

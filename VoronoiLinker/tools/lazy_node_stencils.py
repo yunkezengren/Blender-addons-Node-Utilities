@@ -171,7 +171,7 @@ class NODE_OT_voronoi_lazy_node_stencils(PairSocketTool):  # 第一个应外部�
         TemplateDrawSksToolHh(drata, self.target_sk0, self.target_sk1, tool_name="Lazy Node Stencils")
         if ( (not not self.target_sk0)^(not not self.target_sk1) )and(drata.dsIsDrawPoint):
             DrawVlWidePoint(drata, drata.cursorLoc, col1=drata.dsCursorColor, col2=drata.dsCursorColor) # 为了美观.
-    def find_targets_tool(self, isFirstActivation, prefs, tree):
+    def find_targets_tool(self, is_first_active, prefs, tree):
         def FindAnySk():
             tar_sk_out, tar_sk_in = None, None
             for tar in tar_sks_out:
@@ -186,7 +186,7 @@ class NODE_OT_voronoi_lazy_node_stencils(PairSocketTool):  # 第一个应外部�
         for tar_nd in self.get_nearest_nodes(cur_x_off=0):
             nd = tar_nd.tar
             tar_sks_in, tar_sks_out = self.get_nearest_sockets(nd, cur_x_off=0)
-            if isFirstActivation:
+            if is_first_active:
                 self.target_sk0 = FindAnySk()
                 unhide_node_reassign(nd, self, cond=self.target_sk0, flag=True)
             skFirst = opt_tar_socket(self.target_sk0)
