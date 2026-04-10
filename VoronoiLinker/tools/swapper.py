@@ -3,7 +3,7 @@ from enum import Enum
 import bpy
 from ..base_tool import unhide_node_reassign, PairSocketTool
 from ..utils.drawing import TemplateDrawSksToolHh
-from ..utils.node import MinFromFtgs, opt_tar_socket
+from ..utils.node import MinFromTars, opt_tar_socket
 
 class SwapperMode(Enum):
     SWAP = 'SWAP'
@@ -57,7 +57,7 @@ class NODE_OT_voronoi_swapper(PairSocketTool):
                     #按类型检查，而不是按'is_multi_input'，这样就可以从常规输入添加到多输入.
                     if (tar_sk_in.blid not in ('NodeSocketGeometry','NodeSocketString')):#or(not tar_sk_in.tar.is_multi_input): #没有第二个条件可能性更多.
                         tar_sk_in = None
-                self.target_sk0 = MinFromFtgs(tar_sk_out, tar_sk_in)
+                self.target_sk0 = MinFromTars(tar_sk_out, tar_sk_in)
             #这里积累了很多奇怪的关于None等的检查 -- 这是我将自己发明的许多高级函数连接在一起的结果.
             skOut0 = opt_tar_socket(self.target_sk0)
             if skOut0:

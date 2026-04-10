@@ -19,7 +19,7 @@ class NODE_OT_voronoi_mass_linker(BaseTool):  # "猫狗合体", 既不是节点,
         # TemplateDrawSksToolHh(drata, self.target_sk0, self.target_sk1, self.target_sk2, tool_name="Quick Dimensions - 暂时只输出有效")
         # TemplateDrawSksToolHh(drata, None, None, sideMarkHh=-1, isClassicFlow=True, tool_name="Linker")
         #这里违反了本地 VL 的读写概念, CallbackDraw 会查找并记录找到的接口, 而不是简单地读取和绘制. 我想这样更容易实现这个工具.
-        self.list_equalFtgSks.clear() #每次都清除. P.s. 在开始时执行此操作很重要, 而不是在两个节点的分支中.
+        self.list_equalTarSks.clear() #每次都清除. P.s. 在开始时执行此操作很重要, 而不是在两个节点的分支中.
         if not self.ndTar0:
             TemplateDrawSksToolHh(drata, None, None, isClassicFlow=True, tool_name="MassLinker")
         elif (self.ndTar0)and(not self.ndTar1):
@@ -46,12 +46,12 @@ class NODE_OT_voronoi_mass_linker(BaseTool):  # "猫狗合体", 既不是节点,
                         else: #否则, 不要动已经连接的.
                             tgl = not tari.tar.vl_sold_is_final_linked_cou
                         if tgl:
-                            self.list_equalFtgSks.append( (taro, tari) )
-            if not self.list_equalFtgSks:
+                            self.list_equalTarSks.append( (taro, tari) )
+            if not self.list_equalTarSks:
                 DrawVlWidePoint(drata, drata.cursorLoc, col1=drata.dsCursorColor, col2=drata.dsCursorColor) #否则一切都会消失.
-            for li in self.list_equalFtgSks:
+            for li in self.list_equalTarSks:
                 #因为是按名称搜索, 所以这里会绘制并可能在下面同时从两个 (或更多) 接口连接到同一个接口. 就像同名“冲突”一样.
-                TemplateDrawSksToolHh(drata, li[0], li[1], isDrawText=False, isClassicFlow=True, tool_name="MassLinker") #*[ti for li in self.list_equalFtgSks for ti in li]
+                TemplateDrawSksToolHh(drata, li[0], li[1], isDrawText=False, isClassicFlow=True, tool_name="MassLinker") #*[ti for li in self.list_equalTarSks for ti in li]
     def find_targets_tool(self, isFirstActivation, prefs, tree):
         for tar_nd in self.get_nearest_nodes(cur_x_off=Cursor_X_Offset):
             nd = tar_nd.tar
@@ -64,13 +64,13 @@ class NODE_OT_voronoi_mass_linker(BaseTool):  # "猫狗合体", 既不是节点,
                 self.ndTar0 = nd #这里的输出节点只设置一次.
             if self.ndTar0==self.ndTar1: #检查是否是自我复制.
                 self.ndTar1 = None #这里的输入节点在失败时每次都会被清空.
-            #注意: 第一次找到 ndTar1 时 -- list_equalFtgSks == [].
+            #注意: 第一次找到 ndTar1 时 -- list_equalTarSks == [].
             if self.ndTar1:
-                tar_sks_in = self.get_nearest_sockets(self.ndTar1)[0] #仅为了展开的条件. 也可以用 list_equalFtgSks, 但又会有跳帧问题.
+                tar_sks_in = self.get_nearest_sockets(self.ndTar1)[0] #仅为了展开的条件. 也可以用 list_equalTarSks, 但又会有跳帧问题.
                 unhide_node_reassign(nd, self, cond=tar_sks_in, flag=False)
             break
     def can_run(self):
-        return self.list_equalFtgSks
+        return self.list_equalTarSks
     def run(self, event, prefs, tree):
         if True:
             #如果一个节点的输出和另一个节点的输入总共有4个同名接口, 就会发生与工具预期不符的行为.
@@ -78,7 +78,7 @@ class NODE_OT_voronoi_mass_linker(BaseTool):  # "猫狗合体", 既不是节点,
             set_alreadyDone = set()
             list_skipToEndEq = []
             list_skipToEndSk = []
-            for li in self.list_equalFtgSks:
+            for li in self.list_equalTarSks:
                 sko = li[0].tar
                 ski = li[1].tar
                 if ski in set_alreadyDone:
@@ -101,12 +101,12 @@ class NODE_OT_voronoi_mass_linker(BaseTool):  # "猫狗合体", 既不是节点,
                 tree.links.new(sko, ski)
                 VlrtRememberLastSockets(sko, ski)
         else:
-            for li in self.list_equalFtgSks:
+            for li in self.list_equalTarSks:
                 tree.links.new(li[0].tar, li[1].tar) #连接所有!
     def initialize(self, event, prefs, tree):
         self.ndTar0 = None
         self.ndTar1 = None
-        self.list_equalFtgSks = []
+        self.list_equalTarSks = []
     @staticmethod
     def draw_in_pref_settings(col: bpy.types.UILayout, prefs):
         draw_hand_split_prop(col, prefs,'vmltIgnoreCase')

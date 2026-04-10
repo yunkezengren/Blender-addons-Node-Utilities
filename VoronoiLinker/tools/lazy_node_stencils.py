@@ -6,7 +6,7 @@ from ..common_class import VlnstData
 from ..common_func import sk_label_or_name
 from ..globals import sk_type_idname_map
 from ..utils.drawing import DrawVlWidePoint, TemplateDrawSksToolHh
-from ..utils.node import MinFromFtgs, opt_tar_socket, sk_type_to_idname
+from ..utils.node import MinFromTars, opt_tar_socket, sk_type_to_idname
 from ..utils.ui import LyAddNiceColorProp, draw_hand_split_prop
 
 # 突然发现, 我以前对"懒人延续"工具的想法被封装在了这个工具里. 真是出乎意料.
@@ -180,7 +180,7 @@ class NODE_OT_voronoi_lazy_node_stencils(PairSocketTool):  # 第一个应外部�
             for tar in tar_sks_in:
                 tar_sk_in = tar
                 break
-            return MinFromFtgs(tar_sk_out, tar_sk_in)
+            return MinFromTars(tar_sk_out, tar_sk_in)
         self.target_sk1 = None
         # 由于其目的, 这个工具保证会获取第一个遇到的套接字.
         for tar_nd in self.get_nearest_nodes(cur_x_off=0):

@@ -283,7 +283,7 @@ def TemplateDrawSksToolHh(
     isDrawMarkersMoreTharOne=False,
     tool_name="",
 ):  # 模板重新思考过了, 万岁. 感觉上并没有变得更好.
-    def GetPosFromFtg(tar: Target):
+    def GetPosFromTar(tar: Target):
         return tar.pos+Vec2((drata.dsPointOffsetX*tar.dir, 0.0))
     tar_sks = [ar for ar in args_tarSks if ar]
     cursorLoc = drata.cursorLoc
@@ -309,7 +309,7 @@ def TemplateDrawSksToolHh(
                 col2 = get_sk_color_safe(tar2.tar)
             else:
                 col1 = col2 = drata.dsUniformColor
-            DrawWorldStick(drata, GetPosFromFtg(tar1), GetPosFromFtg(tar2), col1, col2)
+            DrawWorldStick(drata, GetPosFromTar(tar1), GetPosFromTar(tar2), col1, col2)
     # 主要部分:
     isOne = len(tar_sks)==1
 
@@ -320,11 +320,11 @@ def TemplateDrawSksToolHh(
                 col2 = drata.dsCursorColor if (isOne+(drata.dsCursorColorAvailability-1))>0 else col1
             else:
                 col1 = col2 = drata.dsUniformColor
-            DrawWorldStick(drata, GetPosFromFtg(tar), cursorLoc, col1, col2)
+            DrawWorldStick(drata, GetPosFromTar(tar), cursorLoc, col1, col2)
         if drata.dsIsDrawSkArea:
             DrawVlSocketArea(drata, tar.tar, tar.boxHeiBound, Color4(get_sk_color_safe(tar.tar)))
         if drata.dsIsDrawPoint:
-            DrawVlWidePoint(drata, GetPosFromFtg(tar), col1=Color4(clamp_color4(get_sk_color(tar.tar))), col2=Color4(get_sk_color_safe(tar.tar)))
+            DrawVlWidePoint(drata, GetPosFromTar(tar), col1=Color4(clamp_color4(get_sk_color(tar.tar))), col2=Color4(get_sk_color_safe(tar.tar)))
     # 文本
     if isDrawText:  # 文本应该在所有其他 ^ 之上.
         tar_sks_in = [tar for tar in tar_sks if tar.dir < 0]

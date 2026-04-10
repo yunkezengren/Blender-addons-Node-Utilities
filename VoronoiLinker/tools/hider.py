@@ -4,7 +4,7 @@ import bpy
 from ..base_tool import unhide_node_reassign, AnyTargetTool
 from ..common_func import sk_label_or_name
 from ..common_class import Target
-from ..utils.node import MinFromFtgs
+from ..utils.node import MinFromTars
 from ..utils.ui import draw_hand_split_prop, LyAddLeftProp
 
 def HideFromNode(prefs, ndTarget, lastResult, isCanDo=False): # 最初是我个人的实用工具, 在 VL 之前就创建了.
@@ -145,7 +145,7 @@ class NODE_OT_voronoi_hider(AnyTargetTool):
                     tar_sk_in = not_linked_tars(tar_sks_in)
                     tar_sk_out = not_linked_tars(tar_sks_out)
                     if self.toolMode==eMode.HIDE_SOCKET.value:
-                        self.target_any = MinFromFtgs(tar_sk_out, tar_sk_in)
+                        self.target_any = MinFromTars(tar_sk_out, tar_sk_in)
                     else:
                         self.target_any = tar_sk_in
                     unhide_node_reassign(nd, self, cond=self.target_any) # 对于套接字模式也需要重绘, 因为连接的套接字节点可能是折叠的.

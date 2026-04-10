@@ -9,7 +9,7 @@ from ..common_func import sk_label_or_name
 from ..globals import set_utilEquestrianPortalBlids
 from ..utils.color import Color4, get_sk_color_safe
 from ..utils.drawing import DrawVlSocketArea
-from ..utils.node import DoLinkHh, FindAnySk, MinFromFtgs, opt_tar_socket
+from ..utils.node import DoLinkHh, FindAnySk, MinFromTars, opt_tar_socket
 from ..utils.ui import draw_hand_split_prop
 
 # yapf: disable
@@ -161,7 +161,7 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
                             if (tar.blid != 'NodeSocketVirtual') and (NodeItemsUtils.IsSimRepCorrectSk(nd, tar.tar)):
                                 tar_sk_out = tar
                                 break
-                        self.target_skMain = MinFromFtgs(tar_sk_out, tar_sk_in)
+                        self.target_skMain = MinFromTars(tar_sk_out, tar_sk_in)
                     self.target_ndTar = None
                     skMain = opt_tar_socket(self.target_skMain)
                     if not skMain: continue
@@ -235,7 +235,7 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
                             break
                 if can:  #tovo0v6 还有面板.
                     item_name = skfNew.name
-                    tarNearest = None  # MinFromFtgs(tar_sks_in[0] if tar_sks_in else None, tar_sks_out[0] if tar_sks_out else None)
+                    tarNearest = None  # MinFromTars(tar_sks_in[0] if tar_sks_in else None, tar_sks_out[0] if tar_sks_out else None)
                     min = 16777216.0
                     tar_sks_in, tar_sks_out = self.get_nearest_sockets(_tar_nd)
                     for tar in tar_sks_in if skMain.is_output else tar_sks_out:
