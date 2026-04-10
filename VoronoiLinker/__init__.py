@@ -1,7 +1,6 @@
 import bpy
 from typing import Any
 from bpy.types import Operator
-from .common_forward_func import Prefs
 from .tools.call_node_pie import VoronoiCallNodePie
 from .tools.enum_selector import VestOpBox, VestPieBox, VoronoiEnumSelectorTool
 from .tools.hider import HiderMode, VoronoiHiderTool
@@ -25,7 +24,7 @@ from .tools.swapper import SwapperMode, VoronoiSwapperTool
 from .tools.warper import VoronoiWarperTool
 from .translations import translations_dict
 from .utils.solder import register_socket_properties, assign_tool_class_names, unregister_socket_properties
-from .preference import VoronoiAddonPrefs, VoronoiOpAddonTabs, add_dynamic_properties, update_lang_deb_enum_items
+from .preference import VoronoiAddonPrefs, VoronoiOpAddonTabs, pref, add_dynamic_properties, update_lang_deb_enum_items
 
 try:
     from rich import traceback
@@ -186,10 +185,10 @@ keymap_categorys['最有用'] = {
     VoronoiQuickMathTool.bl_idname,
     VoronoiHiderTool.bl_idname,
     VoronoiCallNodePie.bl_idname,
+    VoronoiQuickConstant.bl_idname,
 }
 keymap_categorys['很有用'] = {
     VoronoiMassLinkerTool.bl_idname,
-    VoronoiQuickConstant.bl_idname,
     VoronoiInterfacerTool.bl_idname,
     VoronoiQuickDimensionsTool.bl_idname,
     VoronoiLinksTransferTool.bl_idname,
@@ -234,7 +233,7 @@ def register():
     for cls in all_classes:
         bpy.utils.register_class(cls)
 
-    prefs = Prefs()
+    prefs = pref()
     prefs.vlnstLastExecError = ""
     prefs.vaLangDebDiscl = False
     for cls in vt_classes:

@@ -7,13 +7,10 @@ from bpy.props import BoolProperty, EnumProperty, FloatProperty, FloatVectorProp
 from bpy.types import KeyMapItem, UILayout
 
 from .common_forward_class import VlnstUpdateLastExecError
-from .common_forward_func import GetFirstUpperLetters, Prefs, format_tool_set, user_node_keymap
+from .common_forward_func import GetFirstUpperLetters, format_tool_set, user_node_keymap
 from .globals import dict_vlHhTranslations, dict_vmtMixerNodesDefs, dict_vqmtQuickMathMain
 from .utils.ui import draw_hand_split_prop, draw_panel_column, LyAddQuickInactiveCol, LyAddThinSep
 from .utils.drawing import TestDraw
-
-# 从 __init__.py 导入的变量，在模块底部通过 exec 动态添加工具相关的属性
-# 这些变量需要在 VoronoiAddonPrefs 定义之前定义
 
 old_info = {
     'description': "Various utilities for nodes connecting, based on distance field.",
@@ -23,8 +20,12 @@ old_info = {
 
 list_langDebEnumItems = []
 fitVltPiDescr = "High-level ignoring of \"annoying\" sockets during first search. (Currently, only the \"Alpha\" socket of the image nodes)"
-list_itemsProcBoolSocket = [('ALWAYS', "Always", "Always"), ('IF_FALSE', "If false", "If false"), ('NEVER', "Never", "Never"),
-                            ('IF_TRUE', "If true", "If true")]
+hide_bool_socket_items = [
+    ('ALWAYS', "Always", "Always"),
+    ('IF_FALSE', "If false", "If false"),
+    ('NEVER', "Never", "Never"),
+    ('IF_TRUE', "If true", "If true"),
+]
 
 txt_onlyFontFormat = "Only .ttf or .otf format"
 txt_copySettAsPyScript = "Copy addon settings as .py script"
@@ -51,9 +52,6 @@ def VaUpdateDecorColSk(self, _context):
     vaUpdateSelfTgl = True
     self.vaDecorColSk = self.vaDecorColSkBack
     vaUpdateSelfTgl = False
-
-fitTabItems = (('SETTINGS', "Settings", ""), ('APPEARANCE', "Appearance", ""), ('DRAW', "Draw", ""), ('KEYMAP', "Keymap", ""),
-               ('INFO', "Info", ""))  #, ('DEV',"Dev","")
 
 class KeymapItemCategory:
     """快捷键项分类 - 用于组织和过滤keymap items"""
@@ -87,7 +85,7 @@ class VoronoiOpAddonTabs(bpy.types.Operator):
 
     def invoke(self, context, event):
         #if not self.opt: return {'CANCELLED'}
-        prefs = Prefs()
+        prefs = pref()
         match self.opt:
             case 'GetPySett':
                 context.window_manager.clipboard = GetVaSettAsPy(prefs)
@@ -140,8 +138,8 @@ class VoronoiAddonPrefs(bpy.types.AddonPreferences):
     vrtIsLiveRanto           : BoolProperty(name="Live Ranto", default=True)
     vrtIsFixIslands          : BoolProperty(name="Fix islands", default=True)
     # ------
-    vhtHideBoolSocket        : EnumProperty(name="Hide boolean sockets",             default='IF_FALSE', items=list_itemsProcBoolSocket)
-    vhtHideHiddenBoolSocket  : EnumProperty(name="Hide hidden boolean sockets",      default='ALWAYS',   items=list_itemsProcBoolSocket)
+    vhtHideBoolSocket        : EnumProperty(name="Hide boolean sockets",             default='IF_FALSE', items=hide_bool_socket_items)
+    vhtHideHiddenBoolSocket  : EnumProperty(name="Hide hidden boolean sockets",      default='ALWAYS',   items=hide_bool_socket_items)
     vhtNeverHideGeometry     : EnumProperty(name="Never hide geometry input socket", default='FALSE',    items=( ('FALSE',"False",""), ('ONLY_FIRST',"Only first",""), ('TRUE',"True","") ))
     vhtIsUnhideVirtual       : BoolProperty(name="Unhide virtual sockets",           default=True)
     vhtIsToggleNodesOnDrag   : BoolProperty(name="Toggle nodes on drag",             default=True)
@@ -165,7 +163,8 @@ class VoronoiAddonPrefs(bpy.types.AddonPreferences):
     dsIsTestDrawing      : BoolProperty(name="Testing draw", default=False, update=VaUpdateTestDraw)
     dsIncludeDev         : BoolProperty(name="IncludeDev", default=False)
     # ------
-    vaUiTabs             : EnumProperty(name="Addon Prefs Tabs", default='SETTINGS', items=fitTabItems)
+    vaUiTabs: EnumProperty(name="Addon pref Tabs", default='SETTINGS', items=(
+        ('SETTINGS', "Settings", ""), ('APPEARANCE', "Appearance", ""), ('DRAW', "Draw", ""), ('KEYMAP', "Keymap", ""), ('INFO', "Info", "")))
     vaInfoRestore        : BoolProperty(name="", description="This list is just a copy from the \"Preferences > Keymap\".\nResrore will restore everything \"Node Editor\", not just addon")
     # Box disclosures:
     vaKmiMainstreamDiscl : BoolProperty(name="Most Useful", default=True)
@@ -799,3 +798,6 @@ def update_lang_deb_enum_items(vt_classes):
         list_langDebEnumItems.append((li.upper(), GetFirstUpperLetters(li), ""))
     # 更新 VoronoiAddonPrefs 中的 vaLangDebEnum 属性
     VoronoiAddonPrefs.vaLangDebEnum = EnumProperty(name="LangDebEnum", default='FREE', items=list_langDebEnumItems)
+
+def pref() -> VoronoiAddonPrefs:
+    return bpy.context.preferences.addons[__package__].preferences # type: ignore

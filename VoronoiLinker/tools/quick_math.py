@@ -1,8 +1,8 @@
 import bpy
-from bpy.app.translations import pgettext_iface as _iface
 from ..base_tool import CheckUncollapseNodeAndReNext, TemplateDrawSksToolHh, VoronoiToolTripleSk
 from ..common_forward_class import VqmtData
-from ..common_forward_func import DisplayMessage, Prefs, SetPieData
+from ..common_forward_func import DisplayMessage, SetPieData
+from ..preference import pref
 from ..globals import Cursor_X_Offset, float_int_color
 from ..utils.color import get_sk_color_safe, power_color4
 from ..utils.node import DoQuickMath, opt_ftg_socket
@@ -169,8 +169,8 @@ class VoronoiQuickMathTool(VoronoiToolTripleSk):
         self.VqmSetPieData(prefs, power_color4(get_sk_color_safe(VqmtData.sk0), pw=2.2))
         if self.int_default_float:     # 整数接口浮点饼
             color = power_color4(float_int_color["VALUE"], pw=2.2)
-            Prefs().vaDecorColSkBack = color
-            Prefs().vaDecorColSk = color
+            pref().vaDecorColSkBack = color
+            pref().vaDecorColSk = color
         VqmtData.isJustPie = False
         VqmtData.canProcHideSks = True
         bpy.ops.node.voronoi_quick_math_main('INVOKE_DEFAULT')

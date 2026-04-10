@@ -6,7 +6,6 @@ from mathutils import Vector as Vec2
 from bpy.app.translations import pgettext_iface as _iface
 from bpy.types import Context, NodeSocket
 from ..Structure import View2D
-from ..common_forward_func import Prefs
 from .color import Color4, clamp_color4, get_color_black_alpha, get_sk_color, get_sk_color_safe, opaque_color4, power_color4
 from .node import node_abs_loc
 from .solder import node_tag_color
@@ -390,14 +389,16 @@ class TestDraw:
     @classmethod
     def CallbackDrawTest(cls, context: Context):
         from math import atan2
+        from ..preference import pref
+        prefs = pref()
         stNe = bpy.types.SpaceNodeEditor
         if stNe.nsCur!=stNe.nsReg:
             # 重新关闭并打开:
-            Prefs().dsIsTestDrawing = False
+            prefs.dsIsTestDrawing = False
             # 该死的拓扑!
-            Prefs().dsIsTestDrawing = True
+            prefs.dsIsTestDrawing = True
             return # 不知道是否必须退出.
-        drata = VlDrawData(context, context.space_data.cursor_location, context.preferences.system.dpi/72, Prefs())
+        drata = VlDrawData(context, context.space_data.cursor_location, context.preferences.system.dpi/72, prefs)
         cls.ctView2d = View2D.GetFields(context.region.view2d)
         drata.worldZoom = cls.ctView2d.GetZoom()
         ##

@@ -2,7 +2,7 @@ import bpy
 from bpy.types import UILayout
 from ..base_tool import VoronoiOpTool
 from ..common_forward_class import VqmtData
-from ..common_forward_func import Prefs
+from ..preference import pref
 from ..globals import Color_Bar_Width, dict_vqmtQuickMathMain, dict_vqmtQuickPresets, float_int_color, floatIntColorInverse
 from ..utils.color import get_sk_color, power_color4
 from ..utils.node import DoQuickMath
@@ -23,8 +23,8 @@ class VqmtOpMain(VoronoiOpTool):
             _switch = {"VALUE":"INT", "INT":"VALUE"}
             VqmtData.qmSkType = _switch[VqmtData.qmSkType]
             color = power_color4(float_int_color[VqmtData.qmSkType], pw=2.2)
-            Prefs().vaDecorColSkBack = color
-            Prefs().vaDecorColSk = color
+            pref().vaDecorColSkBack = color
+            pref().vaDecorColSk = color
 
             VqmtData.test_bool = True
             _x = event.mouse_region_x

@@ -4,8 +4,9 @@ from mathutils import Vector as Vec2
 from bpy.types import Area, Context, Event, Node, NodeTree, NodeSocket, Operator, SpaceNodeEditor, UILayout, View2D as View2d
 from .Structure import RectBase, View2D
 from .common_forward_class import TryAndPass
-from .common_forward_func import Prefs, is_builtin_tree_idname, user_node_keymap
+from .common_forward_func import is_builtin_tree_idname, user_node_keymap
 from .globals import set_utilTypeSkFields
+from .preference import pref, VoronoiAddonPrefs
 from .utils.drawing import DrawDebug, TemplateDrawNodeFull, TemplateDrawSksToolHh, VlDrawData
 from .utils.node import GetNearestNodesFtg, GetNearestSocketsFtg, RestoreCollapsedNodes, SaveCollapsedNodes
 from .utils.solder import solder_sk_links, solder_theme_cols
@@ -34,14 +35,14 @@ class VoronoiToolFillers: #-1
     canDrawInAddonDiscl = None
     canDrawInAppearance = None
     def CallbackDrawTool(self, drata: VlDrawData): pass
-    def NextAssignmentTool(self, isFirstActivation: bool, prefs, tree: NodeTree): pass
-    def ModalTool(self, event: Event, prefs): pass
-    #def MatterPurposePoll(self): return None
-    def MatterPurposeTool(self, event: Event, prefs, tree: NodeTree): pass
+    def NextAssignmentTool(self, isFirstActivation: bool, prefs: VoronoiAddonPrefs, tree: NodeTree): pass
+    def ModalTool(self, event: Event, prefs: VoronoiAddonPrefs): pass
+    # def MatterPurposePoll(self): return None
+    def MatterPurposeTool(self, event: Event, prefs: VoronoiAddonPrefs, tree: NodeTree): pass
     def InitToolPre(self, event: Event): return {}
-    def InitTool(self, event: Event, prefs, tree: NodeTree): return {}
+    def InitTool(self, event: Event, prefs: VoronoiAddonPrefs, tree: NodeTree): return {}
     @staticmethod
-    def draw_in_pref_settings(col: UILayout, prefs): pass
+    def draw_in_pref_settings(col: UILayout, prefs: VoronoiAddonPrefs): pass
 
 class VoronoiToolRoot(VoronoiOpTool, VoronoiToolFillers): #0
     usefulnessForUndefTree = False
@@ -72,7 +73,7 @@ class VoronoiToolRoot(VoronoiOpTool, VoronoiToolFillers): #0
                 EdgePanData.isWorking = False # 现在只对 VLT 有效. 也许应该做个 ~self.ErrorToolProc, 并在 VLT 中 "退后一步".
                 SpaceNodeEditor.draw_handler_remove(self.handle, 'WINDOW')
                 raise
-    def ModalMouseNext(self, event: Event, prefs):
+    def ModalMouseNext(self, event: Event, prefs: VoronoiAddonPrefs):
         match event.type:
             case 'MOUSEMOVE':
                 self.NextAssignmentRoot(False)
@@ -133,7 +134,7 @@ class VoronoiToolRoot(VoronoiOpTool, VoronoiToolFillers): #0
                 # 注意: 判断是否在 kmi 中设置 -- `kmi.properties[li.identifier]` 的存在.
                 setattr(self, li.identifier, getattr(self.kmi.properties, li.identifier)) # 为了这个我不得不反向工程 Blender 并进行调试. 原来是这么简单..
         ##
-        self.prefs = Prefs() # "原来是这么简单".
+        self.prefs = pref() # "原来是这么简单".
         self.uiScale = context.preferences.system.dpi/72
         self.cursorLoc: Vec2 = context.space_data.cursor_location # 这是 class Vector, 通过引用复制; 所以可以在这里设置(绑定)一次, 就不用担心了.
         self.drata = VlDrawData(context, self.cursorLoc, self.uiScale, self.prefs)
@@ -180,7 +181,7 @@ class VoronoiToolPairSk(VoronoiToolSk): #2
         self.fotagoSk1 = None
 
 class VoronoiToolTripleSk(VoronoiToolPairSk): #3
-    def ModalTool(self, event: Event, prefs):
+    def ModalTool(self, event: Event, prefs: VoronoiAddonPrefs):
         if (self.isStartWithModf)and(not self.canPickThird): # 谁会真的通过按下和释放某个修饰键来切换到选择第三个套接字呢?.
             # 因为这代价太高了; 既然选择了没有修饰键的热键, 那就满足于有限的功能吧. 或者自己动手.
             self.canPickThird = not(event.shift or event.ctrl or event.alt)
