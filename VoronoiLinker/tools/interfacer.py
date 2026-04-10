@@ -45,12 +45,20 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
 
     def callback_draw_tool(self, drata):
         match eMode(self.toolMode):
+            case eMode.NEW:    mode = "Connect Extend Socket"
+            case eMode.CREATE: mode = "Insert to Add Socket"
+            case eMode.COPY:   mode = "Copy Socket Name"
+            case eMode.PASTE:  mode = "Paste Socket Name"
+            case eMode.FLIP:   mode = "Move Before Socket"
+            case eMode.SWAP:   mode = "Swap Sockets"
+            case eMode.TYPE:   mode = "Change Socket Type"
+        match eMode(self.toolMode):
             case eMode.NEW:
-                TemplateDrawSksToolHh(drata, self.target_skRosw, self.target_skMain, isClassicFlow=True, tool_name="Connect to Extend Socket")
+                TemplateDrawSksToolHh(drata, self.target_skRosw, self.target_skMain, isClassicFlow=True, tool_name=mode)
             case eMode.CREATE:
                 tarMain = self.target_skMain
                 if tarMain:
-                    TemplateDrawSksToolHh(drata, tarMain, sideMarkHh=-2, tool_name="Insert to Socket")
+                    TemplateDrawSksToolHh(drata, tarMain, sideMarkHh=-2, tool_name=mode)
                 tarNdTar = self.target_ndTar
                 if tarNdTar:
                     TemplateDrawNodeFull(drata, tarNdTar, tool_name="Node Group")
@@ -61,12 +69,13 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
                     y = tarNdTar.pos.y
                     boxHeiBound = Vec((y - 7, y + 7))
                     DrawVlSocketArea(drata, near_group_in.tar, boxHeiBound, Color4(get_sk_color_safe(tarMain.tar)))
-            case eMode.FLIP:  # 失败
+            case eMode.FLIP:
+                # todo 接口1移到接口2上  FLIP模式，在两个接口绘制名后加上 接口1 接口2
                 # tarMain = self.target_skMain
                 # if tarMain:
                 # TemplateDrawSksToolHh(drata, tarMain, isFlipSide=True, tool_name="")
 
-                TemplateDrawSksToolHh(drata, self.target_skMain, self.target_skRosw, tool_name="Move to Socket")
+                TemplateDrawSksToolHh(drata, self.target_skMain, self.target_skRosw, tool_name=mode)
                 tarNdTar = self.target_ndTar
                 if tarNdTar:
                     # TemplateDrawNodeFull(drata, tarNdTar, tool_name="Interfacer")
@@ -78,13 +87,6 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
                     DrawVlSocketArea(drata, near_group_in.tar, boxHeiBound, Color4(get_sk_color_safe(tarMain.tar)))
                     # DrawVlSocketArea(drata, near_group_in.tar, near_group_in.boxHeiBound, Color4(get_sk_color_safe(near_group_in.tar)))
             case _:
-                # 小王-模式名匹配
-                match eMode(self.toolMode):
-                    case eMode.COPY:   mode = "Copy Socket Name"
-                    case eMode.PASTE:  mode = "Paste Socket Name"
-                    case eMode.SWAP:   mode = "Swap Sockets"
-                    case eMode.TYPE:   mode = "Change Socket Type"
-                # todo 接口1移到接口2上  FLIP模式，在两个接口绘制名后加上 接口1 接口2
                 TemplateDrawSksToolHh(drata, self.target_skMain, self.target_skRosw, tool_name=mode)
 
     def find_targets_toolCopyPaste(self, _is_first_active, prefs, tree):

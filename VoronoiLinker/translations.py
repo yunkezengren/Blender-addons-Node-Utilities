@@ -225,7 +225,7 @@ _translations_dict: dict[tuple[context_s, str], dict[locale_s, str]] = {
 
     # VMT mixer labels
     ("*", "Switch  "): {
-        "zh_HANS": "S切换",
+        "zh_HANS": "A 切换",
         "ru_RU": "Переключение",
     },
     ("*", "Mix  "): {
@@ -240,11 +240,11 @@ _translations_dict: dict[tuple[context_s, str], dict[locale_s, str]] = {
         "ru_RU": "Max Float ",
     },
     ("*", "Mix RGB "): {
-        "zh_HANS": "M 混合颜色",
+        "zh_HANS": "X 混合颜色",
         "ru_RU": "Mix RGB ",
     },
     ("*", "Mix "): {
-        "zh_HANS": "M 混合",
+        "zh_HANS": "X 混合",
         "ru_RU": "Mix ",
     },
     ("*", "Split Viewer "): {
@@ -272,11 +272,11 @@ _translations_dict: dict[tuple[context_s, str], dict[locale_s, str]] = {
         "ru_RU": "Add Shader ",
     },
     ("*", "Index Switch "): {
-        "zh_HANS": "I 索引切换",
+        "zh_HANS": "S 索引切换",
         "ru_RU": "Index Switch ",
     },
     ("*", "Menu Switch  "): {
-        "zh_HANS": "M 菜单切换",
+        "zh_HANS": "D 菜单切换",
         "ru_RU": "Menu Switch  ",
     },
     ("*", "Join String "): {
@@ -1131,9 +1131,12 @@ _translations_dict: dict[tuple[context_s, str], dict[locale_s, str]] = {
         "zh_HANS": "隐藏/显示接口值",
         "ru_RU": "Скрыть/показать значения сокетов",
     },
+    ("*", "Connect Extend Socket"): {
+        "zh_HANS": "连接扩展接口",
+        "ru_RU": "Копировать имя сокета",
+    },
     ("*", "Copy Socket Name"): {
         "zh_HANS": "复制接口名",
-        "ru_RU": "Копировать имя сокета",
     },
     ("*", "Paste Socket Name"): {
         "zh_HANS": "粘贴接口名",
@@ -1142,6 +1145,12 @@ _translations_dict: dict[tuple[context_s, str], dict[locale_s, str]] = {
     ("*", "Swap Sockets"): {
         "zh_HANS": "交换接口",
         "ru_RU": "Поменять сокеты",
+    },
+    ("*", "Move Before Socket"): {
+        "zh_HANS": "移到接口上",
+    },
+    ("*", "Insert to Add Socket"): {
+        "zh_HANS": "插入添加接口",
     },
     ("*", "Change Socket Type"): {
         "zh_HANS": "更改节口类型",

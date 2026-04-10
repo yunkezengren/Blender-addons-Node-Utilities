@@ -7,6 +7,7 @@ from bpy.app.translations import pgettext_iface as _iface
 from bpy.types import Context, NodeSocket
 from ..Structure import View2D
 from ..common_class import Target
+from ..preference import VoronoiAddonPrefs
 from .color import Color4, clamp_color4, get_color_black_alpha, get_sk_color, get_sk_color_safe, opaque_color4, power_color4
 from .node import node_abs_loc
 from .solder import node_tag_color
@@ -17,6 +18,33 @@ class DrawDataTool():
     shaderLine = None
     shaderArea = None
     worldZoom = 0.0
+
+    def __init__(self, context: Context, cursorLoc, uiScale: float, prefs: VoronoiAddonPrefs):
+        self.shaderLine = gpu.shader.from_builtin('POLYLINE_SMOOTH_COLOR')
+        # POLYLINE_FLAT_COLOR, POLYLINE_SMOOTH_COLOR, POLYLINE_UNIFORM_COLOR, FLAT_COLOR, SMOOTH_COLOR, [UNIFORM_COLOR]
+        self.shaderArea = gpu.shader.from_builtin('UNIFORM_COLOR')
+        #self.shaderLine.uniform_float('lineSmooth', True) # 无需, 默认为 True.
+        self.fontId = blf.load(prefs.dsFontFile) # 持续设置字体是为了在更换主题时字体不消失.
+        ##
+        self.whereActivated = context.space_data
+        self.uiScale = uiScale
+        self.view_to_region = context.region.view2d.view_to_region
+        self.cursorLoc = cursorLoc
+        ##
+        for prop in prefs.bl_rna.properties:
+            if prop.identifier.startswith("ds"):
+                setattr(self, prop.identifier, getattr(prefs, prop.identifier))
+        match prefs.dsDisplayStyle:
+            case 'CLASSIC':
+                self.dsFrameDisplayType = 2
+            case 'SIMPLIFIED':
+                self.dsFrameDisplayType = 1
+            case 'ONLY_TEXT':
+                self.dsFrameDisplayType = 0
+        ##
+        self.dsUniformColor = Color4(power_color4(self.dsUniformColor))
+        self.dsUniformNodeColor = Color4(power_color4(self.dsUniformNodeColor))
+        self.dsCursorColor = Color4(power_color4(self.dsCursorColor))
 
     def DrawPathLL(self, vpos, vcol, *, wid):
         gpu.state.blend_set('ALPHA') # 绘制文本会重置 alpha 标记, 因此每次都设置.
@@ -53,33 +81,6 @@ class DrawDataTool():
         self.DrawCircle(loc, radHh + 3.0, resl=resl, col=col1 * colFacOut)
         self.DrawCircle(loc, radHh, resl=resl, col=col1 * colFacOut)
         self.DrawCircle(loc, radHh / 1.5, resl=resl, col=col2)
-
-    def __init__(self, context: Context, cursorLoc, uiScale, prefs):
-        self.shaderLine = gpu.shader.from_builtin('POLYLINE_SMOOTH_COLOR')
-        # POLYLINE_FLAT_COLOR, POLYLINE_SMOOTH_COLOR, POLYLINE_UNIFORM_COLOR, FLAT_COLOR, SMOOTH_COLOR, [UNIFORM_COLOR]
-        self.shaderArea = gpu.shader.from_builtin('UNIFORM_COLOR')
-        #self.shaderLine.uniform_float('lineSmooth', True) # 无需, 默认为 True.
-        self.fontId = blf.load(prefs.dsFontFile) # 持续设置字体是为了在更换主题时字体不消失.
-        ##
-        self.whereActivated = context.space_data
-        self.uiScale = uiScale
-        self.view_to_region = context.region.view2d.view_to_region
-        self.cursorLoc = cursorLoc
-        ##
-        for pr in prefs.bl_rna.properties:
-            if pr.identifier.startswith("ds"):
-                setattr(self, pr.identifier, getattr(prefs, pr.identifier))
-        match prefs.dsDisplayStyle:
-            case 'CLASSIC':
-                self.dsFrameDisplayType = 2
-            case 'SIMPLIFIED':
-                self.dsFrameDisplayType = 1
-            case 'ONLY_TEXT':
-                self.dsFrameDisplayType = 0
-        ##
-        self.dsUniformColor = Color4(power_color4(self.dsUniformColor))
-        self.dsUniformNodeColor = Color4(power_color4(self.dsUniformNodeColor))
-        self.dsCursorColor = Color4(power_color4(self.dsCursorColor))
 
 def DrawWorldStick(drata: DrawDataTool, pos1, pos2, col1, col2):
     drata.DrawPathLL( (drata.VecUiViewToReg(pos1), drata.VecUiViewToReg(pos2)), (col1, col2), wid=drata.dsLineWidth )

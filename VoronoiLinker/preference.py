@@ -10,7 +10,6 @@ from .common_class import VlnstUpdateLastExecError
 from .common_func import GetFirstUpperLetters, format_tool_set, user_node_keymap
 from .globals import dict_vlHhTranslations, dict_vmtMixerNodesDefs, dict_vqmtQuickMathMain
 from .utils.ui import draw_hand_split_prop, draw_panel_column, LyAddQuickInactiveCol, LyAddThinSep
-from .utils.drawing import TestDraw
 
 old_info = {
     'description': "Various utilities for nodes connecting, based on distance field.",
@@ -41,6 +40,7 @@ txt_MatrixQuickMath = "Matrix Quick Math"
 txt_ColorQuickMode = "Color Quick Mode"
 
 def VaUpdateTestDraw(self, context):
+    from .utils.drawing import TestDraw
     TestDraw.Toggle(context, self.dsIsTestDrawing)
 
 vaUpdateSelfTgl = False
