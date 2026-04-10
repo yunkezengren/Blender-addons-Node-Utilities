@@ -368,12 +368,12 @@ class NODE_OT_voronoi_preview(SingleSocketTool):
     isTriggerOnlyOnLink:      bpy.props.BoolProperty(name="Only linked",           default=False, description="Trigger only on linked socket") #最初在 prefs 中.
     isEqualAnchorType:        bpy.props.BoolProperty(name="Equal anchor type",     default=False, description="Trigger only on anchor type sockets")
     def callback_draw_tool(self, drata):
-        if (self.prefs.vptRvEeSksHighlighting)and(self.fotagoSk): #帮助逆向工程 -- 高亮连接点, 并同时显示这些接口的名称.
+        if (self.prefs.vptRvEeSksHighlighting)and(self.target_sk): #帮助逆向工程 -- 高亮连接点, 并同时显示这些接口的名称.
             solder_sk_links(self.tree) #否则在 `ftg.tar==sk:` 上会崩溃.
             #确定标签的缩放比例:
             soldCursorLoc = drata.cursorLoc
             #绘制:
-            ndTar = self.fotagoSk.tar.node
+            ndTar = self.target_sk.tar.node
             for isSide in (False, True):
                 for skTar in ndTar.outputs if isSide else ndTar.inputs:
                     for lk in skTar.vl_sold_links_final:
@@ -390,7 +390,7 @@ class NODE_OT_voronoi_preview(SingleSocketTool):
                                     break
                         nd.hide = False #在绘制时写入. 至少不像 VMLT 中那么严重.
                         #todo0SF: 使用 bpy.ops.wm.redraw_timer 会导致死锁. 所以这里还有另一个“跳帧”.
-        TemplateDrawSksToolHh(drata, self.fotagoSk, isDrawMarkersMoreTharOne=True, tool_name="Preview")
+        TemplateDrawSksToolHh(drata, self.target_sk, isDrawMarkersMoreTharOne=True, tool_name="Preview")
     @staticmethod
     def OmgNodeColor(nd, col=None):
         set_omgApiNodesColor = {'FunctionNodeInputColor'} #https://projects.blender.org/blender/blender/issues/104909
@@ -419,9 +419,9 @@ class NODE_OT_voronoi_preview(SingleSocketTool):
                     if nd.type=='VIEWER':
                         isGeoViewer = True
                         break
-        self.fotagoSk = None #没必要, 但为了清晰起见重置. 对调试很有用.
-        for ftgNd in self.get_nearest_nodes(cur_x_off=Cursor_X_Offset):
-            nd = ftgNd.tar
+        self.target_sk = None #没必要, 但为了清晰起见重置. 对调试很有用.
+        for tar_nd in self.get_nearest_nodes(cur_x_off=Cursor_X_Offset):
+            nd = tar_nd.tar
             if (prefs.vptRvEeIsSavePreviewResults)and(nd.name==voronoiPreviewResultNdName): #忽略准备好的节点以进行重命名, 从而保存预览结果.
                 continue
             #如果在几何节点中, 则忽略没有几何输出的节点
@@ -452,17 +452,17 @@ class NODE_OT_voronoi_preview(SingleSocketTool):
                     can = (can)and(not ftg.tar.node.label==voronoiAnchorDtName) #ftg.tar.node not in self.list_distanceAnchors
                     if can:
                         if (not self.isTriggerOnlyOnLink)or(ftg.tar.vl_sold_is_final_linked_cou): #帮助逆向工程 -- 仅在现有链接上触发; 加快“读取/理解”树的过程.
-                            self.fotagoSk = ftg
+                            self.target_sk = ftg
                             break
-            if self.fotagoSk: #如果成功则完成. 否则, 例如忽略自己的桥接接口, 如果节点只有它们 -- 将停在旁边而找不到其他.
+            if self.target_sk: #如果成功则完成. 否则, 例如忽略自己的桥接接口, 如果节点只有它们 -- 将停在旁边而找不到其他.
                 break
-        if self.fotagoSk:
+        if self.target_sk:
             unhide_node_reassign(nd, self, cond=True)
             if prefs.vptIsLivePreview:
-                VptPreviewFromSk(self, prefs, self.fotagoSk.tar)
+                VptPreviewFromSk(self, prefs, self.target_sk.tar)
             if prefs.vptRvEeIsColorOnionNodes: #帮助逆向工程 -- 不是用眼睛寻找细线, 而是快速视觉读取拓扑连接的节点.
                 solder_sk_links(tree) #没有这个, 将不得不手动为接收节点着色, 以免“闪烁".
-                ndTar = self.fotagoSk.tar.node
+                ndTar = self.target_sk.tar.node
                 #不要费心记住最后一个, 每次都把它们全部关闭. 简单粗暴
                 for nd in tree.nodes:
                     nd.use_custom_color = False
@@ -482,8 +482,8 @@ class NODE_OT_voronoi_preview(SingleSocketTool):
                     RecrRerouteWalkerPainter(sk, prefs.vptOnionColorIn)
     def run(self, event, prefs, tree):
         solder_sk_links(tree) #否则会崩溃.
-        VptPreviewFromSk(self, prefs, self.fotagoSk.tar)
-        VlrtRememberLastSockets(self.fotagoSk.tar, None)
+        VptPreviewFromSk(self, prefs, self.target_sk.tar)
+        VlrtRememberLastSockets(self.target_sk.tar, None)
         if prefs.vptRvEeIsColorOnionNodes:
             for nd in tree.nodes:
                 dv = self.dict_saveRestoreNodeColors.get(nd, None) #与 RestoreCollapsedNodes 中完全相同.

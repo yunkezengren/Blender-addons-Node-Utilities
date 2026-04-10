@@ -123,16 +123,16 @@ class NODE_OT_voronoi_hider(AnyTargetTool):
             case eMode.HIDE_NODE:   mode = "Auto Hide/Show Sockets"
             case eMode.HIDE_SOCKET: mode = "Hide Socket"
             case eMode.HIDE_VALUE:  mode = "Hide/Show Socket Value"
-        self.TemplateDrawAny(drata, self.fotagoAny, cond=self.toolMode==eMode.HIDE_NODE.value, tool_name=mode)
+        self.TemplateDrawAny(drata, self.target_any, cond=self.toolMode==eMode.HIDE_NODE.value, tool_name=mode)
     def find_targets_tool(self, _isFirstActivation, prefs, tree):
-        self.fotagoAny = None
-        for ftgNd in self.get_nearest_nodes(cur_x_off=0):
-            nd = ftgNd.tar
+        self.target_any = None
+        for tar_nd in self.get_nearest_nodes(cur_x_off=0):
+            nd = tar_nd.tar
             if (not self.isTriggerOnCollapsedNodes)and(nd.hide):
                 continue
             if nd.type=='REROUTE': # 对于这个工具, reroute 会被跳过, 原因很明显.
                 continue
-            self.fotagoAny = ftgNd
+            self.target_any = tar_nd
             match eMode(self.toolMode):
                 case eMode.HIDE_SOCKET|eMode.HIDE_VALUE:
                     # 对于套接字模式, 折叠处理和所有其他一样.
@@ -144,10 +144,10 @@ class NODE_OT_voronoi_hider(AnyTargetTool):
                     ftgSkIn = GetNotLinked(list_ftgSksIn)
                     ftgSkOut = GetNotLinked(list_ftgSksOut)
                     if self.toolMode==eMode.HIDE_SOCKET.value:
-                        self.fotagoAny = MinFromFtgs(ftgSkOut, ftgSkIn)
+                        self.target_any = MinFromFtgs(ftgSkOut, ftgSkIn)
                     else:
-                        self.fotagoAny = ftgSkIn
-                    unhide_node_reassign(nd, self, cond=self.fotagoAny) # 对于套接字模式也需要重绘, 因为连接的套接字节点可能是折叠的.
+                        self.target_any = ftgSkIn
+                    unhide_node_reassign(nd, self, cond=self.target_any) # 对于套接字模式也需要重绘, 因为连接的套接字节点可能是折叠的.
                 case eMode.HIDE_NODE:
                     # 对于节点模式, 展开光标下的所有节点或不展开, 没有区别.
                     if prefs.vhtIsToggleNodesOnDrag:
@@ -170,9 +170,9 @@ class NODE_OT_voronoi_hider(AnyTargetTool):
             case eMode.HIDE_NODE:
                 if not prefs.vhtIsToggleNodesOnDrag:
                     # 在隐藏套接字时, 需要所有套接字的信息, 因此执行两次. 第一次收集信息, 第二次执行.
-                    HideFromNode(prefs, self.fotagoAny.tar, HideFromNode(prefs, self.fotagoAny.tar, True), True)
+                    HideFromNode(prefs, self.target_any.tar, HideFromNode(prefs, self.target_any.tar, True), True)
             case eMode.HIDE_SOCKET:
-                tar_socket = self.fotagoAny.tar
+                tar_socket = self.target_any.tar
                 tar_socket.hide = True
                 # 自动隐藏接口优化-inline
                 inline_socket_node_list = [
@@ -194,7 +194,7 @@ class NODE_OT_voronoi_hider(AnyTargetTool):
                 except:
                     pass
             case eMode.HIDE_VALUE:
-                socket = self.fotagoAny.tar
+                socket = self.target_any.tar
                 node = socket.node
                 def hide_sk_value_in_tree(tar_tree: bpy.types.NodeTree):
                     for item in tar_tree.interface.items_tree:

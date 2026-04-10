@@ -189,8 +189,8 @@ class NODE_OT_voronoi_enum_selector(SingleNodeTool):
                 mode = "Show Options"
         else:
             mode = "Toggle Options"
-        TemplateDrawNodeFull(drata, self.fotagoNd, tool_name=mode)
-        # self.TemplateDrawAny(drata, self.fotagoAny, cond=self.toolMode=='NODE', tool_name=name)
+        TemplateDrawNodeFull(drata, self.target_nd, tool_name=mode)
+        # self.TemplateDrawAny(drata, self.target_any, cond=self.toolMode=='NODE', tool_name=name)
     def ToggleOptionsFromNode(self, nd, lastResult, isCanDo=False): # 工作原理复制自 VHT HideFromNode().
         if lastResult:
             success = nd.show_options
@@ -203,13 +203,13 @@ class NODE_OT_voronoi_enum_selector(SingleNodeTool):
             nd.show_options = True
             return success
     def find_targets_tool(self, _isFirstActivation, prefs, tree):
-        self.fotagoNd = None
-        for ftgNd in self.get_nearest_nodes(cur_x_off=0):
-            node = ftgNd.tar
+        self.target_nd = None
+        for tar_nd in self.get_nearest_nodes(cur_x_off=0):
+            node = tar_nd.tar
             if node.type=='REROUTE': # 对于这个工具, reroute 会被跳过, 原因很明显.
                 continue
             if self.isToggleOptions:
-                self.fotagoNd = ftgNd
+                self.target_nd = tar_nd
                 # 和 VHT 的意思一样:
                 if prefs.vestIsToggleNodesOnDrag:
                     if self.firstResult is None:
@@ -217,7 +217,7 @@ class NODE_OT_voronoi_enum_selector(SingleNodeTool):
                     self.ToggleOptionsFromNode(node, self.firstResult, True)
                 break
             elif node_enum_props(node) or node_visible_menu_inputs(node): # 为什么不忽略没有枚举属性的节点呢?.
-                self.fotagoNd = ftgNd
+                self.target_nd = tar_nd
                 break
     def DoActivation(self, prefs, tree):
         def IsPtInRect(pos, rect):
@@ -230,11 +230,11 @@ class NODE_OT_voronoi_enum_selector(SingleNodeTool):
             elif pos[1]>rect[3]:
                 return False
             return True
-        VestData.list_enumProp = node_enum_props(self.fotagoNd.tar)
-        VestData.list_menu_socket = node_visible_menu_inputs(self.fotagoNd.tar)
+        VestData.list_enumProp = node_enum_props(self.target_nd.tar)
+        VestData.list_menu_socket = node_visible_menu_inputs(self.target_nd.tar)
         # 如果什么都没有, 盒子调用还是会处理, 就像它存在一样, 导致不移动光标就无法再次调用工具.
         if VestData.list_enumProp or VestData.list_menu_socket: # 所以如果为空, 什么也不做. 还有 draw_enum_property_selectors() 中的 assert.
-            ndTar = self.fotagoNd.tar
+            ndTar = self.target_nd.tar
             VestData.nd = ndTar
             VestData.boxScale = prefs.vestBoxScale
             if ndTar.bl_idname == "ShaderNodeMath":
@@ -277,7 +277,7 @@ class NODE_OT_voronoi_enum_selector(SingleNodeTool):
     def run(self, event, prefs, tree):
         if self.isToggleOptions:
             if not prefs.vestIsToggleNodesOnDrag: # 和 VHT 中一样.
-                self.ToggleOptionsFromNode(self.fotagoNd.tar, self.ToggleOptionsFromNode(self.fotagoNd.tar, True), True)
+                self.ToggleOptionsFromNode(self.target_nd.tar, self.ToggleOptionsFromNode(self.target_nd.tar, True), True)
         else:
             if not self.isInstantActivation:
                 self.DoActivation(prefs, tree)
@@ -285,7 +285,7 @@ class NODE_OT_voronoi_enum_selector(SingleNodeTool):
         if (self.isInstantActivation)and(not self.isToggleOptions):
             # 注意: 盒子可能会完全覆盖节点及其连接线.
             self.find_targets_base(None)
-            if not self.fotagoNd:
+            if not self.target_nd:
                 return {'CANCELLED'}
             self.DoActivation(prefs, tree)
             return {'FINISHED'} # 完成工具很重要.

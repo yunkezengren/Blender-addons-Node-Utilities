@@ -14,39 +14,39 @@ class NODE_OT_voronoi_links_transfer(PairNodeTool):
     isByIndexes: bpy.props.BoolProperty(name="Transfer by indexes", default=False)
     def callback_draw_tool(self, drata):
         # VLT 模式
-        if not self.fotagoNd0:
+        if not self.target_nd0:
             TemplateDrawSksToolHh(drata, None, tool_name="Links Transfer")
-        elif (self.fotagoNd0)and(not self.fotagoNd1):
-            TemplateDrawNodeFull(drata, self.fotagoNd0, side=-1, tool_name="Transfer")
+        elif (self.target_nd0)and(not self.target_nd1):
+            TemplateDrawNodeFull(drata, self.target_nd0, side=-1, tool_name="Transfer")
             TemplateDrawSksToolHh(drata, None, tool_name="Links Transfer")
         else:
-            TemplateDrawNodeFull(drata, self.fotagoNd0, side=-1, tool_name="Transfer")
-            TemplateDrawNodeFull(drata, self.fotagoNd1, side=1, tool_name="Transfer")
+            TemplateDrawNodeFull(drata, self.target_nd0, side=-1, tool_name="Transfer")
+            TemplateDrawNodeFull(drata, self.target_nd1, side=1, tool_name="Transfer")
     def find_targets_tool(self, isFirstActivation, prefs, tree):
         if isFirstActivation:
-            self.fotagoNd0 = None
-        self.fotagoNd1 = None
-        for ftgNd in self.get_nearest_nodes(includePoorNodes=False, cur_x_off=0):
-            nd = ftgNd.tar
+            self.target_nd0 = None
+        self.target_nd1 = None
+        for tar_nd in self.get_nearest_nodes(includePoorNodes=False, cur_x_off=0):
+            nd = tar_nd.tar
             if nd.type=='REROUTE':
                 continue
             if isFirstActivation:
-                self.fotagoNd0 = ftgNd
-            self.fotagoNd1 = ftgNd
-            if self.fotagoNd0.tar==self.fotagoNd1.tar:
-                self.fotagoNd1 = None
+                self.target_nd0 = tar_nd
+            self.target_nd1 = tar_nd
+            if self.target_nd0.tar==self.target_nd1.tar:
+                self.target_nd1 = None
             # 成了. 现在 VL 有两个节点了.
             # 突然发现, 节点的“命中”位置简直是粘在它上面, 这在整个都是关于套接字的聚会中观察到相当不寻常.
             # 它应该滑动而不是粘住吗?. 大概不应该, 否则不可避免地会有轴向投影, 在视觉上“抹去”信息.
             # 而且它们都会随着光标移动而改变, 导致无法直观地知道谁是第一个, 谁是第二个,
             # 与粘住不同, 粘住时可以清楚地知道“这个是第一个”; 这对于这个工具尤其重要, 因为哪个节点被首先选择很重要.
             if prefs.dsIsSlideOnNodes: # 虽然不急, 但还是留着吧.
-                if self.fotagoNd0:
-                    self.fotagoNd0.pos = GenFtgFromNd(self.fotagoNd0.tar, self.cursorLoc, self.uiScale).pos
+                if self.target_nd0:
+                    self.target_nd0.pos = GenFtgFromNd(self.target_nd0.tar, self.cursorLoc, self.uiScale).pos
             break
     def run(self, event, prefs, tree):
-        from_node = self.fotagoNd0.tar
-        to_node = self.fotagoNd1.tar
+        from_node = self.target_nd0.tar
+        to_node = self.target_nd1.tar
         def transfer_link(sk: B.NodeSocket, link: B.NodeLink):
             if sk.is_output:
                 tree.links.new(sk, link.to_socket)

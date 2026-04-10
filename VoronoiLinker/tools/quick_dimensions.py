@@ -17,14 +17,14 @@ class NODE_OT_voronoi_quick_dimensions(TripleSocketTool):
     canDrawInAddonDiscl = False
     isPlaceImmediately: bpy.props.BoolProperty(name="Place immediately", default=False)
     def callback_draw_tool(self, drata):
-        TemplateDrawSksToolHh(drata, self.fotagoSk0, self.fotagoSk1, self.fotagoSk2, tool_name="Quick Dimensions")
+        TemplateDrawSksToolHh(drata, self.target_sk0, self.target_sk1, self.target_sk2, tool_name="Quick Dimensions")
     def find_targets_tool(self, isFirstActivation, prefs, tree):
         if isFirstActivation:
-            self.fotagoSk0 = None
+            self.target_sk0 = None
         if not self.canPickThird:
-            self.fotagoSk1 = None
-        for ftgNd in self.get_nearest_nodes(cur_x_off=Cursor_X_Offset):
-            nd = ftgNd.tar
+            self.target_sk1 = None
+        for tar_nd in self.get_nearest_nodes(cur_x_off=Cursor_X_Offset):
+            nd = tar_nd.tar
             list_ftgSksOut = self.get_nearest_sockets(nd, cur_x_off=Cursor_X_Offset)[1]
             if not list_ftgSksOut:
                 continue
@@ -33,42 +33,42 @@ class NODE_OT_voronoi_quick_dimensions(TripleSocketTool):
                     # set_utilTypeSkFields 小王-Alt D 支持的接口
                     # if (ftg.tar.type in set_utilTypeSkFields)or(ftg.tar.type=='GEOMETRY'):
                     if get_dimension_node(tree, ftg.tar.type):
-                        self.fotagoSk0 = ftg
+                        self.target_sk0 = ftg
                         break
                 unhide_node_reassign(nd, self, cond=True, flag=True)
                 break
-            unhide_node_reassign(nd, self, cond=self.fotagoSk1, flag=False)
-            sk_out0 = opt_ftg_socket(self.fotagoSk0)
+            unhide_node_reassign(nd, self, cond=self.target_sk1, flag=False)
+            sk_out0 = opt_ftg_socket(self.target_sk0)
             if sk_out0:
                 if not get_dimension_node(tree, sk_out0.type):
                     break
                 if not self.canPickThird:
                     for ftg in list_ftgSksOut:
                         if ftg.tar.type==sk_out0.type:
-                            self.fotagoSk1 = ftg
+                            self.target_sk1 = ftg
                             break
-                    if (self.fotagoSk1)and(self.fotagoSk1.tar==sk_out0):
-                        self.fotagoSk1 = None
+                    if (self.target_sk1)and(self.target_sk1.tar==sk_out0):
+                        self.target_sk1 = None
                         break
-                    unhide_node_reassign(nd, self, cond=self.fotagoSk1, flag=False)
-                    if self.fotagoSk1:
+                    unhide_node_reassign(nd, self, cond=self.target_sk1, flag=False)
+                    if self.target_sk1:
                         break
                 else:
-                    skOut1 = opt_ftg_socket(self.fotagoSk1)
+                    skOut1 = opt_ftg_socket(self.target_sk1)
                     for ftg in list_ftgSksOut:
                         if ftg.tar.type==sk_out0.type:
-                            self.fotagoSk2 = ftg
+                            self.target_sk2 = ftg
                             break
-                    if (self.fotagoSk2)and( (self.fotagoSk2.tar==sk_out0)or(skOut1)and(self.fotagoSk2.tar==skOut1) ):
-                        self.fotagoSk2 = None
+                    if (self.target_sk2)and( (self.target_sk2.tar==sk_out0)or(skOut1)and(self.target_sk2.tar==skOut1) ):
+                        self.target_sk2 = None
                         break
-                    unhide_node_reassign(nd, self, cond=self.fotagoSk2, flag=False)
-                    if self.fotagoSk2:
+                    unhide_node_reassign(nd, self, cond=self.target_sk2, flag=False)
+                    if self.target_sk2:
                         break
     def can_run(self):
-        return not not self.fotagoSk0
+        return not not self.target_sk0
     def run(self, event, prefs, tree):
-        sk_out0 = self.fotagoSk0.tar
+        sk_out0 = self.target_sk0.tar
         Q_Dimensions = AllQuickDimensions.get(tree.bl_idname, None)
         if not Q_Dimensions:
             return {'CANCELLED'}
@@ -78,17 +78,17 @@ class NODE_OT_voronoi_quick_dimensions(TripleSocketTool):
         #Добавить:
         if sk_out0.type == "ROTATION":        # 小王-Alt D 旋转接口
             Convert_Data.sk0 = sk_out0
-            if self.fotagoSk1:
-                Convert_Data.sk1 = self.fotagoSk1.tar
-            if self.fotagoSk2:
-                Convert_Data.sk2 = self.fotagoSk2.tar
+            if self.target_sk1:
+                Convert_Data.sk1 = self.target_sk1.tar
+            if self.target_sk2:
+                Convert_Data.sk2 = self.target_sk2.tar
             bpy.ops.wm.call_menu_pie(name=PIE_MT_Convert_Rotation_To.bl_idname)
         elif sk_out0.type == "MATRIX":        # 小王-Alt D 矩阵接口
             Convert_Data.sk0 = sk_out0
-            if self.fotagoSk1:
-                Convert_Data.sk1 = self.fotagoSk1.tar
-            if self.fotagoSk2:
-                Convert_Data.sk2 = self.fotagoSk2.tar
+            if self.target_sk1:
+                Convert_Data.sk1 = self.target_sk1.tar
+            if self.target_sk2:
+                Convert_Data.sk2 = self.target_sk2.tar
             bpy.ops.wm.call_menu_pie(name=PIE_MT_Separate_Matrix.bl_idname)
         else:
             bpy.ops.node.add_node('INVOKE_DEFAULT',
@@ -118,10 +118,10 @@ class NODE_OT_voronoi_quick_dimensions(TripleSocketTool):
                     skIn = ski
                     break
             remember_add_link(sk_out0, skIn)
-            if self.fotagoSk1:
-                remember_add_link(self.fotagoSk1.tar, aNd.inputs[1])
-            if self.fotagoSk2:
-                remember_add_link(self.fotagoSk2.tar, aNd.inputs[2])
+            if self.target_sk1:
+                remember_add_link(self.target_sk1.tar, aNd.inputs[1])
+            if self.target_sk2:
+                remember_add_link(self.target_sk2.tar, aNd.inputs[2])
 
             if sk_out0.type in ["CLOSURE", "BUNDLE"]:
                 bpy.ops.node.sockets_sync()

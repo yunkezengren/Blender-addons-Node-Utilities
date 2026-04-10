@@ -25,7 +25,7 @@ class NODE_OT_voronoi_link_repeating(AnyTargetTool):  # 分离成单独的工具
     canDrawInAddonDiscl = False
     toolMode: bpy.props.EnumProperty(name="Mode", default=eMode.SOCKET.value, items=ModeItems)
     def callback_draw_tool(self, drata):
-        self.TemplateDrawAny(drata, self.fotagoAny, cond=self.toolMode==eMode.NODE.value)
+        self.TemplateDrawAny(drata, self.target_any, cond=self.toolMode==eMode.NODE.value)
     def find_targets_tool(self, _isFirstActivation, prefs, tree):
         def IsSkBetweenFields(sk1, sk2):
             return (sk1.type in set_utilTypeSkFields)and( (sk2.type in set_utilTypeSkFields)or(sk1.type==sk2.type) )
@@ -34,10 +34,10 @@ class NODE_OT_voronoi_link_repeating(AnyTargetTool):  # 分离成单独的工具
         if not skLastOut:
             return
         solder_sk_links(tree) # 好像不重新焊接也能工作.
-        self.fotagoAny = None
+        self.target_any = None
         cur_x_off_repeat = -Cursor_X_Offset if self.toolMode==eMode.SOCKET.value else 0     # 小王 这个有点特殊
-        for ftgNd in self.get_nearest_nodes(cur_x_off=cur_x_off_repeat):
-            nd = ftgNd.tar
+        for tar_nd in self.get_nearest_nodes(cur_x_off=cur_x_off_repeat):
+            nd = tar_nd.tar
             if nd==skLastOut.node: # 排除自身节点.
                 break #continue
             if self.toolMode==eMode.SOCKET.value:
@@ -50,13 +50,13 @@ class NODE_OT_voronoi_link_repeating(AnyTargetTool):  # 分离成单独的工具
                                 if lk.from_socket==skLastOut: # 识别已有的链接, 并且不选择这样的套接字.
                                     can = False
                             if can:
-                                self.fotagoAny = ftg
+                                self.target_any = ftg
                                 break
-                unhide_node_reassign(nd, self, cond=self.fotagoAny, flag=False)
+                unhide_node_reassign(nd, self, cond=self.target_any, flag=False)
             else:
                 if skLastIn:
                     if nd.inputs:
-                        self.fotagoAny = ftgNd
+                        self.target_any = tar_nd
                     for sk in nd.inputs:
                         if CompareSkLabelName(sk, skLastIn):
                             if (sk.enabled)and(not sk.hide):
@@ -68,8 +68,8 @@ class NODE_OT_voronoi_link_repeating(AnyTargetTool):  # 分离成单独的工具
             # 同样不需要检查 skLastOut 是否存在, 参见其在 find_targets_tool() 中的拓扑.
             # 注意: VlrtRememberLastSockets() 中有 `.id_data` 的相同性检查.
             # 注意: 不需要检查树是否存在, 因为如果连接的套接字在这里存在, 那它就肯定在某个地方.
-            DoLinkHh(self.skLastOut, self.fotagoAny.tar)
-            VlrtRememberLastSockets(self.skLastOut, self.fotagoAny.tar) # 因为. 而且.. “自递归”?.
+            DoLinkHh(self.skLastOut, self.target_any.tar)
+            VlrtRememberLastSockets(self.skLastOut, self.target_any.tar) # 因为. 而且.. “自递归”?.
     def initialize(self, event, prefs, tree):
         for txt in "Out", "In":
             txtAttSkLast = 'skLast'+txt

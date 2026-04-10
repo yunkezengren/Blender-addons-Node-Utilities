@@ -34,22 +34,22 @@ class NODE_OT_voronoi_warper(SingleSocketTool):
                     ftgSkIn = ftg
                     break
             return MinFromFtgs(ftgSkOut, ftgSkIn)
-        self.fotagoSk = None
-        for ftgNd in self.get_nearest_nodes(cur_x_off=0):
-            nd = ftgNd.tar
+        self.target_sk = None
+        for tar_nd in self.get_nearest_nodes(cur_x_off=0):
+            nd = tar_nd.tar
             list_ftgSksIn, list_ftgSksOut = self.get_nearest_sockets(nd, cur_x_off=0)
             if nd.type=='REROUTE': #todo0NA 以及这个要加入到通用的通用部分中.
-                self.fotagoSk = list_ftgSksIn[0] if self.cursorLoc.x<nd.location.x else list_ftgSksOut[0]
+                self.target_sk = list_ftgSksIn[0] if self.cursorLoc.x<nd.location.x else list_ftgSksOut[0]
             else:
-                self.fotagoSk = FindAnySk()
-            if self.fotagoSk:
-                unhide_node_reassign(nd, self, cond=self.fotagoSk)
+                self.target_sk = FindAnySk()
+            if self.target_sk:
+                unhide_node_reassign(nd, self, cond=self.target_sk)
                 break
     def handle_modal(self, event, prefs):
         if event.type==prefs.vwtSelectTargetKey:
             self.isSelectTargetKey = event.value=='PRESS'
     def run(self, event, prefs, tree):
-        skTar = self.fotagoSk.tar
+        skTar = self.target_sk.tar
         bpy.ops.node.select_all(action='DESELECT')
         if skTar.vl_sold_is_final_linked_cou:
             def RecrRerouteWalkerSelecting(sk):

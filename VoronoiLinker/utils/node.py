@@ -5,7 +5,7 @@ from bpy.types import Node, NodeSocket, NodeTree
 from ..Structure import BNodeSocket
 from ..common_class import VqmtData
 from ..node_items import NodeItemsUtils
-from ..common_class import Fotago
+from ..common_class import Target
 from ..common_func import add_item_for_index_switch, is_builtin_tree_idname, sk_label_or_name, sk_type_to_idname
 from ..globals import dict_vqmtDefaultDefault, dict_vqmtDefaultValueOperation, dict_vqmtEditorNodes, is_bl4_plus, set_classicSocketsBlid, set_utilEquestrianPortalBlids, set_utilTypeSkFields
 
@@ -70,14 +70,14 @@ def GenFtgFromNd(nd: Node, pos: Vec2, uiScale: float): # 从 nearest_nodes_ftg �
     # 构建距离场
     vec = DistanceField(pos-ndCenter, ndSize)
     # 将处理过的节点添加到列表中
-    return Fotago(nd, dist=vec.length, pos=pos-vec)
+    return Target(nd, dist=vec.length, pos=pos-vec)
 
 def nearest_nodes_ftg(nodes, samplePos, uiScale, includePoorNodes=True): # 返回最近的节点列表. 真实的距离场.
     # 几乎是真实的. 圆角没有计算. 它们的缺失不影响使用, 而计算需要更多的操作. 所以没必要炫技.
     # 另一方面, 圆角对于折叠的节点很重要, 但我鄙视它们, 所以...
     # 框架节点被跳过, 因为没有一个工具需要它们.没有插槽的节点--就像框架节点一样;可以在搜索阶段就忽略它们.
 
-    valid_ftgs: list[Fotago] = []
+    valid_ftgs: list[Target] = []
     for nd in nodes:
         if nd.type == 'FRAME':
             continue
@@ -102,7 +102,7 @@ def GenFtgsFromPuts(nd: Node, isSide, samplePos, uiScale): # 为 vptRvEeSksHighl
         if not sk.is_linked:
             return True
         return (sk.vl_sold_is_final_linked_cou)and(sk.vl_sold_links_final[0].is_muted)
-    results: list[Fotago] = []
+    results: list[Target] = []
     ndDim = Vec2(nd.dimensions/uiScale) # "nd.dimensions" 已经包含了界面缩放的校正, 所以把它返回到世界坐标系.
     for sk in nd.outputs if isSide else reversed(nd.inputs):
         # 忽略禁用和隐藏的
@@ -119,7 +119,7 @@ def GenFtgsFromPuts(nd: Node, isSide, samplePos, uiScale): # 为 vptRvEeSksHighl
                     hei = 3
             boxHeiBound = (pos.y-11-hei*20,  pos.y+11+max(sk.vl_sold_is_final_linked_cou-2,0)*5*(not isSide))
             txt = _iface(sk_label_or_name(sk)) if sk.bl_idname!='NodeSocketVirtual' else _iface("Virtual" if not sk.name else sk_label_or_name(sk))
-            results.append(Fotago(sk, dist=(samplePos-pos).length, pos=pos, dir= 1 if sk.is_output else -1 , boxHeiBound=boxHeiBound, text=txt))
+            results.append(Target(sk, dist=(samplePos-pos).length, pos=pos, dir= 1 if sk.is_output else -1 , boxHeiBound=boxHeiBound, text=txt))
     return results
 
 def nearest_sockets_ftg(nd: Node, samplePos, uiScale): # 返回"最近的插槽"列表. 真实的 Voronoi 图单元距离场. 没错, 这个插件就是因此得名的.
@@ -130,7 +130,7 @@ def nearest_sockets_ftg(nd: Node, samplePos, uiScale): # 返回"最近的插槽"
             distance = (samplePos - loc - Vec2((sk.is_output, 0))).length
             direction = 1 if sk.is_output else -1
             label = nd.label or _iface(sk.name)
-            return [Fotago(sk, dist=distance, pos=loc, dir=direction, boxHeiBound=(-1, -1), text=label)]
+            return [Target(sk, dist=distance, pos=loc, dir=direction, boxHeiBound=(-1, -1), text=label)]
         return ftg_route(nd.inputs[0]), ftg_route(nd.outputs[0])
 
     ftg_sks_in = GenFtgsFromPuts(nd, False, samplePos, uiScale)
@@ -160,7 +160,7 @@ class VlrtData:
     reprLastSkOut = ""
     reprLastSkIn = ""
 
-def opt_ftg_socket(ftg: Fotago) -> NodeSocket:
+def opt_ftg_socket(ftg: Target) -> NodeSocket:
     return ftg.tar if ftg else None
 
 def IsClassicSk(sk: NodeSocket):
@@ -181,7 +181,7 @@ def SelectAndActiveNdOnly(ndTar: Node):
     ndTar.id_data.nodes.active = ndTar
     ndTar.select = True
 
-def MinFromFtgs(ftg1: Fotago, ftg2: Fotago):
+def MinFromFtgs(ftg1: Target, ftg2: Target):
     if (ftg1)or(ftg2): # 如果至少有一个存在.
         if not ftg2: # 如果其中一个不存在,
             return ftg1

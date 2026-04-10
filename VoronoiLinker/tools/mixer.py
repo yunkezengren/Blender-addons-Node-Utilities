@@ -20,15 +20,15 @@ class NODE_OT_voronoi_mixer(TripleSocketTool):
     isHideOptions:      bpy.props.BoolProperty(name="Hide node options",   default=False)
     isPlaceImmediately: bpy.props.BoolProperty(name="Place immediately",   default=False)
     def callback_draw_tool(self, drata):
-        TemplateDrawSksToolHh(drata, self.fotagoSk0, self.fotagoSk1, self.fotagoSk2, tool_name="Quick Mix")
+        TemplateDrawSksToolHh(drata, self.target_sk0, self.target_sk1, self.target_sk2, tool_name="Quick Mix")
     def find_targets_tool(self, isFirstActivation, prefs, tree):
         if isFirstActivation:
-            self.fotagoSk0 = None #需要清空, 因为下面有两个 continue.
+            self.target_sk0 = None #需要清空, 因为下面有两个 continue.
         if not self.canPickThird:
-            self.fotagoSk1 = None
+            self.target_sk1 = None
         soldReroutesCanInAnyType = prefs.vmtReroutesCanInAnyType
-        for ftgNd in self.get_nearest_nodes(cur_x_off=Cursor_X_Offset):
-            nd = ftgNd.tar
+        for tar_nd in self.get_nearest_nodes(cur_x_off=Cursor_X_Offset):
+            nd = tar_nd.tar
             unhide_node_reassign(nd, self, cond=isFirstActivation, flag=True)
             list_ftgSksOut = self.get_nearest_sockets(nd, cur_x_off=Cursor_X_Offset)[1]
             if not list_ftgSksOut:
@@ -36,9 +36,9 @@ class NODE_OT_voronoi_mixer(TripleSocketTool):
             #节点过滤器没有必要.
             #这个工具会触发第一个遇到的任何输出 (现在除了虚拟接口).
             if isFirstActivation:
-                self.fotagoSk0 = list_ftgSksOut[0] if list_ftgSksOut else None
+                self.target_sk0 = list_ftgSksOut[0] if list_ftgSksOut else None
             #对于第二个, 根据条件:
-            skOut0 = opt_ftg_socket(self.fotagoSk0)
+            skOut0 = opt_ftg_socket(self.target_sk0)
             # todo 做一些接口类型判断,比如 一个是 geometry 剩下的也要是
             if skOut0:
                 if not self.canPickThird:
@@ -52,40 +52,40 @@ class NODE_OT_voronoi_mixer(TripleSocketTool):
                         tgl = tgl or (self.check_between_sk_fields(skOut0, skOut1) or ((skOut1.bl_idname == skOut0.bl_idname) and (not orV)))
                         tgl = tgl or ((skOut0.node.type == 'REROUTE') or (skOut1.node.type == 'REROUTE')) and (soldReroutesCanInAnyType)
                         if tgl:
-                            self.fotagoSk1 = ftg
+                            self.target_sk1 = ftg
                             break
-                    if (self.fotagoSk1) and (skOut0 == self.fotagoSk1.tar): #检查是否是自我复制.
-                        self.fotagoSk1 = None
-                    unhide_node_reassign(nd, self, cond=self.fotagoSk1, flag=False)
-                    if self.fotagoSk1:
+                    if (self.target_sk1) and (skOut0 == self.target_sk1.tar): #检查是否是自我复制.
+                        self.target_sk1 = None
+                    unhide_node_reassign(nd, self, cond=self.target_sk1, flag=False)
+                    if self.target_sk1:
                         break
                 else:
-                    skOut1 = opt_ftg_socket(self.fotagoSk1)
+                    skOut1 = opt_ftg_socket(self.target_sk1)
                     for ftg in list_ftgSksOut:
-                        self.fotagoSk2 = ftg
+                        self.target_sk2 = ftg
                         if (ftg.tar == skOut0) or (ftg.tar == skOut1):
-                            self.fotagoSk2 = None
+                            self.target_sk2 = None
                         break
-                    unhide_node_reassign(nd, self, cond=self.fotagoSk2, flag=False)
-                    if self.fotagoSk2:
+                    unhide_node_reassign(nd, self, cond=self.target_sk2, flag=False)
+                    if self.target_sk2:
                         break
             #尽管节点过滤器没有必要, 并且在第一个遇到的节点上工作得很好, 但如果第一个接口没有找到, 仍然需要继续搜索.
             #因为如果第一个(最近的)节点搜索结果失败, 循环将结束, 工具将不会选择任何东西, 即使旁边有合适的.
-            if self.fotagoSk0:  # 在使用现在不存在的 isCanReOut 时尤其明显; 如果没有这个, 结果会根据光标位置成功/不成功地选择.
+            if self.target_sk0:  # 在使用现在不存在的 isCanReOut 时尤其明显; 如果没有这个, 结果会根据光标位置成功/不成功地选择.
                 break
     def can_run(self):
-        if not self.fotagoSk0:
+        if not self.target_sk0:
             return False
         if self.isCanFromOne:
-            return (self.fotagoSk0.blid!='NodeSocketVirtual')or(self.fotagoSk1)
+            return (self.target_sk0.blid!='NodeSocketVirtual')or(self.target_sk1)
         else:
-            return self.fotagoSk1
+            return self.target_sk1
     def run(self, event, prefs, tree):
-        VmtData.sk0 = self.fotagoSk0.tar
-        socket1 = opt_ftg_socket(self.fotagoSk1)
+        VmtData.sk0 = self.target_sk0.tar
+        socket1 = opt_ftg_socket(self.target_sk1)
         VmtData.sk1 = socket1
         #对虚拟接口的支持已关闭; 只从第一个读取
-        VmtData.sk2 = opt_ftg_socket(self.fotagoSk2)
+        VmtData.sk2 = opt_ftg_socket(self.target_sk2)
         VmtData.skType = VmtData.sk0.type if VmtData.sk0.bl_idname!='NodeSocketVirtual' else socket1.type
         VmtData.isHideOptions = self.isHideOptions
         VmtData.isPlaceImmediately = self.isPlaceImmediately

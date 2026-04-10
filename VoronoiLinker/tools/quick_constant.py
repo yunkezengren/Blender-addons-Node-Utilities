@@ -19,14 +19,14 @@ class NODE_OT_voronoi_quick_constant(TripleSocketTool):
     canDrawInAddonDiscl = False
     isPlaceImmediately: bpy.props.BoolProperty(name="Place immediately", default=False)
     def callback_draw_tool(self, drata):
-        TemplateDrawSksToolHh(drata, self.fotagoSk0, self.fotagoSk1, self.fotagoSk2, tool_name="Quick Constant")
+        TemplateDrawSksToolHh(drata, self.target_sk0, self.target_sk1, self.target_sk2, tool_name="Quick Constant")
     def find_targets_tool(self, isFirstActivation, prefs, tree):
         if isFirstActivation:
-            self.fotagoSk0 = None
+            self.target_sk0 = None
         if not self.canPickThird:
-            self.fotagoSk1 = None
-        for ftgNd in self.get_nearest_nodes(cur_x_off= -Cursor_X_Offset):
-            nd = ftgNd.tar
+            self.target_sk1 = None
+        for tar_nd in self.get_nearest_nodes(cur_x_off= -Cursor_X_Offset):
+            nd = tar_nd.tar
             list_ftgSksOut = self.get_nearest_sockets(nd, cur_x_off= -Cursor_X_Offset)[0]
             if not list_ftgSksOut:
                 continue
@@ -34,12 +34,12 @@ class NODE_OT_voronoi_quick_constant(TripleSocketTool):
                 for ftg in list_ftgSksOut:
                     # ! AllQuickConstant 新的接口类型要在这里更新
                     if get_const_node(tree, ftg.tar.type):
-                        self.fotagoSk0 = ftg
+                        self.target_sk0 = ftg
                         break
                 unhide_node_reassign(nd, self, cond=True, flag=True)
                 break
-            unhide_node_reassign(nd, self, cond=self.fotagoSk1, flag=False)
-            sk_out0 = opt_ftg_socket(self.fotagoSk0)
+            unhide_node_reassign(nd, self, cond=self.target_sk1, flag=False)
+            sk_out0 = opt_ftg_socket(self.target_sk0)
             if sk_out0:
                 only_single_link = {'MENU'}
                 if sk_out0.type in only_single_link:     # 小王 输出接口类型 不允许同时连到多个输入接口
@@ -47,36 +47,36 @@ class NODE_OT_voronoi_quick_constant(TripleSocketTool):
                 if not self.canPickThird:
                     for ftg in list_ftgSksOut:
                         if ftg.tar.type==sk_out0.type:
-                            self.fotagoSk1 = ftg
+                            self.target_sk1 = ftg
                             break
-                    if (self.fotagoSk1)and(self.fotagoSk1.tar==sk_out0):
-                        self.fotagoSk1 = None
+                    if (self.target_sk1)and(self.target_sk1.tar==sk_out0):
+                        self.target_sk1 = None
                         break
-                    unhide_node_reassign(nd, self, cond=self.fotagoSk1, flag=False)
-                    if self.fotagoSk1:
+                    unhide_node_reassign(nd, self, cond=self.target_sk1, flag=False)
+                    if self.target_sk1:
                         break
                 else:
-                    sk_out1 = opt_ftg_socket(self.fotagoSk1)
+                    sk_out1 = opt_ftg_socket(self.target_sk1)
                     for ftg in list_ftgSksOut:
                         if ftg.tar.type==sk_out0.type:
-                            self.fotagoSk2 = ftg
+                            self.target_sk2 = ftg
                             break
-                    if (self.fotagoSk2)and( (self.fotagoSk2.tar==sk_out0)or(sk_out1)and(self.fotagoSk2.tar==sk_out1) ):
-                        self.fotagoSk2 = None
+                    if (self.target_sk2)and( (self.target_sk2.tar==sk_out0)or(sk_out1)and(self.target_sk2.tar==sk_out1) ):
+                        self.target_sk2 = None
                         break
-                    unhide_node_reassign(nd, self, cond=self.fotagoSk2, flag=False)
-                    if self.fotagoSk2:
+                    unhide_node_reassign(nd, self, cond=self.target_sk2, flag=False)
+                    if self.target_sk2:
                         break
     def can_run(self):
-        return not not self.fotagoSk0
+        return not not self.target_sk0
     def run(self, event, prefs, tree):
-        skIn0 = self.fotagoSk0.tar
+        skIn0 = self.target_sk0.tar
         if skIn0.type in ["ROTATION", "MATRIX"]:
             Convert_Data.sk0 = skIn0
-            if self.fotagoSk1:
-                Convert_Data.sk1 = self.fotagoSk1.tar
-            if self.fotagoSk2:
-                Convert_Data.sk2 = self.fotagoSk2.tar
+            if self.target_sk1:
+                Convert_Data.sk1 = self.target_sk1.tar
+            if self.target_sk2:
+                Convert_Data.sk2 = self.target_sk2.tar
             if skIn0.type == "ROTATION":
                 if hasattr(skIn0, "default_value"):
                     bpy.ops.wm.call_menu_pie(name=PIE_MT_Convert_To_Rotation.bl_idname)
@@ -94,10 +94,10 @@ class NODE_OT_voronoi_quick_constant(TripleSocketTool):
             sk_out = new_node.outputs[0]
 
             tree.links.new(sk_out, skIn0)
-            if self.fotagoSk1:
-                tree.links.new(sk_out, self.fotagoSk1.tar)
-            if self.fotagoSk2:
-                tree.links.new(sk_out, self.fotagoSk2.tar)
+            if self.target_sk1:
+                tree.links.new(sk_out, self.target_sk1.tar)
+            if self.target_sk2:
+                tree.links.new(sk_out, self.target_sk2.tar)
 
             if isinstance(new_node, (B.NodeClosureOutput, B.NodeCombineBundle)):
                 bpy.ops.node.sockets_sync()

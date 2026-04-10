@@ -1,14 +1,14 @@
 from bpy.types import Node, NodeSocket
 from mathutils import Vector as Vec2
 
-class Fotago():  # Found Target Goal (找到的目标), "剩下的你们自己看着办".
+class Target():  # Found Target Goal (找到的目标), "剩下的你们自己看着办".
     # def __getattr__(self, att): # 天才. 仅次于 '(*args): return Vector((args))'.
     #    return getattr(self.target, att) # 但要小心, 它的速度慢了大约5倍.
     def __init__(self, target: Node | NodeSocket, *, dist=0.0, pos=Vec2((0.0, 0.0)), dir=0, boxHeiBound=(0.0, 0.0), text=""):
         self.tar = target  # 可能是 node 或 socket
-        #self.sk = target                  # Fotago.sk = property(lambda a:a.target)
-        #self.nd = target                  # Fotago.nd = property(lambda a:a.target)
-        self.blid: str = target.bl_idname  # Fotago.blid = property(lambda a:a.target.bl_idname)
+        #self.sk = target                  # Target.sk = property(lambda a:a.target)
+        #self.nd = target                  # Target.nd = property(lambda a:a.target)
+        self.blid: str = target.bl_idname  # Target.blid = property(lambda a:a.target.bl_idname)
         self.dist = dist
         self.pos = pos
         # 下面的仅用于插槽.

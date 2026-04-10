@@ -77,19 +77,19 @@ class NODE_OT_voronoi_ranto(SingleNodeTool): #完成了.
                 nd.select = True
         #ndTar.location = ndTar.location #bpy.ops.wm.redraw_timer(type='DRAW', iterations=0)
     def find_targets_tool(self, _isFirstActivation, prefs, tree):
-        self.fotagoNd = None
-        for ftgNd in self.get_nearest_nodes(cur_x_off=0):
-            nd = ftgNd.tar
+        self.target_nd = None
+        for tar_nd in self.get_nearest_nodes(cur_x_off=0):
+            nd = tar_nd.tar
             if nd.type=='REROUTE':
                 continue #为此，请参考原始的RANTO插件.
-            self.fotagoNd = ftgNd
+            self.target_nd = tar_nd
             #if not self.ndMaxAccRoot:
             #    self.ndMaxAccRoot = nd
             if prefs.vrtIsLiveRanto:
                 self.DoRANTO(nd, tree, prefs.vrtIsFixIslands)
             break
     def run(self, event, prefs, tree):
-        ndTar = self.fotagoNd.tar
+        ndTar = self.target_nd.tar
         #if self.isAccumulate:
         #    self.ndMaxAccRoot = None
         #    self.lastNdProc = None

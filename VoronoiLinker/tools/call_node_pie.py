@@ -1,6 +1,6 @@
 import bpy
 from ..base_tool import unhide_node_reassign, AnyTargetTool
-from ..common_class import Fotago
+from ..common_class import Target
 
 class NODE_OT_voronoi_call_node_pie(AnyTargetTool):
     """ Voronoi 联动 Node Pie """
@@ -9,21 +9,21 @@ class NODE_OT_voronoi_call_node_pie(AnyTargetTool):
     isTriggerOnCollapsedNodes: bpy.props.BoolProperty(name="Trigger on collapsed nodes", default=True)
 
     def callback_draw_tool(self, drata):
-        self.TemplateDrawAny(drata, self.fotagoAny, cond=False, tool_name="Node Pie Menu")
+        self.TemplateDrawAny(drata, self.target_any, cond=False, tool_name="Node Pie Menu")
 
     def find_targets_tool(self, _isFirstActivation, prefs, tree):
-        self.fotagoAny: Fotago = None
-        ftg_nodes = self.get_nearest_nodes()  # ->list[Fotago] <class Fotago> 这里 .tar 是 Node
+        self.target_any: Target = None
+        ftg_nodes = self.get_nearest_nodes()  # ->list[Target] <class Target> 这里 .tar 是 Node
         node_count = 5 if len(ftg_nodes) >= 5 else len(ftg_nodes)
         node_count = min(5, len(ftg_nodes))
-        ftg_sockets: list[Fotago] = []
+        ftg_sockets: list[Target] = []
         # 优化了最近接口的获取
         for fotago in ftg_nodes[:node_count]:
             nd = fotago.tar
             if (not self.isTriggerOnCollapsedNodes) and (nd.hide):
                 continue
             # 这的最近节点的输入输出接口，有时候最近的是输出节口，但是没有离最近的节点的输入接口更近，所以把最近的几个节点接口列表合并
-            ftg_sks_in, ftg_sks_out = self.get_nearest_sockets(nd)  # ->([], [])  <class Fotago> 这里 .tar 是 Socket
+            ftg_sks_in, ftg_sks_out = self.get_nearest_sockets(nd)  # ->([], [])  <class Target> 这里 .tar 是 Socket
             ftg_sockets.extend(ftg_sks_in)
             ftg_sockets.extend(ftg_sks_out)
         ftg_sockets.sort(key=lambda soc: soc.dist)
@@ -32,14 +32,14 @@ class NODE_OT_voronoi_call_node_pie(AnyTargetTool):
             if ftg_sk.blid != "NodeSocketVirtual":
                 near_ftg_soc = ftg_sk
                 break
-        self.fotagoAny = near_ftg_soc
+        self.target_any = near_ftg_soc
         if near_ftg_soc:
             unhide_node_reassign(
                 near_ftg_soc.tar.node, self,
-                cond=self.fotagoAny)  #Для режима сокетов тоже нужно перерисовывать, ибо нод у прицепившегося сокета может быть свёрнут.
+                cond=self.target_any)  #Для режима сокетов тоже нужно перерисовывать, ибо нод у прицепившегося сокета может быть свёрнут.
 
     def run(self, event, prefs, tree):
-        path = repr(self.fotagoAny.tar)  # 有效解决几何和材质节点 节点数据路径不太一样的问题
+        path = repr(self.target_any.tar)  # 有效解决几何和材质节点 节点数据路径不太一样的问题
         bpy.ops.node_pie.call_node_pie("INVOKE_DEFAULT", reset_args=False, voronoi_call=True, socket_path=path)
 
     def initialize(self, event, prefs, tree):

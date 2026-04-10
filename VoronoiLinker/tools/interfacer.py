@@ -46,12 +46,12 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
     def callback_draw_tool(self, drata):
         match eMode(self.toolMode):
             case eMode.NEW:
-                TemplateDrawSksToolHh(drata, self.fotagoSkRosw, self.fotagoSkMain, isClassicFlow=True, tool_name="Connect to Extend Socket")
+                TemplateDrawSksToolHh(drata, self.target_skRosw, self.target_skMain, isClassicFlow=True, tool_name="Connect to Extend Socket")
             case eMode.CREATE:
-                ftgMain = self.fotagoSkMain
+                ftgMain = self.target_skMain
                 if ftgMain:
                     TemplateDrawSksToolHh(drata, ftgMain, sideMarkHh=-2, tool_name="Insert to Socket")
-                ftgNdTar = self.fotagoNdTar
+                ftgNdTar = self.target_ndTar
                 if ftgNdTar:
                     TemplateDrawNodeFull(drata, ftgNdTar, tool_name="Node Group")
                     list_ftgSksIn, list_ftgSksOut = self.get_nearest_sockets(ftgNdTar.tar, cur_x_off=0)
@@ -62,12 +62,12 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
                     boxHeiBound = Vec((y - 7, y + 7))
                     DrawVlSocketArea(drata, near_group_in.tar, boxHeiBound, Color4(get_sk_color_safe(ftgMain.tar)))
             case eMode.FLIP:  # 失败
-                # ftgMain = self.fotagoSkMain
+                # ftgMain = self.target_skMain
                 # if ftgMain:
                 # TemplateDrawSksToolHh(drata, ftgMain, isFlipSide=True, tool_name="")
 
-                TemplateDrawSksToolHh(drata, self.fotagoSkMain, self.fotagoSkRosw, tool_name="Move to Socket")
-                ftgNdTar = self.fotagoNdTar
+                TemplateDrawSksToolHh(drata, self.target_skMain, self.target_skRosw, tool_name="Move to Socket")
+                ftgNdTar = self.target_ndTar
                 if ftgNdTar:
                     # TemplateDrawNodeFull(drata, ftgNdTar, tool_name="Interfacer")
                     list_ftgSksIn, list_ftgSksOut = self.get_nearest_sockets(ftgNdTar.tar, cur_x_off=0)
@@ -85,71 +85,71 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
                     case eMode.SWAP:   mode = "Swap Sockets"
                     case eMode.TYPE:   mode = "Change Socket Type"
                 # todo 接口1移到接口2上  FLIP模式，在两个接口绘制名后加上 接口1 接口2
-                TemplateDrawSksToolHh(drata, self.fotagoSkMain, self.fotagoSkRosw, tool_name=mode)
+                TemplateDrawSksToolHh(drata, self.target_skMain, self.target_skRosw, tool_name=mode)
 
     def find_targets_toolCopyPaste(self, _isFirstActivation, prefs, tree):
-        self.fotagoSkMain = None
+        self.target_skMain = None
         if (self.toolMode == eMode.PASTE.value) and (not self.clipboard):  # 预料之中; 还有 #https://projects.blender.org/blender/blender/issues/113860
             return  #Todo0VV 遍历版本并指出哪些会崩溃.
-        for ftgNd in self.get_nearest_nodes(cur_x_off=0):
-            nd = ftgNd.tar
+        for tar_nd in self.get_nearest_nodes(cur_x_off=0):
+            nd = tar_nd.tar
             if nd.type == 'REROUTE':
                 continue
             if (not prefs.vitPasteToAnySocket) and (self.toolMode == eMode.PASTE.value) and (nd.type not in NodeItemsUtils.support_types):
                 break  # 光标必须靠近骑士 (或组节点) (对于非 vitPasteToAnySocket). 还有 `continue` 不会有高级取消.
             list_ftgSksIn, list_ftgSksOut = self.get_nearest_sockets(nd, cur_x_off=0)
-            self.fotagoSkMain = FindAnySk(nd, list_ftgSksIn, list_ftgSksOut)
-            if self.fotagoSkMain:
-                unhide_node_reassign(nd, self, cond=self.fotagoSkMain.tar.node == nd, flag=True)
+            self.target_skMain = FindAnySk(nd, list_ftgSksIn, list_ftgSksOut)
+            if self.target_skMain:
+                unhide_node_reassign(nd, self, cond=self.target_skMain.tar.node == nd, flag=True)
             break
     def find_targets_toolSwapFlip(self, isFirstActivation, prefs, tree):
-        self.fotagoSkMain = None
-        for ftgNd in self.get_nearest_nodes(cur_x_off=0):
-            nd = ftgNd.tar
+        self.target_skMain = None
+        for tar_nd in self.get_nearest_nodes(cur_x_off=0):
+            nd = tar_nd.tar
             if nd.type=='REROUTE':
                 continue
             if nd.type not in NodeItemsUtils.support_types:
                 break # 光标必须靠近骑士 (或组节点); 但也可以通过选择同一个套接字来取消, 所以不确定.
-            if (self.fotagoSkRosw)and(self.fotagoSkRosw.tar.node!=nd):
+            if (self.target_skRosw)and(self.target_skRosw.tar.node!=nd):
                 continue
             list_ftgSksIn, list_ftgSksOut = self.get_nearest_sockets(nd, cur_x_off=0)
             if isFirstActivation:
-                self.fotagoSkRosw = FindAnySk(nd, list_ftgSksIn, list_ftgSksOut)
-            unhide_node_reassign(nd, self, cond=self.fotagoSkRosw, flag=True)
-            skRosw = opt_ftg_socket(self.fotagoSkRosw)
+                self.target_skRosw = FindAnySk(nd, list_ftgSksIn, list_ftgSksOut)
+            unhide_node_reassign(nd, self, cond=self.target_skRosw, flag=True)
+            skRosw = opt_ftg_socket(self.target_skRosw)
             if skRosw:
                 for ftg in list_ftgSksOut if skRosw.is_output else list_ftgSksIn:
                     if (ftg.blid!='NodeSocketVirtual')and(NodeItemsUtils.IsSimRepCorrectSk(nd, ftg.tar)):
-                        self.fotagoSkMain = ftg
+                        self.target_skMain = ftg
                         break
-                if (self.fotagoSkMain)and(self.fotagoSkMain.tar==skRosw):
-                    self.fotagoSkMain = None
+                if (self.target_skMain)and(self.target_skMain.tar==skRosw):
+                    self.target_skMain = None
             break
     def find_targets_toolNewCreate(self, isFirstActivation, prefs, tree):
-        for ftgNd in self.get_nearest_nodes(includePoorNodes=True, cur_x_off=0):
-            nd = ftgNd.tar
+        for tar_nd in self.get_nearest_nodes(includePoorNodes=True, cur_x_off=0):
+            nd = tar_nd.tar
             if nd.type=='REROUTE':
                 continue
             list_ftgSksIn, list_ftgSksOut = self.get_nearest_sockets(nd, cur_x_off=0)
             match eMode(self.toolMode):
                 case eMode.NEW:
-                    self.fotagoSkMain = None
+                    self.target_skMain = None
                     if isFirstActivation:
-                        self.fotagoSkRosw = None
+                        self.target_skRosw = None
                         for ftg in list_ftgSksOut:
-                            self.fotagoSkRosw = ftg
+                            self.target_skRosw = ftg
                             self.tglCrossVirt = ftg.blid == 'NodeSocketVirtual'
                             break
-                        unhide_node_reassign(nd, self, cond=self.fotagoSkRosw, flag=True)
-                    skRosw = opt_ftg_socket(self.fotagoSkRosw)
+                        unhide_node_reassign(nd, self, cond=self.target_skRosw, flag=True)
+                    skRosw = opt_ftg_socket(self.target_skRosw)
                     if skRosw:
                         for ftg in list_ftgSksIn:
                             if (ftg.blid == 'NodeSocketVirtual') ^ self.tglCrossVirt:
-                                self.fotagoSkMain = ftg
+                                self.target_skMain = ftg
                                 break
-                        if (self.fotagoSkMain) and (self.fotagoSkMain.tar.node == skRosw.node):  #todo0NA 概括这种检查到类中.
-                            self.fotagoSkMain = None
-                    unhide_node_reassign(nd, self, cond=self.fotagoSkMain, flag=True)
+                        if (self.target_skMain) and (self.target_skMain.tar.node == skRosw.node):  #todo0NA 概括这种检查到类中.
+                            self.target_skMain = None
+                    unhide_node_reassign(nd, self, cond=self.target_skMain, flag=True)
                 case eMode.CREATE:
                     if isFirstActivation:
                         ftgSkOut, ftgSkIn = None, None
@@ -161,9 +161,9 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
                             if (ftg.blid != 'NodeSocketVirtual') and (NodeItemsUtils.IsSimRepCorrectSk(nd, ftg.tar)):
                                 ftgSkOut = ftg
                                 break
-                        self.fotagoSkMain = MinFromFtgs(ftgSkOut, ftgSkIn)
-                    self.fotagoNdTar = None
-                    skMain = opt_ftg_socket(self.fotagoSkMain)
+                        self.target_skMain = MinFromFtgs(ftgSkOut, ftgSkIn)
+                    self.target_ndTar = None
+                    skMain = opt_ftg_socket(self.target_skMain)
                     if not skMain: continue
                     if nd == skMain.node:
                         break
@@ -171,7 +171,7 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
                         continue
                     if skMain.is_output and nd.type == 'GROUP_INPUT': continue
                     if not skMain.is_output and nd.type in NodeItemsUtils.only_inputs: continue
-                    self.fotagoNdTar = ftgNd
+                    self.target_ndTar = tar_nd
             break
 
     def find_targets_tool(self, isFirstActivation, prefs, tree):
@@ -186,48 +186,48 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
     def can_run(self):
         match eMode(self.toolMode):
             case eMode.COPY | eMode.PASTE:
-                return not not self.fotagoSkMain
+                return not not self.target_skMain
             case eMode.SWAP | eMode.FLIP:
-                return self.fotagoSkRosw and self.fotagoSkMain
+                return self.target_skRosw and self.target_skMain
             case eMode.NEW:
                 for dk, dv in self.dict_ndHidingVirtualIn.items():
                     dk.inputs[-1].hide = dv
                 for dk, dv in self.dict_ndHidingVirtualOut.items():
                     dk.outputs[-1].hide = dv
-                return self.fotagoSkRosw and self.fotagoSkMain
+                return self.target_skRosw and self.target_skMain
             case eMode.CREATE:
-                return self.fotagoSkMain and self.fotagoNdTar
+                return self.target_skMain and self.target_ndTar
 
     def run(self, event, prefs, tree: NodeTree):
         links = tree.links
         match eMode(self.toolMode):
             case eMode.COPY:
-                self.clipboard = sk_label_or_name(self.fotagoSkMain.tar)
+                self.clipboard = sk_label_or_name(self.target_skMain.tar)
             case eMode.PASTE:
                 #tovo1v6 添加一个按键, 按下后会“取消”--不进行粘贴; 因为此模式保证会粘附 (参见选项) 到任何套接字, 需要某种方式来“退后一步”.
-                skMain = self.fotagoSkMain.tar
+                skMain = self.target_skMain.tar
                 if (skMain.node.type not in NodeItemsUtils.support_types) and (prefs.vitPasteToAnySocket):
                     skMain.name = self.clipboard
                 else:
                     NodeItemsUtils(skMain).get_item(skMain).name = self.clipboard
             case eMode.SWAP | eMode.FLIP:
-                skMain = self.fotagoSkMain.tar
+                skMain = self.target_skMain.tar
                 items_tool = NodeItemsUtils(skMain)
-                skfFrom = items_tool.get_item(self.fotagoSkRosw.tar)
+                skfFrom = items_tool.get_item(self.target_skRosw.tar)
                 skfTo = items_tool.get_item(skMain)
                 items_tool.MoveBySkfs(skfFrom, skfTo, isSwap=self.toolMode == eMode.SWAP.value)
             case eMode.NEW:
-                DoLinkHh(self.fotagoSkRosw.tar, self.fotagoSkMain.tar)
+                DoLinkHh(self.target_skRosw.tar, self.target_skMain.tar)
             case eMode.CREATE:
-                ftgNdTar = self.fotagoNdTar
-                tar_nd = ftgNdTar.tar
-                items_tool = NodeItemsUtils(tar_nd)
-                skMain = self.fotagoSkMain.tar
-                skfNew = items_tool.NewSkfFromSk(skMain, isFlipSide=tar_nd.type not in {'GROUP_INPUT', 'GROUP_OUTPUT'})
+                ftgNdTar = self.target_ndTar
+                _tar_nd = ftgNdTar.tar
+                items_tool = NodeItemsUtils(_tar_nd)
+                skMain = self.target_skMain.tar
+                skfNew = items_tool.NewSkfFromSk(skMain, isFlipSide=_tar_nd.type not in {'GROUP_INPUT', 'GROUP_OUTPUT'})
                 if not skfNew: return
                 can = True
                 # if not items_tool.has_extend_socket:
-                is_group = tar_nd.type in ['GROUP', 'GROUP_INPUT', 'GROUP_OUTPUT']
+                is_group = _tar_nd.type in ['GROUP', 'GROUP_INPUT', 'GROUP_OUTPUT']
                 if is_group:
                     for skf in items_tool.skfa:
                         if skf.item_type == 'PANEL':  # 该死的头疼. 你们自己搞定吧, 我已经懒得搞了.
@@ -237,9 +237,9 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
                     item_name = skfNew.name
                     ftgNearest = None  # MinFromFtgs(list_ftgSksIn[0] if list_ftgSksIn else None, list_ftgSksOut[0] if list_ftgSksOut else None)
                     min = 16777216.0
-                    list_ftgSksIn, list_ftgSksOut = self.get_nearest_sockets(tar_nd)
+                    list_ftgSksIn, list_ftgSksOut = self.get_nearest_sockets(_tar_nd)
                     for ftg in list_ftgSksIn if skMain.is_output else list_ftgSksOut:
-                        if (ftg.blid != 'NodeSocketVirtual') and (NodeItemsUtils.IsSimRepCorrectSk(tar_nd, ftg.tar)):
+                        if (ftg.blid != 'NodeSocketVirtual') and (NodeItemsUtils.IsSimRepCorrectSk(_tar_nd, ftg.tar)):
                             length = (ftgNdTar.pos - ftg.pos).length
                             if min > length:
                                 min = length
@@ -274,8 +274,8 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
                     links.new(skMain, items_tool.get_socket(skfNew, is_out=(skfNew.in_out == 'OUTPUT') ^ (items_tool.type != 'GROUP')))
 
     def initialize(self, event, prefs, tree):
-        self.fotagoSkMain = None
-        self.fotagoSkRosw = None  #RootSwap
+        self.target_skMain = None
+        self.target_skRosw = None  #RootSwap
         match eMode(self.toolMode):
             case eMode.NEW:
                 self.dict_ndHidingVirtualIn = {}
@@ -292,9 +292,9 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
                 # 某个 bug, 如果不重绘, 第一个找到的虚拟的就无法正确选择.
                 bpy.ops.wm.redraw_timer(type='DRAW', iterations=0)
             case eMode.CREATE:
-                self.fotagoNdTar = None  # 天啊.
+                self.target_ndTar = None  # 天啊.
             case eMode.FLIP:
-                self.fotagoNdTar = None
+                self.target_ndTar = None
         NODE_OT_voronoi_interfacer.clipboard = property(lambda _: bpy.context.window_manager.clipboard,
                                                    lambda _, v: setattr(bpy.context.window_manager, 'clipboard', v))
 

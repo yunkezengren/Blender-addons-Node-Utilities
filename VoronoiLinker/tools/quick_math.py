@@ -31,15 +31,15 @@ class NODE_OT_voronoi_quick_math(TripleSocketTool):
     justPieCall:           bpy.props.IntProperty(name="Just call pie", default=0, min=0, max=5,
                                                  description="Call pie to add a node, bypassing the sockets selection.\n0–Disable.\n1–Float.\n2–Vector.\n3–Boolean.\n4–Color.\n5–Int")
     def callback_draw_tool(self, drata):
-        TemplateDrawSksToolHh(drata, self.fotagoSk0, self.fotagoSk1, self.fotagoSk2, tool_name="Quick Math")
+        TemplateDrawSksToolHh(drata, self.target_sk0, self.target_sk1, self.target_sk2, tool_name="Quick Math")
     def find_targets_tool(self, isFirstActivation, prefs, tree):
         if isFirstActivation:
-            self.fotagoSk0 = None
+            self.target_sk0 = None
         isNotCanPickThird = not self.canPickThird if prefs.vqmtIncludeThirdSk else True
         if isNotCanPickThird:
-            self.fotagoSk1 = None
-        for ftgNd in self.get_nearest_nodes(cur_x_off=Cursor_X_Offset):
-            nd = ftgNd.tar
+            self.target_sk1 = None
+        for tar_nd in self.get_nearest_nodes(cur_x_off=Cursor_X_Offset):
+            nd = tar_nd.tar
             list_ftgSksIn, list_ftgSksOut = self.get_nearest_sockets(nd, cur_x_off=Cursor_X_Offset)
             if not list_ftgSksOut:
                 continue
@@ -50,7 +50,7 @@ class NODE_OT_voronoi_quick_math(TripleSocketTool):
                     if not self.isRepeatLastOperation:
                         if not self.isQuickQuickMath:
                             if ftg.tar.type in set_vqmtSkTypeFields:
-                                self.fotagoSk0 = ftg
+                                self.target_sk0 = ftg
                                 isSucessOut = True
                                 break
                         else: #对于 isQuickQuickMath, 只附加到明确指定操作的套接字类型.
@@ -62,44 +62,44 @@ class NODE_OT_voronoi_quick_math(TripleSocketTool):
                                 case 'BOOLEAN':             isSucessOut = self.quickOprBool
                                 case 'RGBA':                isSucessOut = self.quickOprColor
                             if isSucessOut:
-                                self.fotagoSk0 = ftg
+                                self.target_sk0 = ftg
                                 break
                     else:
                         isSucessOut = VqmtData.dict_lastOperation.get(ftg.tar.type, '')
                         if isSucessOut:
-                            self.fotagoSk0 = ftg
+                            self.target_sk0 = ftg
                             break
                 if not isSucessOut:
                     continue #寻找 isFirstActivation 的节点, 该节点将命中字段套接字.
                 #对于下一个 `continue`, 因为如果接下来激活 continue 失败, 将会重新选择 isFirstActivation
                 isFirstActivation = False #但考虑到当前的选择拓扑, 这没有必要.
-            unhide_node_reassign(nd, self, cond=self.fotagoSk0, flag=True) #todo0NA 参见上面一行, 这个 'cond' 不应该来自 isFirstActivation.
-            skOut0 = opt_ftg_socket(self.fotagoSk0)
+            unhide_node_reassign(nd, self, cond=self.target_sk0, flag=True) #todo0NA 参见上面一行, 这个 'cond' 不应该来自 isFirstActivation.
+            skOut0 = opt_ftg_socket(self.target_sk0)
             if isNotCanPickThird:
                 #对于第二个, 根据条件:
                 if skOut0:
                     for ftg in list_ftgSksOut:
                         if self.check_between_sk_fields(skOut0, ftg.tar):
-                            self.fotagoSk1 = ftg
+                            self.target_sk1 = ftg
                             break
-                    if not self.fotagoSk1:
+                    if not self.target_sk1:
                         continue #以便没有字段套接字的节点是透明的.
-                    if (self.fotagoSk1)and(skOut0==self.fotagoSk1.tar): #检查是否是自我复制.
-                        self.fotagoSk1 = None
-                    unhide_node_reassign(nd, self, cond=self.fotagoSk1, flag=False)
+                    if (self.target_sk1)and(skOut0==self.target_sk1.tar): #检查是否是自我复制.
+                        self.target_sk1 = None
+                    unhide_node_reassign(nd, self, cond=self.target_sk1, flag=False)
             else:
-                self.fotagoSk2 = None #为了方便高级取消而清空.
+                self.target_sk2 = None #为了方便高级取消而清空.
                 #对于第三个, 如果不是前两个的节点.
-                skOut1 = opt_ftg_socket(self.fotagoSk1)
+                skOut1 = opt_ftg_socket(self.target_sk1)
                 for ftg in list_ftgSksIn:
                     skIn = ftg.tar
                     if skIn.type in set_vqmtSkTypeFields:
                         tgl0 = (not skOut0)or(skOut0.node!=skIn.node)
                         tgl1 = (not skOut1)or(skOut1.node!=skIn.node)
                         if (tgl0)and(tgl1):
-                            self.fotagoSk2 = ftg
+                            self.target_sk2 = ftg
                             break
-                unhide_node_reassign(nd, self, cond=self.fotagoSk2, flag=False)
+                unhide_node_reassign(nd, self, cond=self.target_sk2, flag=False)
             break
     def VqmSetPieData(self, prefs, col):
         SetPieData(self, VqmtData, prefs, col)
@@ -125,11 +125,11 @@ class NODE_OT_voronoi_quick_math(TripleSocketTool):
                         return True
         return False
     def can_run(self):
-        return (self.fotagoSk0)and(self.isCanFromOne or self.fotagoSk1)
+        return (self.target_sk0)and(self.isCanFromOne or self.target_sk1)
     def run(self, event, prefs, tree):
-        VqmtData.sk0 = self.fotagoSk0.tar
-        VqmtData.sk1 = opt_ftg_socket(self.fotagoSk1)
-        VqmtData.sk2 = opt_ftg_socket(self.fotagoSk2)
+        VqmtData.sk0 = self.target_sk0.tar
+        VqmtData.sk1 = opt_ftg_socket(self.target_sk1)
+        VqmtData.sk2 = opt_ftg_socket(self.target_sk2)
         VqmtData.qmSkType = VqmtData.sk0.type #注意: 只有字段套接字是更高级别的问题.
         VqmtData.qmTrueSkType = VqmtData.qmSkType #这个信息对于“最后的操作”是必需的.
         self.int_default_float = False

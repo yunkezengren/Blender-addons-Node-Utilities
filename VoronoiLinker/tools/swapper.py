@@ -32,13 +32,13 @@ class NODE_OT_voronoi_swapper(PairSocketTool):
             case eMode.SWAP: mode = "交换连线"
             case eMode.ADD:  mode = "移动并加入连线"
             case eMode.TRAN: mode = "移动并替换连线"
-        TemplateDrawSksToolHh(drata, self.fotagoSk0, self.fotagoSk1, tool_name=mode,)
+        TemplateDrawSksToolHh(drata, self.target_sk0, self.target_sk1, tool_name=mode,)
     def find_targets_tool(self, isFirstActivation, prefs, tree):
         if isFirstActivation:
-            self.fotagoSk0 = None
-        self.fotagoSk1 = None
-        for ftgNd in self.get_nearest_nodes(cur_x_off=0):
-            nd = ftgNd.tar
+            self.target_sk0 = None
+        self.target_sk1 = None
+        for tar_nd in self.get_nearest_nodes(cur_x_off=0):
+            nd = tar_nd.tar
             unhide_node_reassign(nd, self, cond=isFirstActivation, flag=True)
             list_ftgSksIn, list_ftgSksOut = self.get_nearest_sockets(nd, cur_x_off=0)
             #基于Mixer的标准.
@@ -57,30 +57,30 @@ class NODE_OT_voronoi_swapper(PairSocketTool):
                     #按类型检查，而不是按'is_multi_input'，这样就可以从常规输入添加到多输入.
                     if (ftgSkIn.blid not in ('NodeSocketGeometry','NodeSocketString')):#or(not ftgSkIn.tar.is_multi_input): #没有第二个条件可能性更多.
                         ftgSkIn = None
-                self.fotagoSk0 = MinFromFtgs(ftgSkOut, ftgSkIn)
+                self.target_sk0 = MinFromFtgs(ftgSkOut, ftgSkIn)
             #这里积累了很多奇怪的关于None等的检查 -- 这是我将自己发明的许多高级函数连接在一起的结果.
-            skOut0 = opt_ftg_socket(self.fotagoSk0)
+            skOut0 = opt_ftg_socket(self.target_sk0)
             if skOut0:
                 for ftg in list_ftgSksOut if skOut0.is_output else list_ftgSksIn:
                     if ftg.blid=='NodeSocketVirtual':
                         continue
                     if (self.isCanAnyType)or(skOut0.bl_idname==ftg.blid)or(self.check_between_sk_fields(skOut0, ftg.tar)):
-                        self.fotagoSk1 = ftg
-                    if self.fotagoSk1: #如果成功则停止搜索.
+                        self.target_sk1 = ftg
+                    if self.target_sk1: #如果成功则停止搜索.
                         break
-                if (self.fotagoSk1)and(skOut0==self.fotagoSk1.tar): #检查是否为自我复制.
-                    self.fotagoSk1 = None
+                if (self.target_sk1)and(skOut0==self.target_sk1.tar): #检查是否为自我复制.
+                    self.target_sk1 = None
                     break #当isFirstActivation==False且接口为自我复制时，为isCanAnyType中断循环；以免一次找到两个节点.
                 if not self.isCanAnyType:
-                    if not(self.fotagoSk1 or isFirstActivation): #如果没有结果，则继续搜索.
+                    if not(self.target_sk1 or isFirstActivation): #如果没有结果，则继续搜索.
                         continue
-                unhide_node_reassign(nd, self, cond=self.fotagoSk1, flag=False)
+                unhide_node_reassign(nd, self, cond=self.target_sk1, flag=False)
             break
     def can_run(self):
-        return self.fotagoSk0 and self.fotagoSk1
+        return self.target_sk0 and self.target_sk1
     def run(self, event, prefs, tree):
-        skIo0 = self.fotagoSk0.tar
-        skIo1 = self.fotagoSk1.tar
+        skIo0 = self.target_sk0.tar
+        skIo1 = self.target_sk1.tar
         match eMode(self.toolMode):
             case eMode.SWAP:
                 #交换第一个和第二个接口的所有连接:

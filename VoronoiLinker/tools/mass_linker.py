@@ -16,7 +16,7 @@ class NODE_OT_voronoi_mass_linker(BaseTool):  # "猫狗合体", 既不是节点,
     usefulnessForCustomTree = True
     isIgnoreExistingLinks: bpy.props.BoolProperty(name="Ignore existing links", default=False)
     def callback_draw_tool(self, drata):
-        # TemplateDrawSksToolHh(drata, self.fotagoSk0, self.fotagoSk1, self.fotagoSk2, tool_name="Quick Dimensions - 暂时只输出有效")
+        # TemplateDrawSksToolHh(drata, self.target_sk0, self.target_sk1, self.target_sk2, tool_name="Quick Dimensions - 暂时只输出有效")
         # TemplateDrawSksToolHh(drata, None, None, sideMarkHh=-1, isClassicFlow=True, tool_name="Linker")
         #这里违反了本地 VL 的读写概念, CallbackDraw 会查找并记录找到的接口, 而不是简单地读取和绘制. 我想这样更容易实现这个工具.
         self.list_equalFtgSks.clear() #每次都清除. P.s. 在开始时执行此操作很重要, 而不是在两个节点的分支中.
@@ -53,8 +53,8 @@ class NODE_OT_voronoi_mass_linker(BaseTool):  # "猫狗合体", 既不是节点,
                 #因为是按名称搜索, 所以这里会绘制并可能在下面同时从两个 (或更多) 接口连接到同一个接口. 就像同名“冲突”一样.
                 TemplateDrawSksToolHh(drata, li[0], li[1], isDrawText=False, isClassicFlow=True, tool_name="MassLinker") #*[ti for li in self.list_equalFtgSks for ti in li]
     def find_targets_tool(self, isFirstActivation, prefs, tree):
-        for ftgNd in self.get_nearest_nodes(cur_x_off=Cursor_X_Offset):
-            nd = ftgNd.tar
+        for tar_nd in self.get_nearest_nodes(cur_x_off=Cursor_X_Offset):
+            nd = tar_nd.tar
             unhide_node_reassign(nd, self, cond=isFirstActivation, flag=True)
             #除了折叠的节点, 还忽略了转接点, 因为它们的输入总是相同的, 并且名称相同.
             if nd.type=='REROUTE':

@@ -6,7 +6,7 @@ from mathutils import Vector as Vec2
 from bpy.app.translations import pgettext_iface as _iface
 from bpy.types import Context, NodeSocket
 from ..Structure import View2D
-from ..common_class import Fotago
+from ..common_class import Target
 from .color import Color4, clamp_color4, get_color_black_alpha, get_sk_color, get_sk_color_safe, opaque_color4, power_color4
 from .node import node_abs_loc
 from .solder import node_tag_color
@@ -197,7 +197,7 @@ def DrawWorldText(drata: DrawDataTool, pos, ofsHh, text, *, text_color, colBg, f
     # return DrawFramedText(drata, pos1, pos2, txt, siz=siz, adj=dimDb[1]*drata.dsManualAdjustment, colTx=power_color4(text_color, pw=1/1.975), colFr=power_color4(colBg, pw=1/1.5), colBg=colBg)
     return DrawFramedText(drata, pos1, pos2, text, siz=siz, adj=dimDb[1]*drata.dsManualAdjustment, colTx=text_color, colFr=colBg, colBg=colBg)   # 绘制颜色加深
 
-def DrawVlSkText(drata: DrawDataTool, pos, ofsHh, ftg: Fotago, *, fontSizeOverwrite=0, tool_color=(0, 0, 0, 0)): # 注意: `pos` 总是为了 drata.cursorLoc, 但请参见 vptRvEeSksHighlighting.
+def DrawVlSkText(drata: DrawDataTool, pos, ofsHh, ftg: Target, *, fontSizeOverwrite=0, tool_color=(0, 0, 0, 0)): # 注意: `pos` 总是为了 drata.cursorLoc, 但请参见 vptRvEeSksHighlighting.
     if not drata.dsIsDrawText:
         return (1, 0) #'1' 需要用于保存标记位置的方向信息.
     if drata.dsIsColoredText:
@@ -234,10 +234,10 @@ def DrawDebug(self, drata: DrawDataTool):
         DrawVlWidePoint(drata, list_ftgSksOut[0].pos, col1=col, col2=col, resl=4, forciblyCol=True)
         DebugTextDraw(drata.VecUiViewToReg(list_ftgSksOut[0].pos), "Nearest socketOut here", 0.75, 0.75, 1)
 
-def TemplateDrawNodeFull(drata: DrawDataTool, ftgNd: Fotago, *, side=1, tool_name=""): # 模板重新思考过了; 很好. 现在它变得像其他所有的一样了.. 至少没有旧版本中的意大利面条式代码了.
+def TemplateDrawNodeFull(drata: DrawDataTool, tar_nd: Target, *, side=1, tool_name=""): # 模板重新思考过了; 很好. 现在它变得像其他所有的一样了.. 至少没有旧版本中的意大利面条式代码了.
     #todo1v6 模板只有一个 ftg, 没有分层, 两个调用会从一个绘制点和线到另一个的文本上方.
-    if ftgNd:
-        ndTar = ftgNd.tar
+    if tar_nd:
+        ndTar = tar_nd.tar
         if drata.dsIsColoredNodes: # 嗯.. 现在节点终于有颜色了; 感谢 ctypes.
             colLn = node_tag_color(ndTar)
             # colLn[0] += 0.5
@@ -252,9 +252,9 @@ def TemplateDrawNodeFull(drata: DrawDataTool, ftgNd: Fotago, *, side=1, tool_nam
             # colTx = colUnc if drata.dsIsColoredText else drata.dsUniformColor
             colTx = colUnc
         if drata.dsIsDrawLine:
-            DrawWorldStick(drata, drata.cursorLoc, ftgNd.pos, colLn, colLn)
+            DrawWorldStick(drata, drata.cursorLoc, tar_nd.pos, colLn, colLn)
         if drata.dsIsDrawPoint:
-            DrawVlWidePoint(drata, ftgNd.pos, col1=colPt, col2=colPt)
+            DrawVlWidePoint(drata, tar_nd.pos, col1=colPt, col2=colPt)
         if (drata.dsIsDrawText)and(drata.dsIsDrawNodeNameLabel):
             txt = ndTar.label if ndTar.label else ndTar.bl_rna.name
             if ndTar.type == "GROUP":
@@ -276,14 +276,14 @@ def TemplateDrawNodeFull(drata: DrawDataTool, ftgNd: Fotago, *, side=1, tool_nam
 # 在旧版本中的硬核之后, 使用这个模板简直是享受 (甚至不要看那里, 那里简直是地狱).
 def TemplateDrawSksToolHh(
     drata: DrawDataTool,
-    *args_ftgSks: Fotago,
+    *args_ftgSks: Target,
     sideMarkHh=1,
     isDrawText=True,
     isClassicFlow=False,
     isDrawMarkersMoreTharOne=False,
     tool_name="",
 ):  # 模板重新思考过了, 万岁. 感觉上并没有变得更好.
-    def GetPosFromFtg(ftg: Fotago):
+    def GetPosFromFtg(ftg: Target):
         return ftg.pos+Vec2((drata.dsPointOffsetX*ftg.dir, 0.0))
     list_ftgSks = [ar for ar in args_ftgSks if ar]
     cursorLoc = drata.cursorLoc

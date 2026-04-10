@@ -18,8 +18,8 @@ class NODE_OT_voronoi_reset_node(SingleNodeTool):
             mode = "完全重置节点"
         else:
             mode = "重置节点"
-        TemplateDrawNodeFull(drata, self.fotagoNd, tool_name=mode)
-        # self.TemplateDrawAny(drata, self.fotagoAny, cond=self.toolMode=='NODE', tool_name=name)
+        TemplateDrawNodeFull(drata, self.target_nd, tool_name=mode)
+        # self.TemplateDrawAny(drata, self.target_any, cond=self.toolMode=='NODE', tool_name=name)
     def VrntDoResetNode(self, ndTar, tree):
         ndNew = tree.nodes.new(ndTar.bl_idname)
         ndNew.location = ndTar.location
@@ -42,21 +42,21 @@ class NODE_OT_voronoi_reset_node(SingleNodeTool):
         return ndNew
     def find_targets_tool(self, isFirstActivation, prefs, tree):
         solder_sk_links(tree)
-        self.fotagoNd = None
-        for ftgNd in self.get_nearest_nodes(includePoorNodes=True, cur_x_off=0):
-            nd = ftgNd.tar
+        self.target_nd = None
+        for tar_nd in self.get_nearest_nodes(includePoorNodes=True, cur_x_off=0):
+            nd = tar_nd.tar
             if nd.type=='REROUTE': #"你确定要重新创建转向节点吗？".
                 continue
-            self.fotagoNd = ftgNd
+            self.target_nd = tar_nd
             if (self.isResetOnDrag)and(nd not in self.set_done):
-                self.set_done.add(self.VrntDoResetNode(self.fotagoNd.tar, tree))
+                self.set_done.add(self.VrntDoResetNode(self.target_nd.tar, tree))
                 self.find_targets_tool(isFirstActivation, prefs, tree)
                 #总的来说'isResetOnDrag'有点问题 -- 需要为新创建的节点重绘以获取其高度；或者我没什么好主意.
                 #并且点会吸附到节点角落一帧.
             break
     def can_run(self):
-        return (not self.isResetOnDrag)and(self.fotagoNd)
+        return (not self.isResetOnDrag)and(self.target_nd)
     def run(self, event, prefs, tree):
-        self.VrntDoResetNode(self.fotagoNd.tar, tree)
+        self.VrntDoResetNode(self.target_nd.tar, tree)
     def initialize(self, event, prefs, tree):
         self.set_done = set() #没有这个会有非常“可怕”的行为，如果过度操作，很可能会崩溃.

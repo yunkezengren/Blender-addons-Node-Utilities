@@ -7,7 +7,7 @@ from time import perf_counter
 from .Structure import RectBase, View2D
 from .common_class import TryAndPass
 from .common_func import is_builtin_tree_idname, user_node_keymap
-from .common_class import Fotago
+from .common_class import Target
 from .globals import set_utilTypeSkFields
 from .preference import pref, VoronoiAddonPrefs
 from .utils.drawing import DrawDebug, TemplateDrawNodeFull, TemplateDrawSksToolHh, DrawDataTool
@@ -181,13 +181,13 @@ class BaseTool(BaseOperator, VlToolMixin):  #0
 class SingleSocketTool(BaseTool):  #1
 
     def callback_draw_tool(self, drata: DrawDataTool):
-        TemplateDrawSksToolHh(drata, self.fotagoSk)
+        TemplateDrawSksToolHh(drata, self.target_sk)
 
     def can_run(self):
-        return not not self.fotagoSk
+        return not not self.target_sk
 
     def initialize_pre(self, event: Event):
-        self.fotagoSk = None
+        self.target_sk = None
 
 class PairSocketTool(SingleSocketTool):  #2
     isCanBetweenFields: BoolProperty(name="Can between fields",
@@ -195,7 +195,7 @@ class PairSocketTool(SingleSocketTool):  #2
                                      description="Tool can connecting between different field types")
 
     def callback_draw_tool(self, drata: DrawDataTool):
-        TemplateDrawSksToolHh(drata, self.fotagoSk0, self.fotagoSk1)
+        TemplateDrawSksToolHh(drata, self.target_sk0, self.target_sk1)
 
     def check_between_sk_fields(self, sk1: NodeSocket, sk2: NodeSocket):
         # 注意: 考虑到此函数的目的和名称, sk1 和 sk2 无论如何都应该是来自字段, 且仅来自字段.
@@ -203,8 +203,8 @@ class PairSocketTool(SingleSocketTool):  #2
                                                        (sk1.type == sk2.type))
 
     def initialize_pre(self, event: Event):
-        self.fotagoSk0 = None
-        self.fotagoSk1 = None
+        self.target_sk0 = None
+        self.target_sk1 = None
 
 class TripleSocketTool(PairSocketTool):  #3
 
@@ -214,44 +214,44 @@ class TripleSocketTool(PairSocketTool):  #3
             self.canPickThird = not (event.shift or event.ctrl or event.alt)
 
     def initialize_pre(self, event: Event):
-        self.fotagoSk2 = None
+        self.target_sk2 = None
         self.canPickThird = False
         self.isStartWithModf = (event.shift) or (event.ctrl) or (event.alt)
 
 class SingleNodeTool(BaseTool):  #1
 
     def callback_draw_tool(self, drata: DrawDataTool):
-        TemplateDrawNodeFull(drata, self.fotagoNd)
+        TemplateDrawNodeFull(drata, self.target_nd)
 
     def can_run(self):
-        return not not self.fotagoNd
+        return not not self.target_nd
 
     def initialize_pre(self, event: Event):
-        self.fotagoNd = None
+        self.target_nd = None
 
 class PairNodeTool(SingleSocketTool):  #2
 
     def can_run(self):
-        return self.fotagoNd0 and self.fotagoNd1
+        return self.target_nd0 and self.target_nd1
 
     def initialize_pre(self, event: Event):
-        self.fotagoNd0 = None
-        self.fotagoNd1 = None
+        self.target_nd0 = None
+        self.target_nd1 = None
 
 class AnyTargetTool(SingleSocketTool, SingleNodeTool):  #2
 
     @staticmethod
-    def TemplateDrawAny(drata: DrawDataTool, ftg: Fotago, *, cond: bool, tool_name=""):
+    def TemplateDrawAny(drata: DrawDataTool, ftg: Target, *, cond: bool, tool_name=""):
         if cond:
             TemplateDrawNodeFull(drata, ftg, tool_name=tool_name)
         else:
             TemplateDrawSksToolHh(drata, ftg, tool_name=tool_name)  # 绘制工具提示
 
     def can_run(self):
-        return self.fotagoAny
+        return self.target_any
 
     def initialize_pre(self, event: Event):
-        self.fotagoAny = None
+        self.target_any = None
 
 def unhide_node_reassign(nd: Node, self: BaseTool, *, cond: bool, flag=None):  # 我是多么鄙视折叠起来的节点啊.
     if nd.hide and cond:
