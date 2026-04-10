@@ -3,7 +3,7 @@ from enum import Enum
 import bpy
 from mathutils import Vector as Vec
 from bpy.types import NodeTree
-from ..base_tool import unhide_node_reassign, TemplateDrawNodeFull, TemplateDrawSksToolHh, Target2SocketTool
+from ..base_tool import unhide_node_reassign, TemplateDrawNodeFull, TemplateDrawSksToolHh, PairSocketTool
 from ..node_items import NodeItemsUtils
 from ..common_func import sk_label_or_name
 from ..globals import set_utilEquestrianPortalBlids
@@ -35,7 +35,7 @@ ModeItems = (
 )
 # yapf: enable
 
-class NODE_OT_voronoi_interfacer(Target2SocketTool):
+class NODE_OT_voronoi_interfacer(PairSocketTool):
     bl_idname = 'node.voronoi_interfacer'
     bl_label = "Voronoi Interfacer"
     bl_description = "A tool on the level of \"The Great Trio\". A branch from VLT for convenient acceleration\nof the creation process and special manipulations with interfaces. \"Interface Manager\"."

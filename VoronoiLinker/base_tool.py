@@ -178,7 +178,7 @@ class BaseTool(BaseOperator, VlToolMixin):  #0
         return {'RUNNING_MODAL'}
 
 # One  Pair  Triple
-class Target1SocketTool(BaseTool):  #1
+class SingleSocketTool(BaseTool):  #1
 
     def CallbackDrawTool(self, drata: VlDrawData):
         TemplateDrawSksToolHh(drata, self.fotagoSk)
@@ -189,7 +189,7 @@ class Target1SocketTool(BaseTool):  #1
     def InitToolPre(self, event: Event):
         self.fotagoSk = None
 
-class Target2SocketTool(Target1SocketTool):  #2
+class PairSocketTool(SingleSocketTool):  #2
     isCanBetweenFields: bpy.props.BoolProperty(name="Can between fields",
                                                default=True,
                                                description="Tool can connecting between different field types")
@@ -206,7 +206,7 @@ class Target2SocketTool(Target1SocketTool):  #2
         self.fotagoSk0 = None
         self.fotagoSk1 = None
 
-class Target3SocketTool(Target2SocketTool):  #3
+class TripleSocketTool(PairSocketTool):  #3
 
     def ModalTool(self, event: Event, prefs: VoronoiAddonPrefs):
         if (self.isStartWithModf) and (not self.canPickThird):  # 谁会真的通过按下和释放某个修饰键来切换到选择第三个套接字呢?.
@@ -218,7 +218,7 @@ class Target3SocketTool(Target2SocketTool):  #3
         self.canPickThird = False
         self.isStartWithModf = (event.shift) or (event.ctrl) or (event.alt)
 
-class Target1NodeTool(BaseTool):  #1
+class SingleNodeTool(BaseTool):  #1
 
     def CallbackDrawTool(self, drata: VlDrawData):
         TemplateDrawNodeFull(drata, self.fotagoNd)
@@ -229,7 +229,7 @@ class Target1NodeTool(BaseTool):  #1
     def InitToolPre(self, event: Event):
         self.fotagoNd = None
 
-class Target2NodeTool(Target1SocketTool):  #2
+class PairNodeTool(SingleSocketTool):  #2
 
     def MatterPurposePoll(self):
         return self.fotagoNd0 and self.fotagoNd1
@@ -238,7 +238,7 @@ class Target2NodeTool(Target1SocketTool):  #2
         self.fotagoNd0 = None
         self.fotagoNd1 = None
 
-class AnyTargetTool(Target1SocketTool, Target1NodeTool):  #2
+class AnyTargetTool(SingleSocketTool, SingleNodeTool):  #2
 
     @staticmethod
     def TemplateDrawAny(drata: VlDrawData, ftg: Fotago, *, cond: bool, tool_name=""):

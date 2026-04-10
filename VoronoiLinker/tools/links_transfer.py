@@ -1,11 +1,11 @@
 import bpy
-from ..base_tool import TemplateDrawNodeFull, TemplateDrawSksToolHh, Target2NodeTool
+from ..base_tool import TemplateDrawNodeFull, TemplateDrawSksToolHh, PairNodeTool
 from ..common_func import sk_label_or_name
 from ..utils.node import GenFtgFromNd, is_socket_visible
 from ..utils.solder import solder_sk_links
 B = bpy.types
 
-class NODE_OT_voronoi_links_transfer(Target2NodeTool):
+class NODE_OT_voronoi_links_transfer(PairNodeTool):
     bl_idname = 'node.voronoi_links_transfer'
     bl_label = "Voronoi Links Transfer"
     bl_description = "Tool for rare needs of transferring all links from one node to another.\nIn the future, it will most likely be merged with VST."

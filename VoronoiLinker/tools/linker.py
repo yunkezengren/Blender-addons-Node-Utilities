@@ -1,6 +1,6 @@
 import bpy
 from bpy.types import NodeTree
-from ..base_tool import unhide_node_reassign, Target2SocketTool
+from ..base_tool import unhide_node_reassign, PairSocketTool
 from ..utils.drawing import TemplateDrawSksToolHh
 from ..utils.node import IsClassicSk, opt_ftg_socket, VlrtRememberLastSockets
 from ..utils.ui import draw_hand_split_prop
@@ -14,7 +14,7 @@ def is_unlink_route(node):
 # 最初, 整个插件都是为了这个工具而创建的. 你以为为什么名字都一样.
 # 但后来我被这些已掌握的能力惊呆了, 开始创作了主流三巨头. 但这还不够, 现在工具有7个以上. 太棒了!
 # 重复的注释只在这里 (并且总体上递减). 如有争议, 请参考 VLT, 将其视为最终真理.
-class NODE_OT_voronoi_linker(Target2SocketTool):  # 神圣中的神圣. 它存在的理由. 最初的那个. 所有工具的老大. 为了伟大的距离场而荣耀!
+class NODE_OT_voronoi_linker(PairSocketTool):  # 神圣中的神圣. 它存在的理由. 最初的那个. 所有工具的老大. 为了伟大的距离场而荣耀!
     bl_idname = 'node.voronoi_linker'
     bl_label = "Voronoi Linker"
     bl_description = "The sacred tool. The reason this entire addon was created.\nA moment of silence in honor of NodeWrangler, the original ancestor."

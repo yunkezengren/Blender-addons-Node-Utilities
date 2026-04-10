@@ -1,7 +1,7 @@
 import copy
 import bpy
 from mathutils import Vector as Vec2
-from ..base_tool import unhide_node_reassign, Target2SocketTool
+from ..base_tool import unhide_node_reassign, PairSocketTool
 from ..common_class import VlnstData
 from ..common_func import sk_label_or_name
 from ..globals import sk_type_idname_map
@@ -162,7 +162,7 @@ def VlnstLazyTemplate(prefs, tree, skFirst, skSecond, cursorLoc):
             nd.location += firstOffset
         bpy.ops.node.translate_attach('INVOKE_DEFAULT')
 
-class NODE_OT_voronoi_lazy_node_stencils(Target2SocketTool):  # 第一个应外部请求而非个人意愿创建的工具.
+class NODE_OT_voronoi_lazy_node_stencils(PairSocketTool):  # 第一个应外部请求而非个人意愿创建的工具.
     bl_idname = 'node.voronoi_lazy_node_stencils'
     bl_label = "Voronoi Lazy Node Stencils"  # 每个工具三个字母, 真是够了.
     bl_description = "Power. Three letters for a tool, we've come to this... Encapsulates Ctrl-T from\nNodeWrangler, and the never-implemented 'VoronoiLazyNodeContinuationTool'."

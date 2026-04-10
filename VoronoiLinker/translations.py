@@ -753,7 +753,7 @@ _translations_dict: dict[tuple[context_s, str], dict[locale_s, str]] = {
         "ru_RU": "Удалить имеющиеся якори",
     },
 
-    # VoronoiResetTarget1NodeTool
+    # VoronoiResetSingleNodeTool
     ("*", "Reset enums"): {
         "zh_HANS": "恢复下拉列表里的选择",
         "ru_RU": "Восстанавливать свойства перечисления",

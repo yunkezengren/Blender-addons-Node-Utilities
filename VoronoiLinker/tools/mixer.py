@@ -1,6 +1,6 @@
 import bpy
 from bpy.app.translations import pgettext_iface as _iface
-from ..base_tool import unhide_node_reassign, Target3SocketTool
+from ..base_tool import unhide_node_reassign, TripleSocketTool
 from ..common_class import VmtData
 from ..common_func import DisplayMessage, SetPieData
 from ..globals import Cursor_X_Offset
@@ -10,7 +10,7 @@ from ..utils.node import opt_ftg_socket
 from ..utils.ui import draw_hand_split_prop, draw_panel_column, draw_hand_split_prop
 from .mixer_sub import DoMix, mixer_default, mixer_tree_sk_nodes, NODE_MT_mixer_pie
 
-class NODE_OT_voronoi_mixer(Target3SocketTool):
+class NODE_OT_voronoi_mixer(TripleSocketTool):
     bl_idname = 'node.voronoi_mixer'
     bl_label = "Voronoi Mixer"
     bl_description = "The canonical tool for frequent mixing needs.\nMost likely 70% will go to using \"Instance on Points\"."

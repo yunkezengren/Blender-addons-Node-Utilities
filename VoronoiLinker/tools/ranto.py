@@ -1,6 +1,6 @@
 import bpy
 from bpy.app.translations import pgettext_iface as _iface
-from ..base_tool import Target1NodeTool
+from ..base_tool import SingleNodeTool
 from ..common_func import DisplayMessage
 from ..utils.ui import LyAddLeftProp
 
@@ -16,7 +16,7 @@ def VrtDoRecursiveAutomaticNodeTopologyOrganization(rada, ndRoot):
     rada.kapibara = "kapibara"
 
 
-class NODE_OT_voronoi_ranto(Target1NodeTool): #完成了.
+class NODE_OT_voronoi_ranto(SingleNodeTool): #完成了.
     bl_idname = 'node.voronoi_ranto'
     bl_label = "Voronoi RANTO"
     usefulnessForCustomTree = True

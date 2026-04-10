@@ -1,7 +1,7 @@
 from enum import Enum
 
 import bpy
-from ..base_tool import unhide_node_reassign, Target2SocketTool
+from ..base_tool import unhide_node_reassign, PairSocketTool
 from ..utils.drawing import TemplateDrawSksToolHh
 from ..utils.node import MinFromFtgs, opt_ftg_socket
 
@@ -18,7 +18,7 @@ ModeItems = (
     (eMode.TRAN.value, "Transfer", "Move all links from the second socket to the first one with replacement"),
 )
 
-class NODE_OT_voronoi_swapper(Target2SocketTool):
+class NODE_OT_voronoi_swapper(PairSocketTool):
     bl_idname = 'node.voronoi_swaper'
     bl_label = "Voronoi Swapper"
     bl_description = "Tool for swapping links between two sockets, or adding them to one of them.\nNo link swap will occur if it ends up originating from its own node."

@@ -1,9 +1,9 @@
 import bpy
-from ..base_tool import unhide_node_reassign, TemplateDrawSksToolHh, Target1SocketTool
+from ..base_tool import unhide_node_reassign, TemplateDrawSksToolHh, SingleSocketTool
 from ..utils.node import MinFromFtgs, VlrtRememberLastSockets
 from ..utils.ui import LyAddNiceColorProp
 
-class NODE_OT_voronoi_dummy(Target1SocketTool):   # 快速便捷地添加新工具的模板
+class NODE_OT_voronoi_dummy(SingleSocketTool):   # 快速便捷地添加新工具的模板
     bl_idname = 'node.voronoi_dummy'
     bl_label = "Voronoi Dummy"
     usefulnessForCustomTree = True
