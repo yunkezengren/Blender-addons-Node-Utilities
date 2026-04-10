@@ -2,7 +2,7 @@ import bpy
 from typing import Any
 from bpy.types import Operator
 from .tools.call_node_pie import NODE_OT_voronoi_call_node_pie
-from .tools.enum_selector import VestOpBox, VestPieBox, NODE_OT_voronoi_enum_selector
+from .tools.enum_selector import NODE_OT_enum_selector_box, NODE_MT_enum_selector_pie, NODE_OT_voronoi_enum_selector
 from .tools.hider import HiderMode, NODE_OT_voronoi_hider
 from .tools.interfacer import InterfacerMode, NODE_OT_voronoi_interfacer
 from .tools.lazy_node_stencils import NODE_OT_voronoi_lazy_node_stencils
@@ -12,13 +12,13 @@ from .tools.links_transfer import NODE_OT_voronoi_links_transfer
 from .tools.mass_linker import NODE_OT_voronoi_mass_linker
 from .tools.matrix_convert import PIE_MT_Combine_Matrix, PIE_MT_Convert_Rotation_To, PIE_MT_Convert_To_Rotation, PIE_MT_Separate_Matrix, NODE_OT_rot_or_mat_convert
 from .tools.mixer import NODE_OT_voronoi_mixer
-from .tools.mixer_sub import VmtOpMixer, VmtPieMixer
-from .tools.pie_math import VqmtOpMain, VqmtPieMath
+from .tools.mixer_sub import NODE_OT_mixer_sub, NODE_MT_mixer_pie
 from .tools.preview import NODE_OT_voronoi_preview
 from .tools.preview_anchor import NODE_OT_voronoi_preview_anchor
 from .tools.quick_constant import NODE_OT_voronoi_quick_constant
 from .tools.quick_dimensions import NODE_OT_voronoi_quick_dimensions
 from .tools.quick_math import NODE_OT_voronoi_quick_math
+from .tools.quick_math_sub import NODE_OT_quick_math_sub, NODE_MT_quick_math_pie
 from .tools.reset_node import NODE_OT_voronoi_reset_node
 from .tools.swapper import SwapperMode, NODE_OT_voronoi_swapper
 from .tools.warper import NODE_OT_voronoi_warper
@@ -126,7 +126,7 @@ operator_keymaps: dict[type[Operator], list[str | tuple[str, dict[str, Any]]]] =
         ("S#A_V", {'toolMode': InterfacerMode.PASTE.value}),
         ("S#A_X", {'toolMode': InterfacerMode.SWAP.value}),
         ("S#A_Z", {'toolMode': InterfacerMode.FLIP.value}),
-        # ("S#A_Q", {'toolMode':InterfacerMode.DELETE.value}), 
+        # ("S#A_Q", {'toolMode':InterfacerMode.DELETE.value}),
         # ("S#A_E", {'toolMode':InterfacerMode.TYPE.value}),
     ],
     NODE_OT_voronoi_quick_math: [
@@ -210,12 +210,12 @@ update_lang_deb_enum_items(vt_classes)
 add_dynamic_properties(vt_classes)
 
 _classes = [
-    VmtOpMixer,
-    VmtPieMixer,
-    VqmtOpMain,
-    VqmtPieMath,
-    VestOpBox,
-    VestPieBox,
+    NODE_OT_mixer_sub,
+    NODE_MT_mixer_pie,
+    NODE_OT_quick_math_sub,
+    NODE_MT_quick_math_pie,
+    NODE_OT_enum_selector_box,
+    NODE_MT_enum_selector_pie,
     NODE_OT_rot_or_mat_convert,
     PIE_MT_Convert_To_Rotation,
     PIE_MT_Convert_Rotation_To,

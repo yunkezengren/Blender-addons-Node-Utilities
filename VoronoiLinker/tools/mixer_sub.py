@@ -1,6 +1,6 @@
 import bpy
 from bpy.app.translations import pgettext_iface as _iface
-from bpy.types import FunctionNodeCompare, GeometryNodeIndexSwitch, GeometryNodeMenuSwitch, NodeTree, ShaderNodeCombineXYZ, UILayout
+from bpy.types import Menu, UILayout, FunctionNodeCompare, GeometryNodeIndexSwitch, GeometryNodeMenuSwitch, NodeTree, ShaderNodeCombineXYZ
 from ..base_tool import BaseOperator
 from ..common_class import VmtData
 from ..globals import Color_Bar_Width, SEPARATE, dict_vmtMixerNodesDefs, mixer_default, mixer_tree_sk_nodes, node_support_all_gn_sk
@@ -73,20 +73,20 @@ def DoMix(tree: NodeTree, isShift: bool, isAlt: bool, type: str):
         for sk in a_node.inputs:
             sk.hide = True
 
-class VmtOpMixer(BaseOperator):
-    bl_idname = 'node.voronoi_mixer_mixer'
-    bl_label = "Mixer Mixer"
+class NODE_OT_mixer_sub(BaseOperator):
+    bl_idname = 'node.mixer_sub'
+    bl_label = "Mixer Sub-operator"
     operation: bpy.props.StringProperty()
     def invoke(self, context, event):
         DoMix(context.space_data.edit_tree, event.shift, event.alt, self.operation)
         return {'FINISHED'}
 
-class VmtPieMixer(bpy.types.Menu):
-    bl_idname = 'VL_MT_Voronoi_mixer_pie'
+class NODE_MT_mixer_pie(Menu):
+    bl_idname = 'NODE_MT_mixer_pie'
     bl_label = "" # 这里的文本将显示在饼菜单的中心.
     def draw(self, context):
         def LyVmAddOp(where: UILayout, txt):
-            where.operator(VmtOpMixer.bl_idname, text=_iface(dict_vmtMixerNodesDefs[txt][2])).operation = txt
+            where.operator(NODE_OT_mixer_sub.bl_idname, text=_iface(dict_vmtMixerNodesDefs[txt][2])).operation = txt
         def LyVmAddItem(where: UILayout, txt):
             ly = where.row(align=_align)
             soldPdsc = VmtData.pieDisplaySocketColor

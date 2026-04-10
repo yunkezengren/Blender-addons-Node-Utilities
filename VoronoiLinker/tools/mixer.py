@@ -8,7 +8,7 @@ from ..utils.color import get_sk_color_safe, power_color4
 from ..utils.drawing import TemplateDrawSksToolHh
 from ..utils.node import opt_ftg_socket
 from ..utils.ui import draw_hand_split_prop, draw_panel_column, draw_hand_split_prop
-from .mixer_sub import DoMix, mixer_default, mixer_tree_sk_nodes, VmtPieMixer
+from .mixer_sub import DoMix, mixer_default, mixer_tree_sk_nodes, NODE_MT_mixer_pie
 
 class NODE_OT_voronoi_mixer(Target3SocketTool):
     bl_idname = 'node.voronoi_mixer'
@@ -103,7 +103,7 @@ class NODE_OT_voronoi_mixer(Target3SocketTool):
             if len(tup_nodes) == 1:  #如果只有一个选择, 就跳过它直接进行混合.
                 DoMix(tree, False, False, tup_nodes[0])  #在即时激活时, 可能没有释放修饰键. 因此 DoMix() 接收的是手动设置而不是 event.
             else: #否则提供选择
-                bpy.ops.wm.call_menu_pie(name=VmtPieMixer.bl_idname)
+                bpy.ops.wm.call_menu_pie(name=NODE_MT_mixer_pie.bl_idname)
         else: #否则接口类型未定义 (例如几何节点中的着色器).
             # ! 草
             txt_vmtNoMixingOptions = "No mixing options"

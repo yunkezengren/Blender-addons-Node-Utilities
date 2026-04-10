@@ -1,5 +1,5 @@
 import bpy
-from bpy.types import UILayout
+from bpy.types import UILayout, Menu
 from ..base_tool import BaseOperator
 from ..common_class import VqmtData
 from ..preference import pref
@@ -7,9 +7,9 @@ from ..globals import Color_Bar_Width, dict_vqmtQuickMathMain, dict_vqmtQuickPre
 from ..utils.color import get_sk_color, power_color4
 from ..utils.node import DoQuickMath
 
-class VqmtOpMain(BaseOperator):
-    bl_idname = 'node.voronoi_quick_math_main'
-    bl_label = "Quick Math"
+class NODE_OT_quick_math_sub(BaseOperator):
+    bl_idname = 'node.quick_math_sub'
+    bl_label = "Quick Math Sub-operator"
     operation: bpy.props.StringProperty()
     isCombo: bpy.props.BoolProperty(default=False)
     def modal(self, _context, event):
@@ -30,7 +30,7 @@ class VqmtOpMain(BaseOperator):
             _x = event.mouse_region_x
             _y = event.mouse_region_y - 120
             context.window.cursor_warp(_x, _y)
-            bpy.ops.wm.call_menu_pie(name=VqmtPieMath.bl_idname)
+            bpy.ops.wm.call_menu_pie(name=NODE_MT_quick_math_pie.bl_idname)
             return {'RUNNING_MODAL'}
         match VqmtData.depth:
             case 0:
@@ -66,11 +66,11 @@ class VqmtOpMain(BaseOperator):
                 VqmtData.dict_lastOperation[VqmtData.qmTrueSkType] = self.operation
                 return DoQuickMath(event, tree, self.operation)
         VqmtData.depth += 1
-        bpy.ops.wm.call_menu_pie(name=VqmtPieMath.bl_idname)
+        bpy.ops.wm.call_menu_pie(name=NODE_MT_quick_math_pie.bl_idname)
         return {'RUNNING_MODAL'}
 
-class VqmtPieMath(bpy.types.Menu):
-    bl_idname = 'VL_MT_Voronoi_quick_math_pie'
+class NODE_MT_quick_math_pie(Menu):
+    bl_idname = 'NODE_MT_quick_math_pie'
     bl_label = "" #此处的文本将显示在饼菜单的中心。
     def draw(self, _context):
         def add_op(where: UILayout, text: str, icon='NONE'):
@@ -82,7 +82,7 @@ class VqmtPieMath(bpy.types.Menu):
                 label = "To Randians"
             if text == "DEGREES":
                 label = "To Degrees"
-            where.operator(VqmtOpMain.bl_idname, text=label, icon=icon, translate=False).operation = text
+            where.operator(NODE_OT_quick_math_sub.bl_idname, text=label, icon=icon, translate=False).operation = text
         soldCanIcons = VqmtData.prefs.vqmtDisplayIcons
         def add_item(where: UILayout, txt, ico='NONE'):
             ly = where.row(align=VqmtData.pieAlignment==0)
@@ -134,7 +134,7 @@ class VqmtPieMath(bpy.types.Menu):
                     case 'VECTOR':  txt = "快速矢量运算"
                     case 'BOOLEAN': txt = "快速布尔运算"
                     case 'RGBA':    txt = "快速颜色运算"
-                    case 'MATRIX':  txt = "快速矩阵运算"
+                    # case 'MATRIX':  txt = "快速矩阵运算"
                 row.label(text=txt)
                 row.alignment = 'CENTER'
                 if float_or_int:
@@ -143,7 +143,7 @@ class VqmtPieMath(bpy.types.Menu):
                     box2 = colLabel.box()
                     row2 = box2.row(align=True)
                     row2.template_node_socket(color=floatIntColorInverse[_math_type])   # 只影响提示的接口颜色
-                    row2.operator(VqmtOpMain.bl_idname, text="切换"+info).operation = "切换浮点/整数菜单"
+                    row2.operator(NODE_OT_quick_math_sub.bl_idname, text="切换"+info).operation = "切换浮点/整数菜单"
                     box2.scale_y = 1.2
             ##
             def draw_float_vector_math(is_vec):
@@ -162,7 +162,7 @@ class VqmtPieMath(bpy.types.Menu):
                         colRightQp.scale_y = VqmtData.prefs.vqmtPieScaleExtra/VqmtData.pieScale
                         for dk, dv in dict_presets.items():
                             ly = colRightQp.row() if VqmtData.pieAlignment else colRightQp
-                            ly.operator(VqmtOpMain.bl_idname, text=dv.replace(" ",""), translate=False).operation = dk
+                            ly.operator(NODE_OT_quick_math_sub.bl_idname, text=dv.replace(" ",""), translate=False).operation = dk
                     ##
                     nonlocal col_left
                     canExist = (VqmtData.prefs.vqmtIncludeExistingValues)and(VqmtData.dict_existingValues)
@@ -194,10 +194,10 @@ class VqmtPieMath(bpy.types.Menu):
                                         rowProp.column(align=True).prop(sk,'default_value', text="")
                                 else:
                                     txt += "x"
-                                    rowProp.operator(VqmtOpMain.bl_idname, text="")
+                                    rowProp.operator(NODE_OT_quick_math_sub.bl_idname, text="")
                                     rowProp.enabled = False
                             rowAdd.ui_units_x = 2
-                            rowAdd.operator(VqmtOpMain.bl_idname, text=str(nd.operation)[:3]).operation = nd.operation+txt
+                            rowAdd.operator(NODE_OT_quick_math_sub.bl_idname, text=str(nd.operation)[:3]).operation = nd.operation+txt
                     col_left = rowLeft.column(align=isGap)
                     col_left.ui_units_x = uiUnitsX
                 ##
@@ -262,6 +262,7 @@ class VqmtPieMath(bpy.types.Menu):
                 add_item(col_center,'IMPLY')
                 add_item(col_center,'NIMPLY')
             def draw_matrix_math():
+                # 不太合适
                 add_item(col_right,'FunctionNodeMatrixMultiply')
                 add_item(col_right,'FunctionNodeInvertMatrix')
                 add_item(col_right,'FunctionNodeMatrixDeterminant')
@@ -294,4 +295,4 @@ class VqmtPieMath(bpy.types.Menu):
                 case 'BOOLEAN': draw_bool_math()
                 case 'RGBA': draw_color_mix()
                 case 'INT':  draw_int_math()
-                case 'MATRIX': draw_matrix_math()
+                # case 'MATRIX': draw_matrix_math()

@@ -7,9 +7,9 @@ from ..globals import Cursor_X_Offset, float_int_color
 from ..utils.color import get_sk_color_safe, power_color4
 from ..utils.node import DoQuickMath, opt_ftg_socket
 from ..utils.solder import dict_skTypeHandSolderingColor
-from ..utils.ui import draw_hand_split_prop, draw_panel_column, LyAddLeftProp
+from ..utils.ui import draw_hand_split_prop, draw_panel_column
 
-set_vqmtSkTypeFields = {'VALUE', 'RGBA', 'VECTOR', 'INT', 'BOOLEAN', 'ROTATION', 'MATRIX'}
+set_vqmtSkTypeFields = {'VALUE', 'RGBA', 'VECTOR', 'INT', 'BOOLEAN', 'ROTATION'}
 fitVqmtRloDescr = "Bypassing the pie call, activates the last used operation for the selected socket type.\n"+\
                   "Searches for sockets only from an available previous operations that were performed for the socket type.\n"+\
                   "Just a pie call, and the fast fast math is not remembered as the last operations"
@@ -147,8 +147,8 @@ class NODE_OT_voronoi_quick_math(Target3SocketTool):
                     # VqmtData.qmSkType = 'VALUE'   # 整数接口浮点饼
                     # self.int_default_float = True
                     VqmtData.qmSkType = 'INT'
-            case 'ROTATION': VqmtData.qmSkType = 'VECTOR' #更有可能的是, 四元数的数学节点会先出现.
-            case 'MATRIX':   VqmtData.qmSkType = 'MATRIX' #更有可能的是, 四元数的数学节点会先出现.
+            case 'ROTATION': VqmtData.qmSkType = 'VECTOR'
+            # case 'MATRIX':   VqmtData.qmSkType = 'MATRIX'
             #case 'ROTATION': return {'FINISHED'} #但奇怪的是, 为什么与 RGBA 的链接被标记为不正确, 明明都是 Arr4... 那颜色为什么需要 alpha?
         match tree.bl_idname:
             case 'ShaderNodeTree':     VqmtData.qmSkType = {'BOOLEAN':'VALUE'}.get(VqmtData.qmSkType, VqmtData.qmSkType)
@@ -173,7 +173,7 @@ class NODE_OT_voronoi_quick_math(Target3SocketTool):
             pref().vaDecorColSk = color
         VqmtData.isJustPie = False
         VqmtData.canProcHideSks = True
-        bpy.ops.node.voronoi_quick_math_main('INVOKE_DEFAULT')
+        bpy.ops.node.quick_math_sub('INVOKE_DEFAULT')
     def InitTool(self, event, prefs, tree):
         self.repickState = False
         VqmtData.canProcHideSks = False #立即用于上面的两个 DoQuickMath 和下面的操作符.
@@ -195,7 +195,7 @@ class NODE_OT_voronoi_quick_math(Target3SocketTool):
             VqmtData.qmSkType = ('VALUE','VECTOR','BOOLEAN','RGBA', 'INT')[self.justPieCall-1]
             self.VqmSetPieData(prefs, dict_skTypeHandSolderingColor[VqmtData.qmSkType])
             VqmtData.isJustPie = True
-            bpy.ops.node.voronoi_quick_math_main('INVOKE_DEFAULT')
+            bpy.ops.node.quick_math_sub('INVOKE_DEFAULT')
             return {'FINISHED'}
         self.isQuickQuickMath = not not( (self.quickOprFloat)or(self.quickOprVector)or(self.quickOprBool)or(self.quickOprColor) )
     @staticmethod

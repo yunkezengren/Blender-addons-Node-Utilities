@@ -86,8 +86,8 @@ def draw_enum_property_selectors(parent_layout: UILayout, domain_layout=None):
 
     # 在我最初的想法中, 我错误地称这个工具为“Prop Selector”. 需要想办法区分节点的通用属性和在选项中绘制的属性.
     # 幸运的是, 每个节点没有不同的枚举...
-class VestOpBox(BaseOperator):
-    bl_idname = 'node.voronoi_enum_selector_box'
+class NODE_OT_enum_selector_box(BaseOperator):
+    bl_idname = 'node.enum_selector_box'
     bl_label = "Enum Selector"
     rename_node:   bpy.props.BoolProperty(default=True, description="Rename nodes when hiding options, currently only support Chinese")
     def execute(self, context): # 用于下面的 draw(), 否则不显示.
@@ -104,8 +104,8 @@ class VestOpBox(BaseOperator):
     def cancel(self, context):
         run_rename_node(self.rename_node, VestData.nd)
 
-class VestPieBox(Menu):
-    bl_idname = 'VL_MT_Voronoi_enum_selector_box'
+class NODE_MT_enum_selector_pie(Menu):
+    bl_idname = 'NODE_MT_enum_selector_pie'
     bl_label = "Enum Selector"
     def draw(self, _context):
         pie = self.layout.menu_pie()
@@ -267,10 +267,10 @@ class NODE_OT_voronoi_enum_selector(Target1NodeTool):
                             tree.nodes.remove(rr1)
                             tree.nodes.remove(rr2)
             if self.isPieChoice:
-                bpy.ops.wm.call_menu_pie(name=VestPieBox.bl_idname)
+                bpy.ops.wm.call_menu_pie(name=NODE_MT_enum_selector_pie.bl_idname)
             else:
                 # 更改节口类型-todo
-                bpy.ops.node.voronoi_enum_selector_box('INVOKE_DEFAULT')
+                bpy.ops.node.enum_selector_box('INVOKE_DEFAULT')
             # ops运行唤出菜单后生效,再更改选项不生效，不是实时更改name
             # # rename_node_based_option(ndTar)
             return True # 用于 modal(), 返回成功.
