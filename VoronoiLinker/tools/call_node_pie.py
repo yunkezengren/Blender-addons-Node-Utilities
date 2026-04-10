@@ -1,6 +1,6 @@
 import bpy
 from ..base_tool import CheckUncollapseNodeAndReNext, VoronoiToolAny
-from ..common_forward_class import Fotago
+from ..common_class import Fotago
 
 class VoronoiCallNodePie(VoronoiToolAny):
     """ Voronoi 联动 Node Pie """

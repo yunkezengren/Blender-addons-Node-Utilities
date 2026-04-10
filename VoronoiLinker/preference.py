@@ -6,8 +6,8 @@ from bpy.app.translations import pgettext_iface as _iface
 from bpy.props import BoolProperty, EnumProperty, FloatProperty, FloatVectorProperty, IntProperty, IntVectorProperty, StringProperty
 from bpy.types import KeyMapItem, UILayout
 
-from .common_forward_class import VlnstUpdateLastExecError
-from .common_forward_func import GetFirstUpperLetters, format_tool_set, user_node_keymap
+from .common_class import VlnstUpdateLastExecError
+from .common_func import GetFirstUpperLetters, format_tool_set, user_node_keymap
 from .globals import dict_vlHhTranslations, dict_vmtMixerNodesDefs, dict_vqmtQuickMathMain
 from .utils.ui import draw_hand_split_prop, draw_panel_column, LyAddQuickInactiveCol, LyAddThinSep
 from .utils.drawing import TestDraw

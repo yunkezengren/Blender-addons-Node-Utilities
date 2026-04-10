@@ -1,6 +1,6 @@
 import bpy
 from ..base_tool import TemplateDrawNodeFull, TemplateDrawSksToolHh, VoronoiToolPairNd
-from ..common_forward_func import sk_label_or_name
+from ..common_func import sk_label_or_name
 from ..utils.node import GenFtgFromNd, is_socket_visible
 from ..utils.solder import solder_sk_links
 B = bpy.types

@@ -1,7 +1,7 @@
 import bpy
 from ..base_tool import CheckUncollapseNodeAndReNext, TemplateDrawSksToolHh, VoronoiToolTripleSk
-from ..common_forward_class import VqmtData
-from ..common_forward_func import DisplayMessage, SetPieData
+from ..common_class import VqmtData
+from ..common_func import DisplayMessage, SetPieData
 from ..preference import pref
 from ..globals import Cursor_X_Offset, float_int_color
 from ..utils.color import get_sk_color_safe, power_color4

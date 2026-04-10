@@ -2,8 +2,8 @@ import copy
 import bpy
 from mathutils import Vector as Vec2
 from ..base_tool import CheckUncollapseNodeAndReNext, VoronoiToolPairSk
-from ..common_forward_class import VlnstData
-from ..common_forward_func import sk_label_or_name
+from ..common_class import VlnstData
+from ..common_func import sk_label_or_name
 from ..globals import sk_type_idname_map
 from ..utils.drawing import DrawVlWidePoint, TemplateDrawSksToolHh
 from ..utils.node import MinFromFtgs, opt_ftg_socket, sk_type_to_idname

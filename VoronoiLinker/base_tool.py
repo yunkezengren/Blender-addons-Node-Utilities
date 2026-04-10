@@ -3,8 +3,9 @@ import bpy
 from mathutils import Vector as Vec2
 from bpy.types import Area, Context, Event, Node, NodeTree, NodeSocket, Operator, SpaceNodeEditor, UILayout, View2D as View2d
 from .Structure import RectBase, View2D
-from .common_forward_class import TryAndPass
-from .common_forward_func import is_builtin_tree_idname, user_node_keymap
+from .common_class import TryAndPass
+from .common_func import is_builtin_tree_idname, user_node_keymap
+from .common_class import Fotago
 from .globals import set_utilTypeSkFields
 from .preference import pref, VoronoiAddonPrefs
 from .utils.drawing import DrawDebug, TemplateDrawNodeFull, TemplateDrawSksToolHh, VlDrawData
@@ -207,7 +208,7 @@ class VoronoiToolPairNd(VoronoiToolSk): #2
 
 class VoronoiToolAny(VoronoiToolSk, VoronoiToolNd): #2
     @staticmethod
-    def TemplateDrawAny(drata: VlDrawData, ftg, *, cond: bool, tool_name=""):
+    def TemplateDrawAny(drata: VlDrawData, ftg: Fotago, *, cond: bool, tool_name=""):
         if cond:
             TemplateDrawNodeFull(drata, ftg, tool_name=tool_name)
         else:
@@ -217,7 +218,7 @@ class VoronoiToolAny(VoronoiToolSk, VoronoiToolNd): #2
     def InitToolPre(self, event: Event):
         self.fotagoAny = None
 
-def CheckUncollapseNodeAndReNext(nd: Node, self: VoronoiToolRoot, *, cond: bool, flag=None): # 我是多么鄙视折叠起来的节点啊.
+def CheckUncollapseNodeAndReNext(nd: Node, self: VoronoiToolRoot, *, cond: bool, flag=None):  # 我是多么鄙视折叠起来的节点啊.
     if nd.hide and cond:
         nd.hide = False
         # 注意: 在 NextAssignmentTool 的拓扑结构中要小心无限循环.
@@ -239,26 +240,6 @@ class EdgePanData:
     zoomFac = 0.5
     speed = 1.0
 
-def EdgePanTimer():
-    delta = perf_counter()-EdgePanData.delta
-    vec = EdgePanData.cursorPos*EdgePanData.uiScale
-    field0 = Vec2(EdgePanData.view2d.view_to_region(vec.x, vec.y, clip=False))
-    zoomWorld = (EdgePanData.view2d.view_to_region(vec.x+1000, vec.y, clip=False)[0]-field0.x)/1000
-    # 再来点光线步进:
-    field1 = field0-EdgePanData.center
-    field2 = Vec2(( abs(field1.x), abs(field1.y) ))
-    field2 = field2-EdgePanData.center+Vec2((10, 10)) # 稍微减小光标紧贴屏幕边缘的边界.
-    field2 = Vec2(( max(field2.x, 0), max(field2.y, 0) ))
-    ##
-    xi, yi, xa, ya = EdgePanData.ctCur.GetRaw()
-    speedZoomSize = Vec2((xa-xi, ya-yi))/2.5*delta # 没有 delta 时是 125.
-    field1 = field1.normalized()*speedZoomSize*((zoomWorld-1)/1.5+1)*EdgePanData.speed*EdgePanData.uiScale
-    if (field2.x!=0)or(field2.y!=0):
-        EdgePanData.ctCur.TranslateScaleFac((field1.x, field1.y), fac=EdgePanData.zoomFac)
-    EdgePanData.delta = perf_counter() # 在下一次进入前 "发送到未知处".
-    EdgePanData.area.tag_redraw()
-    return 0.0 if EdgePanData.isWorking else None
-
 def EdgePanInit(self: VoronoiToolRoot, area: Area):
     EdgePanData.area = area
     EdgePanData.ctCur = self.ctView2d.cur
@@ -266,8 +247,28 @@ def EdgePanInit(self: VoronoiToolRoot, area: Area):
     EdgePanData.cursorPos = self.cursorLoc
     EdgePanData.uiScale = self.uiScale
     EdgePanData.view2d = self.region.view2d
-    EdgePanData.center = Vec2((self.region.width/2, self.region.height/2))
-    EdgePanData.delta = perf_counter() #..还有 "轻微边界".
-    EdgePanData.zoomFac = 1.0-self.prefs.vEdgePanFac
+    EdgePanData.center = Vec2((self.region.width / 2, self.region.height / 2))
+    EdgePanData.delta = perf_counter()  #..还有 "轻微边界".
+    EdgePanData.zoomFac = 1.0 - self.prefs.vEdgePanFac
     EdgePanData.speed = self.prefs.vEdgePanSpeed
     bpy.app.timers.register(EdgePanTimer, first_interval=0.0)
+
+def EdgePanTimer():
+    delta = perf_counter() - EdgePanData.delta
+    vec = EdgePanData.cursorPos * EdgePanData.uiScale
+    field0 = Vec2(EdgePanData.view2d.view_to_region(vec.x, vec.y, clip=False))
+    zoomWorld = (EdgePanData.view2d.view_to_region(vec.x + 1000, vec.y, clip=False)[0] - field0.x) / 1000
+    # 再来点光线步进:
+    field1 = field0 - EdgePanData.center
+    field2 = Vec2((abs(field1.x), abs(field1.y)))
+    field2 = field2 - EdgePanData.center + Vec2((10, 10))  # 稍微减小光标紧贴屏幕边缘的边界.
+    field2 = Vec2((max(field2.x, 0), max(field2.y, 0)))
+    ##
+    xi, yi, xa, ya = EdgePanData.ctCur.GetRaw()
+    speedZoomSize = Vec2((xa - xi, ya - yi)) / 2.5 * delta  # 没有 delta 时是 125.
+    field1 = field1.normalized() * speedZoomSize * ((zoomWorld-1) / 1.5 + 1) * EdgePanData.speed * EdgePanData.uiScale
+    if (field2.x != 0) or (field2.y != 0):
+        EdgePanData.ctCur.TranslateScaleFac((field1.x, field1.y), fac=EdgePanData.zoomFac)
+    EdgePanData.delta = perf_counter()  # 在下一次进入前 "发送到未知处".
+    EdgePanData.area.tag_redraw()
+    return 0.0 if EdgePanData.isWorking else None

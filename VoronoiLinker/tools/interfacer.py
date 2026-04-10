@@ -4,8 +4,8 @@ import bpy
 from mathutils import Vector as Vec
 from bpy.types import NodeTree
 from ..base_tool import CheckUncollapseNodeAndReNext, TemplateDrawNodeFull, TemplateDrawSksToolHh, VoronoiToolPairSk
-from ..common_forward_class import NodeItemsTool
-from ..common_forward_func import sk_label_or_name
+from ..node_items import NodeItemsUtils
+from ..common_func import sk_label_or_name
 from ..globals import set_utilEquestrianPortalBlids
 from ..utils.color import Color4, get_sk_color_safe
 from ..utils.drawing import DrawVlSocketArea
@@ -95,7 +95,7 @@ class VoronoiInterfacerTool(VoronoiToolPairSk):
             nd = ftgNd.tar
             if nd.type == 'REROUTE':
                 continue
-            if (not prefs.vitPasteToAnySocket) and (self.toolMode == eMode.PASTE.value) and (nd.type not in NodeItemsTool.support_types):
+            if (not prefs.vitPasteToAnySocket) and (self.toolMode == eMode.PASTE.value) and (nd.type not in NodeItemsUtils.support_types):
                 break  # 光标必须靠近骑士 (或组节点) (对于非 vitPasteToAnySocket). 还有 `continue` 不会有高级取消.
             list_ftgSksIn, list_ftgSksOut = self.ToolGetNearestSockets(nd, cur_x_off=0)
             self.fotagoSkMain = FindAnySk(nd, list_ftgSksIn, list_ftgSksOut)
@@ -108,7 +108,7 @@ class VoronoiInterfacerTool(VoronoiToolPairSk):
             nd = ftgNd.tar
             if nd.type=='REROUTE':
                 continue
-            if nd.type not in NodeItemsTool.support_types:
+            if nd.type not in NodeItemsUtils.support_types:
                 break # 光标必须靠近骑士 (或组节点); 但也可以通过选择同一个套接字来取消, 所以不确定.
             if (self.fotagoSkRosw)and(self.fotagoSkRosw.tar.node!=nd):
                 continue
@@ -119,7 +119,7 @@ class VoronoiInterfacerTool(VoronoiToolPairSk):
             skRosw = opt_ftg_socket(self.fotagoSkRosw)
             if skRosw:
                 for ftg in list_ftgSksOut if skRosw.is_output else list_ftgSksIn:
-                    if (ftg.blid!='NodeSocketVirtual')and(NodeItemsTool.IsSimRepCorrectSk(nd, ftg.tar)):
+                    if (ftg.blid!='NodeSocketVirtual')and(NodeItemsUtils.IsSimRepCorrectSk(nd, ftg.tar)):
                         self.fotagoSkMain = ftg
                         break
                 if (self.fotagoSkMain)and(self.fotagoSkMain.tar==skRosw):
@@ -154,11 +154,11 @@ class VoronoiInterfacerTool(VoronoiToolPairSk):
                     if isFirstActivation:
                         ftgSkOut, ftgSkIn = None, None
                         for ftg in list_ftgSksIn:
-                            if (ftg.blid != 'NodeSocketVirtual') and (NodeItemsTool.IsSimRepCorrectSk(nd, ftg.tar)):
+                            if (ftg.blid != 'NodeSocketVirtual') and (NodeItemsUtils.IsSimRepCorrectSk(nd, ftg.tar)):
                                 ftgSkIn = ftg
                                 break
                         for ftg in list_ftgSksOut:
-                            if (ftg.blid != 'NodeSocketVirtual') and (NodeItemsTool.IsSimRepCorrectSk(nd, ftg.tar)):
+                            if (ftg.blid != 'NodeSocketVirtual') and (NodeItemsUtils.IsSimRepCorrectSk(nd, ftg.tar)):
                                 ftgSkOut = ftg
                                 break
                         self.fotagoSkMain = MinFromFtgs(ftgSkOut, ftgSkIn)
@@ -167,10 +167,10 @@ class VoronoiInterfacerTool(VoronoiToolPairSk):
                     if not skMain: continue
                     if nd == skMain.node:
                         break
-                    if nd.type not in NodeItemsTool.support_types:
+                    if nd.type not in NodeItemsUtils.support_types:
                         continue
                     if skMain.is_output and nd.type == 'GROUP_INPUT': continue
-                    if not skMain.is_output and nd.type in NodeItemsTool.only_inputs: continue
+                    if not skMain.is_output and nd.type in NodeItemsUtils.only_inputs: continue
                     self.fotagoNdTar = ftgNd
             break
 
@@ -206,13 +206,13 @@ class VoronoiInterfacerTool(VoronoiToolPairSk):
             case eMode.PASTE:
                 #tovo1v6 添加一个按键, 按下后会“取消”--不进行粘贴; 因为此模式保证会粘附 (参见选项) 到任何套接字, 需要某种方式来“退后一步”.
                 skMain = self.fotagoSkMain.tar
-                if (skMain.node.type not in NodeItemsTool.support_types)and(prefs.vitPasteToAnySocket):
+                if (skMain.node.type not in NodeItemsUtils.support_types)and(prefs.vitPasteToAnySocket):
                     skMain.name = self.clipboard
                 else:
-                    NodeItemsTool(skMain).get_item(skMain).name = self.clipboard
+                    NodeItemsUtils(skMain).get_item(skMain).name = self.clipboard
             case eMode.SWAP|eMode.FLIP:
                 skMain = self.fotagoSkMain.tar
-                items_tool = NodeItemsTool(skMain)
+                items_tool = NodeItemsUtils(skMain)
                 skfFrom = items_tool.get_item(self.fotagoSkRosw.tar)
                 skfTo = items_tool.get_item(skMain)
                 items_tool.MoveBySkfs(skfFrom, skfTo, isSwap=self.toolMode==eMode.SWAP.value)
@@ -221,7 +221,7 @@ class VoronoiInterfacerTool(VoronoiToolPairSk):
             case eMode.CREATE:
                 ftgNdTar = self.fotagoNdTar
                 tar_nd = ftgNdTar.tar
-                items_tool = NodeItemsTool(tar_nd)
+                items_tool = NodeItemsUtils(tar_nd)
                 skMain = self.fotagoSkMain.tar
                 skfNew = items_tool.NewSkfFromSk(skMain, isFlipSide=tar_nd.type not in {'GROUP_INPUT', 'GROUP_OUTPUT'})
                 if not skfNew: return
@@ -239,7 +239,7 @@ class VoronoiInterfacerTool(VoronoiToolPairSk):
                     min = 16777216.0
                     list_ftgSksIn, list_ftgSksOut = self.ToolGetNearestSockets(tar_nd)
                     for ftg in list_ftgSksIn if skMain.is_output else list_ftgSksOut:
-                        if (ftg.blid!='NodeSocketVirtual')and(NodeItemsTool.IsSimRepCorrectSk(tar_nd, ftg.tar)):
+                        if (ftg.blid!='NodeSocketVirtual')and(NodeItemsUtils.IsSimRepCorrectSk(tar_nd, ftg.tar)):
                             length = (ftgNdTar.pos-ftg.pos).length
                             if min>length:
                                 min = length

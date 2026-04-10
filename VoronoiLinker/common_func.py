@@ -1,6 +1,7 @@
 import bpy
-from bpy.app.translations import pgettext_iface as _iface
 from bpy.types import KeyMap, Node, NodeSocket, Operator, Panel
+from bpy.app.translations import pgettext_iface as _iface
+
 from .globals import sk_type_idname_map
 
 def user_node_keymap() -> KeyMap:

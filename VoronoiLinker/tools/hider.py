@@ -2,7 +2,7 @@ from enum import Enum
 
 import bpy
 from ..base_tool import CheckUncollapseNodeAndReNext, VoronoiToolAny
-from ..common_forward_func import sk_label_or_name
+from ..common_func import sk_label_or_name
 from ..utils.node import MinFromFtgs
 from ..utils.ui import draw_hand_split_prop, LyAddLeftProp
 

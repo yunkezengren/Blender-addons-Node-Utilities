@@ -1,8 +1,8 @@
 import bpy
 from bpy.app.translations import pgettext_iface as _iface
 from ..base_tool import CheckUncollapseNodeAndReNext, VoronoiToolTripleSk
-from ..common_forward_class import VmtData
-from ..common_forward_func import DisplayMessage, SetPieData
+from ..common_class import VmtData
+from ..common_func import DisplayMessage, SetPieData
 from ..globals import Cursor_X_Offset
 from ..utils.color import get_sk_color_safe, power_color4
 from ..utils.drawing import TemplateDrawSksToolHh

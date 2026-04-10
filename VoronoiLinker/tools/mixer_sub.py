@@ -2,7 +2,7 @@ import bpy
 from bpy.app.translations import pgettext_iface as _iface
 from bpy.types import FunctionNodeCompare, GeometryNodeIndexSwitch, GeometryNodeMenuSwitch, NodeTree, ShaderNodeCombineXYZ, UILayout
 from ..base_tool import VoronoiOpTool
-from ..common_forward_class import VmtData
+from ..common_class import VmtData
 from ..globals import Color_Bar_Width, SEPARATE, dict_vmtMixerNodesDefs, mixer_default, mixer_tree_sk_nodes, node_support_all_gn_sk
 from ..utils.color import get_sk_color
 from ..utils.node import DoLinkHh, remember_add_link

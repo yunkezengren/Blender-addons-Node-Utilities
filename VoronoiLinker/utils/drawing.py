@@ -6,12 +6,10 @@ from mathutils import Vector as Vec2
 from bpy.app.translations import pgettext_iface as _iface
 from bpy.types import Context, NodeSocket
 from ..Structure import View2D
+from ..common_class import Fotago
 from .color import Color4, clamp_color4, get_color_black_alpha, get_sk_color, get_sk_color_safe, opaque_color4, power_color4
 from .node import node_abs_loc
 from .solder import node_tag_color
-from typing import TYPE_CHECKING
-if TYPE_CHECKING:
-    from ..common_forward_class import Fotago
 
 tup_whiteCol4 = (1.0, 1.0, 1.0, 1.0)
 
@@ -199,7 +197,7 @@ def DrawWorldText(drata: VlDrawData, pos, ofsHh, text, *, text_color, colBg, fon
     # return DrawFramedText(drata, pos1, pos2, txt, siz=siz, adj=dimDb[1]*drata.dsManualAdjustment, colTx=power_color4(text_color, pw=1/1.975), colFr=power_color4(colBg, pw=1/1.5), colBg=colBg)
     return DrawFramedText(drata, pos1, pos2, text, siz=siz, adj=dimDb[1]*drata.dsManualAdjustment, colTx=text_color, colFr=colBg, colBg=colBg)   # 绘制颜色加深
 
-def DrawVlSkText(drata: VlDrawData, pos, ofsHh, ftg, *, fontSizeOverwrite=0, tool_color=(0, 0, 0, 0)): # 注意: `pos` 总是为了 drata.cursorLoc, 但请参见 vptRvEeSksHighlighting.
+def DrawVlSkText(drata: VlDrawData, pos, ofsHh, ftg: Fotago, *, fontSizeOverwrite=0, tool_color=(0, 0, 0, 0)): # 注意: `pos` 总是为了 drata.cursorLoc, 但请参见 vptRvEeSksHighlighting.
     if not drata.dsIsDrawText:
         return (1, 0) #'1' 需要用于保存标记位置的方向信息.
     if drata.dsIsColoredText:
@@ -236,7 +234,7 @@ def DrawDebug(self, drata: VlDrawData):
         DrawVlWidePoint(drata, list_ftgSksOut[0].pos, col1=col, col2=col, resl=4, forciblyCol=True)
         DebugTextDraw(drata.VecUiViewToReg(list_ftgSksOut[0].pos), "Nearest socketOut here", 0.75, 0.75, 1)
 
-def TemplateDrawNodeFull(drata: VlDrawData, ftgNd, *, side=1, tool_name=""): # 模板重新思考过了; 很好. 现在它变得像其他所有的一样了.. 至少没有旧版本中的意大利面条式代码了.
+def TemplateDrawNodeFull(drata: VlDrawData, ftgNd: Fotago, *, side=1, tool_name=""): # 模板重新思考过了; 很好. 现在它变得像其他所有的一样了.. 至少没有旧版本中的意大利面条式代码了.
     #todo1v6 模板只有一个 ftg, 没有分层, 两个调用会从一个绘制点和线到另一个的文本上方.
     if ftgNd:
         ndTar = ftgNd.tar

@@ -1,6 +1,6 @@
 import bpy
 from ..base_tool import VoronoiToolNd
-from ..common_forward_class import TryAndPass
+from ..common_class import TryAndPass
 from ..utils.drawing import TemplateDrawNodeFull
 from ..utils.solder import solder_sk_links
 

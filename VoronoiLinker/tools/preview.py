@@ -2,8 +2,8 @@ import bpy
 from mathutils import Vector as Vec2
 from ..base_tool import CheckUncollapseNodeAndReNext, VoronoiToolSk, is_builtin_tree_idname
 from ..Structure import BNode
-from ..common_forward_class import VptData
-from ..common_forward_func import sk_type_to_idname
+from ..common_class import VptData
+from ..common_func import sk_type_to_idname
 from ..globals import Cursor_X_Offset, is_bl4_plus, voronoiAnchorCnName, voronoiAnchorDtName, voronoiPreviewResultNdName, voronoiSkPreviewName
 from ..utils.color import Color4, get_sk_color_safe, power_color4
 from ..utils.drawing import DrawVlSkText, DrawVlSocketArea, TemplateDrawSksToolHh
