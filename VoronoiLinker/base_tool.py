@@ -31,7 +31,8 @@ class VoronoiOpTool(Operator):
     def poll(cls, context):
         return context.area.type == 'NODE_EDITOR'  # 不知道为什么需要这个, 但还是留着吧.
 
-class VoronoiToolFillers: #-1
+# 定义了一组 抽象方法/占位方法 ，供子类实现。这实际上是 Mixin 模式 或 接口/协议类 。
+class VlToolMixin: #-1
     usefulnessForCustomTree = None
     usefulnessForUndefTree = None
     usefulnessForNoneTree = None
@@ -47,7 +48,7 @@ class VoronoiToolFillers: #-1
     @staticmethod
     def draw_in_pref_settings(col: UILayout, prefs: VoronoiAddonPrefs): pass
 
-class VoronoiToolRoot(VoronoiOpTool, VoronoiToolFillers):  #0
+class VlToolBase(VoronoiOpTool, VlToolMixin):  #0
     usefulnessForUndefTree = False
     usefulnessForNoneTree = False
     canDrawInAddonDiscl = True
@@ -176,7 +177,7 @@ class VoronoiToolRoot(VoronoiOpTool, VoronoiToolFillers):  #0
         context.window_manager.modal_handler_add(self)
         return {'RUNNING_MODAL'}
 
-class VoronoiToolSk(VoronoiToolRoot):  #1
+class VlToolSocket(VlToolBase):  #1
 
     def CallbackDrawTool(self, drata: VlDrawData):
         TemplateDrawSksToolHh(drata, self.fotagoSk)
@@ -187,7 +188,7 @@ class VoronoiToolSk(VoronoiToolRoot):  #1
     def InitToolPre(self, event: Event):
         self.fotagoSk = None
 
-class VoronoiToolPairSk(VoronoiToolSk):  #2
+class VlToolPairSocket(VlToolSocket):  #2
     isCanBetweenFields: bpy.props.BoolProperty(name="Can between fields",
                                                default=True,
                                                description="Tool can connecting between different field types")
@@ -204,7 +205,7 @@ class VoronoiToolPairSk(VoronoiToolSk):  #2
         self.fotagoSk0 = None
         self.fotagoSk1 = None
 
-class VoronoiToolTripleSk(VoronoiToolPairSk):  #3
+class VlToolTripleSocket(VlToolPairSocket):  #3
 
     def ModalTool(self, event: Event, prefs: VoronoiAddonPrefs):
         if (self.isStartWithModf) and (not self.canPickThird):  # 谁会真的通过按下和释放某个修饰键来切换到选择第三个套接字呢?.
@@ -216,7 +217,7 @@ class VoronoiToolTripleSk(VoronoiToolPairSk):  #3
         self.canPickThird = False
         self.isStartWithModf = (event.shift) or (event.ctrl) or (event.alt)
 
-class VoronoiToolNd(VoronoiToolRoot):  #1
+class VlToolNode(VlToolBase):  #1
 
     def CallbackDrawTool(self, drata: VlDrawData):
         TemplateDrawNodeFull(drata, self.fotagoNd)
@@ -227,7 +228,7 @@ class VoronoiToolNd(VoronoiToolRoot):  #1
     def InitToolPre(self, event: Event):
         self.fotagoNd = None
 
-class VoronoiToolPairNd(VoronoiToolSk):  #2
+class VlToolPairNode(VlToolSocket):  #2
 
     def MatterPurposePoll(self):
         return self.fotagoNd0 and self.fotagoNd1
@@ -236,7 +237,7 @@ class VoronoiToolPairNd(VoronoiToolSk):  #2
         self.fotagoNd0 = None
         self.fotagoNd1 = None
 
-class VoronoiToolAny(VoronoiToolSk, VoronoiToolNd):  #2
+class VlToolAnyTarget(VlToolSocket, VlToolNode):  #2
 
     @staticmethod
     def TemplateDrawAny(drata: VlDrawData, ftg: Fotago, *, cond: bool, tool_name=""):
@@ -251,7 +252,7 @@ class VoronoiToolAny(VoronoiToolSk, VoronoiToolNd):  #2
     def InitToolPre(self, event: Event):
         self.fotagoAny = None
 
-def unhide_node_reassign(nd: Node, self: VoronoiToolRoot, *, cond: bool, flag=None):  # 我是多么鄙视折叠起来的节点啊.
+def unhide_node_reassign(nd: Node, self: VlToolBase, *, cond: bool, flag=None):  # 我是多么鄙视折叠起来的节点啊.
     if nd.hide and cond:
         nd.hide = False
         # 注意: 在 NextAssignmentTool 的拓扑结构中要小心无限循环.
@@ -273,7 +274,7 @@ class EdgePan:
     zoomFac = 0.5
     speed = 1.0
 
-def edge_pan_init(self: VoronoiToolRoot, area: Area):
+def edge_pan_init(self: VlToolBase, area: Area):
     EdgePan.area = area
     EdgePan.ctCur = self.ctView2d.cur
     EdgePan.isWorking = True

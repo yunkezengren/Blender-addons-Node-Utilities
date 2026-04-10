@@ -1,10 +1,10 @@
 import bpy
-from ..base_tool import VoronoiToolNd
+from ..base_tool import VlToolNode
 from ..common_class import TryAndPass
 from ..utils.drawing import TemplateDrawNodeFull
 from ..utils.solder import solder_sk_links
 
-class VoronoiResetNodeTool(VoronoiToolNd):
+class VoronoiResetNodeTool(VlToolNode):
     bl_idname = 'node.voronoi_reset_node'
     bl_label = "Voronoi Reset Node"
     bl_description = "Tool for resetting nodes without the need for aiming, with mouse guidance convenience\nand ignoring enumeration properties. Was created because NW had something similar."

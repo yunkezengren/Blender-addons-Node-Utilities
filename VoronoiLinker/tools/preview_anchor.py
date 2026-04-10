@@ -1,9 +1,9 @@
 import bpy
-from ..base_tool import VoronoiToolSk
+from ..base_tool import VlToolSocket
 from ..common_class import VptData
 from ..globals import voronoiAnchorCnName, voronoiAnchorDtName
 
-class VoronoiPreviewAnchorTool(VoronoiToolSk):  # 嗯, 现在这是一个完整的工具了; 甚至可能需要在布局中为其创建一个新的独立类别.
+class VoronoiPreviewAnchorTool(VlToolSocket):  # 嗯, 现在这是一个完整的工具了; 甚至可能需要在布局中为其创建一个新的独立类别.
     bl_idname = 'node.voronoi_preview_anchor'
     bl_label = "Voronoi Preview Anchor"
     bl_description = "A forced separation from VPT, a kind of \"companion manager\" for VPT.\nExplicit socket specification and creation of reroute anchors."

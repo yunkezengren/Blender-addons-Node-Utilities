@@ -1,6 +1,6 @@
 import bpy
 from mathutils import Vector as Vec2
-from ..base_tool import unhide_node_reassign, VoronoiToolSk, is_builtin_tree_idname
+from ..base_tool import unhide_node_reassign, VlToolSocket, is_builtin_tree_idname
 from ..Structure import BNode
 from ..common_class import VptData
 from ..common_func import sk_type_to_idname
@@ -359,7 +359,7 @@ def DoPreviewCore(skTar, list_distAnchs, cursorLoc):
     return list_way
 
 
-class VoronoiPreviewTool(VoronoiToolSk):
+class VoronoiPreviewTool(VlToolSocket):
     bl_idname = 'node.voronoi_preview'
     bl_label = "Voronoi Preview"
     bl_description = "The canonical tool for instant redirection of the tree's active output.\nEven more useful when used together with VPAT."

@@ -1,7 +1,7 @@
 import bpy
 from bpy.app.translations import pgettext_iface as _iface
 from bpy.types import EnumProperty, UILayout, Node
-from ..base_tool import VoronoiOpTool, VoronoiToolNd
+from ..base_tool import VoronoiOpTool, VlToolNode
 from ..common_class import VestData
 from ..utils.drawing import TemplateDrawNodeFull
 from ..utils.node import node_enum_props, node_visible_menu_inputs, SelectAndActiveNdOnly
@@ -172,7 +172,7 @@ def run_rename_node(rename: bool, node: Node):
     if rename and bpy.app.translations.locale in ["zh_Hans", "zh_CN", "zh_HANS", "ZH_HANT"]:
         rename_node_based_option(node)
 
-class VoronoiEnumSelectorTool(VoronoiToolNd):
+class VoronoiEnumSelectorTool(VlToolNode):
     bl_idname = 'node.voronoi_enum_selector'
     bl_label = "Voronoi Enum Selector"
     bl_description = "Tool for convenient lazy switching of enumeration properties.\nEliminates the need for mouse aiming, clicking, and then aiming and clicking again."

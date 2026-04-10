@@ -1,7 +1,7 @@
 from enum import Enum
 
 import bpy
-from ..base_tool import unhide_node_reassign, VoronoiToolAny
+from ..base_tool import unhide_node_reassign, VlToolAnyTarget
 from ..common_func import sk_label_or_name
 from ..utils.node import MinFromFtgs
 from ..utils.ui import draw_hand_split_prop, LyAddLeftProp
@@ -108,7 +108,7 @@ ModeItems = (
     (eMode.HIDE_SOCKET.value, "Socket",       "Hiding the socket"),
     (eMode.HIDE_VALUE.value,  "Socket value", "Switching the visibility of a socket contents"),
 )
-class VoronoiHiderTool(VoronoiToolAny):
+class VoronoiHiderTool(VlToolAnyTarget):
     bl_idname = 'node.voronoi_hider'
     bl_label = "Voronoi Hider"
     bl_description = "Tool for bringing order and aesthetics to the node tree.\nMost likely 90% will go to using automatic socket hiding."

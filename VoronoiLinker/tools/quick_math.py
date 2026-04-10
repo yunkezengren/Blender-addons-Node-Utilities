@@ -1,5 +1,5 @@
 import bpy
-from ..base_tool import unhide_node_reassign, TemplateDrawSksToolHh, VoronoiToolTripleSk
+from ..base_tool import unhide_node_reassign, TemplateDrawSksToolHh, VlToolTripleSocket
 from ..common_class import VqmtData
 from ..common_func import DisplayMessage, SetPieData
 from ..preference import pref
@@ -13,7 +13,7 @@ set_vqmtSkTypeFields = {'VALUE', 'RGBA', 'VECTOR', 'INT', 'BOOLEAN', 'ROTATION',
 fitVqmtRloDescr = "Bypassing the pie call, activates the last used operation for the selected socket type.\n"+\
                   "Searches for sockets only from an available previous operations that were performed for the socket type.\n"+\
                   "Just a pie call, and the fast fast math is not remembered as the last operations"
-class VoronoiQuickMathTool(VoronoiToolTripleSk):
+class VoronoiQuickMathTool(VlToolTripleSocket):
     bl_idname = 'node.voronoi_quick_math'
     bl_label = "Voronoi Quick Math"
     bl_description = "A full-fledged branch from VMT. Quick and quick-quick math at speeds.\nHas additional mini-functionality. Also see \"Quick quick math\" in the layout."
