@@ -35,7 +35,7 @@ ModeItems = (
 )
 # yapf: enable
 
-class VoronoiInterfacerTool(VlToolPairSocket):
+class NODE_OT_voronoi_interfacer(VlToolPairSocket):
     bl_idname = 'node.voronoi_interfacer'
     bl_label = "Voronoi Interfacer"
     bl_description = "A tool on the level of \"The Great Trio\". A branch from VLT for convenient acceleration\nof the creation process and special manipulations with interfaces. \"Interface Manager\"."
@@ -295,7 +295,7 @@ class VoronoiInterfacerTool(VlToolPairSocket):
                 self.fotagoNdTar = None  # 天啊.
             case eMode.FLIP:
                 self.fotagoNdTar = None
-        VoronoiInterfacerTool.clipboard = property(lambda _: bpy.context.window_manager.clipboard,
+        NODE_OT_voronoi_interfacer.clipboard = property(lambda _: bpy.context.window_manager.clipboard,
                                                    lambda _, v: setattr(bpy.context.window_manager, 'clipboard', v))
 
     @staticmethod

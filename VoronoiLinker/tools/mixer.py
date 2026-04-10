@@ -10,7 +10,7 @@ from ..utils.node import opt_ftg_socket
 from ..utils.ui import draw_hand_split_prop, draw_panel_column, draw_hand_split_prop
 from .mixer_sub import DoMix, mixer_default, mixer_tree_sk_nodes, VmtPieMixer
 
-class VoronoiMixerTool(VlToolTripleSocket):
+class NODE_OT_voronoi_mixer(VlToolTripleSocket):
     bl_idname = 'node.voronoi_mixer'
     bl_label = "Voronoi Mixer"
     bl_description = "The canonical tool for frequent mixing needs.\nMost likely 70% will go to using \"Instance on Points\"."

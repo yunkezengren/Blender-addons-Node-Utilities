@@ -16,7 +16,7 @@ def GetSetOfKeysFromEvent(event, isSide=False):
     return set_keys
 
 
-class VoronoiWarperTool(VlToolSocket):
+class NODE_OT_voronoi_warper(VlToolSocket):
     bl_idname = 'node.voronoi_warper'
     bl_label = "Voronoi Warper"
     bl_description = "A mini-branch of topology reverse-engineering (like VPT).\nTool for \"point jumps\" along sockets."

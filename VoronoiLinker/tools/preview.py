@@ -359,7 +359,7 @@ def DoPreviewCore(skTar, list_distAnchs, cursorLoc):
     return list_way
 
 
-class VoronoiPreviewTool(VlToolSocket):
+class NODE_OT_voronoi_preview(VlToolSocket):
     bl_idname = 'node.voronoi_preview'
     bl_label = "Voronoi Preview"
     bl_description = "The canonical tool for instant redirection of the tree's active output.\nEven more useful when used together with VPAT."

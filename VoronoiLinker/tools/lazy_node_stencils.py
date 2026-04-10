@@ -163,7 +163,7 @@ def VlnstLazyTemplate(prefs, tree, skFirst, skSecond, cursorLoc):
         bpy.ops.node.translate_attach('INVOKE_DEFAULT')
 
 
-class VoronoiLazyNodeStencilsTool(VlToolPairSocket):  # 第一个应外部请求而非个人意愿创建的工具.
+class NODE_OT_voronoi_lazy_node_stencils(VlToolPairSocket):  # 第一个应外部请求而非个人意愿创建的工具.
     bl_idname = 'node.voronoi_lazy_node_stencils'
     bl_label = "Voronoi Lazy Node Stencils"  # 每个工具三个字母, 真是够了.
     bl_description = "Power. Three letters for a tool, we've come to this... Encapsulates Ctrl-T from\nNodeWrangler, and the never-implemented 'VoronoiLazyNodeContinuationTool'."

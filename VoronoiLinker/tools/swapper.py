@@ -18,7 +18,7 @@ ModeItems = (
     (eMode.TRAN.value, "Transfer", "Move all links from the second socket to the first one with replacement"),
 )
 
-class VoronoiSwapperTool(VlToolPairSocket):
+class NODE_OT_voronoi_swapper(VlToolPairSocket):
     bl_idname = 'node.voronoi_swaper'
     bl_label = "Voronoi Swapper"
     bl_description = "Tool for swapping links between two sockets, or adding them to one of them.\nNo link swap will occur if it ends up originating from its own node."

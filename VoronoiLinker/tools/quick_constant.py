@@ -11,7 +11,7 @@ B = bpy.types
 def get_const_node(tree: NodeTree, sk_type: str):
     return AllQuickConstant.get(tree.bl_idname, None).get(sk_type, None)
 
-class VoronoiQuickConstant(VlToolTripleSocket):
+class NODE_OT_voronoi_quick_constant(VlToolTripleSocket):
     bl_idname = 'node.voronoi_quick_constant'
     bl_label = "Voronoi Quick Constant"
     bl_description = "Tool for quickly adding constant value nodes.\nSupports various data types including vectors, colors, matrices and more."

@@ -108,7 +108,7 @@ ModeItems = (
     (eMode.HIDE_SOCKET.value, "Socket",       "Hiding the socket"),
     (eMode.HIDE_VALUE.value,  "Socket value", "Switching the visibility of a socket contents"),
 )
-class VoronoiHiderTool(VlToolAnyTarget):
+class NODE_OT_voronoi_hider(VlToolAnyTarget):
     bl_idname = 'node.voronoi_hider'
     bl_label = "Voronoi Hider"
     bl_description = "Tool for bringing order and aesthetics to the node tree.\nMost likely 90% will go to using automatic socket hiding."

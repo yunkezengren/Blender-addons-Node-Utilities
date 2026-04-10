@@ -5,7 +5,7 @@ from ..utils.node import GenFtgFromNd, is_socket_visible
 from ..utils.solder import solder_sk_links
 B = bpy.types
 
-class VoronoiLinksTransferTool(VlToolPairNode):  # Todo2v6 与 VST 合并并变成 "PairAny" 的候选者.
+class NODE_OT_voronoi_links_transfer(VlToolPairNode):
     bl_idname = 'node.voronoi_links_transfer'
     bl_label = "Voronoi Links Transfer"
     bl_description = "Tool for rare needs of transferring all links from one node to another.\nIn the future, it will most likely be merged with VST."

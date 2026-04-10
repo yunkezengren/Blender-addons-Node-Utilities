@@ -9,7 +9,7 @@ from .matrix_convert import Convert_Data, PIE_MT_Convert_Rotation_To, PIE_MT_Sep
 def get_dimension_node(tree: NodeTree, sk_type: str):
     return AllQuickDimensions.get(tree.bl_idname, None).get(sk_type, None)
 
-class VoronoiQuickDimensionsTool(VlToolTripleSocket):
+class NODE_OT_voronoi_quick_dimensions(VlToolTripleSocket):
     bl_idname = 'node.voronoi_quick_dimensions'
     bl_label = "Voronoi Quick Dimensions"
     bl_description = "Tool for accelerating the needs of separating and combining vectors (and color).\nAnd can also split geometry into components."

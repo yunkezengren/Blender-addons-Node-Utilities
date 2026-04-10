@@ -1,27 +1,27 @@
 import bpy
 from typing import Any
 from bpy.types import Operator
-from .tools.call_node_pie import VoronoiCallNodePie
-from .tools.enum_selector import VestOpBox, VestPieBox, VoronoiEnumSelectorTool
-from .tools.hider import HiderMode, VoronoiHiderTool
-from .tools.interfacer import InterfacerMode, VoronoiInterfacerTool
-from .tools.lazy_node_stencils import VoronoiLazyNodeStencilsTool
-from .tools.link_repeating import LinkRepeatingMode, VoronoiLinkRepeatingTool
-from .tools.linker import VoronoiLinkerTool
-from .tools.links_transfer import VoronoiLinksTransferTool
-from .tools.mass_linker import VoronoiMassLinkerTool
+from .tools.call_node_pie import NODE_OT_voronoi_call_node_pie
+from .tools.enum_selector import VestOpBox, VestPieBox, NODE_OT_voronoi_enum_selector
+from .tools.hider import HiderMode, NODE_OT_voronoi_hider
+from .tools.interfacer import InterfacerMode, NODE_OT_voronoi_interfacer
+from .tools.lazy_node_stencils import NODE_OT_voronoi_lazy_node_stencils
+from .tools.link_repeating import LinkRepeatingMode, NODE_OT_voronoi_link_repeating
+from .tools.linker import NODE_OT_voronoi_linker
+from .tools.links_transfer import NODE_OT_voronoi_links_transfer
+from .tools.mass_linker import NODE_OT_voronoi_mass_linker
 from .tools.matrix_convert import PIE_MT_Combine_Matrix, PIE_MT_Convert_Rotation_To, PIE_MT_Convert_To_Rotation, PIE_MT_Separate_Matrix, Rot_or_Mat_Convert
-from .tools.mixer import VoronoiMixerTool
+from .tools.mixer import NODE_OT_voronoi_mixer
 from .tools.mixer_sub import VmtOpMixer, VmtPieMixer
 from .tools.pie_math import VqmtOpMain, VqmtPieMath
-from .tools.preview import VoronoiPreviewTool
-from .tools.preview_anchor import VoronoiPreviewAnchorTool
-from .tools.quick_constant import VoronoiQuickConstant
-from .tools.quick_dimensions import VoronoiQuickDimensionsTool
-from .tools.quick_math import VoronoiQuickMathTool
-from .tools.reset_node import VoronoiResetNodeTool
-from .tools.swapper import SwapperMode, VoronoiSwapperTool
-from .tools.warper import VoronoiWarperTool
+from .tools.preview import NODE_OT_voronoi_preview
+from .tools.preview_anchor import NODE_OT_voronoi_preview_anchor
+from .tools.quick_constant import NODE_OT_voronoi_quick_constant
+from .tools.quick_dimensions import NODE_OT_voronoi_quick_dimensions
+from .tools.quick_math import NODE_OT_voronoi_quick_math
+from .tools.reset_node import NODE_OT_voronoi_reset_node
+from .tools.swapper import SwapperMode, NODE_OT_voronoi_swapper
+from .tools.warper import NODE_OT_voronoi_warper
 from .translations import translations_dict
 from .utils.solder import register_socket_properties, assign_tool_class_names, unregister_socket_properties
 from .preference import VoronoiAddonPrefs, VoronoiOpAddonTabs, pref, add_dynamic_properties, update_lang_deb_enum_items
@@ -72,54 +72,54 @@ class ToTimeNs():  # 我投降了. 🤷‍ 我不知道为什么在大型节点�
 # yapf: disable
 # 每个 Operator 类的 keymap 配置. 格式: "S#A_KEY" 或 ("S#A_KEY", {'prop': value})  S=Shift, C=Ctrl, A=Alt, #=忽略, + =repeat
 operator_keymaps: dict[type[Operator], list[str | tuple[str, dict[str, Any]]]] = {
-    VoronoiLinkerTool: ["##A_RIGHTMOUSE"],
-    VoronoiPreviewTool: ["SC#_LEFTMOUSE"],
-    VoronoiMixerTool: ["S#A_LEFTMOUSE"],
-    VoronoiCallNodePie: ["#C#_LEFTMOUSE"],
-    VoronoiQuickDimensionsTool: ["##A_D"],
-    VoronoiQuickConstant: ["##A_C"],
-    VoronoiMassLinkerTool: [
+    NODE_OT_voronoi_linker: ["##A_RIGHTMOUSE"],
+    NODE_OT_voronoi_preview: ["SC#_LEFTMOUSE"],
+    NODE_OT_voronoi_mixer: ["S#A_LEFTMOUSE"],
+    NODE_OT_voronoi_call_node_pie: ["#C#_LEFTMOUSE"],
+    NODE_OT_voronoi_quick_dimensions: ["##A_D"],
+    NODE_OT_voronoi_quick_constant: ["##A_C"],
+    NODE_OT_voronoi_mass_linker: [
         "SCA_LEFTMOUSE",
         ("SCA_RIGHTMOUSE", {'isIgnoreExistingLinks': True}),
         ],
-    VoronoiLinksTransferTool: [
+    NODE_OT_voronoi_links_transfer: [
         "S##_T",
         ("SCA_T", {'isByIndexes': True}),
         ],
-    VoronoiWarperTool: [
+    NODE_OT_voronoi_warper: [
         "S#A_W",
         ("SCA_W", {'isZoomedTo': False}),
         ],
-    VoronoiResetNodeTool: [
+    NODE_OT_voronoi_reset_node: [
         "###_BACK_SPACE",
         ("S##_BACK_SPACE", {'isResetEnums': True}),
         ],
-    VoronoiPreviewAnchorTool: [
+    NODE_OT_voronoi_preview_anchor: [
         "SC#_RIGHTMOUSE",
         ("SC#_1", {'anchorType': 1}),
         ("SC#_2", {'anchorType': 2}),
         ("SC#_ACCENT_GRAVE", {'isDeleteNonCanonAnchors': 2}),  # ACCENT_GRAVE 是 `
     ],
-    VoronoiEnumSelectorTool: [
+    NODE_OT_voronoi_enum_selector: [
         ("#C#_R", {'isPieChoice': False, 'isSelectNode': 1}),
         ("#C#_E", {'isInstantActivation': False}),
         ("##A_E", {'isToggleOptions': True}),
     ],
-    VoronoiSwapperTool: [
+    NODE_OT_voronoi_swapper: [
         ("S##_S", {'toolMode': SwapperMode.SWAP.value}),
         ("##A_S", {'toolMode': SwapperMode.ADD.value}),
         ("S#A_S", {'toolMode': SwapperMode.TRAN.value}),
     ],
-    VoronoiHiderTool: [
+    NODE_OT_voronoi_hider: [
         ("S##_E", {'toolMode': HiderMode.HIDE_SOCKET.value}),
         ("#CA_E", {'toolMode': HiderMode.HIDE_VALUE.value}),
         ("SC#_E", {'toolMode': HiderMode.HIDE_NODE.value}),
     ],
-    VoronoiLinkRepeatingTool: [
+    NODE_OT_voronoi_link_repeating: [
         ("###_V", {'toolMode': LinkRepeatingMode.SOCKET.value}),
         ("S##_V", {'toolMode': LinkRepeatingMode.NODE.value}),
     ],
-    VoronoiInterfacerTool: [
+    NODE_OT_voronoi_interfacer: [
         ("SC#_A", {'toolMode': InterfacerMode.NEW.value}),
         ("S#A_A", {'toolMode': InterfacerMode.CREATE.value}),
         ("S#A_C", {'toolMode': InterfacerMode.COPY.value}),
@@ -129,7 +129,7 @@ operator_keymaps: dict[type[Operator], list[str | tuple[str, dict[str, Any]]]] =
         # ("S#A_Q", {'toolMode':InterfacerMode.DELETE.value}), 
         # ("S#A_E", {'toolMode':InterfacerMode.TYPE.value}),
     ],
-    VoronoiQuickMathTool: [
+    NODE_OT_voronoi_quick_math: [
         "S#A_RIGHTMOUSE",  # 留在了右键, 以免在'Speed Pie'类型的饼菜单下三击左键时抓狂.
         ("##A_ACCENT_GRAVE", {'isRepeatLastOperation': True}),
         # 快速数学运算的快速操作列表("x2 组合"): "3"键上的布尔运算存在两难选择, 它可以是减法, 像这个键上的所有操作一样, 也可以是否定, 作为前两个的逻辑延续. 在第二种情况下, "4"键上的布尔运算很可能得留空.
@@ -144,8 +144,8 @@ operator_keymaps: dict[type[Operator], list[str | tuple[str, dict[str, Any]]]] =
         ("S#A_4", {'justPieCall': 4}),
         ("S#A_5", {'justPieCall': 5}),
     ],
-    # VoronoiLazyNodeStencilsTool: [("S#A_Q")],
-    # VoronoiRantoTool: [
+    # NODE_OT_voronoi_lazy_node_stencils: [("S#A_Q")],
+    # NODE_OT_voronoi_ranto: [
     #     ("###_R"),
     #     ("S##_R", {'isAccumulate':True}),
     #     ("#C#_R", {'isOnlySelected':2}),
@@ -179,30 +179,30 @@ for operator_cls, keymaps in operator_keymaps.items():
 
 keymap_categorys = {'最有用': set(), '很有用': set(), '可能有用': set(), '无效': set(), 'qqm': set(), 'custom': set()}
 keymap_categorys['最有用'] = {
-    VoronoiLinkerTool.bl_idname,
-    VoronoiPreviewTool.bl_idname,
-    VoronoiMixerTool.bl_idname,
-    VoronoiQuickMathTool.bl_idname,
-    VoronoiHiderTool.bl_idname,
-    VoronoiCallNodePie.bl_idname,
-    VoronoiQuickConstant.bl_idname,
+    NODE_OT_voronoi_linker.bl_idname,
+    NODE_OT_voronoi_preview.bl_idname,
+    NODE_OT_voronoi_mixer.bl_idname,
+    NODE_OT_voronoi_quick_math.bl_idname,
+    NODE_OT_voronoi_hider.bl_idname,
+    NODE_OT_voronoi_call_node_pie.bl_idname,
+    NODE_OT_voronoi_quick_constant.bl_idname,
 }
 keymap_categorys['很有用'] = {
-    VoronoiMassLinkerTool.bl_idname,
-    VoronoiInterfacerTool.bl_idname,
-    VoronoiQuickDimensionsTool.bl_idname,
-    VoronoiLinksTransferTool.bl_idname,
-    VoronoiEnumSelectorTool.bl_idname,
-    VoronoiSwapperTool.bl_idname,
+    NODE_OT_voronoi_mass_linker.bl_idname,
+    NODE_OT_voronoi_interfacer.bl_idname,
+    NODE_OT_voronoi_quick_dimensions.bl_idname,
+    NODE_OT_voronoi_links_transfer.bl_idname,
+    NODE_OT_voronoi_enum_selector.bl_idname,
+    NODE_OT_voronoi_swapper.bl_idname,
 }
 keymap_categorys['可能有用'] = {
-    VoronoiLinkRepeatingTool.bl_idname,
-    VoronoiResetNodeTool.bl_idname,
-    VoronoiLazyNodeStencilsTool.bl_idname,
-    VoronoiPreviewAnchorTool.bl_idname,
-    VoronoiWarperTool.bl_idname,
+    NODE_OT_voronoi_link_repeating.bl_idname,
+    NODE_OT_voronoi_reset_node.bl_idname,
+    NODE_OT_voronoi_lazy_node_stencils.bl_idname,
+    NODE_OT_voronoi_preview_anchor.bl_idname,
+    NODE_OT_voronoi_warper.bl_idname,
 }
-# keymap_categorys['无效'].add(VoronoiRantoTool.bl_idname)
+# keymap_categorys['无效'].add(NODE_OT_voronoi_ranto.bl_idname)
 
 assign_tool_class_names(vt_classes)
 # 更新语言调试枚举项并添加动态属性

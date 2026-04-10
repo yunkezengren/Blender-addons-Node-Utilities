@@ -16,7 +16,7 @@ ModeItems = (
     (eMode.SOCKET.value, "For socket", "Using the last link created by some from the tools, create the same for the specified socket"),
     (eMode.NODE.value,   "For node",   "Using name of the last socket, find and connect for a selected node"),
 )
-class VoronoiLinkRepeatingTool(VlToolAnyTarget):  # 分离成单独的工具, 以免用意大利面条代码玷污神圣的地方 (最初只用于 VLT).
+class NODE_OT_voronoi_link_repeating(VlToolAnyTarget):  # 分离成单独的工具, 以免用意大利面条代码玷污神圣的地方 (最初只用于 VLT).
     bl_idname = 'node.voronoi_link_repeating'
     bl_label = "Voronoi Link Repeating"
     bl_description = "A full-fledged branch from VLT, repeats any previous link from most\nother tools. Provides convenience for \"one to many\" connections."

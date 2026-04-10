@@ -16,7 +16,7 @@ def VrtDoRecursiveAutomaticNodeTopologyOrganization(rada, ndRoot):
     rada.kapibara = "kapibara"
 
 
-class VoronoiRantoTool(VlToolNode): #完成了.
+class NODE_OT_voronoi_ranto(VlToolNode): #完成了.
     bl_idname = 'node.voronoi_ranto'
     bl_label = "Voronoi RANTO"
     usefulnessForCustomTree = True

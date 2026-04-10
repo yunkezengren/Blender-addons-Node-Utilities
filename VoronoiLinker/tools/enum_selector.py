@@ -172,7 +172,7 @@ def run_rename_node(rename: bool, node: Node):
     if rename and bpy.app.translations.locale in ["zh_Hans", "zh_CN", "zh_HANS", "ZH_HANT"]:
         rename_node_based_option(node)
 
-class VoronoiEnumSelectorTool(VlToolNode):
+class NODE_OT_voronoi_enum_selector(VlToolNode):
     bl_idname = 'node.voronoi_enum_selector'
     bl_label = "Voronoi Enum Selector"
     bl_description = "Tool for convenient lazy switching of enumeration properties.\nEliminates the need for mouse aiming, clicking, and then aiming and clicking again."
