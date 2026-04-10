@@ -1,5 +1,5 @@
 import bpy
-from ..base_tool import CheckUncollapseNodeAndReNext, VoronoiToolSk
+from ..base_tool import unhide_node_reassign, VoronoiToolSk
 from ..utils.node import MinFromFtgs
 from ..utils.ui import draw_hand_split_prop
 
@@ -44,7 +44,7 @@ class VoronoiWarperTool(VoronoiToolSk):
             else:
                 self.fotagoSk = FindAnySk()
             if self.fotagoSk:
-                CheckUncollapseNodeAndReNext(nd, self, cond=self.fotagoSk)
+                unhide_node_reassign(nd, self, cond=self.fotagoSk)
                 break
     def ModalTool(self, event, prefs):
         if event.type==prefs.vwtSelectTargetKey:

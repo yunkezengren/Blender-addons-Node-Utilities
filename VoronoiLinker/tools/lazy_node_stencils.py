@@ -1,7 +1,7 @@
 import copy
 import bpy
 from mathutils import Vector as Vec2
-from ..base_tool import CheckUncollapseNodeAndReNext, VoronoiToolPairSk
+from ..base_tool import unhide_node_reassign, VoronoiToolPairSk
 from ..common_class import VlnstData
 from ..common_func import sk_label_or_name
 from ..globals import sk_type_idname_map
@@ -189,14 +189,14 @@ class VoronoiLazyNodeStencilsTool(VoronoiToolPairSk):  # 第一个应外部请�
             list_ftgSksIn, list_ftgSksOut = self.ToolGetNearestSockets(nd, cur_x_off=0)
             if isFirstActivation:
                 self.fotagoSk0 = FindAnySk()
-                CheckUncollapseNodeAndReNext(nd, self, cond=self.fotagoSk0, flag=True)
+                unhide_node_reassign(nd, self, cond=self.fotagoSk0, flag=True)
             skFirst = opt_ftg_socket(self.fotagoSk0)
             if skFirst:
                 self.fotagoSk1 = FindAnySk()
                 if self.fotagoSk1:
                     if skFirst==self.fotagoSk1.tar:
                         self.fotagoSk1 = None
-                    CheckUncollapseNodeAndReNext(nd, self, cond=self.fotagoSk1, flag=False)
+                    unhide_node_reassign(nd, self, cond=self.fotagoSk1, flag=False)
             break
     def MatterPurposePoll(self):
         return not not self.fotagoSk0

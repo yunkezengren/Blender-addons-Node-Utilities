@@ -1,5 +1,5 @@
 import bpy
-from ..base_tool import CheckUncollapseNodeAndReNext, VoronoiToolAny
+from ..base_tool import unhide_node_reassign, VoronoiToolAny
 from ..common_class import Fotago
 
 class VoronoiCallNodePie(VoronoiToolAny):
@@ -34,7 +34,7 @@ class VoronoiCallNodePie(VoronoiToolAny):
                 break
         self.fotagoAny = near_ftg_soc
         if near_ftg_soc:
-            CheckUncollapseNodeAndReNext(
+            unhide_node_reassign(
                 near_ftg_soc.tar.node, self,
                 cond=self.fotagoAny)  #Для режима сокетов тоже нужно перерисовывать, ибо нод у прицепившегося сокета может быть свёрнут.
 

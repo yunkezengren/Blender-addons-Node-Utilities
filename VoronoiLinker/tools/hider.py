@@ -1,7 +1,7 @@
 from enum import Enum
 
 import bpy
-from ..base_tool import CheckUncollapseNodeAndReNext, VoronoiToolAny
+from ..base_tool import unhide_node_reassign, VoronoiToolAny
 from ..common_func import sk_label_or_name
 from ..utils.node import MinFromFtgs
 from ..utils.ui import draw_hand_split_prop, LyAddLeftProp
@@ -146,7 +146,7 @@ class VoronoiHiderTool(VoronoiToolAny):
                         self.fotagoAny = MinFromFtgs(ftgSkOut, ftgSkIn)
                     else:
                         self.fotagoAny = ftgSkIn
-                    CheckUncollapseNodeAndReNext(nd, self, cond=self.fotagoAny) # 对于套接字模式也需要重绘, 因为连接的套接字节点可能是折叠的.
+                    unhide_node_reassign(nd, self, cond=self.fotagoAny) # 对于套接字模式也需要重绘, 因为连接的套接字节点可能是折叠的.
                 case eMode.HIDE_NODE:
                     # 对于节点模式, 展开光标下的所有节点或不展开, 没有区别.
                     if prefs.vhtIsToggleNodesOnDrag:

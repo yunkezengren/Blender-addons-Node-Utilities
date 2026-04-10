@@ -1,6 +1,6 @@
 import bpy
 from bpy.types import NodeSocket, NodeTree, UILayout, Node
-from ..base_tool import CheckUncollapseNodeAndReNext, VoronoiToolTripleSk
+from ..base_tool import unhide_node_reassign, VoronoiToolTripleSk
 from ..globals import AllQuickConstant, Cursor_X_Offset
 from ..utils.drawing import TemplateDrawSksToolHh
 from ..utils.node import opt_ftg_socket
@@ -36,9 +36,9 @@ class VoronoiQuickConstant(VoronoiToolTripleSk):
                     if get_const_node(tree, ftg.tar.type):
                         self.fotagoSk0 = ftg
                         break
-                CheckUncollapseNodeAndReNext(nd, self, cond=True, flag=True)
+                unhide_node_reassign(nd, self, cond=True, flag=True)
                 break
-            CheckUncollapseNodeAndReNext(nd, self, cond=self.fotagoSk1, flag=False)
+            unhide_node_reassign(nd, self, cond=self.fotagoSk1, flag=False)
             sk_out0 = opt_ftg_socket(self.fotagoSk0)
             if sk_out0:
                 only_single_link = {'MENU'}
@@ -52,7 +52,7 @@ class VoronoiQuickConstant(VoronoiToolTripleSk):
                     if (self.fotagoSk1)and(self.fotagoSk1.tar==sk_out0):
                         self.fotagoSk1 = None
                         break
-                    CheckUncollapseNodeAndReNext(nd, self, cond=self.fotagoSk1, flag=False)
+                    unhide_node_reassign(nd, self, cond=self.fotagoSk1, flag=False)
                     if self.fotagoSk1:
                         break
                 else:
@@ -64,7 +64,7 @@ class VoronoiQuickConstant(VoronoiToolTripleSk):
                     if (self.fotagoSk2)and( (self.fotagoSk2.tar==sk_out0)or(sk_out1)and(self.fotagoSk2.tar==sk_out1) ):
                         self.fotagoSk2 = None
                         break
-                    CheckUncollapseNodeAndReNext(nd, self, cond=self.fotagoSk2, flag=False)
+                    unhide_node_reassign(nd, self, cond=self.fotagoSk2, flag=False)
                     if self.fotagoSk2:
                         break
     def MatterPurposePoll(self):

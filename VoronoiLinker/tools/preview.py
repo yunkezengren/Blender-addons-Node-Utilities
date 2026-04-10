@@ -1,6 +1,6 @@
 import bpy
 from mathutils import Vector as Vec2
-from ..base_tool import CheckUncollapseNodeAndReNext, VoronoiToolSk, is_builtin_tree_idname
+from ..base_tool import unhide_node_reassign, VoronoiToolSk, is_builtin_tree_idname
 from ..Structure import BNode
 from ..common_class import VptData
 from ..common_func import sk_type_to_idname
@@ -457,7 +457,7 @@ class VoronoiPreviewTool(VoronoiToolSk):
             if self.fotagoSk: #如果成功则完成. 否则, 例如忽略自己的桥接接口, 如果节点只有它们 -- 将停在旁边而找不到其他.
                 break
         if self.fotagoSk:
-            CheckUncollapseNodeAndReNext(nd, self, cond=True)
+            unhide_node_reassign(nd, self, cond=True)
             if prefs.vptIsLivePreview:
                 VptPreviewFromSk(self, prefs, self.fotagoSk.tar)
             if prefs.vptRvEeIsColorOnionNodes: #帮助逆向工程 -- 不是用眼睛寻找细线, 而是快速视觉读取拓扑连接的节点.

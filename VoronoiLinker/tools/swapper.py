@@ -1,7 +1,7 @@
 from enum import Enum
 
 import bpy
-from ..base_tool import CheckUncollapseNodeAndReNext, VoronoiToolPairSk
+from ..base_tool import unhide_node_reassign, VoronoiToolPairSk
 from ..utils.drawing import TemplateDrawSksToolHh
 from ..utils.node import MinFromFtgs, opt_ftg_socket
 
@@ -39,7 +39,7 @@ class VoronoiSwapperTool(VoronoiToolPairSk):
         self.fotagoSk1 = None
         for ftgNd in self.ToolGetNearestNodes(cur_x_off=0):
             nd = ftgNd.tar
-            CheckUncollapseNodeAndReNext(nd, self, cond=isFirstActivation, flag=True)
+            unhide_node_reassign(nd, self, cond=isFirstActivation, flag=True)
             list_ftgSksIn, list_ftgSksOut = self.ToolGetNearestSockets(nd, cur_x_off=0)
             #基于Mixer的标准.
             if isFirstActivation:
@@ -74,7 +74,7 @@ class VoronoiSwapperTool(VoronoiToolPairSk):
                 if not self.isCanAnyType:
                     if not(self.fotagoSk1 or isFirstActivation): #如果没有结果，则继续搜索.
                         continue
-                CheckUncollapseNodeAndReNext(nd, self, cond=self.fotagoSk1, flag=False)
+                unhide_node_reassign(nd, self, cond=self.fotagoSk1, flag=False)
             break
     def MatterPurposePoll(self):
         return self.fotagoSk0 and self.fotagoSk1

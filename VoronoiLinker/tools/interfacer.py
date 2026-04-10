@@ -3,7 +3,7 @@ from enum import Enum
 import bpy
 from mathutils import Vector as Vec
 from bpy.types import NodeTree
-from ..base_tool import CheckUncollapseNodeAndReNext, TemplateDrawNodeFull, TemplateDrawSksToolHh, VoronoiToolPairSk
+from ..base_tool import unhide_node_reassign, TemplateDrawNodeFull, TemplateDrawSksToolHh, VoronoiToolPairSk
 from ..node_items import NodeItemsUtils
 from ..common_func import sk_label_or_name
 from ..globals import set_utilEquestrianPortalBlids
@@ -100,7 +100,7 @@ class VoronoiInterfacerTool(VoronoiToolPairSk):
             list_ftgSksIn, list_ftgSksOut = self.ToolGetNearestSockets(nd, cur_x_off=0)
             self.fotagoSkMain = FindAnySk(nd, list_ftgSksIn, list_ftgSksOut)
             if self.fotagoSkMain:
-                CheckUncollapseNodeAndReNext(nd, self, cond=self.fotagoSkMain.tar.node == nd, flag=True)
+                unhide_node_reassign(nd, self, cond=self.fotagoSkMain.tar.node == nd, flag=True)
             break
     def NextAssignmentToolSwapFlip(self, isFirstActivation, prefs, tree):
         self.fotagoSkMain = None
@@ -115,7 +115,7 @@ class VoronoiInterfacerTool(VoronoiToolPairSk):
             list_ftgSksIn, list_ftgSksOut = self.ToolGetNearestSockets(nd, cur_x_off=0)
             if isFirstActivation:
                 self.fotagoSkRosw = FindAnySk(nd, list_ftgSksIn, list_ftgSksOut)
-            CheckUncollapseNodeAndReNext(nd, self, cond=self.fotagoSkRosw, flag=True)
+            unhide_node_reassign(nd, self, cond=self.fotagoSkRosw, flag=True)
             skRosw = opt_ftg_socket(self.fotagoSkRosw)
             if skRosw:
                 for ftg in list_ftgSksOut if skRosw.is_output else list_ftgSksIn:
@@ -140,7 +140,7 @@ class VoronoiInterfacerTool(VoronoiToolPairSk):
                             self.fotagoSkRosw = ftg
                             self.tglCrossVirt = ftg.blid == 'NodeSocketVirtual'
                             break
-                        CheckUncollapseNodeAndReNext(nd, self, cond=self.fotagoSkRosw, flag=True)
+                        unhide_node_reassign(nd, self, cond=self.fotagoSkRosw, flag=True)
                     skRosw = opt_ftg_socket(self.fotagoSkRosw)
                     if skRosw:
                         for ftg in list_ftgSksIn:
@@ -149,7 +149,7 @@ class VoronoiInterfacerTool(VoronoiToolPairSk):
                                 break
                         if (self.fotagoSkMain) and (self.fotagoSkMain.tar.node == skRosw.node):  #todo0NA 概括这种检查到类中.
                             self.fotagoSkMain = None
-                    CheckUncollapseNodeAndReNext(nd, self, cond=self.fotagoSkMain, flag=True)
+                    unhide_node_reassign(nd, self, cond=self.fotagoSkMain, flag=True)
                 case eMode.CREATE:
                     if isFirstActivation:
                         ftgSkOut, ftgSkIn = None, None

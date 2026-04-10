@@ -1,5 +1,5 @@
 import bpy
-from ..base_tool import CheckUncollapseNodeAndReNext, TemplateDrawSksToolHh, VoronoiToolSk
+from ..base_tool import unhide_node_reassign, TemplateDrawSksToolHh, VoronoiToolSk
 from ..utils.node import MinFromFtgs, VlrtRememberLastSockets
 from ..utils.ui import LyAddNiceColorProp
 
@@ -20,7 +20,7 @@ class VoronoiDummyTool(VoronoiToolSk):   # 快速便捷地添加新工具的模�
             ftgSkIn = list_ftgSksIn[0] if list_ftgSksIn else None
             ftgSkOut = list_ftgSksOut[0] if list_ftgSksOut else None
             self.fotagoSk = MinFromFtgs(ftgSkOut, ftgSkIn)
-            CheckUncollapseNodeAndReNext(nd, self, cond=self.fotagoSk, flag=False)
+            unhide_node_reassign(nd, self, cond=self.fotagoSk, flag=False)
             break
         #todo0NA Я придумал что делать с концепцией, когда имеются разные критерии от isFirstActivation'а, и второй находится сразу рядом после первого моментально. Явное (и насильное) сравнение на своего и отмена.
     def MatterPurposePoll(self):

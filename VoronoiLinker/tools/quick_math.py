@@ -1,5 +1,5 @@
 import bpy
-from ..base_tool import CheckUncollapseNodeAndReNext, TemplateDrawSksToolHh, VoronoiToolTripleSk
+from ..base_tool import unhide_node_reassign, TemplateDrawSksToolHh, VoronoiToolTripleSk
 from ..common_class import VqmtData
 from ..common_func import DisplayMessage, SetPieData
 from ..preference import pref
@@ -73,7 +73,7 @@ class VoronoiQuickMathTool(VoronoiToolTripleSk):
                     continue #寻找 isFirstActivation 的节点, 该节点将命中字段套接字.
                 #对于下一个 `continue`, 因为如果接下来激活 continue 失败, 将会重新选择 isFirstActivation
                 isFirstActivation = False #但考虑到当前的选择拓扑, 这没有必要.
-            CheckUncollapseNodeAndReNext(nd, self, cond=self.fotagoSk0, flag=True) #todo0NA 参见上面一行, 这个 'cond' 不应该来自 isFirstActivation.
+            unhide_node_reassign(nd, self, cond=self.fotagoSk0, flag=True) #todo0NA 参见上面一行, 这个 'cond' 不应该来自 isFirstActivation.
             skOut0 = opt_ftg_socket(self.fotagoSk0)
             if isNotCanPickThird:
                 #对于第二个, 根据条件:
@@ -86,7 +86,7 @@ class VoronoiQuickMathTool(VoronoiToolTripleSk):
                         continue #以便没有字段套接字的节点是透明的.
                     if (self.fotagoSk1)and(skOut0==self.fotagoSk1.tar): #检查是否是自我复制.
                         self.fotagoSk1 = None
-                    CheckUncollapseNodeAndReNext(nd, self, cond=self.fotagoSk1, flag=False)
+                    unhide_node_reassign(nd, self, cond=self.fotagoSk1, flag=False)
             else:
                 self.fotagoSk2 = None #为了方便高级取消而清空.
                 #对于第三个, 如果不是前两个的节点.
@@ -99,7 +99,7 @@ class VoronoiQuickMathTool(VoronoiToolTripleSk):
                         if (tgl0)and(tgl1):
                             self.fotagoSk2 = ftg
                             break
-                CheckUncollapseNodeAndReNext(nd, self, cond=self.fotagoSk2, flag=False)
+                unhide_node_reassign(nd, self, cond=self.fotagoSk2, flag=False)
             break
     def VqmSetPieData(self, prefs, col):
         SetPieData(self, VqmtData, prefs, col)

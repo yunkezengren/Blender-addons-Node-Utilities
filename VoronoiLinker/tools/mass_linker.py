@@ -1,5 +1,5 @@
 import bpy
-from ..base_tool import CheckUncollapseNodeAndReNext, VoronoiToolRoot
+from ..base_tool import unhide_node_reassign, VoronoiToolRoot
 from ..globals import Cursor_X_Offset
 from ..utils.drawing import DrawVlWidePoint, TemplateDrawSksToolHh
 from ..utils.node import CompareSkLabelName, VlrtRememberLastSockets
@@ -55,7 +55,7 @@ class VoronoiMassLinkerTool(VoronoiToolRoot):  # "猫狗合体", 既不是节点
     def NextAssignmentTool(self, isFirstActivation, prefs, tree):
         for ftgNd in self.ToolGetNearestNodes(cur_x_off=Cursor_X_Offset):
             nd = ftgNd.tar
-            CheckUncollapseNodeAndReNext(nd, self, cond=isFirstActivation, flag=True)
+            unhide_node_reassign(nd, self, cond=isFirstActivation, flag=True)
             #除了折叠的节点, 还忽略了转接点, 因为它们的输入总是相同的, 并且名称相同.
             if nd.type=='REROUTE':
                 continue
@@ -67,7 +67,7 @@ class VoronoiMassLinkerTool(VoronoiToolRoot):  # "猫狗合体", 既不是节点
             #注意: 第一次找到 ndTar1 时 -- list_equalFtgSks == [].
             if self.ndTar1:
                 list_ftgSksIn = self.ToolGetNearestSockets(self.ndTar1)[0] #仅为了展开的条件. 也可以用 list_equalFtgSks, 但又会有跳帧问题.
-                CheckUncollapseNodeAndReNext(nd, self, cond=list_ftgSksIn, flag=False)
+                unhide_node_reassign(nd, self, cond=list_ftgSksIn, flag=False)
             break
     def MatterPurposePoll(self):
         return self.list_equalFtgSks

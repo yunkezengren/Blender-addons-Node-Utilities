@@ -13,7 +13,7 @@ from .utils.drawing import DrawDebug, TemplateDrawNodeFull, TemplateDrawSksToolH
 from .utils.node import GetNearestNodesFtg, GetNearestSocketsFtg, RestoreCollapsedNodes, SaveCollapsedNodes
 from .utils.solder import solder_sk_links, solder_theme_cols
 
-def GetOpKmi(self: type["VoronoiOpTool"], event: Event):
+def get_operator_keymap_item(self: type["VoronoiOpTool"], event: Event):
     # Todo00: 有没有更正确的设计或方法?
     # 操作符可以有多种调用组合, 所有这些组合在 `keymap_items` 中的键都相同, 所以我们手动遍历所有
     idname = getattr(bpy.types, self.bl_idname).bl_idname
@@ -79,7 +79,7 @@ class VoronoiToolRoot(VoronoiOpTool, VoronoiToolFillers):  #0
             try:
                 self.NextAssignmentTool(flag, self.prefs, self.tree)
             except:
-                EdgePanData.isWorking = False  # 现在只对 VLT 有效. 也许应该做个 ~self.ErrorToolProc, 并在 VLT 中 "退后一步".
+                EdgePan.isWorking = False  # 现在只对 VLT 有效. 也许应该做个 ~self.ErrorToolProc, 并在 VLT 中 "退后一步".
                 SpaceNodeEditor.draw_handler_remove(self.handle, 'WINDOW')
                 raise
 
@@ -100,7 +100,7 @@ class VoronoiToolRoot(VoronoiOpTool, VoronoiToolFillers):  #0
         if not self.ModalMouseNext(event, self.prefs):
             return {'RUNNING_MODAL'}
         #* 工具的结束从这里开始 *
-        EdgePanData.isWorking = False
+        EdgePan.isWorking = False
         if event.type == 'ESC':  # 这正是 Escape 键应该做的.
             return {'CANCELLED'}
         with TryAndPass():  # 它可能已经被删除了, 参见第二个这样的情况.
@@ -136,7 +136,7 @@ class VoronoiToolRoot(VoronoiOpTool, VoronoiToolFillers):  #0
             tree.nodes.active.select = False  # 但没有条件, 对所有情况都适用. 因为 ^ 否则将永远是选择而不切换; 我没有想法如何处理这种情况.
             return {'PASS_THROUGH'}
         ##
-        self.kmi = GetOpKmi(self, event)
+        self.kmi = get_operator_keymap_item(self, event)
         if not self.kmi:
             return {'CANCELLED'}  # 如果总体上出了问题, 或者操作符是通过布局按钮调用的.
         # 如果在 keymap 调用操作符时未指定其属性, 它们会从上次调用中读取; 所以需要将它们设置回默认值.
@@ -161,7 +161,7 @@ class VoronoiToolRoot(VoronoiOpTool, VoronoiToolFillers):  #0
             return result
         if result := self.InitTool(event, self.prefs, tree):  # 注意: 参见拓扑结构: 不返回任何东西等同于返回 `{'RUNNING_MODAL'}`.
             return result
-        EdgePanInit(self, context.area)
+        edge_pan_init(self, context.area)
         ##
         self.handle = SpaceNodeEditor.draw_handler_add(self.CallbackDrawRoot, (
             self.drata,
@@ -251,7 +251,7 @@ class VoronoiToolAny(VoronoiToolSk, VoronoiToolNd):  #2
     def InitToolPre(self, event: Event):
         self.fotagoAny = None
 
-def CheckUncollapseNodeAndReNext(nd: Node, self: VoronoiToolRoot, *, cond: bool, flag=None):  # 我是多么鄙视折叠起来的节点啊.
+def unhide_node_reassign(nd: Node, self: VoronoiToolRoot, *, cond: bool, flag=None):  # 我是多么鄙视折叠起来的节点啊.
     if nd.hide and cond:
         nd.hide = False
         # 注意: 在 NextAssignmentTool 的拓扑结构中要小心无限循环.
@@ -260,7 +260,7 @@ def CheckUncollapseNodeAndReNext(nd: Node, self: VoronoiToolRoot, *, cond: bool,
         # todo0: 如果连续展开了多个节点, 应该只重绘一次; 但没必要. 如果发生了这种情况, 说明这个工具的搜索拓扑很糟糕.
         self.NextAssignmentRoot(flag)
 
-class EdgePanData:
+class EdgePan:
     area: Area = None  # 本应是 'context', 但它总是 None.
     ctCur: RectBase = None
     # 快速凑合的:
@@ -273,35 +273,35 @@ class EdgePanData:
     zoomFac = 0.5
     speed = 1.0
 
-def EdgePanInit(self: VoronoiToolRoot, area: Area):
-    EdgePanData.area = area
-    EdgePanData.ctCur = self.ctView2d.cur
-    EdgePanData.isWorking = True
-    EdgePanData.cursorPos = self.cursorLoc
-    EdgePanData.uiScale = self.uiScale
-    EdgePanData.view2d = self.region.view2d
-    EdgePanData.center = Vec2((self.region.width / 2, self.region.height / 2))
-    EdgePanData.delta = perf_counter()  #..还有 "轻微边界".
-    EdgePanData.zoomFac = 1.0 - self.prefs.vEdgePanFac
-    EdgePanData.speed = self.prefs.vEdgePanSpeed
-    bpy.app.timers.register(EdgePanTimer, first_interval=0.0)
+def edge_pan_init(self: VoronoiToolRoot, area: Area):
+    EdgePan.area = area
+    EdgePan.ctCur = self.ctView2d.cur
+    EdgePan.isWorking = True
+    EdgePan.cursorPos = self.cursorLoc
+    EdgePan.uiScale = self.uiScale
+    EdgePan.view2d = self.region.view2d
+    EdgePan.center = Vec2((self.region.width / 2, self.region.height / 2))
+    EdgePan.delta = perf_counter()  #..还有 "轻微边界".
+    EdgePan.zoomFac = 1.0 - self.prefs.vEdgePanFac
+    EdgePan.speed = self.prefs.vEdgePanSpeed
+    bpy.app.timers.register(edge_pan_timer, first_interval=0.0)
 
-def EdgePanTimer():
-    delta = perf_counter() - EdgePanData.delta
-    vec = EdgePanData.cursorPos * EdgePanData.uiScale
-    field0 = Vec2(EdgePanData.view2d.view_to_region(vec.x, vec.y, clip=False))
-    zoomWorld = (EdgePanData.view2d.view_to_region(vec.x + 1000, vec.y, clip=False)[0] - field0.x) / 1000
+def edge_pan_timer():
+    delta = perf_counter() - EdgePan.delta
+    vec = EdgePan.cursorPos * EdgePan.uiScale
+    field0 = Vec2(EdgePan.view2d.view_to_region(vec.x, vec.y, clip=False))
+    zoomWorld = (EdgePan.view2d.view_to_region(vec.x + 1000, vec.y, clip=False)[0] - field0.x) / 1000
     # 再来点光线步进:
-    field1 = field0 - EdgePanData.center
+    field1 = field0 - EdgePan.center
     field2 = Vec2((abs(field1.x), abs(field1.y)))
-    field2 = field2 - EdgePanData.center + Vec2((10, 10))  # 稍微减小光标紧贴屏幕边缘的边界.
+    field2 = field2 - EdgePan.center + Vec2((10, 10))  # 稍微减小光标紧贴屏幕边缘的边界.
     field2 = Vec2((max(field2.x, 0), max(field2.y, 0)))
     ##
-    xi, yi, xa, ya = EdgePanData.ctCur.GetRaw()
+    xi, yi, xa, ya = EdgePan.ctCur.GetRaw()
     speedZoomSize = Vec2((xa - xi, ya - yi)) / 2.5 * delta  # 没有 delta 时是 125.
-    field1 = field1.normalized() * speedZoomSize * ((zoomWorld-1) / 1.5 + 1) * EdgePanData.speed * EdgePanData.uiScale
+    field1 = field1.normalized() * speedZoomSize * ((zoomWorld-1) / 1.5 + 1) * EdgePan.speed * EdgePan.uiScale
     if (field2.x != 0) or (field2.y != 0):
-        EdgePanData.ctCur.TranslateScaleFac((field1.x, field1.y), fac=EdgePanData.zoomFac)
-    EdgePanData.delta = perf_counter()  # 在下一次进入前 "发送到未知处".
-    EdgePanData.area.tag_redraw()
-    return 0.0 if EdgePanData.isWorking else None
+        EdgePan.ctCur.TranslateScaleFac((field1.x, field1.y), fac=EdgePan.zoomFac)
+    EdgePan.delta = perf_counter()  # 在下一次进入前 "发送到未知处".
+    EdgePan.area.tag_redraw()
+    return 0.0 if EdgePan.isWorking else None

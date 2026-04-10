@@ -1,6 +1,6 @@
 import bpy
 from bpy.app.translations import pgettext_iface as _iface
-from ..base_tool import CheckUncollapseNodeAndReNext, VoronoiToolTripleSk
+from ..base_tool import unhide_node_reassign, VoronoiToolTripleSk
 from ..common_class import VmtData
 from ..common_func import DisplayMessage, SetPieData
 from ..globals import Cursor_X_Offset
@@ -29,7 +29,7 @@ class VoronoiMixerTool(VoronoiToolTripleSk):
         soldReroutesCanInAnyType = prefs.vmtReroutesCanInAnyType
         for ftgNd in self.ToolGetNearestNodes(cur_x_off=Cursor_X_Offset):
             nd = ftgNd.tar
-            CheckUncollapseNodeAndReNext(nd, self, cond=isFirstActivation, flag=True)
+            unhide_node_reassign(nd, self, cond=isFirstActivation, flag=True)
             list_ftgSksOut = self.ToolGetNearestSockets(nd, cur_x_off=Cursor_X_Offset)[1]
             if not list_ftgSksOut:
                 continue
@@ -56,7 +56,7 @@ class VoronoiMixerTool(VoronoiToolTripleSk):
                             break
                     if (self.fotagoSk1) and (skOut0 == self.fotagoSk1.tar): #检查是否是自我复制.
                         self.fotagoSk1 = None
-                    CheckUncollapseNodeAndReNext(nd, self, cond=self.fotagoSk1, flag=False)
+                    unhide_node_reassign(nd, self, cond=self.fotagoSk1, flag=False)
                     if self.fotagoSk1:
                         break
                 else:
@@ -66,7 +66,7 @@ class VoronoiMixerTool(VoronoiToolTripleSk):
                         if (ftg.tar == skOut0) or (ftg.tar == skOut1):
                             self.fotagoSk2 = None
                         break
-                    CheckUncollapseNodeAndReNext(nd, self, cond=self.fotagoSk2, flag=False)
+                    unhide_node_reassign(nd, self, cond=self.fotagoSk2, flag=False)
                     if self.fotagoSk2:
                         break
             #尽管节点过滤器没有必要, 并且在第一个遇到的节点上工作得很好, 但如果第一个接口没有找到, 仍然需要继续搜索.

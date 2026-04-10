@@ -1,7 +1,7 @@
 from enum import Enum
 
 import bpy
-from ..base_tool import CheckUncollapseNodeAndReNext, VoronoiToolAny
+from ..base_tool import unhide_node_reassign, VoronoiToolAny
 from ..globals import Cursor_X_Offset, set_utilTypeSkFields
 from ..utils.node import CompareSkLabelName, DoLinkHh, VlrtData, VlrtRememberLastSockets
 from ..utils.solder import solder_sk_links
@@ -51,7 +51,7 @@ class VoronoiLinkRepeatingTool(VoronoiToolAny):  # 分离成单独的工具, 以
                             if can:
                                 self.fotagoAny = ftg
                                 break
-                CheckUncollapseNodeAndReNext(nd, self, cond=self.fotagoAny, flag=False)
+                unhide_node_reassign(nd, self, cond=self.fotagoAny, flag=False)
             else:
                 if skLastIn:
                     if nd.inputs:
