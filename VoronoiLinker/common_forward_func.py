@@ -1,12 +1,12 @@
 import bpy
 from bpy.app.translations import pgettext_iface as _iface
-from bpy.types import Node, NodeSocket, Operator, Panel
+from bpy.types import KeyMap, Node, NodeSocket, Operator, Panel
 from .globals import sk_type_idname_map
 
 def Prefs():        # 很多局部变量也是prefs 还是改大写好点
     return bpy.context.preferences.addons[__package__].preferences # type: ignore
 
-def user_node_keymaps():
+def user_node_keymap() -> KeyMap:
     return bpy.context.window_manager.keyconfigs.user.keymaps['Node Editor']
 
 def GetFirstUpperLetters(txt: str):

@@ -128,7 +128,7 @@ class VoronoiQuickConstant(VoronoiToolTripleSk):
                 new_node.inputs[0].default_value = value
             elif isinstance(new_node, B.ShaderNodeCombineXYZ):
                 dimension = len(value)
-                if dimension == 4:  # 暂时不实现
+                if dimension == 4:  # todo 暂时不实现
                     pass
                 if dimension == 2:
                     new_node.inputs[2].hide = True
@@ -139,12 +139,12 @@ class VoronoiQuickConstant(VoronoiToolTripleSk):
                 new_node.show_options = False
 
                 new_node.inputs[-1].hide = True
-                items = get_menu_socket_options(skIn0)
+                items = get_menu_socket_items(skIn0)
                 fill_index_switch_inputs(new_node, items)
                 if skIn0.default_value != '':
                     new_node.inputs[0].default_value = items.index(skIn0.default_value)
 
-def get_menu_socket_options(socket: NodeSocket) -> list[str]:
+def get_menu_socket_items(socket: bpy.types.NodeSocket) -> list[str]:
     try:
         socket.default_value = "__INVALID__"
     except TypeError as e:

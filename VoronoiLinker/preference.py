@@ -7,7 +7,7 @@ from bpy.props import BoolProperty, EnumProperty, FloatProperty, FloatVectorProp
 from bpy.types import KeyMapItem, UILayout
 
 from .common_forward_class import VlnstUpdateLastExecError
-from .common_forward_func import GetFirstUpperLetters, Prefs, format_tool_set, user_node_keymaps
+from .common_forward_func import GetFirstUpperLetters, Prefs, format_tool_set, user_node_keymap
 from .globals import dict_vlHhTranslations, dict_vmtMixerNodesDefs, dict_vqmtQuickMathMain
 from .utils.ui import draw_hand_split_prop, draw_panel_column, LyAddQuickInactiveCol, LyAddThinSep
 from .utils.drawing import TestDraw
@@ -92,7 +92,7 @@ class VoronoiOpAddonTabs(bpy.types.Operator):
             case 'GetPySett':
                 context.window_manager.clipboard = GetVaSettAsPy(prefs)
             case 'AddNewKmi':
-                user_node_keymaps().keymap_items.new("node.voronoi_", 'D', 'PRESS').show_expanded = True
+                user_node_keymap().keymap_items.new("node.voronoi_", 'D', 'PRESS').show_expanded = True
             case _:
                 prefs.vaUiTabs = self.opt
         return {'FINISHED'}
@@ -352,7 +352,7 @@ class VoronoiAddonPrefs(bpy.types.AddonPreferences):
         rowLabel.label(text="Node Editor")
         rowLabelPost = rowLabelMain.row(align=True)
         colList = colMain.column(align=True)
-        node_kms = user_node_keymaps()
+        node_kms = user_node_keymap()
         ##
         from . import keymap_categorys
         kmiCats = KeymapItemCategoryContainer()
@@ -651,7 +651,7 @@ def GetVlKeyconfigAsPy():  # 从 'bl_keymap_utils.io' 借来的. 我完全不知
         keymaps = []
 
     edited_kc = FakeKeyConfig()
-    edited_kc.keymaps.append(user_node_keymaps())
+    edited_kc.keymaps.append(user_node_keymap())
     if kc != wm.keyconfigs.default:
         export_keymaps = keyconfig_merge(edited_kc, kc)
     else:

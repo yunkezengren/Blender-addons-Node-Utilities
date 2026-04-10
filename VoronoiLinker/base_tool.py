@@ -1,25 +1,25 @@
 from time import perf_counter
 import bpy
 from mathutils import Vector as Vec2
-from bpy.types import Area, Context, Event, Node, Operator, SpaceNodeEditor, View2D as View2d
+from bpy.types import Area, Context, Event, Node, NodeTree, NodeSocket, Operator, SpaceNodeEditor, UILayout, View2D as View2d
 from .Structure import RectBase, View2D
 from .common_forward_class import TryAndPass
-from .common_forward_func import Prefs, is_builtin_tree_idname, user_node_keymaps
+from .common_forward_func import Prefs, is_builtin_tree_idname, user_node_keymap
 from .globals import set_utilTypeSkFields
 from .utils.drawing import DrawDebug, TemplateDrawNodeFull, TemplateDrawSksToolHh, VlDrawData
 from .utils.node import GetNearestNodesFtg, GetNearestSocketsFtg, RestoreCollapsedNodes, SaveCollapsedNodes
 from .utils.solder import solder_sk_links, solder_theme_cols
 
-def GetOpKmi(self: type["VoronoiOpTool"], event: Event): 
+def GetOpKmi(self: type["VoronoiOpTool"], event: Event):
     # Todo00: 有没有更正确的设计或方法?
     # 操作符可以有多种调用组合, 所有这些组合在 `keymap_items` 中的键都相同, 所以我们手动遍历所有
-    blid = getattr(bpy.types, self.bl_idname).bl_idname
-    for li in user_node_keymaps().keymap_items:
-        if li.idname==blid:
-            # 注意: 也要按键本身是否匹配来搜索, 因为多个调用方式的修饰键也可能相同.
-            if (li.type==event.type)and(li.shift_ui==event.shift)and(li.ctrl_ui==event.ctrl)and(li.alt_ui==event.alt):
-                # 注意: 也可能有两个完全相同的调用热键, 但Blender只会执行其中一个 (至少对VL是这样), 即列表中排在前面的那个.
-                return li # 这个函数也只返回列表中的第一个.
+    idname = getattr(bpy.types, self.bl_idname).bl_idname
+    for item in user_node_keymap().keymap_items:
+        if item.idname != idname: continue
+        # 注意: 也要按键本身是否匹配来搜索, 因为多个调用方式的修饰键也可能相同.
+        if (item.type == event.type) and (item.shift_ui == event.shift) and (item.ctrl_ui == event.ctrl) and (item.alt_ui == event.alt):
+            # 注意: 也可能有两个完全相同的调用热键, 但Blender只会执行其中一个 (至少对VL是这样), 即列表中排在前面的那个.
+            return item  # 这个函数也只返回列表中的第一个.
 
 class VoronoiOpTool(Operator):
     bl_options = {'UNDO'} # 手动创建的链接可以撤销, 所以在 VL 中也应如此. 对所有工具都一样.
@@ -34,14 +34,14 @@ class VoronoiToolFillers: #-1
     canDrawInAddonDiscl = None
     canDrawInAppearance = None
     def CallbackDrawTool(self, drata: VlDrawData): pass
-    def NextAssignmentTool(self, isFirstActivation: bool, prefs, tree): pass
+    def NextAssignmentTool(self, isFirstActivation: bool, prefs, tree: NodeTree): pass
     def ModalTool(self, event: Event, prefs): pass
     #def MatterPurposePoll(self): return None
-    def MatterPurposeTool(self, event: Event, prefs, tree): pass
+    def MatterPurposeTool(self, event: Event, prefs, tree: NodeTree): pass
     def InitToolPre(self, event: Event): return {}
-    def InitTool(self, event: Event, prefs, tree): return {}
+    def InitTool(self, event: Event, prefs, tree: NodeTree): return {}
     @staticmethod
-    def draw_in_pref_settings(col: bpy.types.UILayout, prefs): pass
+    def draw_in_pref_settings(col: UILayout, prefs): pass
 
 class VoronoiToolRoot(VoronoiOpTool, VoronoiToolFillers): #0
     usefulnessForUndefTree = False
@@ -172,9 +172,9 @@ class VoronoiToolPairSk(VoronoiToolSk): #2
     isCanBetweenFields: bpy.props.BoolProperty(name="Can between fields", default=True, description="Tool can connecting between different field types")
     def CallbackDrawTool(self, drata: VlDrawData):
         TemplateDrawSksToolHh(drata, self.fotagoSk0, self.fotagoSk1)
-    def SkBetweenFieldsCheck(self, sk1, sk2):
+    def SkBetweenFieldsCheck(self, sk1: NodeSocket, sk2: NodeSocket):
         # 注意: 考虑到此函数的目的和名称, sk1 和 sk2 无论如何都应该是来自字段, 且仅来自字段.
-        return (sk1.type in set_utilTypeSkFields)and( (self.isCanBetweenFields)and(sk2.type in set_utilTypeSkFields)or(sk1.type==sk2.type) )
+        return (sk1.type in set_utilTypeSkFields) and ((self.isCanBetweenFields) and (sk2.type in set_utilTypeSkFields) or (sk1.type == sk2.type))
     def InitToolPre(self, event: Event):
         self.fotagoSk0 = None
         self.fotagoSk1 = None
@@ -270,4 +270,3 @@ def EdgePanInit(self: VoronoiToolRoot, area: Area):
     EdgePanData.zoomFac = 1.0-self.prefs.vEdgePanFac
     EdgePanData.speed = self.prefs.vEdgePanSpeed
     bpy.app.timers.register(EdgePanTimer, first_interval=0.0)
-

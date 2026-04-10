@@ -40,11 +40,11 @@ try:
 except ImportError:
     pass
 
+""" 
 #Todo0VV: 处理 n^3 种组合: space_data.tree_type 和 space_data.edit_tree.bl_idname; 包括经典的, 丢失的和插件的; 绑定和未绑定到编辑器的.
 # ^ 然后检查所有工具在这些组合中的可用性. 之后在现有节点树中检查所有工具与丢失节点的丢失插槽的交互情况.
 # todo1v6: 当工具处于活动状态时, 按下 PrtScr 会在控制台刷屏 `WARN ... pyrna_enum_to_py: ... '171' matches no enum in 'Event'.
 
-""" 
 dict_timeAvg = {}
 dict_timeOutside = {}
 # with ToTimeNs("aaa"):
