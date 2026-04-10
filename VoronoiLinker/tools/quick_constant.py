@@ -31,10 +31,10 @@ class NODE_OT_voronoi_quick_constant(TripleSocketTool):
             if not tar_sks_out:
                 continue
             if isFirstActivation:
-                for ftg in tar_sks_out:
+                for tar in tar_sks_out:
                     # ! AllQuickConstant 新的接口类型要在这里更新
-                    if get_const_node(tree, ftg.tar.type):
-                        self.target_sk0 = ftg
+                    if get_const_node(tree, tar.tar.type):
+                        self.target_sk0 = tar
                         break
                 unhide_node_reassign(nd, self, cond=True, flag=True)
                 break
@@ -45,9 +45,9 @@ class NODE_OT_voronoi_quick_constant(TripleSocketTool):
                 if sk_out0.type in only_single_link:     # 小王 输出接口类型 不允许同时连到多个输入接口
                     break
                 if not self.canPickThird:
-                    for ftg in tar_sks_out:
-                        if ftg.tar.type==sk_out0.type:
-                            self.target_sk1 = ftg
+                    for tar in tar_sks_out:
+                        if tar.tar.type==sk_out0.type:
+                            self.target_sk1 = tar
                             break
                     if (self.target_sk1)and(self.target_sk1.tar==sk_out0):
                         self.target_sk1 = None
@@ -57,9 +57,9 @@ class NODE_OT_voronoi_quick_constant(TripleSocketTool):
                         break
                 else:
                     sk_out1 = opt_tar_socket(self.target_sk1)
-                    for ftg in tar_sks_out:
-                        if ftg.tar.type==sk_out0.type:
-                            self.target_sk2 = ftg
+                    for tar in tar_sks_out:
+                        if tar.tar.type==sk_out0.type:
+                            self.target_sk2 = tar
                             break
                     if (self.target_sk2)and( (self.target_sk2.tar==sk_out0)or(sk_out1)and(self.target_sk2.tar==sk_out1) ):
                         self.target_sk2 = None

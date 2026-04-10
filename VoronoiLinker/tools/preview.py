@@ -369,7 +369,7 @@ class NODE_OT_voronoi_preview(SingleSocketTool):
     isEqualAnchorType:        bpy.props.BoolProperty(name="Equal anchor type",     default=False, description="Trigger only on anchor type sockets")
     def callback_draw_tool(self, drata):
         if (self.prefs.vptRvEeSksHighlighting)and(self.target_sk): #帮助逆向工程 -- 高亮连接点, 并同时显示这些接口的名称.
-            solder_sk_links(self.tree) #否则在 `ftg.tar==sk:` 上会崩溃.
+            solder_sk_links(self.tree) #否则在 `tar.tar==sk:` 上会崩溃.
             #确定标签的缩放比例:
             soldCursorLoc = drata.cursorLoc
             #绘制:
@@ -381,12 +381,12 @@ class NODE_OT_voronoi_preview(SingleSocketTool):
                         nd = sk.node
                         if (nd.type!='REROUTE')and(not nd.hide):
                             tar_sks = GenFtgsFromPuts(nd, not isSide, soldCursorLoc, drata.uiScale)
-                            for ftg in tar_sks:
-                                if ftg.tar==sk:
+                            for tar in tar_sks:
+                                if tar.tar==sk:
                                     #不支持遍历转接点. 因为懒, 而且懒得为此重写代码.
                                     if drata.dsIsDrawSkArea:
-                                        DrawVlSocketArea(drata, ftg.tar, ftg.boxHeiBound, Color4(get_sk_color_safe(ftg.tar)))
-                                    DrawVlSkText(drata, ftg.pos, (1-isSide*2, -0.5), ftg, fontSizeOverwrite=min(24*drata.worldZoom*self.prefs.vptHlTextScale, 25))
+                                        DrawVlSocketArea(drata, tar.tar, tar.boxHeiBound, Color4(get_sk_color_safe(tar.tar)))
+                                    DrawVlSkText(drata, tar.pos, (1-isSide*2, -0.5), tar, fontSizeOverwrite=min(24*drata.worldZoom*self.prefs.vptHlTextScale, 25))
                                     break
                         nd.hide = False #在绘制时写入. 至少不像 VMLT 中那么严重.
                         #todo0SF: 使用 bpy.ops.wm.redraw_timer 会导致死锁. 所以这里还有另一个“跳帧”.
@@ -437,22 +437,22 @@ class NODE_OT_voronoi_preview(SingleSocketTool):
                 continue
             #如果成功, 则转到接口:
             tar_sks_out = self.get_nearest_sockets(nd, cur_x_off=Cursor_X_Offset)[1]
-            for ftg in tar_sks_out:
+            for tar in tar_sks_out:
                 #在这里忽略自己的桥接接口. 这对于节点组节点是必要的, 它们的桥接接口“伸出”并且没有这个检查就会被粘住; 之后它们将在 VptPreviewFromSk() 中被删除.
-                if ftg.tar.name==voronoiSkPreviewName:
+                if tar.tar.name==voronoiSkPreviewName:
                     continue
                 #这个工具会触发除虚拟接口外的任何输出. 在几何节点中只寻找几何输出.
                 #锚点吸引预览; 转接点可以接受任何类型; 因此 -- 如果有锚点, 则禁用仅对几何接口的触发
-                if (ftg.blid!='NodeSocketVirtual')and( (not isGeoTree)or(ftg.tar.type=='GEOMETRY')or(self.isAnyAncohorExist) ):
+                if (tar.blid!='NodeSocketVirtual')and( (not isGeoTree)or(tar.tar.type=='GEOMETRY')or(self.isAnyAncohorExist) ):
                     can = True
                     if rrAnch:=tree.nodes.get(voronoiAnchorCnName): #EqualAnchorType.
                         rrSkBlId = rrAnch.outputs[0].bl_idname
-                        can = (not self.isEqualAnchorType)or(ftg.blid==rrSkBlId)or(rrSkBlId=='NodeSocketVirtual')
+                        can = (not self.isEqualAnchorType)or(tar.blid==rrSkBlId)or(rrSkBlId=='NodeSocketVirtual')
                     #todo1v6 对于邻近锚点也按类型选择?
-                    can = (can)and(not ftg.tar.node.label==voronoiAnchorDtName) #ftg.tar.node not in self.list_distanceAnchors
+                    can = (can)and(not tar.tar.node.label==voronoiAnchorDtName) #tar.tar.node not in self.list_distanceAnchors
                     if can:
-                        if (not self.isTriggerOnlyOnLink)or(ftg.tar.vl_sold_is_final_linked_cou): #帮助逆向工程 -- 仅在现有链接上触发; 加快“读取/理解”树的过程.
-                            self.target_sk = ftg
+                        if (not self.isTriggerOnlyOnLink)or(tar.tar.vl_sold_is_final_linked_cou): #帮助逆向工程 -- 仅在现有链接上触发; 加快“读取/理解”树的过程.
+                            self.target_sk = tar
                             break
             if self.target_sk: #如果成功则完成. 否则, 例如忽略自己的桥接接口, 如果节点只有它们 -- 将停在旁边而找不到其他.
                 break

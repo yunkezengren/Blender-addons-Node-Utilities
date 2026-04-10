@@ -174,11 +174,11 @@ class NODE_OT_voronoi_lazy_node_stencils(PairSocketTool):  # 第一个应外部�
     def find_targets_tool(self, isFirstActivation, prefs, tree):
         def FindAnySk():
             tar_sk_out, tar_sk_in = None, None
-            for ftg in tar_sks_out:
-                tar_sk_out = ftg
+            for tar in tar_sks_out:
+                tar_sk_out = tar
                 break
-            for ftg in tar_sks_in:
-                tar_sk_in = ftg
+            for tar in tar_sks_in:
+                tar_sk_in = tar
                 break
             return MinFromFtgs(tar_sk_out, tar_sk_in)
         self.target_sk1 = None

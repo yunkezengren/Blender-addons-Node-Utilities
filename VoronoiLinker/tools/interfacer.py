@@ -118,9 +118,9 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
             unhide_node_reassign(nd, self, cond=self.target_skRosw, flag=True)
             skRosw = opt_tar_socket(self.target_skRosw)
             if skRosw:
-                for ftg in tar_sks_out if skRosw.is_output else tar_sks_in:
-                    if (ftg.blid!='NodeSocketVirtual')and(NodeItemsUtils.IsSimRepCorrectSk(nd, ftg.tar)):
-                        self.target_skMain = ftg
+                for tar in tar_sks_out if skRosw.is_output else tar_sks_in:
+                    if (tar.blid!='NodeSocketVirtual')and(NodeItemsUtils.IsSimRepCorrectSk(nd, tar.tar)):
+                        self.target_skMain = tar
                         break
                 if (self.target_skMain)and(self.target_skMain.tar==skRosw):
                     self.target_skMain = None
@@ -136,16 +136,16 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
                     self.target_skMain = None
                     if isFirstActivation:
                         self.target_skRosw = None
-                        for ftg in tar_sks_out:
-                            self.target_skRosw = ftg
-                            self.tglCrossVirt = ftg.blid == 'NodeSocketVirtual'
+                        for tar in tar_sks_out:
+                            self.target_skRosw = tar
+                            self.tglCrossVirt = tar.blid == 'NodeSocketVirtual'
                             break
                         unhide_node_reassign(nd, self, cond=self.target_skRosw, flag=True)
                     skRosw = opt_tar_socket(self.target_skRosw)
                     if skRosw:
-                        for ftg in tar_sks_in:
-                            if (ftg.blid == 'NodeSocketVirtual') ^ self.tglCrossVirt:
-                                self.target_skMain = ftg
+                        for tar in tar_sks_in:
+                            if (tar.blid == 'NodeSocketVirtual') ^ self.tglCrossVirt:
+                                self.target_skMain = tar
                                 break
                         if (self.target_skMain) and (self.target_skMain.tar.node == skRosw.node):  #todo0NA 概括这种检查到类中.
                             self.target_skMain = None
@@ -153,13 +153,13 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
                 case eMode.CREATE:
                     if isFirstActivation:
                         tar_sk_out, tar_sk_in = None, None
-                        for ftg in tar_sks_in:
-                            if (ftg.blid != 'NodeSocketVirtual') and (NodeItemsUtils.IsSimRepCorrectSk(nd, ftg.tar)):
-                                tar_sk_in = ftg
+                        for tar in tar_sks_in:
+                            if (tar.blid != 'NodeSocketVirtual') and (NodeItemsUtils.IsSimRepCorrectSk(nd, tar.tar)):
+                                tar_sk_in = tar
                                 break
-                        for ftg in tar_sks_out:
-                            if (ftg.blid != 'NodeSocketVirtual') and (NodeItemsUtils.IsSimRepCorrectSk(nd, ftg.tar)):
-                                tar_sk_out = ftg
+                        for tar in tar_sks_out:
+                            if (tar.blid != 'NodeSocketVirtual') and (NodeItemsUtils.IsSimRepCorrectSk(nd, tar.tar)):
+                                tar_sk_out = tar
                                 break
                         self.target_skMain = MinFromFtgs(tar_sk_out, tar_sk_in)
                     self.target_ndTar = None
@@ -238,12 +238,12 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
                     ftgNearest = None  # MinFromFtgs(tar_sks_in[0] if tar_sks_in else None, tar_sks_out[0] if tar_sks_out else None)
                     min = 16777216.0
                     tar_sks_in, tar_sks_out = self.get_nearest_sockets(_tar_nd)
-                    for ftg in tar_sks_in if skMain.is_output else tar_sks_out:
-                        if (ftg.blid != 'NodeSocketVirtual') and (NodeItemsUtils.IsSimRepCorrectSk(_tar_nd, ftg.tar)):
-                            length = (ftgNdTar.pos - ftg.pos).length
+                    for tar in tar_sks_in if skMain.is_output else tar_sks_out:
+                        if (tar.blid != 'NodeSocketVirtual') and (NodeItemsUtils.IsSimRepCorrectSk(_tar_nd, tar.tar)):
+                            length = (ftgNdTar.pos - tar.pos).length
                             if min > length:
                                 min = length
-                                ftgNearest = ftg
+                                ftgNearest = tar
                     if ftgNearest and (not items_tool.is_index_switch):
                         skfTo = items_tool.get_item(ftgNearest.tar)
                         items_tool.MoveBySkfs(skfNew, skfTo, isSwap=False)

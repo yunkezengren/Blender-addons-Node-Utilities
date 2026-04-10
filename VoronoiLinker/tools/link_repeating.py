@@ -43,14 +43,14 @@ class NODE_OT_voronoi_link_repeating(AnyTargetTool):  # 分离成单独的工具
             if self.toolMode==eMode.SOCKET.value:
                 tar_sks_in, tar_sks_out = self.get_nearest_sockets(nd, cur_x_off=-Cursor_X_Offset)
                 if skLastOut:
-                    for ftg in tar_sks_in:
-                        if (skLastOut.bl_idname==ftg.blid)or(IsSkBetweenFields(skLastOut, ftg.tar)):
+                    for tar in tar_sks_in:
+                        if (skLastOut.bl_idname==tar.blid)or(IsSkBetweenFields(skLastOut, tar.tar)):
                             can = True
-                            for lk in ftg.tar.vl_sold_links_final:
+                            for lk in tar.tar.vl_sold_links_final:
                                 if lk.from_socket==skLastOut: # 识别已有的链接, 并且不选择这样的套接字.
                                     can = False
                             if can:
-                                self.target_any = ftg
+                                self.target_any = tar
                                 break
                 unhide_node_reassign(nd, self, cond=self.target_any, flag=False)
             else:

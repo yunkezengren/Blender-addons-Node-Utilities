@@ -29,11 +29,11 @@ class NODE_OT_voronoi_quick_dimensions(TripleSocketTool):
             if not tar_sks_out:
                 continue
             if isFirstActivation:
-                for ftg in tar_sks_out:
+                for tar in tar_sks_out:
                     # set_utilTypeSkFields 小王-Alt D 支持的接口
-                    # if (ftg.tar.type in set_utilTypeSkFields)or(ftg.tar.type=='GEOMETRY'):
-                    if get_dimension_node(tree, ftg.tar.type):
-                        self.target_sk0 = ftg
+                    # if (tar.tar.type in set_utilTypeSkFields)or(tar.tar.type=='GEOMETRY'):
+                    if get_dimension_node(tree, tar.tar.type):
+                        self.target_sk0 = tar
                         break
                 unhide_node_reassign(nd, self, cond=True, flag=True)
                 break
@@ -43,9 +43,9 @@ class NODE_OT_voronoi_quick_dimensions(TripleSocketTool):
                 if not get_dimension_node(tree, sk_out0.type):
                     break
                 if not self.canPickThird:
-                    for ftg in tar_sks_out:
-                        if ftg.tar.type==sk_out0.type:
-                            self.target_sk1 = ftg
+                    for tar in tar_sks_out:
+                        if tar.tar.type==sk_out0.type:
+                            self.target_sk1 = tar
                             break
                     if (self.target_sk1)and(self.target_sk1.tar==sk_out0):
                         self.target_sk1 = None
@@ -55,9 +55,9 @@ class NODE_OT_voronoi_quick_dimensions(TripleSocketTool):
                         break
                 else:
                     skOut1 = opt_tar_socket(self.target_sk1)
-                    for ftg in tar_sks_out:
-                        if ftg.tar.type==sk_out0.type:
-                            self.target_sk2 = ftg
+                    for tar in tar_sks_out:
+                        if tar.tar.type==sk_out0.type:
+                            self.target_sk2 = tar
                             break
                     if (self.target_sk2)and( (self.target_sk2.tar==sk_out0)or(skOut1)and(self.target_sk2.tar==skOut1) ):
                         self.target_sk2 = None

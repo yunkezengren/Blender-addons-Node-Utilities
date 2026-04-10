@@ -46,15 +46,15 @@ class NODE_OT_voronoi_quick_math(TripleSocketTool):
             #这个工具只触发字段输出.
             if isFirstActivation:
                 isSucessOut = False
-                for ftg in tar_sks_out:
+                for tar in tar_sks_out:
                     if not self.isRepeatLastOperation:
                         if not self.isQuickQuickMath:
-                            if ftg.tar.type in set_vqmtSkTypeFields:
-                                self.target_sk0 = ftg
+                            if tar.tar.type in set_vqmtSkTypeFields:
+                                self.target_sk0 = tar
                                 isSucessOut = True
                                 break
                         else: #对于 isQuickQuickMath, 只附加到明确指定操作的套接字类型.
-                            match ftg.tar.type:
+                            match tar.tar.type:
                             # case 'VALUE'|'INT':         isSucessOut = self.quickOprFloat
                                 case 'VALUE':         isSucessOut = self.quickOprFloat
                                 # case 'INT':           isSucessOut = self.quickOprInt
@@ -62,12 +62,12 @@ class NODE_OT_voronoi_quick_math(TripleSocketTool):
                                 case 'BOOLEAN':             isSucessOut = self.quickOprBool
                                 case 'RGBA':                isSucessOut = self.quickOprColor
                             if isSucessOut:
-                                self.target_sk0 = ftg
+                                self.target_sk0 = tar
                                 break
                     else:
-                        isSucessOut = VqmtData.dict_lastOperation.get(ftg.tar.type, '')
+                        isSucessOut = VqmtData.dict_lastOperation.get(tar.tar.type, '')
                         if isSucessOut:
-                            self.target_sk0 = ftg
+                            self.target_sk0 = tar
                             break
                 if not isSucessOut:
                     continue #寻找 isFirstActivation 的节点, 该节点将命中字段套接字.
@@ -78,9 +78,9 @@ class NODE_OT_voronoi_quick_math(TripleSocketTool):
             if isNotCanPickThird:
                 #对于第二个, 根据条件:
                 if skOut0:
-                    for ftg in tar_sks_out:
-                        if self.check_between_sk_fields(skOut0, ftg.tar):
-                            self.target_sk1 = ftg
+                    for tar in tar_sks_out:
+                        if self.check_between_sk_fields(skOut0, tar.tar):
+                            self.target_sk1 = tar
                             break
                     if not self.target_sk1:
                         continue #以便没有字段套接字的节点是透明的.
@@ -91,13 +91,13 @@ class NODE_OT_voronoi_quick_math(TripleSocketTool):
                 self.target_sk2 = None #为了方便高级取消而清空.
                 #对于第三个, 如果不是前两个的节点.
                 skOut1 = opt_tar_socket(self.target_sk1)
-                for ftg in tar_sks_in:
-                    skIn = ftg.tar
+                for tar in tar_sks_in:
+                    skIn = tar.tar
                     if skIn.type in set_vqmtSkTypeFields:
                         tgl0 = (not skOut0)or(skOut0.node!=skIn.node)
                         tgl1 = (not skOut1)or(skOut1.node!=skIn.node)
                         if (tgl0)and(tgl1):
-                            self.target_sk2 = ftg
+                            self.target_sk2 = tar
                             break
                 unhide_node_reassign(nd, self, cond=self.target_sk2, flag=False)
             break

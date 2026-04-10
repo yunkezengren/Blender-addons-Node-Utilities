@@ -25,13 +25,13 @@ class NODE_OT_voronoi_warper(SingleSocketTool):
     def find_targets_tool(self, _isFirstActivation, prefs, tree):
         def FindAnySk():
             tar_sk_out, tar_sk_in = None, None
-            for ftg in tar_sks_out:
-                if (ftg.tar.vl_sold_is_final_linked_cou)and(ftg.blid!='NodeSocketVirtual'):
-                    tar_sk_out = ftg
+            for tar in tar_sks_out:
+                if (tar.tar.vl_sold_is_final_linked_cou)and(tar.blid!='NodeSocketVirtual'):
+                    tar_sk_out = tar
                     break
-            for ftg in tar_sks_in:
-                if (ftg.tar.vl_sold_is_final_linked_cou)and(ftg.blid!='NodeSocketVirtual'):
-                    tar_sk_in = ftg
+            for tar in tar_sks_in:
+                if (tar.tar.vl_sold_is_final_linked_cou)and(tar.blid!='NodeSocketVirtual'):
+                    tar_sk_in = tar
                     break
             return MinFromFtgs(tar_sk_out, tar_sk_in)
         self.target_sk = None

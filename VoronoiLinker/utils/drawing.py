@@ -197,15 +197,15 @@ def DrawWorldText(drata: DrawDataTool, pos, ofsHh, text, *, text_color, colBg, f
     # return DrawFramedText(drata, pos1, pos2, txt, siz=siz, adj=dimDb[1]*drata.dsManualAdjustment, colTx=power_color4(text_color, pw=1/1.975), colFr=power_color4(colBg, pw=1/1.5), colBg=colBg)
     return DrawFramedText(drata, pos1, pos2, text, siz=siz, adj=dimDb[1]*drata.dsManualAdjustment, colTx=text_color, colFr=colBg, colBg=colBg)   # 绘制颜色加深
 
-def DrawVlSkText(drata: DrawDataTool, pos, ofsHh, ftg: Target, *, fontSizeOverwrite=0, tool_color=(0, 0, 0, 0)): # 注意: `pos` 总是为了 drata.cursorLoc, 但请参见 vptRvEeSksHighlighting.
+def DrawVlSkText(drata: DrawDataTool, pos, ofsHh, tar: Target, *, fontSizeOverwrite=0, tool_color=(0, 0, 0, 0)): # 注意: `pos` 总是为了 drata.cursorLoc, 但请参见 vptRvEeSksHighlighting.
     if not drata.dsIsDrawText:
         return (1, 0) #'1' 需要用于保存标记位置的方向信息.
     if drata.dsIsColoredText:
-        text_color = get_sk_color_safe(ftg.tar)
-        colBg = clamp_color4(get_sk_color(ftg.tar))
+        text_color = get_sk_color_safe(tar.tar)
+        colBg = clamp_color4(get_sk_color(tar.tar))
     else:
         text_color = colBg = drata.dsUniformColor
-    return DrawWorldText(drata, pos, ofsHh, ftg.soldText, text_color=text_color, colBg=colBg, fontSizeOverwrite=fontSizeOverwrite)
+    return DrawWorldText(drata, pos, ofsHh, tar.soldText, text_color=text_color, colBg=colBg, fontSizeOverwrite=fontSizeOverwrite)
 
 def DrawDebug(self, drata: DrawDataTool):
     def DebugTextDraw(pos, txt, r, g, b):
@@ -235,7 +235,7 @@ def DrawDebug(self, drata: DrawDataTool):
         DebugTextDraw(drata.VecUiViewToReg(tar_sks_out[0].pos), "Nearest socketOut here", 0.75, 0.75, 1)
 
 def TemplateDrawNodeFull(drata: DrawDataTool, tar_nd: Target, *, side=1, tool_name=""): # 模板重新思考过了; 很好. 现在它变得像其他所有的一样了.. 至少没有旧版本中的意大利面条式代码了.
-    #todo1v6 模板只有一个 ftg, 没有分层, 两个调用会从一个绘制点和线到另一个的文本上方.
+    #todo1v6 模板只有一个 tar, 没有分层, 两个调用会从一个绘制点和线到另一个的文本上方.
     if tar_nd:
         ndTar = tar_nd.tar
         if drata.dsIsColoredNodes: # 嗯.. 现在节点终于有颜色了; 感谢 ctypes.
@@ -283,8 +283,8 @@ def TemplateDrawSksToolHh(
     isDrawMarkersMoreTharOne=False,
     tool_name="",
 ):  # 模板重新思考过了, 万岁. 感觉上并没有变得更好.
-    def GetPosFromFtg(ftg: Target):
-        return ftg.pos+Vec2((drata.dsPointOffsetX*ftg.dir, 0.0))
+    def GetPosFromFtg(tar: Target):
+        return tar.pos+Vec2((drata.dsPointOffsetX*tar.dir, 0.0))
     tar_sks = [ar for ar in args_tarSks if ar]
     cursorLoc = drata.cursorLoc
     # 缺少目标
@@ -313,36 +313,36 @@ def TemplateDrawSksToolHh(
     # 主要部分:
     isOne = len(tar_sks)==1
 
-    for ftg in tar_sks:
+    for tar in tar_sks:
         if (drata.dsIsDrawLine)and( (not isClassicFlow)or(isOne and drata.dsIsAlwaysLine) ):
             if drata.dsIsColoredLine:
-                col1 = get_sk_color_safe(ftg.tar)
+                col1 = get_sk_color_safe(tar.tar)
                 col2 = drata.dsCursorColor if (isOne+(drata.dsCursorColorAvailability-1))>0 else col1
             else:
                 col1 = col2 = drata.dsUniformColor
-            DrawWorldStick(drata, GetPosFromFtg(ftg), cursorLoc, col1, col2)
+            DrawWorldStick(drata, GetPosFromFtg(tar), cursorLoc, col1, col2)
         if drata.dsIsDrawSkArea:
-            DrawVlSocketArea(drata, ftg.tar, ftg.boxHeiBound, Color4(get_sk_color_safe(ftg.tar)))
+            DrawVlSocketArea(drata, tar.tar, tar.boxHeiBound, Color4(get_sk_color_safe(tar.tar)))
         if drata.dsIsDrawPoint:
-            DrawVlWidePoint(drata, GetPosFromFtg(ftg), col1=Color4(clamp_color4(get_sk_color(ftg.tar))), col2=Color4(get_sk_color_safe(ftg.tar)))
+            DrawVlWidePoint(drata, GetPosFromFtg(tar), col1=Color4(clamp_color4(get_sk_color(tar.tar))), col2=Color4(get_sk_color_safe(tar.tar)))
     # 文本
     if isDrawText:  # 文本应该在所有其他 ^ 之上.
-        tar_sks_in = [ftg for ftg in tar_sks if ftg.dir < 0]
-        tar_sks_out = [ftg for ftg in tar_sks if ftg.dir > 0]
+        tar_sks_in = [tar for tar in tar_sks if tar.dir < 0]
+        tar_sks_out = [tar for tar in tar_sks if tar.dir > 0]
         x_offset = 0
         soldOverrideDir = abs(sideMarkHh) > 1 and (1 if sideMarkHh > 0 else -1)
         for list_tars in tar_sks_in, tar_sks_out:  # "累积", 天才! 意大利面条式代码的头疼消失了.
             hig = len(list_tars) - 1
-            for cyc, ftg in enumerate(list_tars):
+            for cyc, tar in enumerate(list_tars):
                 ofsY = 0.75*hig - 1.5*cyc
-                dir = soldOverrideDir if soldOverrideDir else ftg.dir * sideMarkHh
+                dir = soldOverrideDir if soldOverrideDir else tar.dir * sideMarkHh
                 x_offset = drata.dsDistFromCursor * dir
-                frameDim = DrawVlSkText(drata, cursorLoc, (drata.dsDistFromCursor * dir, ofsY - 0.5), ftg)
-                if (drata.dsIsDrawMarker) and ((ftg.tar.vl_sold_is_final_linked_cou) and (not isDrawMarkersMoreTharOne) or
-                                               (ftg.tar.vl_sold_is_final_linked_cou > 1)):
-                    DrawVlMarker(drata, cursorLoc, ofsHh=(frameDim[0] * dir, frameDim[1] * ofsY), col=get_sk_color_safe(ftg.tar))
+                frameDim = DrawVlSkText(drata, cursorLoc, (drata.dsDistFromCursor * dir, ofsY - 0.5), tar)
+                if (drata.dsIsDrawMarker) and ((tar.tar.vl_sold_is_final_linked_cou) and (not isDrawMarkersMoreTharOne) or
+                                               (tar.tar.vl_sold_is_final_linked_cou > 1)):
+                    DrawVlMarker(drata, cursorLoc, ofsHh=(frameDim[0] * dir, frameDim[1] * ofsY), col=get_sk_color_safe(tar.tar))
             # 绘制工具提示
-            ftg_show_name = copy.copy(ftg)
+            ftg_show_name = copy.copy(tar)
             ftg_show_name.soldText = _iface(tool_name).capitalize()
             if x_offset != 0:
                 cursorLoc2 = cursorLoc.copy() + Vec2((0, 50))  # 额外绘制
@@ -352,7 +352,7 @@ def TemplateDrawSksToolHh(
     # todo 但是如果在下面绘制,批量连线时只绘制一根线(虽然正常连接)
     # if not isDrawText:      # 屎山的形成
     #     cursorLoc2 = cursorLoc.copy() + Vec2((0, 50))
-    #     ftg_show_name = copy.copy(ftg)
+    #     ftg_show_name = copy.copy(tar)
     #     txt_col = node_tag_color(tar_sks[0].tar.node)
     #     DrawVlSkText(drata, cursorLoc2, (0, 0), ftg_show_name, tool_color=txt_col)
     #     # DrawWorldText(drata, drata.cursorLoc, (0, 0), tool_name, text_color=colTx, colBg=colTx)

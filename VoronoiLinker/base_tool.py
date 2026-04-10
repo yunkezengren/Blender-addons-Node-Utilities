@@ -241,11 +241,11 @@ class PairNodeTool(SingleSocketTool):  #2
 class AnyTargetTool(SingleSocketTool, SingleNodeTool):  #2
 
     @staticmethod
-    def TemplateDrawAny(drata: DrawDataTool, ftg: Target, *, cond: bool, tool_name=""):
+    def TemplateDrawAny(drata: DrawDataTool, tar: Target, *, cond: bool, tool_name=""):
         if cond:
-            TemplateDrawNodeFull(drata, ftg, tool_name=tool_name)
+            TemplateDrawNodeFull(drata, tar, tool_name=tool_name)
         else:
-            TemplateDrawSksToolHh(drata, ftg, tool_name=tool_name)  # 绘制工具提示
+            TemplateDrawSksToolHh(drata, tar, tool_name=tool_name)  # 绘制工具提示
 
     def can_run(self):
         return self.target_any

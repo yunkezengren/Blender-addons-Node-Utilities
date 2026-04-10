@@ -139,9 +139,9 @@ class NODE_OT_voronoi_hider(AnyTargetTool):
                     # 对于套接字模式, 折叠处理和所有其他一样.
                     tar_sks_in, tar_sks_out = self.get_nearest_sockets(nd, cur_x_off=0)
                     def not_linked_tars(tar_sks: list[Target]): #Findanysk.
-                        for ftg in tar_sks:
-                            if not ftg.tar.vl_sold_is_final_linked_cou:
-                                return ftg
+                        for tar in tar_sks:
+                            if not tar.tar.vl_sold_is_final_linked_cou:
+                                return tar
                     tar_sk_in = not_linked_tars(tar_sks_in)
                     tar_sk_out = not_linked_tars(tar_sks_out)
                     if self.toolMode==eMode.HIDE_SOCKET.value:

@@ -87,7 +87,7 @@ def nearest_nodes_tar(nodes, samplePos, uiScale, includePoorNodes=True): # 返�
         ftg_object = GenFtgFromNd(nd, samplePos, uiScale)
         valid_tars.append(ftg_object)
 
-    return sorted(valid_tars, key=lambda ftg: ftg.dist)
+    return sorted(valid_tars, key=lambda tar: tar.dist)
 
     # return sorted([GenFtgFromNd(nd, samplePos, uiScale) for nd in nodes if (nd.type!='FRAME')and( (nd.inputs)or(nd.outputs)or(includePoorNodes) )], key=lambda a:a.dist)
 
@@ -160,8 +160,8 @@ class VlrtData:
     reprLastSkOut = ""
     reprLastSkIn = ""
 
-def opt_tar_socket(ftg: Target) -> NodeSocket:
-    return ftg.tar if ftg else None
+def opt_tar_socket(tar: Target) -> NodeSocket:
+    return tar.tar if tar else None
 
 def IsClassicSk(sk: NodeSocket):
     if sk.bl_idname=='NodeSocketVirtual':
@@ -193,13 +193,13 @@ def MinFromFtgs(ftg1: Target, ftg2: Target):
 
 def FindAnySk(nd: Node, tar_sks_in, tar_sks_out): # Todo0NA: 需要泛化!, 用 lambda. 并且外部循环遍历列表, 而不是两个循环.
     tar_sk_out, tar_sk_in = None, None
-    for ftg in tar_sks_out:
-        if (ftg.blid!='NodeSocketVirtual')and(NodeItemsUtils.IsSimRepCorrectSk(nd, ftg.tar)): # todo1v6: 这个函数到处都和 !=NodeSocketVirtual 一起使用, 需要重做拓扑.
-            tar_sk_out = ftg
+    for tar in tar_sks_out:
+        if (tar.blid!='NodeSocketVirtual')and(NodeItemsUtils.IsSimRepCorrectSk(nd, tar.tar)): # todo1v6: 这个函数到处都和 !=NodeSocketVirtual 一起使用, 需要重做拓扑.
+            tar_sk_out = tar
             break
-    for ftg in tar_sks_in:
-        if (ftg.blid!='NodeSocketVirtual')and(NodeItemsUtils.IsSimRepCorrectSk(nd, ftg.tar)):
-            tar_sk_in = ftg
+    for tar in tar_sks_in:
+        if (tar.blid!='NodeSocketVirtual')and(NodeItemsUtils.IsSimRepCorrectSk(nd, tar.tar)):
+            tar_sk_in = tar
             break
     return MinFromFtgs(tar_sk_out, tar_sk_in)
 

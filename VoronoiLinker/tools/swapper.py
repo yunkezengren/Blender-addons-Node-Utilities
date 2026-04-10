@@ -44,13 +44,13 @@ class NODE_OT_voronoi_swapper(PairSocketTool):
             #基于Mixer的标准.
             if isFirstActivation:
                 tar_sk_out, tar_sk_in = None, None
-                for ftg in tar_sks_out: #todo0NA 但这不就是Findanysk吗!?
-                    if ftg.blid!='NodeSocketVirtual':
-                        tar_sk_out = ftg
+                for tar in tar_sks_out: #todo0NA 但这不就是Findanysk吗!?
+                    if tar.blid!='NodeSocketVirtual':
+                        tar_sk_out = tar
                         break
-                for ftg in tar_sks_in:
-                    if ftg.blid!='NodeSocketVirtual':
-                        tar_sk_in = ftg
+                for tar in tar_sks_in:
+                    if tar.blid!='NodeSocketVirtual':
+                        tar_sk_in = tar
                         break
                 #也允许对输入接口使用“添加”功能，但仅限于多输入接口，因为这很明显
                 if (self.toolMode==eMode.ADD.value)and(tar_sk_in):
@@ -61,11 +61,11 @@ class NODE_OT_voronoi_swapper(PairSocketTool):
             #这里积累了很多奇怪的关于None等的检查 -- 这是我将自己发明的许多高级函数连接在一起的结果.
             skOut0 = opt_tar_socket(self.target_sk0)
             if skOut0:
-                for ftg in tar_sks_out if skOut0.is_output else tar_sks_in:
-                    if ftg.blid=='NodeSocketVirtual':
+                for tar in tar_sks_out if skOut0.is_output else tar_sks_in:
+                    if tar.blid=='NodeSocketVirtual':
                         continue
-                    if (self.isCanAnyType)or(skOut0.bl_idname==ftg.blid)or(self.check_between_sk_fields(skOut0, ftg.tar)):
-                        self.target_sk1 = ftg
+                    if (self.isCanAnyType)or(skOut0.bl_idname==tar.blid)or(self.check_between_sk_fields(skOut0, tar.tar)):
+                        self.target_sk1 = tar
                     if self.target_sk1: #如果成功则停止搜索.
                         break
                 if (self.target_sk1)and(skOut0==self.target_sk1.tar): #检查是否为自我复制.

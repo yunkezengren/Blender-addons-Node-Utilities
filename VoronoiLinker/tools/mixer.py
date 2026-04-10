@@ -42,8 +42,8 @@ class NODE_OT_voronoi_mixer(TripleSocketTool):
             # todo 做一些接口类型判断,比如 一个是 geometry 剩下的也要是
             if skOut0:
                 if not self.canPickThird:
-                    for ftg in tar_sks_out:
-                        skOut1 = ftg.tar
+                    for tar in tar_sks_out:
+                        skOut1 = tar.tar
                         if skOut0 == skOut1:
                             break
                         orV = (skOut1.bl_idname == 'NodeSocketVirtual') or (skOut0.bl_idname == 'NodeSocketVirtual')
@@ -52,7 +52,7 @@ class NODE_OT_voronoi_mixer(TripleSocketTool):
                         tgl = tgl or (self.check_between_sk_fields(skOut0, skOut1) or ((skOut1.bl_idname == skOut0.bl_idname) and (not orV)))
                         tgl = tgl or ((skOut0.node.type == 'REROUTE') or (skOut1.node.type == 'REROUTE')) and (soldReroutesCanInAnyType)
                         if tgl:
-                            self.target_sk1 = ftg
+                            self.target_sk1 = tar
                             break
                     if (self.target_sk1) and (skOut0 == self.target_sk1.tar): #检查是否是自我复制.
                         self.target_sk1 = None
@@ -61,9 +61,9 @@ class NODE_OT_voronoi_mixer(TripleSocketTool):
                         break
                 else:
                     skOut1 = opt_tar_socket(self.target_sk1)
-                    for ftg in tar_sks_out:
-                        self.target_sk2 = ftg
-                        if (ftg.tar == skOut0) or (ftg.tar == skOut1):
+                    for tar in tar_sks_out:
+                        self.target_sk2 = tar
+                        if (tar.tar == skOut0) or (tar.tar == skOut1):
                             self.target_sk2 = None
                         break
                     unhide_node_reassign(nd, self, cond=self.target_sk2, flag=False)
