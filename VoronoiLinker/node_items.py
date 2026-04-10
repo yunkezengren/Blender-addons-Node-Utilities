@@ -5,48 +5,53 @@ B = bpy.types
 from .common_func import add_item_for_index_switch, is_builtin_tree_idname, sk_label_or_name, sk_type_to_idname
 from .globals import is_bl5_plus
 
+node_has_items = {
+    'SIMULATION_INPUT', 'SIMULATION_OUTPUT', 'REPEAT_INPUT', 'REPEAT_OUTPUT', 'MENU_SWITCH', 'BAKE', 'CAPTURE_ATTRIBUTE',
+    'INDEX_SWITCH'
+}
+
 # Equestrian 的意思是"骑手"或"马术的",取其驾驭、控制的寓意.似乎是专门用来操作管理有 item 的节点, 比如:
 # 这些节点都有一个共同点: 它们内部有自己的items, 可以动态地添加、删除、移动它们上面的插槽 (socket).
 # 提供了一套统一的 API 来驾驭它们的内部接口, 抽象成了统一的操作
 class NodeItemsUtils():
-    support_types = { 'GROUP', 'GROUP_INPUT', 'GROUP_OUTPUT',
-                      'SIMULATION_INPUT', 'SIMULATION_OUTPUT',
-                      'REPEAT_INPUT', 'REPEAT_OUTPUT',
-                      "FOREACH_GEOMETRY_ELEMENT_INPUT", "FOREACH_GEOMETRY_ELEMENT_OUTPUT",
-                      'MENU_SWITCH', 'BAKE', 'CAPTURE_ATTRIBUTE', 'INDEX_SWITCH'               # 小王-更改接口名称
-                    }
+    support_types = node_has_items | {
+        'GROUP',
+        'GROUP_INPUT',
+        'GROUP_OUTPUT',
+        "FOREACH_GEOMETRY_ELEMENT_INPUT",
+        "FOREACH_GEOMETRY_ELEMENT_OUTPUT",
+    }
     only_inputs = {'GROUP_OUTPUT', 'INDEX_SWITCH'}
-    # is_simrep = property(lambda a: a.type in ('SIM','REP'))     # 小王-插入接口
-    has_extend_socket = property(lambda a: a.type in ('SIM','REP', 'MENU', 'CAPTURE', 'BAKE'))
-    is_index_switch = property(lambda a: a.type =='INDEX')      # 编号切换单独判断
+    has_extend_socket = property(lambda self: self.type in ('SIM', 'REP', 'MENU', 'CAPTURE', 'BAKE'))
+    is_index_switch = property(lambda self: self.type == 'INDEX')  # 编号切换单独判断
+
     @staticmethod
-    def IsSocketDefinitely(ess):
+    def IsSocketDefinitely(ess): # 未使用
         base = ess.bl_rna
         while base:
-            dnf = base.identifier
+            identifier = base.identifier
             base = base.base
-        if dnf=='NodeSocket':
+        if identifier == 'NodeSocket':
             return True
-        if dnf=='Node':
+        if identifier == 'Node':
             return False
         return None
+
     @staticmethod
     def IsSimRepCorrectSk(node, from_sk: NodeSocket):
-        node_has_items = {'SIMULATION_INPUT', 'SIMULATION_OUTPUT', 'REPEAT_INPUT', 'REPEAT_OUTPUT',
-                          'MENU_SWITCH', 'BAKE', 'CAPTURE_ATTRIBUTE', 'INDEX_SWITCH'}       # 'INDEX_SWITCH' 在这里还没用到
-        if (from_sk.bl_idname=='NodeSocketVirtual')and(node.type in node_has_items):
+        if (from_sk.bl_idname == 'NodeSocketVirtual') and (node.type in node_has_items):
             return False
-        match node.type:            # 小王-让一些接口不被判定
-            case 'SIMULATION_INPUT'|'REPEAT_INPUT':
-                return from_sk!=node.outputs[0]
-            case 'SIMULATION_OUTPUT'|'REPEAT_INPUT':
-                return from_sk!=node.inputs[0]
+        match node.type:  # 小王-让一些接口不被判定
+            case 'SIMULATION_INPUT' | 'REPEAT_INPUT':
+                return from_sk != node.outputs[0]
+            case 'SIMULATION_OUTPUT' | 'REPEAT_INPUT':
+                return from_sk != node.inputs[0]
             case 'MENU_SWITCH':
                 return from_sk not in {node.inputs[0], node.outputs[0]}
             case 'CAPTURE_ATTRIBUTE':
                 return hasattr(node, "capture_items") and from_sk not in {node.inputs[0], node.outputs[0]}
             case _:
-                return True # raise Exception("IsSimRepCorrectSk() 调用时未针对 SimRep")
+                return True  # raise Exception("IsSimRepCorrectSk() 调用时未针对 SimRep")
 
     def IsContainsSkf(self, skfTar):
         for skf in self.skfa:  # 没有这个 API (或者至少我没找到)，所以不得不“实际”检查匹配。
@@ -56,34 +61,34 @@ class NodeItemsUtils():
 
     def get_item(self, from_sk: NodeSocket):
         """ get_item_from_socket """
-        if from_sk.node!=self.node:
+        if from_sk.node != self.node:
             raise Exception(f"Equestrian node is not equal `{from_sk.path_from_id()}`")
         match self.type:
-            case 'SIM'|'REP':
-                match self.type: # 检查套接字是否是 SimRep 的“内置”套接字。
+            case 'SIM' | 'REP':
+                match self.type:  # 检查套接字是否是 SimRep 的“内置”套接字。
                     case 'SIM':
-                        if self.node.type=='SIMULATION_INPUT':
-                            if from_sk==self.node.outputs[0]:
+                        if self.node.type == 'SIMULATION_INPUT':
+                            if from_sk == self.node.outputs[0]:
                                 raise Exception("Socket \"Delta Time\" does not have interface.")
                         else:
-                            if from_sk==self.node.inputs[0]:
+                            if from_sk == self.node.inputs[0]:
                                 raise Exception("Socket \"Skip\" does not have interface.")
                     case 'REP':
-                        if self.node.type=='REPEAT_INPUT':
-                            if from_sk==self.node.inputs[0]:
+                        if self.node.type == 'REPEAT_INPUT':
+                            if from_sk == self.node.inputs[0]:
                                 raise Exception("Socket \"Iterations\" does not have interface.")
                 for skf in self.skfa:
-                    if skf.name==from_sk.name:
+                    if skf.name == from_sk.name:
                         return skf
                 raise Exception(f"Interface not found from `{from_sk.path_from_id()}`")  # 如果套接字在节点上直接重命名，而不是通过接口。
-            case 'CLASSIC'|'GROUP':
+            case 'CLASSIC' | 'GROUP':
                 for skf in self.skfa:
-                    if (skf.item_type=='SOCKET')and(skf.identifier==from_sk.identifier):
+                    if (skf.item_type == 'SOCKET') and (skf.identifier == from_sk.identifier):
                         return skf
             # 小王-更改接口名称
             case 'MENU' | 'BAKE' | 'CAPTURE' | 'FOREACH_OUT':
                 for skf in self.skfa:
-                    if skf.name==from_sk.name:
+                    if skf.name == from_sk.name:
                         return skf
 
     def get_socket(self, skfTar, *, is_out: bool):
@@ -128,42 +133,46 @@ class NodeItemsUtils():
                 if from_sk.is_output:
                     return add_item_for_index_switch(self.node)
                 return
-            case 'CLASSIC'|'GROUP':
+            case 'CLASSIC' | 'GROUP':
                 # self.skfa 是 tree.interface.items_tree  是 bpy_prop_collection[NodeTreeInterfaceItem]
                 data: B.NodeTreeInterface = self.skfa.data
-                interface_sk = data.new_socket(sk_name, socket_type=sk_type_to_idname(from_sk), in_out='OUTPUT' if (from_sk.is_output^isFlipSide) else 'INPUT')
+                interface_sk = data.new_socket(sk_name,
+                                               socket_type=sk_type_to_idname(from_sk),
+                                               in_out='OUTPUT' if (from_sk.is_output ^ isFlipSide) else 'INPUT')
                 interface_sk.hide_value = from_sk.hide_value
-                if hasattr(interface_sk,'default_value') and from_sk.type != "MENU":
+                if hasattr(interface_sk, 'default_value') and from_sk.type != "MENU":
                     # todo 菜单接口先连线才能设置默认值啊
                     interface_sk.default_value = from_sk.default_value
-                    if hasattr(interface_sk,'min_value'):
+                    if hasattr(interface_sk, 'min_value'):
                         nd = from_sk.node
-                        if (nd.type in {'GROUP_INPUT', 'GROUP_OUTPUT'})or( (nd.type=='GROUP')and(nd.node_tree) ): # 如果套接字来自另一个节点组，则完全复制。
+                        if (nd.type in {'GROUP_INPUT', 'GROUP_OUTPUT'}) or ((nd.type == 'GROUP') and (nd.node_tree)):
+                            # 如果套接字来自另一个节点组，则完全复制。
                             skf = NodeItemsUtils(nd).get_item(from_sk)
                             for pr in interface_sk.rna_type.properties:
-                                if not(pr.is_readonly or pr.is_registered):
+                                if not (pr.is_readonly or pr.is_registered):
                                     setattr(interface_sk, pr.identifier, getattr(skf, pr.identifier))
                     # tovo2v6 用于 `interface_sk.subtype =` 的套接字 blid 替换映射。
                     # TODO0 需要想办法在创建之前嵌入，以便所有组的套接字立即拥有 sfk 默认值。Blender 自己是怎么做到的？
                     def FixInTree(tree):
                         for nd in tree.nodes:
-                            if (nd.type=='GROUP')and(nd.node_tree==self.tree):
+                            if (nd.type == 'GROUP') and (nd.node_tree == self.tree):
                                 for sk in nd.inputs:
-                                    if sk.identifier==interface_sk.identifier:
+                                    if sk.identifier == interface_sk.identifier:
                                         sk.default_value = from_sk.default_value
+
                     for ng in bpy.data.node_groups:
                         if is_builtin_tree_idname(ng.bl_idname):
                             FixInTree(ng)
                     data_names = ['materials', 'scenes', 'worlds', 'textures', 'lights', 'linestyles']
                     if is_bl5_plus:
                         data_names.remove('scenes')
-                    for att in data_names: # 是这些，还是我忘了某个？
+                    for att in data_names:  # 是这些，还是我忘了某个？
                         for dt in getattr(bpy.data, att):
-                            if dt.node_tree: # 对于 materials -- https://github.com/ugorek000/VoronoiLinker/issues/19; 我仍然不明白它怎么可能是 None。
+                            if dt.node_tree:  # 对于 materials -- https://github.com/ugorek000/VoronoiLinker/issues/19; 我仍然不明白它怎么可能是 None。
                                 FixInTree(dt.node_tree)
                 return interface_sk
 
-    def MoveBySkfs(self, skfFrom, skfTo, *, isSwap=False): # 本可以自行处理“BySks”的复杂性，但这已经是调用方的责任了。
+    def MoveBySkfs(self, skfFrom, skfTo, *, isSwap=False):  # 本可以自行处理“BySks”的复杂性，但这已经是调用方的责任了。
         match self.type:
             case 'SIM' | 'REP' | 'MENU' | 'BAKE' | 'CAPTURE':  # 小王-支持交换接口
                 inxFrom = -1
@@ -237,13 +246,13 @@ class NodeItemsUtils():
                         scoSkf += 1
 
     def __init__(self, sk_or_nd: NodeSocket | Node):
-        is_socket = hasattr(sk_or_nd,'link_limit')
-        tar_node: Node = sk_or_nd.node if is_socket else sk_or_nd # type: ignore
+        is_socket = hasattr(sk_or_nd, 'link_limit')
+        tar_node: Node = sk_or_nd.node if is_socket else sk_or_nd  # type: ignore
         if tar_node.type not in self.support_types:
             raise Exception(f"Equestrian not found from `{sk_or_nd.path_from_id()}`")
         self.tree: NodeTree = sk_or_nd.id_data
         self.node: Node = tar_node
-        tar_node = getattr(tar_node,'paired_output', tar_node)
+        tar_node = getattr(tar_node, 'paired_output', tar_node)
 
         if isinstance(tar_node, (B.NodeGroupInput, B.NodeGroupOutput)):
             self.type = 'CLASSIC'

@@ -389,29 +389,26 @@ base_constant = {
         'OBJECT':    'GeometryNodeInputObject',
 }
 
-geo_constant = {
+geo_constant = base_constant | {
     'RGBA': 'FunctionNodeInputColor',
     'STRING': 'FunctionNodeInputString',
     'MATERIAL': 'GeometryNodeInputMaterial',
     'COLLECTION': 'GeometryNodeInputCollection',
     'IMAGE': 'GeometryNodeInputImage',
 }
-geo_constant.update(base_constant)
 
-shader_constant = {
-    'RGBA':      'ShaderNodeRGB',
+shader_constant = base_constant | {
+    'RGBA': 'ShaderNodeRGB',
 }
-shader_constant.update(base_constant)
 
-cmp_constant = {
+cmp_constant = base_constant | {
     'RGBA': 'CompositorNodeRGB',
 }
-cmp_constant.update(base_constant)
 
 
 AllQuickConstant: dict[str, dict[str, str | list]] = {
-        'GeometryNodeTree':  geo_constant,
-        'ShaderNodeTree':    shader_constant,
-        'CompositorNodeTree':cmp_constant,
-        'TextureNodeTree':   { }
-        }
+    'GeometryNodeTree': geo_constant,
+    'ShaderNodeTree': shader_constant,
+    'CompositorNodeTree': cmp_constant,
+    'TextureNodeTree': {}
+}

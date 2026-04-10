@@ -1,7 +1,8 @@
-from time import perf_counter
 import bpy
-from mathutils import Vector as Vec2
 from bpy.types import Area, Context, Event, Node, NodeTree, NodeSocket, Operator, SpaceNodeEditor, UILayout, View2D as View2d
+from mathutils import Vector as Vec2
+from time import perf_counter
+
 from .Structure import RectBase, View2D
 from .common_class import TryAndPass
 from .common_func import is_builtin_tree_idname, user_node_keymap
@@ -24,10 +25,11 @@ def GetOpKmi(self: type["VoronoiOpTool"], event: Event):
             return item  # 这个函数也只返回列表中的第一个.
 
 class VoronoiOpTool(Operator):
-    bl_options = {'UNDO'} # 手动创建的链接可以撤销, 所以在 VL 中也应如此. 对所有工具都一样.
+    bl_options = {'UNDO'}  # 手动创建的链接可以撤销, 所以在 VL 中也应如此. 对所有工具都一样.
+
     @classmethod
     def poll(cls, context):
-        return context.area.type=='NODE_EDITOR' # 不知道为什么需要这个, 但还是留着吧.
+        return context.area.type == 'NODE_EDITOR'  # 不知道为什么需要这个, 但还是留着吧.
 
 class VoronoiToolFillers: #-1
     usefulnessForCustomTree = None
@@ -45,176 +47,207 @@ class VoronoiToolFillers: #-1
     @staticmethod
     def draw_in_pref_settings(col: UILayout, prefs: VoronoiAddonPrefs): pass
 
-class VoronoiToolRoot(VoronoiOpTool, VoronoiToolFillers): #0
+class VoronoiToolRoot(VoronoiOpTool, VoronoiToolFillers):  #0
     usefulnessForUndefTree = False
     usefulnessForNoneTree = False
     canDrawInAddonDiscl = True
     canDrawInAppearance = False
     # 点击节点编辑器总是不可避免的, 那里有节点, 所以对于所有工具
-    isPassThrough: bpy.props.BoolProperty(name="Pass through node selecting", default=False, description="Clicking over a node activates selection, not the tool")
+    isPassThrough: bpy.props.BoolProperty(name="Pass through node selecting",
+                                          default=False,
+                                          description="Clicking over a node activates selection, not the tool")
+
     def CallbackDrawRoot(self, drata: VlDrawData, context: Context):
-        if drata.whereActivated!=context.space_data: # 需要只在活动的编辑器中绘制, 而不是在所有打开相同树的编辑器中绘制.
+        if drata.whereActivated != context.space_data:  # 需要只在活动的编辑器中绘制, 而不是在所有打开相同树的编辑器中绘制.
             return
-        drata.worldZoom = self.ctView2d.GetZoom() # 每次都从 EdgePan 和鼠标滚轮获取. 以前可以一次性焊接.
+        drata.worldZoom = self.ctView2d.GetZoom()  # 每次都从 EdgePan 和鼠标滚轮获取. 以前可以一次性焊接.
         if self.prefs.dsIsFieldDebug:
             DrawDebug(self, drata)
-        if self.tree: # 现在对于没有树的情况可以不显示任何迹象; 由于拓扑结构的头疼问题以及在插件树中传递热键时工具的跳过问题而关闭 (?).
+        if self.tree:  # 现在对于没有树的情况可以不显示任何迹象; 由于拓扑结构的头疼问题以及在插件树中传递热键时工具的跳过问题而关闭 (?).
             self.CallbackDrawTool(drata)
-    def ToolGetNearestNodes(self, includePoorNodes=False, cur_x_off: float=0):
-        self.cursorLoc.x += cur_x_off    # 唤起位置偏移
+
+    def ToolGetNearestNodes(self, includePoorNodes=False, cur_x_off: float = 0):
+        self.cursorLoc.x += cur_x_off  # 唤起位置偏移
         return GetNearestNodesFtg(self.tree.nodes[:], self.cursorLoc, self.uiScale, includePoorNodes)
-    def ToolGetNearestSockets(self, nd: Node, cur_x_off: float=0):
-        self.cursorLoc.x += cur_x_off    #     唤起位置偏移
+
+    def ToolGetNearestSockets(self, nd: Node, cur_x_off: float = 0):
+        self.cursorLoc.x += cur_x_off  #     唤起位置偏移
         return GetNearestSocketsFtg(nd, self.cursorLoc, self.uiScale)
+
     def NextAssignmentRoot(self, flag: bool):
         if self.tree:
             try:
                 self.NextAssignmentTool(flag, self.prefs, self.tree)
             except:
-                EdgePanData.isWorking = False # 现在只对 VLT 有效. 也许应该做个 ~self.ErrorToolProc, 并在 VLT 中 "退后一步".
+                EdgePanData.isWorking = False  # 现在只对 VLT 有效. 也许应该做个 ~self.ErrorToolProc, 并在 VLT 中 "退后一步".
                 SpaceNodeEditor.draw_handler_remove(self.handle, 'WINDOW')
                 raise
+
     def ModalMouseNext(self, event: Event, prefs: VoronoiAddonPrefs):
         match event.type:
             case 'MOUSEMOVE':
                 self.NextAssignmentRoot(False)
-            case self.kmi.type|'ESC':
-                if event.value=='RELEASE':
+            case self.kmi.type | 'ESC':
+                if event.value == 'RELEASE':
                     return True
         return False
+
     def modal(self, context: Context, event: Event):
         context.area.tag_redraw()
-        if num:=(event.type=='WHEELUPMOUSE')-(event.type=='WHEELDOWNMOUSE'):
-            self.ctView2d.cur.Zooming(self.cursorLoc, 1.0-num*0.15)
+        if num := (event.type == 'WHEELUPMOUSE') - (event.type == 'WHEELDOWNMOUSE'):
+            self.ctView2d.cur.Zooming(self.cursorLoc, 1.0 - num*0.15)
         self.ModalTool(event, self.prefs)
         if not self.ModalMouseNext(event, self.prefs):
             return {'RUNNING_MODAL'}
         #* 工具的结束从这里开始 *
         EdgePanData.isWorking = False
-        if event.type=='ESC': # 这正是 Escape 键应该做的.
+        if event.type == 'ESC':  # 这正是 Escape 键应该做的.
             return {'CANCELLED'}
-        with TryAndPass(): # 它可能已经被删除了, 参见第二个这样的情况.
+        with TryAndPass():  # 它可能已经被删除了, 参见第二个这样的情况.
             SpaceNodeEditor.draw_handler_remove(self.handle, 'WINDOW')
         tree = self.tree
         if not tree:
             return {'FINISHED'}
         RestoreCollapsedNodes(tree.nodes)
-        if (tree)and(tree.bl_idname=='NodeTreeUndefined'): # 如果来自某个插件的节点树消失了, 那么剩下的就是 NodeUndefined 和 NodeSocketUndefined.
-            return {'CANCELLED'} # 通过 API 无法创建到 SocketUndefined 的链接, 在这个树里也没什么可做的; 所以退出.
+        if (tree) and (tree.bl_idname == 'NodeTreeUndefined'):  # 如果来自某个插件的节点树消失了, 那么剩下的就是 NodeUndefined 和 NodeSocketUndefined.
+            return {'CANCELLED'}  # 通过 API 无法创建到 SocketUndefined 的链接, 在这个树里也没什么可做的; 所以退出.
         ##
         if not self.MatterPurposePoll():
             return {'CANCELLED'}
-        if result:=self.MatterPurposeTool(event, self.prefs, tree):
+        if result := self.MatterPurposeTool(event, self.prefs, tree):
             return result
         return {'FINISHED'}
+
     def invoke(self, context: Context, event: Event):
         tree = context.space_data.edit_tree
         self.tree = tree
-        editorBlid = context.space_data.tree_type # 无需 `self.`?.
+        editorBlid = context.space_data.tree_type  # 无需 `self.`?.
         self.in_builtin_tree = is_builtin_tree_idname(editorBlid)
-        if not(self.usefulnessForCustomTree or self.in_builtin_tree):
-            return {'PASS_THROUGH'} #'CANCELLED'?.
-        if (not self.usefulnessForUndefTree)and(editorBlid=='NodeTreeUndefined'):
-            return {'CANCELLED'} # 为了不绘制而离开.
-        if not(self.usefulnessForNoneTree or tree):
+        if not (self.usefulnessForCustomTree or self.in_builtin_tree):
+            return {'PASS_THROUGH'}  #'CANCELLED'?.
+        if (not self.usefulnessForUndefTree) and (editorBlid == 'NodeTreeUndefined'):
+            return {'CANCELLED'}  # 为了不绘制而离开.
+        if not (self.usefulnessForNoneTree or tree):
             return {'FINISHED'}
         # 对所有工具相同的跳过选择处理
-        if (self.isPassThrough)and(tree)and('FINISHED' in bpy.ops.node.select('INVOKE_DEFAULT')): # 检查树是第二位的, 为了美学优化.
+        if (self.isPassThrough) and (tree) and ('FINISHED' in bpy.ops.node.select('INVOKE_DEFAULT')):  # 检查树是第二位的, 为了美学优化.
             # 如果调用工具的热键与取消选择的热键相同, 那么上面一行选择的节点在交接后会重新取消选择 (但仍然是活动的).
             # 因此, 对于这种情况, 需要取消选择, 以便再次切换回已选择的节点.
-            tree.nodes.active.select = False # 但没有条件, 对所有情况都适用. 因为 ^ 否则将永远是选择而不切换; 我没有想法如何处理这种情况.
+            tree.nodes.active.select = False  # 但没有条件, 对所有情况都适用. 因为 ^ 否则将永远是选择而不切换; 我没有想法如何处理这种情况.
             return {'PASS_THROUGH'}
         ##
         self.kmi = GetOpKmi(self, event)
         if not self.kmi:
-            return {'CANCELLED'} # 如果总体上出了问题, 或者操作符是通过布局按钮调用的.
+            return {'CANCELLED'}  # 如果总体上出了问题, 或者操作符是通过布局按钮调用的.
         # 如果在 keymap 调用操作符时未指定其属性, 它们会从上次调用中读取; 所以需要将它们设置回默认值.
         # 尽早这样做是有意义的; 对 VQMT 和 VEST 有效.
         for li in self.rna_type.properties:
-            if li.identifier!='rna_type':
+            if li.identifier != 'rna_type':
                 # 注意: 判断是否在 kmi 中设置 -- `kmi.properties[li.identifier]` 的存在.
-                setattr(self, li.identifier, getattr(self.kmi.properties, li.identifier)) # 为了这个我不得不反向工程 Blender 并进行调试. 原来是这么简单..
+                setattr(self, li.identifier, getattr(self.kmi.properties, li.identifier))  # 为了这个我不得不反向工程 Blender 并进行调试. 原来是这么简单..
         ##
-        self.prefs = pref() # "原来是这么简单".
-        self.uiScale = context.preferences.system.dpi/72
-        self.cursorLoc: Vec2 = context.space_data.cursor_location # 这是 class Vector, 通过引用复制; 所以可以在这里设置(绑定)一次, 就不用担心了.
+        self.prefs = pref()  # "原来是这么简单".
+        self.uiScale = context.preferences.system.dpi / 72
+        self.cursorLoc: Vec2 = context.space_data.cursor_location  # 这是 class Vector, 通过引用复制; 所以可以在这里设置(绑定)一次, 就不用担心了.
         self.drata = VlDrawData(context, self.cursorLoc, self.uiScale, self.prefs)
-        solder_theme_cols(context.preferences.themes[0].node_editor) # 和 fontId 一样; 虽然在大多数情况下主题在整个会话期间不会改变.
+        solder_theme_cols(context.preferences.themes[0].node_editor)  # 和 fontId 一样; 虽然在大多数情况下主题在整个会话期间不会改变.
         self.region = context.region
         self.ctView2d = View2D.GetFields(context.region.view2d)
         if self.prefs.vIsOverwriteZoomLimits:
             self.ctView2d.minzoom = self.prefs.vOwZoomMin
             self.ctView2d.maxzoom = self.prefs.vOwZoomMax
         ##
-        if result:=self.InitToolPre(event): # 对于 'Pre' 返回某些内容不太重要.
+        if result := self.InitToolPre(event):  # 对于 'Pre' 返回某些内容不太重要.
             return result
-        if result:=self.InitTool(event, self.prefs, tree): # 注意: 参见拓扑结构: 不返回任何东西等同于返回 `{'RUNNING_MODAL'}`.
+        if result := self.InitTool(event, self.prefs, tree):  # 注意: 参见拓扑结构: 不返回任何东西等同于返回 `{'RUNNING_MODAL'}`.
             return result
         EdgePanInit(self, context.area)
         ##
-        self.handle = SpaceNodeEditor.draw_handler_add(self.CallbackDrawRoot, (self.drata, context,), 'WINDOW', 'POST_PIXEL')
-        if tree: # 注意: 参见本地拓扑结构, 工具本身可以, 但每个工具都明确地对缺失的树禁用了.
+        self.handle = SpaceNodeEditor.draw_handler_add(self.CallbackDrawRoot, (
+            self.drata,
+            context,
+        ), 'WINDOW', 'POST_PIXEL')
+        if tree:  # 注意: 参见本地拓扑结构, 工具本身可以, 但每个工具都明确地对缺失的树禁用了.
             solder_sk_links(self.tree)
             SaveCollapsedNodes(tree.nodes)
-            self.NextAssignmentRoot(True) # 原来只需要在 modal_handler_add() 之前移动它. #https://projects.blender.org/blender/blender/issues/113479
+            self.NextAssignmentRoot(True)  # 原来只需要在 modal_handler_add() 之前移动它. #https://projects.blender.org/blender/blender/issues/113479
         ##
-        context.area.tag_redraw() # 需要在激活时绘制找到的; 本地顺序不重要.
+        context.area.tag_redraw()  # 需要在激活时绘制找到的; 本地顺序不重要.
         context.window_manager.modal_handler_add(self)
         return {'RUNNING_MODAL'}
 
-class VoronoiToolSk(VoronoiToolRoot): #1
+class VoronoiToolSk(VoronoiToolRoot):  #1
+
     def CallbackDrawTool(self, drata: VlDrawData):
         TemplateDrawSksToolHh(drata, self.fotagoSk)
+
     def MatterPurposePoll(self):
         return not not self.fotagoSk
+
     def InitToolPre(self, event: Event):
         self.fotagoSk = None
 
-class VoronoiToolPairSk(VoronoiToolSk): #2
-    isCanBetweenFields: bpy.props.BoolProperty(name="Can between fields", default=True, description="Tool can connecting between different field types")
+class VoronoiToolPairSk(VoronoiToolSk):  #2
+    isCanBetweenFields: bpy.props.BoolProperty(name="Can between fields",
+                                               default=True,
+                                               description="Tool can connecting between different field types")
+
     def CallbackDrawTool(self, drata: VlDrawData):
         TemplateDrawSksToolHh(drata, self.fotagoSk0, self.fotagoSk1)
+
     def SkBetweenFieldsCheck(self, sk1: NodeSocket, sk2: NodeSocket):
         # 注意: 考虑到此函数的目的和名称, sk1 和 sk2 无论如何都应该是来自字段, 且仅来自字段.
-        return (sk1.type in set_utilTypeSkFields) and ((self.isCanBetweenFields) and (sk2.type in set_utilTypeSkFields) or (sk1.type == sk2.type))
+        return (sk1.type in set_utilTypeSkFields) and ((self.isCanBetweenFields) and (sk2.type in set_utilTypeSkFields) or
+                                                       (sk1.type == sk2.type))
+
     def InitToolPre(self, event: Event):
         self.fotagoSk0 = None
         self.fotagoSk1 = None
 
-class VoronoiToolTripleSk(VoronoiToolPairSk): #3
+class VoronoiToolTripleSk(VoronoiToolPairSk):  #3
+
     def ModalTool(self, event: Event, prefs: VoronoiAddonPrefs):
-        if (self.isStartWithModf)and(not self.canPickThird): # 谁会真的通过按下和释放某个修饰键来切换到选择第三个套接字呢?.
+        if (self.isStartWithModf) and (not self.canPickThird):  # 谁会真的通过按下和释放某个修饰键来切换到选择第三个套接字呢?.
             # 因为这代价太高了; 既然选择了没有修饰键的热键, 那就满足于有限的功能吧. 或者自己动手.
-            self.canPickThird = not(event.shift or event.ctrl or event.alt)
+            self.canPickThird = not (event.shift or event.ctrl or event.alt)
+
     def InitToolPre(self, event: Event):
         self.fotagoSk2 = None
         self.canPickThird = False
-        self.isStartWithModf = (event.shift)or(event.ctrl)or(event.alt)
+        self.isStartWithModf = (event.shift) or (event.ctrl) or (event.alt)
 
-class VoronoiToolNd(VoronoiToolRoot): #1
+class VoronoiToolNd(VoronoiToolRoot):  #1
+
     def CallbackDrawTool(self, drata: VlDrawData):
         TemplateDrawNodeFull(drata, self.fotagoNd)
+
     def MatterPurposePoll(self):
         return not not self.fotagoNd
+
     def InitToolPre(self, event: Event):
         self.fotagoNd = None
 
-class VoronoiToolPairNd(VoronoiToolSk): #2
+class VoronoiToolPairNd(VoronoiToolSk):  #2
+
     def MatterPurposePoll(self):
         return self.fotagoNd0 and self.fotagoNd1
+
     def InitToolPre(self, event: Event):
         self.fotagoNd0 = None
         self.fotagoNd1 = None
 
-class VoronoiToolAny(VoronoiToolSk, VoronoiToolNd): #2
+class VoronoiToolAny(VoronoiToolSk, VoronoiToolNd):  #2
+
     @staticmethod
     def TemplateDrawAny(drata: VlDrawData, ftg: Fotago, *, cond: bool, tool_name=""):
         if cond:
             TemplateDrawNodeFull(drata, ftg, tool_name=tool_name)
         else:
-            TemplateDrawSksToolHh(drata, ftg, tool_name=tool_name)      # 绘制工具提示
+            TemplateDrawSksToolHh(drata, ftg, tool_name=tool_name)  # 绘制工具提示
+
     def MatterPurposePoll(self):
         return self.fotagoAny
+
     def InitToolPre(self, event: Event):
         self.fotagoAny = None
 
@@ -228,15 +261,15 @@ def CheckUncollapseNodeAndReNext(nd: Node, self: VoronoiToolRoot, *, cond: bool,
         self.NextAssignmentRoot(flag)
 
 class EdgePanData:
-    area: Area = None # 本应是 'context', 但它总是 None.
+    area: Area = None  # 本应是 'context', 但它总是 None.
     ctCur: RectBase = None
     # 快速凑合的:
     isWorking = False
     view2d: View2d = None
-    cursorPos: Vec2 = Vec2((0,0))
+    cursorPos: Vec2 = Vec2((0, 0))
     uiScale = 1.0
-    center: Vec2 = Vec2((0,0))
-    delta = 0.0   # 哦, 这些增量.
+    center: Vec2 = Vec2((0, 0))
+    delta = 0.0  # 哦, 这些增量.
     zoomFac = 0.5
     speed = 1.0
 

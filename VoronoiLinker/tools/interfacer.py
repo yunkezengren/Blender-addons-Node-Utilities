@@ -176,18 +176,18 @@ class VoronoiInterfacerTool(VoronoiToolPairSk):
 
     def NextAssignmentTool(self, isFirstActivation, prefs, tree):
         match eMode(self.toolMode):
-            case eMode.COPY|eMode.PASTE:
+            case eMode.COPY | eMode.PASTE:
                 self.NextAssignmentToolCopyPaste(isFirstActivation, prefs, tree)
-            case eMode.SWAP|eMode.FLIP:
+            case eMode.SWAP | eMode.FLIP:
                 self.NextAssignmentToolSwapFlip(isFirstActivation, prefs, tree)
-            case eMode.NEW|eMode.CREATE:
+            case eMode.NEW | eMode.CREATE:
                 self.NextAssignmentToolNewCreate(isFirstActivation, prefs, tree)
 
     def MatterPurposePoll(self):
         match eMode(self.toolMode):
-            case eMode.COPY|eMode.PASTE:
+            case eMode.COPY | eMode.PASTE:
                 return not not self.fotagoSkMain
-            case eMode.SWAP|eMode.FLIP:
+            case eMode.SWAP | eMode.FLIP:
                 return self.fotagoSkRosw and self.fotagoSkMain
             case eMode.NEW:
                 for dk, dv in self.dict_ndHidingVirtualIn.items():
@@ -206,16 +206,16 @@ class VoronoiInterfacerTool(VoronoiToolPairSk):
             case eMode.PASTE:
                 #tovo1v6 添加一个按键, 按下后会“取消”--不进行粘贴; 因为此模式保证会粘附 (参见选项) 到任何套接字, 需要某种方式来“退后一步”.
                 skMain = self.fotagoSkMain.tar
-                if (skMain.node.type not in NodeItemsUtils.support_types)and(prefs.vitPasteToAnySocket):
+                if (skMain.node.type not in NodeItemsUtils.support_types) and (prefs.vitPasteToAnySocket):
                     skMain.name = self.clipboard
                 else:
                     NodeItemsUtils(skMain).get_item(skMain).name = self.clipboard
-            case eMode.SWAP|eMode.FLIP:
+            case eMode.SWAP | eMode.FLIP:
                 skMain = self.fotagoSkMain.tar
                 items_tool = NodeItemsUtils(skMain)
                 skfFrom = items_tool.get_item(self.fotagoSkRosw.tar)
                 skfTo = items_tool.get_item(skMain)
-                items_tool.MoveBySkfs(skfFrom, skfTo, isSwap=self.toolMode==eMode.SWAP.value)
+                items_tool.MoveBySkfs(skfFrom, skfTo, isSwap=self.toolMode == eMode.SWAP.value)
             case eMode.NEW:
                 DoLinkHh(self.fotagoSkRosw.tar, self.fotagoSkMain.tar)
             case eMode.CREATE:
@@ -230,52 +230,52 @@ class VoronoiInterfacerTool(VoronoiToolPairSk):
                 is_group = tar_nd.type in ['GROUP', 'GROUP_INPUT', 'GROUP_OUTPUT']
                 if is_group:
                     for skf in items_tool.skfa:
-                        if skf.item_type=='PANEL': # 该死的头疼. 你们自己搞定吧, 我已经懒得搞了.
-                            can = False #|4|.
+                        if skf.item_type == 'PANEL':  # 该死的头疼. 你们自己搞定吧, 我已经懒得搞了.
+                            can = False  #|4|.
                             break
-                if can: #tovo0v6 还有面板.
+                if can:  #tovo0v6 还有面板.
                     item_name = skfNew.name
-                    ftgNearest = None# MinFromFtgs(list_ftgSksIn[0] if list_ftgSksIn else None, list_ftgSksOut[0] if list_ftgSksOut else None)
+                    ftgNearest = None  # MinFromFtgs(list_ftgSksIn[0] if list_ftgSksIn else None, list_ftgSksOut[0] if list_ftgSksOut else None)
                     min = 16777216.0
                     list_ftgSksIn, list_ftgSksOut = self.ToolGetNearestSockets(tar_nd)
                     for ftg in list_ftgSksIn if skMain.is_output else list_ftgSksOut:
-                        if (ftg.blid!='NodeSocketVirtual')and(NodeItemsUtils.IsSimRepCorrectSk(tar_nd, ftg.tar)):
-                            length = (ftgNdTar.pos-ftg.pos).length
-                            if min>length:
+                        if (ftg.blid != 'NodeSocketVirtual') and (NodeItemsUtils.IsSimRepCorrectSk(tar_nd, ftg.tar)):
+                            length = (ftgNdTar.pos - ftg.pos).length
+                            if min > length:
                                 min = length
                                 ftgNearest = ftg
                     if ftgNearest and (not items_tool.is_index_switch):
                         skfTo = items_tool.get_item(ftgNearest.tar)
                         items_tool.MoveBySkfs(skfNew, skfTo, isSwap=False)
-                        if (ftgNdTar.pos.y<ftgNearest.pos.y): # 'True' -- 在组中往下, 而不是世界朝向.
+                        if (ftgNdTar.pos.y < ftgNearest.pos.y):  # 'True' -- 在组中往下, 而不是世界朝向.
                             if items_tool.has_extend_socket:
-                                items_tool.MoveBySkfs(items_tool.get_item(ftgNearest.tar), skfTo, isSwap=None) # 小心 skfTo.
+                                items_tool.MoveBySkfs(items_tool.get_item(ftgNearest.tar), skfTo, isSwap=None)  # 小心 skfTo.
                             else:
-                                items_tool.MoveBySkfs(skfNew, skfTo, isSwap=None) # 天才!
+                                items_tool.MoveBySkfs(skfNew, skfTo, isSwap=None)  # 天才!
                     if ftgNearest and items_tool.is_index_switch:
-                        tar_input = ftgNearest.tar       # 要插入的位置的接口
+                        tar_input = ftgNearest.tar  # 要插入的位置的接口
                         inputs = tar_input.node.inputs
                         if tar_input.name == "Index":
-                            tar_index =  1
+                            tar_index = 1
                         else:
-                            is_ = ftgNdTar.pos.y<ftgNearest.pos.y      # 例: 插入1/2之间,离2近时正确,离1近时插到1上了(这时判断为True,插入1/2之间)
+                            is_ = ftgNdTar.pos.y < ftgNearest.pos.y  # 例: 插入1/2之间,离2近时正确,离1近时插到1上了(这时判断为True,插入1/2之间)
                             tar_index = int(tar_input.name) + 1 + is_  # 接口名 + 1才是在输入接口列表里的序号,因为编号切换第一个接口是编号
-                        max_index = int(skfNew.name) + 1               # 最后一个即新建接口的序号
-                        for i in range(max_index, tar_index-1, -1):
-                            link = inputs[i-1].links
+                        max_index = int(skfNew.name) + 1  # 最后一个即新建接口的序号
+                        for i in range(max_index, tar_index - 1, -1):
+                            link = inputs[i - 1].links
                             if link:
                                 links.new(link[0].from_socket, inputs[i])  # 建立新连线
-                                links.remove(link[0])                      # 删除旧连线
+                                links.remove(link[0])  # 删除旧连线
                         links.new(skMain, inputs[i])
 
                 if items_tool.has_extend_socket:
                     links.new(skMain, items_tool.get_socket(items_tool.skfa.get(item_name), is_out=not skMain.is_output))
                 if is_group:
-                    links.new(skMain, items_tool.get_socket(skfNew, is_out=(skfNew.in_out=='OUTPUT')^(items_tool.type!='GROUP')))
+                    links.new(skMain, items_tool.get_socket(skfNew, is_out=(skfNew.in_out == 'OUTPUT') ^ (items_tool.type != 'GROUP')))
 
     def InitTool(self, event, prefs, tree):
         self.fotagoSkMain = None
-        self.fotagoSkRosw = None #RootSwap
+        self.fotagoSkRosw = None  #RootSwap
         match eMode(self.toolMode):
             case eMode.NEW:
                 self.dict_ndHidingVirtualIn = {}
@@ -292,11 +292,12 @@ class VoronoiInterfacerTool(VoronoiToolPairSk):
                 # 某个 bug, 如果不重绘, 第一个找到的虚拟的就无法正确选择.
                 bpy.ops.wm.redraw_timer(type='DRAW', iterations=0)
             case eMode.CREATE:
-                self.fotagoNdTar = None # 天啊.
+                self.fotagoNdTar = None  # 天啊.
             case eMode.FLIP:
                 self.fotagoNdTar = None
-        VoronoiInterfacerTool.clipboard = property(lambda _:bpy.context.window_manager.clipboard, lambda _,v:setattr(bpy.context.window_manager,'clipboard', v))
+        VoronoiInterfacerTool.clipboard = property(lambda _: bpy.context.window_manager.clipboard,
+                                                   lambda _, v: setattr(bpy.context.window_manager, 'clipboard', v))
 
     @staticmethod
     def draw_in_pref_settings(col: bpy.types.UILayout, prefs):
-        draw_hand_split_prop(col, prefs,'vitPasteToAnySocket')
+        draw_hand_split_prop(col, prefs, 'vitPasteToAnySocket')
