@@ -48,34 +48,34 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
             case eMode.NEW:
                 TemplateDrawSksToolHh(drata, self.target_skRosw, self.target_skMain, isClassicFlow=True, tool_name="Connect to Extend Socket")
             case eMode.CREATE:
-                ftgMain = self.target_skMain
-                if ftgMain:
-                    TemplateDrawSksToolHh(drata, ftgMain, sideMarkHh=-2, tool_name="Insert to Socket")
-                ftgNdTar = self.target_ndTar
-                if ftgNdTar:
-                    TemplateDrawNodeFull(drata, ftgNdTar, tool_name="Node Group")
-                    tar_sks_in, tar_sks_out = self.get_nearest_sockets(ftgNdTar.tar, cur_x_off=0)
+                tarMain = self.target_skMain
+                if tarMain:
+                    TemplateDrawSksToolHh(drata, tarMain, sideMarkHh=-2, tool_name="Insert to Socket")
+                tarNdTar = self.target_ndTar
+                if tarNdTar:
+                    TemplateDrawNodeFull(drata, tarNdTar, tool_name="Node Group")
+                    tar_sks_in, tar_sks_out = self.get_nearest_sockets(tarNdTar.tar, cur_x_off=0)
                     if not tar_sks_in: return
                     near_group_in = tar_sks_in[0]  # 节点组可能没有输入接口:
 
-                    y = ftgNdTar.pos.y
+                    y = tarNdTar.pos.y
                     boxHeiBound = Vec((y - 7, y + 7))
-                    DrawVlSocketArea(drata, near_group_in.tar, boxHeiBound, Color4(get_sk_color_safe(ftgMain.tar)))
+                    DrawVlSocketArea(drata, near_group_in.tar, boxHeiBound, Color4(get_sk_color_safe(tarMain.tar)))
             case eMode.FLIP:  # 失败
-                # ftgMain = self.target_skMain
-                # if ftgMain:
-                # TemplateDrawSksToolHh(drata, ftgMain, isFlipSide=True, tool_name="")
+                # tarMain = self.target_skMain
+                # if tarMain:
+                # TemplateDrawSksToolHh(drata, tarMain, isFlipSide=True, tool_name="")
 
                 TemplateDrawSksToolHh(drata, self.target_skMain, self.target_skRosw, tool_name="Move to Socket")
-                ftgNdTar = self.target_ndTar
-                if ftgNdTar:
-                    # TemplateDrawNodeFull(drata, ftgNdTar, tool_name="Interfacer")
-                    tar_sks_in, tar_sks_out = self.get_nearest_sockets(ftgNdTar.tar, cur_x_off=0)
+                tarNdTar = self.target_ndTar
+                if tarNdTar:
+                    # TemplateDrawNodeFull(drata, tarNdTar, tool_name="Interfacer")
+                    tar_sks_in, tar_sks_out = self.get_nearest_sockets(tarNdTar.tar, cur_x_off=0)
                     near_group_in = tar_sks_in[0]
 
-                    y = ftgNdTar.pos.y
+                    y = tarNdTar.pos.y
                     boxHeiBound = Vec((y-20, y+20 ))
-                    DrawVlSocketArea(drata, near_group_in.tar, boxHeiBound, Color4(get_sk_color_safe(ftgMain.tar)))
+                    DrawVlSocketArea(drata, near_group_in.tar, boxHeiBound, Color4(get_sk_color_safe(tarMain.tar)))
                     # DrawVlSocketArea(drata, near_group_in.tar, near_group_in.boxHeiBound, Color4(get_sk_color_safe(near_group_in.tar)))
             case _:
                 # 小王-模式名匹配
@@ -219,8 +219,8 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
             case eMode.NEW:
                 DoLinkHh(self.target_skRosw.tar, self.target_skMain.tar)
             case eMode.CREATE:
-                ftgNdTar = self.target_ndTar
-                _tar_nd = ftgNdTar.tar
+                tarNdTar = self.target_ndTar
+                _tar_nd = tarNdTar.tar
                 items_tool = NodeItemsUtils(_tar_nd)
                 skMain = self.target_skMain.tar
                 skfNew = items_tool.NewSkfFromSk(skMain, isFlipSide=_tar_nd.type not in {'GROUP_INPUT', 'GROUP_OUTPUT'})
@@ -235,30 +235,30 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
                             break
                 if can:  #tovo0v6 还有面板.
                     item_name = skfNew.name
-                    ftgNearest = None  # MinFromFtgs(tar_sks_in[0] if tar_sks_in else None, tar_sks_out[0] if tar_sks_out else None)
+                    tarNearest = None  # MinFromFtgs(tar_sks_in[0] if tar_sks_in else None, tar_sks_out[0] if tar_sks_out else None)
                     min = 16777216.0
                     tar_sks_in, tar_sks_out = self.get_nearest_sockets(_tar_nd)
                     for tar in tar_sks_in if skMain.is_output else tar_sks_out:
                         if (tar.blid != 'NodeSocketVirtual') and (NodeItemsUtils.IsSimRepCorrectSk(_tar_nd, tar.tar)):
-                            length = (ftgNdTar.pos - tar.pos).length
+                            length = (tarNdTar.pos - tar.pos).length
                             if min > length:
                                 min = length
-                                ftgNearest = tar
-                    if ftgNearest and (not items_tool.is_index_switch):
-                        skfTo = items_tool.get_item(ftgNearest.tar)
+                                tarNearest = tar
+                    if tarNearest and (not items_tool.is_index_switch):
+                        skfTo = items_tool.get_item(tarNearest.tar)
                         items_tool.MoveBySkfs(skfNew, skfTo, isSwap=False)
-                        if (ftgNdTar.pos.y < ftgNearest.pos.y):  # 'True' -- 在组中往下, 而不是世界朝向.
+                        if (tarNdTar.pos.y < tarNearest.pos.y):  # 'True' -- 在组中往下, 而不是世界朝向.
                             if items_tool.has_extend_socket:
-                                items_tool.MoveBySkfs(items_tool.get_item(ftgNearest.tar), skfTo, isSwap=None)  # 小心 skfTo.
+                                items_tool.MoveBySkfs(items_tool.get_item(tarNearest.tar), skfTo, isSwap=None)  # 小心 skfTo.
                             else:
                                 items_tool.MoveBySkfs(skfNew, skfTo, isSwap=None)  # 天才!
-                    if ftgNearest and items_tool.is_index_switch:
-                        tar_input = ftgNearest.tar  # 要插入的位置的接口
+                    if tarNearest and items_tool.is_index_switch:
+                        tar_input = tarNearest.tar  # 要插入的位置的接口
                         inputs = tar_input.node.inputs
                         if tar_input.name == "Index":
                             tar_index = 1
                         else:
-                            is_ = ftgNdTar.pos.y < ftgNearest.pos.y  # 例: 插入1/2之间,离2近时正确,离1近时插到1上了(这时判断为True,插入1/2之间)
+                            is_ = tarNdTar.pos.y < tarNearest.pos.y  # 例: 插入1/2之间,离2近时正确,离1近时插到1上了(这时判断为True,插入1/2之间)
                             tar_index = int(tar_input.name) + 1 + is_  # 接口名 + 1才是在输入接口列表里的序号,因为编号切换第一个接口是编号
                         max_index = int(skfNew.name) + 1  # 最后一个即新建接口的序号
                         for i in range(max_index, tar_index - 1, -1):

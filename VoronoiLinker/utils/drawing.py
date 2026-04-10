@@ -301,15 +301,15 @@ def TemplateDrawSksToolHh(
         return
     # 经典流程线
     if (isClassicFlow)and(drata.dsIsDrawLine)and(len(tar_sks)==2):
-        ftg1 = tar_sks[0]
-        ftg2 = tar_sks[1]
-        if ftg1.dir*ftg2.dir<0: # 对于 VMLT, 为了不为它的两个套接字绘制, 它们在同一侧.
+        tar1 = tar_sks[0]
+        tar2 = tar_sks[1]
+        if tar1.dir*tar2.dir<0: # 对于 VMLT, 为了不为它的两个套接字绘制, 它们在同一侧.
             if drata.dsIsColoredLine:
-                col1 = get_sk_color_safe(ftg1.tar)
-                col2 = get_sk_color_safe(ftg2.tar)
+                col1 = get_sk_color_safe(tar1.tar)
+                col2 = get_sk_color_safe(tar2.tar)
             else:
                 col1 = col2 = drata.dsUniformColor
-            DrawWorldStick(drata, GetPosFromFtg(ftg1), GetPosFromFtg(ftg2), col1, col2)
+            DrawWorldStick(drata, GetPosFromFtg(tar1), GetPosFromFtg(tar2), col1, col2)
     # 主要部分:
     isOne = len(tar_sks)==1
 
@@ -342,19 +342,19 @@ def TemplateDrawSksToolHh(
                                                (tar.tar.vl_sold_is_final_linked_cou > 1)):
                     DrawVlMarker(drata, cursorLoc, ofsHh=(frameDim[0] * dir, frameDim[1] * ofsY), col=get_sk_color_safe(tar.tar))
             # 绘制工具提示
-            ftg_show_name = copy.copy(tar)
-            ftg_show_name.soldText = _iface(tool_name).capitalize()
+            tar_show_name = copy.copy(tar)
+            tar_show_name.soldText = _iface(tool_name).capitalize()
             if x_offset != 0:
                 cursorLoc2 = cursorLoc.copy() + Vec2((0, 50))  # 额外绘制
-                DrawVlSkText(drata, cursorLoc2, (x_offset, 0), ftg_show_name)
-                # DrawVlSkText(drata, cursorLoc, (20, 50), ftg_show_name)
+                DrawVlSkText(drata, cursorLoc2, (x_offset, 0), tar_show_name)
+                # DrawVlSkText(drata, cursorLoc, (20, 50), tar_show_name)
     # todo tool_name 的绘制和接口文本的绘制要分开,tool_name 要始终绘制,不要受 isDrawText 影响
     # todo 但是如果在下面绘制,批量连线时只绘制一根线(虽然正常连接)
     # if not isDrawText:      # 屎山的形成
     #     cursorLoc2 = cursorLoc.copy() + Vec2((0, 50))
-    #     ftg_show_name = copy.copy(tar)
+    #     tar_show_name = copy.copy(tar)
     #     txt_col = node_tag_color(tar_sks[0].tar.node)
-    #     DrawVlSkText(drata, cursorLoc2, (0, 0), ftg_show_name, tool_color=txt_col)
+    #     DrawVlSkText(drata, cursorLoc2, (0, 0), tar_show_name, tool_color=txt_col)
     #     # DrawWorldText(drata, drata.cursorLoc, (0, 0), tool_name, text_color=colTx, colBg=colTx)
 
     # 经典流程的光标下点

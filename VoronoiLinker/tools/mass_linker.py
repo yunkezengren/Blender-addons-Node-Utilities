@@ -32,21 +32,21 @@ class NODE_OT_voronoi_mass_linker(BaseTool):  # "猫狗合体", 既不是节点,
         else:
             tar_sks_out = self.get_nearest_sockets(self.ndTar0)[1]
             tar_sks_in = self.get_nearest_sockets(self.ndTar1)[0]
-            for ftgo in tar_sks_out:
-                for ftgi in tar_sks_in:
+            for taro in tar_sks_out:
+                for tari in tar_sks_in:
                     #因为是“批量”的 -- 标准必须自动化, 并对所有情况都统一.
-                    if CompareSkLabelName(ftgo.tar, ftgi.tar, self.prefs.vmltIgnoreCase): #只与名称相同的接口连接.
+                    if CompareSkLabelName(taro.tar, tari.tar, self.prefs.vmltIgnoreCase): #只与名称相同的接口连接.
                         tgl = False
                         if self.isIgnoreExistingLinks: #如果是不分青红皂白地连接, 就排除已经存在的“期望”连接. 这是为了美观.
-                            for lk in ftgi.tar.vl_sold_links_final:
+                            for lk in tari.tar.vl_sold_links_final:
                                 #需要检查 is_linked, 以便可以启用已禁用的链接, 替换它们.
-                                if (lk.from_socket.is_linked)and(lk.from_socket==ftgo.tar):
+                                if (lk.from_socket.is_linked)and(lk.from_socket==taro.tar):
                                     tgl = True
                             tgl = not tgl
                         else: #否则, 不要动已经连接的.
-                            tgl = not ftgi.tar.vl_sold_is_final_linked_cou
+                            tgl = not tari.tar.vl_sold_is_final_linked_cou
                         if tgl:
-                            self.list_equalFtgSks.append( (ftgo, ftgi) )
+                            self.list_equalFtgSks.append( (taro, tari) )
             if not self.list_equalFtgSks:
                 DrawVlWidePoint(drata, drata.cursorLoc, col1=drata.dsCursorColor, col2=drata.dsCursorColor) #否则一切都会消失.
             for li in self.list_equalFtgSks:

@@ -13,24 +13,24 @@ class NODE_OT_voronoi_call_node_pie(AnyTargetTool):
 
     def find_targets_tool(self, _isFirstActivation, prefs, tree):
         self.target_any: Target = None
-        ftg_nodes = self.get_nearest_nodes()  # ->list[Target] <class Target> 这里 .tar 是 Node
-        node_count = 5 if len(ftg_nodes) >= 5 else len(ftg_nodes)
-        node_count = min(5, len(ftg_nodes))
-        ftg_sockets: list[Target] = []
+        tar_nodes = self.get_nearest_nodes()  # ->list[Target] <class Target> 这里 .tar 是 Node
+        node_count = 5 if len(tar_nodes) >= 5 else len(tar_nodes)
+        node_count = min(5, len(tar_nodes))
+        tar_sockets: list[Target] = []
         # 优化了最近接口的获取
-        for fotago in ftg_nodes[:node_count]:
+        for fotago in tar_nodes[:node_count]:
             nd = fotago.tar
             if (not self.isTriggerOnCollapsedNodes) and (nd.hide):
                 continue
             # 这的最近节点的输入输出接口，有时候最近的是输出节口，但是没有离最近的节点的输入接口更近，所以把最近的几个节点接口列表合并
-            ftg_sks_in, ftg_sks_out = self.get_nearest_sockets(nd)  # ->([], [])  <class Target> 这里 .tar 是 Socket
-            ftg_sockets.extend(ftg_sks_in)
-            ftg_sockets.extend(ftg_sks_out)
-        ftg_sockets.sort(key=lambda soc: soc.dist)
+            tar_sks_in, tar_sks_out = self.get_nearest_sockets(nd)  # ->([], [])  <class Target> 这里 .tar 是 Socket
+            tar_sockets.extend(tar_sks_in)
+            tar_sockets.extend(tar_sks_out)
+        tar_sockets.sort(key=lambda soc: soc.dist)
         near_tar_sk = None
-        for ftg_sk in ftg_sockets:
-            if ftg_sk.blid != "NodeSocketVirtual":
-                near_tar_sk = ftg_sk
+        for tar_sk in tar_sockets:
+            if tar_sk.blid != "NodeSocketVirtual":
+                near_tar_sk = tar_sk
                 break
         self.target_any = near_tar_sk
         if near_tar_sk:
