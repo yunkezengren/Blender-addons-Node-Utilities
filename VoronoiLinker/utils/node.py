@@ -50,7 +50,7 @@ def RestoreCollapsedNodes(nodes):
         if dict_collapsedNodes.get(nd, None): # 工具在过程中可能会创建节点; 例如 vptRvEeIsSavePreviewResults.
             nd.hide = dict_collapsedNodes[nd]
 
-def GenFtgFromNd(nd: Node, pos: Vec2, uiScale: float): # 从 GetNearestNodesFtg 中提取出来, 本来没必要, 但 VLTT 逼我这么做.
+def GenFtgFromNd(nd: Node, pos: Vec2, uiScale: float): # 从 nearest_nodes_ftg 中提取出来, 本来没必要, 但 VLTT 逼我这么做.
     def DistanceField(field0: Vec2, boxbou: Vec2): # 感谢 RayMarching, 没有它我不会想到这个.
         field1 = Vec2(( (field0.x>0)*2-1, (field0.y>0)*2-1 ))
         field0 = Vec2(( abs(field0.x), abs(field0.y) ))-boxbou/2
@@ -72,7 +72,7 @@ def GenFtgFromNd(nd: Node, pos: Vec2, uiScale: float): # 从 GetNearestNodesFtg 
     # 将处理过的节点添加到列表中
     return Fotago(nd, dist=vec.length, pos=pos-vec)
 
-def GetNearestNodesFtg(nodes, samplePos, uiScale, includePoorNodes=True): # 返回最近的节点列表. 真实的距离场.
+def nearest_nodes_ftg(nodes, samplePos, uiScale, includePoorNodes=True): # 返回最近的节点列表. 真实的距离场.
     # 几乎是真实的. 圆角没有计算. 它们的缺失不影响使用, 而计算需要更多的操作. 所以没必要炫技.
     # 另一方面, 圆角对于折叠的节点很重要, 但我鄙视它们, 所以...
     # 框架节点被跳过, 因为没有一个工具需要它们.没有插槽的节点--就像框架节点一样;可以在搜索阶段就忽略它们.
@@ -122,7 +122,7 @@ def GenFtgsFromPuts(nd: Node, isSide, samplePos, uiScale): # 为 vptRvEeSksHighl
             results.append(Fotago(sk, dist=(samplePos-pos).length, pos=pos, dir= 1 if sk.is_output else -1 , boxHeiBound=boxHeiBound, text=txt))
     return results
 
-def GetNearestSocketsFtg(nd: Node, samplePos, uiScale): # 返回"最近的插槽"列表. 真实的 Voronoi 图单元距离场. 没错, 这个插件就是因此得名的.
+def nearest_sockets_ftg(nd: Node, samplePos, uiScale): # 返回"最近的插槽"列表. 真实的 Voronoi 图单元距离场. 没错, 这个插件就是因此得名的.
     if nd.type == 'REROUTE':
         def ftg_route(sk: NodeSocket):
             loc = node_abs_loc(nd)

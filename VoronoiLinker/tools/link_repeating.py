@@ -24,9 +24,9 @@ class NODE_OT_voronoi_link_repeating(AnyTargetTool):  # 分离成单独的工具
     usefulnessForCustomTree = True
     canDrawInAddonDiscl = False
     toolMode: bpy.props.EnumProperty(name="Mode", default=eMode.SOCKET.value, items=ModeItems)
-    def CallbackDrawTool(self, drata):
+    def callback_draw_tool(self, drata):
         self.TemplateDrawAny(drata, self.fotagoAny, cond=self.toolMode==eMode.NODE.value)
-    def NextAssignmentTool(self, _isFirstActivation, prefs, tree):
+    def find_targets_tool(self, _isFirstActivation, prefs, tree):
         def IsSkBetweenFields(sk1, sk2):
             return (sk1.type in set_utilTypeSkFields)and( (sk2.type in set_utilTypeSkFields)or(sk1.type==sk2.type) )
         skLastOut = self.skLastOut
@@ -36,12 +36,12 @@ class NODE_OT_voronoi_link_repeating(AnyTargetTool):  # 分离成单独的工具
         solder_sk_links(tree) # 好像不重新焊接也能工作.
         self.fotagoAny = None
         cur_x_off_repeat = -Cursor_X_Offset if self.toolMode==eMode.SOCKET.value else 0     # 小王 这个有点特殊
-        for ftgNd in self.ToolGetNearestNodes(cur_x_off=cur_x_off_repeat):
+        for ftgNd in self.get_nearest_nodes(cur_x_off=cur_x_off_repeat):
             nd = ftgNd.tar
             if nd==skLastOut.node: # 排除自身节点.
                 break #continue
             if self.toolMode==eMode.SOCKET.value:
-                list_ftgSksIn, list_ftgSksOut = self.ToolGetNearestSockets(nd, cur_x_off=-Cursor_X_Offset)
+                list_ftgSksIn, list_ftgSksOut = self.get_nearest_sockets(nd, cur_x_off=-Cursor_X_Offset)
                 if skLastOut:
                     for ftg in list_ftgSksIn:
                         if (skLastOut.bl_idname==ftg.blid)or(IsSkBetweenFields(skLastOut, ftg.tar)):
@@ -62,15 +62,15 @@ class NODE_OT_voronoi_link_repeating(AnyTargetTool):  # 分离成单独的工具
                             if (sk.enabled)and(not sk.hide):
                                 tree.links.new(skLastOut, sk) # 注意: 不是高级的; 为什么节点重复需要接口?.
             break
-    def MatterPurposeTool(self, event, prefs, tree):
+    def run(self, event, prefs, tree):
         if self.toolMode==eMode.SOCKET.value:
-            # 这里不需要检查套接字树是否相同, NextAssignmentTool() 中已经检查过了.
-            # 同样不需要检查 skLastOut 是否存在, 参见其在 NextAssignmentTool() 中的拓扑.
+            # 这里不需要检查套接字树是否相同, find_targets_tool() 中已经检查过了.
+            # 同样不需要检查 skLastOut 是否存在, 参见其在 find_targets_tool() 中的拓扑.
             # 注意: VlrtRememberLastSockets() 中有 `.id_data` 的相同性检查.
             # 注意: 不需要检查树是否存在, 因为如果连接的套接字在这里存在, 那它就肯定在某个地方.
             DoLinkHh(self.skLastOut, self.fotagoAny.tar)
             VlrtRememberLastSockets(self.skLastOut, self.fotagoAny.tar) # 因为. 而且.. “自递归”?.
-    def InitTool(self, event, prefs, tree):
+    def initialize(self, event, prefs, tree):
         for txt in "Out", "In":
             txtAttSkLast = 'skLast'+txt
             txtAttReprLastSk = 'reprLastSk'+txt # 如果失败, 不记录任何东西.

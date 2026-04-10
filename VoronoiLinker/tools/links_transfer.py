@@ -12,7 +12,7 @@ class NODE_OT_voronoi_links_transfer(PairNodeTool):
     usefulnessForCustomTree = True
     canDrawInAddonDiscl = False
     isByIndexes: bpy.props.BoolProperty(name="Transfer by indexes", default=False)
-    def CallbackDrawTool(self, drata):
+    def callback_draw_tool(self, drata):
         # VLT 模式
         if not self.fotagoNd0:
             TemplateDrawSksToolHh(drata, None, tool_name="Links Transfer")
@@ -22,11 +22,11 @@ class NODE_OT_voronoi_links_transfer(PairNodeTool):
         else:
             TemplateDrawNodeFull(drata, self.fotagoNd0, side=-1, tool_name="Transfer")
             TemplateDrawNodeFull(drata, self.fotagoNd1, side=1, tool_name="Transfer")
-    def NextAssignmentTool(self, isFirstActivation, prefs, tree):
+    def find_targets_tool(self, isFirstActivation, prefs, tree):
         if isFirstActivation:
             self.fotagoNd0 = None
         self.fotagoNd1 = None
-        for ftgNd in self.ToolGetNearestNodes(includePoorNodes=False, cur_x_off=0):
+        for ftgNd in self.get_nearest_nodes(includePoorNodes=False, cur_x_off=0):
             nd = ftgNd.tar
             if nd.type=='REROUTE':
                 continue
@@ -44,7 +44,7 @@ class NODE_OT_voronoi_links_transfer(PairNodeTool):
                 if self.fotagoNd0:
                     self.fotagoNd0.pos = GenFtgFromNd(self.fotagoNd0.tar, self.cursorLoc, self.uiScale).pos
             break
-    def MatterPurposeTool(self, event, prefs, tree):
+    def run(self, event, prefs, tree):
         from_node = self.fotagoNd0.tar
         to_node = self.fotagoNd1.tar
         def transfer_link(sk: B.NodeSocket, link: B.NodeLink):

@@ -26,21 +26,21 @@ class NODE_OT_voronoi_swapper(PairSocketTool):
     canDrawInAddonDiscl = False
     toolMode:     bpy.props.EnumProperty(name="Mode", default=eMode.SWAP.value, items=ModeItems)
     isCanAnyType: bpy.props.BoolProperty(name="Can swap with any socket type", default=False)
-    def CallbackDrawTool(self, drata):      # 我模仿着加的
+    def callback_draw_tool(self, drata):      # 我模仿着加的
         # 小王-模式名匹配
         match eMode(self.toolMode):
             case eMode.SWAP: mode = "交换连线"
             case eMode.ADD:  mode = "移动并加入连线"
             case eMode.TRAN: mode = "移动并替换连线"
         TemplateDrawSksToolHh(drata, self.fotagoSk0, self.fotagoSk1, tool_name=mode,)
-    def NextAssignmentTool(self, isFirstActivation, prefs, tree):
+    def find_targets_tool(self, isFirstActivation, prefs, tree):
         if isFirstActivation:
             self.fotagoSk0 = None
         self.fotagoSk1 = None
-        for ftgNd in self.ToolGetNearestNodes(cur_x_off=0):
+        for ftgNd in self.get_nearest_nodes(cur_x_off=0):
             nd = ftgNd.tar
             unhide_node_reassign(nd, self, cond=isFirstActivation, flag=True)
-            list_ftgSksIn, list_ftgSksOut = self.ToolGetNearestSockets(nd, cur_x_off=0)
+            list_ftgSksIn, list_ftgSksOut = self.get_nearest_sockets(nd, cur_x_off=0)
             #基于Mixer的标准.
             if isFirstActivation:
                 ftgSkOut, ftgSkIn = None, None
@@ -64,7 +64,7 @@ class NODE_OT_voronoi_swapper(PairSocketTool):
                 for ftg in list_ftgSksOut if skOut0.is_output else list_ftgSksIn:
                     if ftg.blid=='NodeSocketVirtual':
                         continue
-                    if (self.isCanAnyType)or(skOut0.bl_idname==ftg.blid)or(self.SkBetweenFieldsCheck(skOut0, ftg.tar)):
+                    if (self.isCanAnyType)or(skOut0.bl_idname==ftg.blid)or(self.check_between_sk_fields(skOut0, ftg.tar)):
                         self.fotagoSk1 = ftg
                     if self.fotagoSk1: #如果成功则停止搜索.
                         break
@@ -76,16 +76,16 @@ class NODE_OT_voronoi_swapper(PairSocketTool):
                         continue
                 unhide_node_reassign(nd, self, cond=self.fotagoSk1, flag=False)
             break
-    def MatterPurposePoll(self):
+    def can_run(self):
         return self.fotagoSk0 and self.fotagoSk1
-    def MatterPurposeTool(self, event, prefs, tree):
+    def run(self, event, prefs, tree):
         skIo0 = self.fotagoSk0.tar
         skIo1 = self.fotagoSk1.tar
         match eMode(self.toolMode):
             case eMode.SWAP:
                 #交换第一个和第二个接口的所有连接:
                 list_memSks = []
-                if skIo0.is_output: #检查 is_output 的一致性是 NextAssignmentTool() 的任务.
+                if skIo0.is_output: #检查 is_output 的一致性是 find_targets_tool() 的任务.
                     for lk in skIo0.vl_sold_links_final:
                         if lk.to_node!=skIo1.node: # T 1  以防止节点创建指向自身的连接。需要检查所有情况并且不处理此类连接.
                             list_memSks.append(lk.to_socket)

@@ -367,7 +367,7 @@ class NODE_OT_voronoi_preview(SingleSocketTool):
     isSelectingPreviewedNode: bpy.props.BoolProperty(name="Select previewed node", default=True)
     isTriggerOnlyOnLink:      bpy.props.BoolProperty(name="Only linked",           default=False, description="Trigger only on linked socket") #最初在 prefs 中.
     isEqualAnchorType:        bpy.props.BoolProperty(name="Equal anchor type",     default=False, description="Trigger only on anchor type sockets")
-    def CallbackDrawTool(self, drata):
+    def callback_draw_tool(self, drata):
         if (self.prefs.vptRvEeSksHighlighting)and(self.fotagoSk): #帮助逆向工程 -- 高亮连接点, 并同时显示这些接口的名称.
             solder_sk_links(self.tree) #否则在 `ftg.tar==sk:` 上会崩溃.
             #确定标签的缩放比例:
@@ -407,7 +407,7 @@ class NODE_OT_voronoi_preview(SingleSocketTool):
                 nd.color = col
             else:
                 return nd.color.copy()
-    def NextAssignmentTool(self, _isFirstActivation, prefs, tree):
+    def find_targets_tool(self, _isFirstActivation, prefs, tree):
         solder_sk_links(tree) #否则会崩溃.
         isGeoTree = tree.bl_idname=='GeometryNodeTree'
         if False:
@@ -420,7 +420,7 @@ class NODE_OT_voronoi_preview(SingleSocketTool):
                         isGeoViewer = True
                         break
         self.fotagoSk = None #没必要, 但为了清晰起见重置. 对调试很有用.
-        for ftgNd in self.ToolGetNearestNodes(cur_x_off=Cursor_X_Offset):
+        for ftgNd in self.get_nearest_nodes(cur_x_off=Cursor_X_Offset):
             nd = ftgNd.tar
             if (prefs.vptRvEeIsSavePreviewResults)and(nd.name==voronoiPreviewResultNdName): #忽略准备好的节点以进行重命名, 从而保存预览结果.
                 continue
@@ -436,7 +436,7 @@ class NODE_OT_voronoi_preview(SingleSocketTool):
             if ( (nd.type=='REROUTE')and(nd.name==voronoiAnchorCnName) ):
                 continue
             #如果成功, 则转到接口:
-            list_ftgSksOut = self.ToolGetNearestSockets(nd, cur_x_off=Cursor_X_Offset)[1]
+            list_ftgSksOut = self.get_nearest_sockets(nd, cur_x_off=Cursor_X_Offset)[1]
             for ftg in list_ftgSksOut:
                 #在这里忽略自己的桥接接口. 这对于节点组节点是必要的, 它们的桥接接口“伸出”并且没有这个检查就会被粘住; 之后它们将在 VptPreviewFromSk() 中被删除.
                 if ftg.tar.name==voronoiSkPreviewName:
@@ -480,7 +480,7 @@ class NODE_OT_voronoi_preview(SingleSocketTool):
                     RecrRerouteWalkerPainter(sk, prefs.vptOnionColorOut)
                 for sk in ndTar.inputs:
                     RecrRerouteWalkerPainter(sk, prefs.vptOnionColorIn)
-    def MatterPurposeTool(self, event, prefs, tree):
+    def run(self, event, prefs, tree):
         solder_sk_links(tree) #否则会崩溃.
         VptPreviewFromSk(self, prefs, self.fotagoSk.tar)
         VlrtRememberLastSockets(self.fotagoSk.tar, None)
@@ -490,7 +490,7 @@ class NODE_OT_voronoi_preview(SingleSocketTool):
                 if dv:
                     nd.use_custom_color = dv[0]
                     self.OmgNodeColor(nd, dv[1])
-    def InitTool(self, event, prefs, tree):
+    def initialize(self, event, prefs, tree):
         #如果允许使用经典查看器, 则用跳过标记完成工具, “将接力棒传给”原始查看器.
         match tree.bl_idname:
             case 'GeometryNodeTree':

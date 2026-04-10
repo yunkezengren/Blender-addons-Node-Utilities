@@ -30,17 +30,17 @@ class NODE_OT_voronoi_quick_math(TripleSocketTool):
     quickOprColor:         bpy.props.StringProperty(name="Color (quick)",  default="")
     justPieCall:           bpy.props.IntProperty(name="Just call pie", default=0, min=0, max=5,
                                                  description="Call pie to add a node, bypassing the sockets selection.\n0–Disable.\n1–Float.\n2–Vector.\n3–Boolean.\n4–Color.\n5–Int")
-    def CallbackDrawTool(self, drata):
+    def callback_draw_tool(self, drata):
         TemplateDrawSksToolHh(drata, self.fotagoSk0, self.fotagoSk1, self.fotagoSk2, tool_name="Quick Math")
-    def NextAssignmentTool(self, isFirstActivation, prefs, tree):
+    def find_targets_tool(self, isFirstActivation, prefs, tree):
         if isFirstActivation:
             self.fotagoSk0 = None
         isNotCanPickThird = not self.canPickThird if prefs.vqmtIncludeThirdSk else True
         if isNotCanPickThird:
             self.fotagoSk1 = None
-        for ftgNd in self.ToolGetNearestNodes(cur_x_off=Cursor_X_Offset):
+        for ftgNd in self.get_nearest_nodes(cur_x_off=Cursor_X_Offset):
             nd = ftgNd.tar
-            list_ftgSksIn, list_ftgSksOut = self.ToolGetNearestSockets(nd, cur_x_off=Cursor_X_Offset)
+            list_ftgSksIn, list_ftgSksOut = self.get_nearest_sockets(nd, cur_x_off=Cursor_X_Offset)
             if not list_ftgSksOut:
                 continue
             #这个工具只触发字段输出.
@@ -79,7 +79,7 @@ class NODE_OT_voronoi_quick_math(TripleSocketTool):
                 #对于第二个, 根据条件:
                 if skOut0:
                     for ftg in list_ftgSksOut:
-                        if self.SkBetweenFieldsCheck(skOut0, ftg.tar):
+                        if self.check_between_sk_fields(skOut0, ftg.tar):
                             self.fotagoSk1 = ftg
                             break
                     if not self.fotagoSk1:
@@ -107,26 +107,26 @@ class NODE_OT_voronoi_quick_math(TripleSocketTool):
         VqmtData.isPlaceImmediately = self.isPlaceImmediately
         VqmtData.depth = 0
         VqmtData.isFirstDone = False
-    def ModalMouseNext(self, event, prefs): #复制警报, VLT 也有一个.
+    def modal_handle_mouse(self, event, prefs): #复制警报, VLT 也有一个.
         if event.type==prefs.vqmtRepickKey:
             self.repickState = event.value=='PRESS'
             if self.repickState:
-                self.NextAssignmentRoot(True)
+                self.find_targets_base(True)
                 self.canPickThird = False #为有第三个套接字的工具添加重新选择功能, 总体上是个糟糕的主意; 工具的控制变得更难了.
         else:
             match event.type:
                 case 'MOUSEMOVE':
                     if self.repickState:
-                        self.NextAssignmentRoot(True)
+                        self.find_targets_base(True)
                     else:
-                        self.NextAssignmentRoot(False)
+                        self.find_targets_base(False)
                 case self.kmi.type|'ESC':
                     if event.value=='RELEASE':
                         return True
         return False
-    def MatterPurposePoll(self):
+    def can_run(self):
         return (self.fotagoSk0)and(self.isCanFromOne or self.fotagoSk1)
-    def MatterPurposeTool(self, event, prefs, tree):
+    def run(self, event, prefs, tree):
         VqmtData.sk0 = self.fotagoSk0.tar
         VqmtData.sk1 = opt_ftg_socket(self.fotagoSk1)
         VqmtData.sk2 = opt_ftg_socket(self.fotagoSk2)
@@ -174,7 +174,7 @@ class NODE_OT_voronoi_quick_math(TripleSocketTool):
         VqmtData.isJustPie = False
         VqmtData.canProcHideSks = True
         bpy.ops.node.quick_math_sub('INVOKE_DEFAULT')
-    def InitTool(self, event, prefs, tree):
+    def initialize(self, event, prefs, tree):
         self.repickState = False
         VqmtData.canProcHideSks = False #立即用于上面的两个 DoQuickMath 和下面的操作符.
         if self.justPieCall:

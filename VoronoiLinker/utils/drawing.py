@@ -13,7 +13,7 @@ from .solder import node_tag_color
 
 tup_whiteCol4 = (1.0, 1.0, 1.0, 1.0)
 
-class VlDrawData():
+class DrawDataTool():
     shaderLine = None
     shaderArea = None
     worldZoom = 0.0
@@ -81,10 +81,10 @@ class VlDrawData():
         self.dsUniformNodeColor = Color4(power_color4(self.dsUniformNodeColor))
         self.dsCursorColor = Color4(power_color4(self.dsCursorColor))
 
-def DrawWorldStick(drata: VlDrawData, pos1, pos2, col1, col2):
+def DrawWorldStick(drata: DrawDataTool, pos1, pos2, col1, col2):
     drata.DrawPathLL( (drata.VecUiViewToReg(pos1), drata.VecUiViewToReg(pos2)), (col1, col2), wid=drata.dsLineWidth )
 
-def DrawVlSocketArea(drata: VlDrawData, sk: NodeSocket, bou, col):
+def DrawVlSocketArea(drata: DrawDataTool, sk: NodeSocket, bou, col):
     loc = node_abs_loc(sk.node)
     pos1 = drata.VecUiViewToReg(Vec2( (loc.x,               bou[0]) ))
     pos2 = drata.VecUiViewToReg(Vec2( (loc.x+sk.node.width, bou[1]) ))
@@ -94,12 +94,12 @@ def DrawVlSocketArea(drata: VlDrawData, sk: NodeSocket, bou, col):
         col = drata.dsUniformColor
     drata.DrawRectangle(pos1, pos2, col)
 
-def DrawVlWidePoint(drata: VlDrawData, loc, *, col1=Color4(tup_whiteCol4), col2=tup_whiteCol4, resl=54, forciblyCol=False): #"forciblyCol" 只用于 DrawDebug.
+def DrawVlWidePoint(drata: DrawDataTool, loc, *, col1=Color4(tup_whiteCol4), col2=tup_whiteCol4, resl=54, forciblyCol=False): #"forciblyCol" 只用于 DrawDebug.
     if not(drata.dsIsColoredPoint or forciblyCol):
         col1 = col2 = drata.dsUniformColor
     drata.DrawWidePoint(drata.VecUiViewToReg(loc), radHh=((6 * drata.dsPointScale * drata.worldZoom)**2 + 10)**0.5, col1=col1, col2=col2, resl=resl)
 
-def DrawMarker(drata: VlDrawData, loc, col, *, style):
+def DrawMarker(drata: DrawDataTool, loc, col, *, style):
     fac = get_color_black_alpha(col, pw=1.5)*0.625 #todo1v6 标记颜色在亮色和黑色之间看起来不美观; 需要想点办法.
     colSh = (fac, fac, fac, 0.5) # 阴影
     colHl = (0.65, 0.65, 0.65, max(max(col[0],col[1]),col[2])*0.9/(3.5, 5.75, 4.5)[style]) # 透明白色描边
@@ -117,14 +117,14 @@ def DrawMarker(drata: VlDrawData, loc, col, *, style):
     drata.DrawRing((loc[0],     loc[1]+5.0), 9.0, wid=1.0, resl=resl, col=colMt)
     drata.DrawRing((loc[0]-5.0, loc[1]-3.5), 9.0, wid=1.0, resl=resl, col=colMt)
 
-def DrawVlMarker(drata: VlDrawData, loc, *, ofsHh, col):
+def DrawVlMarker(drata: DrawDataTool, loc, *, ofsHh, col):
     vec = drata.VecUiViewToReg(loc)
     dir = 1 if ofsHh[0]>0 else -1
     ofsX = dir*( (20*drata.dsIsDrawText+drata.dsDistFromCursor)*1.5+drata.dsFrameOffset )+4
     col = col if drata.dsIsColoredMarker else drata.dsUniformColor
     DrawMarker(drata, (vec[0]+ofsHh[0]+ofsX, vec[1]+ofsHh[1]), col, style=drata.dsMarkerStyle)
 
-def DrawFramedText(drata: VlDrawData, pos1, pos2, txt, *, siz, adj, colTx, colFr, colBg):
+def DrawFramedText(drata: DrawDataTool, pos1, pos2, txt, *, siz, adj, colTx, colFr, colBg):
     pos1x = ps1x = pos1[0]
     pos1y = ps1y = pos1[1]
     pos2x = ps2x = pos2[0]
@@ -178,7 +178,7 @@ def DrawFramedText(drata: VlDrawData, pos1, pos2, txt, *, siz, adj, colTx, colFr
     blf.draw(fontId, txt)
     return (pos2x-pos1x, pos2y-pos1y)
 
-def DrawWorldText(drata: VlDrawData, pos, ofsHh, text, *, text_color, colBg, fontSizeOverwrite=0): # fontSizeOverwrite 仅用于 vptRvEeSksHighlighting.
+def DrawWorldText(drata: DrawDataTool, pos, ofsHh, text, *, text_color, colBg, fontSizeOverwrite=0): # fontSizeOverwrite 仅用于 vptRvEeSksHighlighting.
     siz = drata.dsFontSize*(not fontSizeOverwrite)+fontSizeOverwrite
     blf.size(drata.fontId, siz)
     # 不计算"实际文本"的高度, 因为那样每个框每次的高度都会不同.
@@ -197,7 +197,7 @@ def DrawWorldText(drata: VlDrawData, pos, ofsHh, text, *, text_color, colBg, fon
     # return DrawFramedText(drata, pos1, pos2, txt, siz=siz, adj=dimDb[1]*drata.dsManualAdjustment, colTx=power_color4(text_color, pw=1/1.975), colFr=power_color4(colBg, pw=1/1.5), colBg=colBg)
     return DrawFramedText(drata, pos1, pos2, text, siz=siz, adj=dimDb[1]*drata.dsManualAdjustment, colTx=text_color, colFr=colBg, colBg=colBg)   # 绘制颜色加深
 
-def DrawVlSkText(drata: VlDrawData, pos, ofsHh, ftg: Fotago, *, fontSizeOverwrite=0, tool_color=(0, 0, 0, 0)): # 注意: `pos` 总是为了 drata.cursorLoc, 但请参见 vptRvEeSksHighlighting.
+def DrawVlSkText(drata: DrawDataTool, pos, ofsHh, ftg: Fotago, *, fontSizeOverwrite=0, tool_color=(0, 0, 0, 0)): # 注意: `pos` 总是为了 drata.cursorLoc, 但请参见 vptRvEeSksHighlighting.
     if not drata.dsIsDrawText:
         return (1, 0) #'1' 需要用于保存标记位置的方向信息.
     if drata.dsIsColoredText:
@@ -207,7 +207,7 @@ def DrawVlSkText(drata: VlDrawData, pos, ofsHh, ftg: Fotago, *, fontSizeOverwrit
         text_color = colBg = drata.dsUniformColor
     return DrawWorldText(drata, pos, ofsHh, ftg.soldText, text_color=text_color, colBg=colBg, fontSizeOverwrite=fontSizeOverwrite)
 
-def DrawDebug(self, drata: VlDrawData):
+def DrawDebug(self, drata: DrawDataTool):
     def DebugTextDraw(pos, txt, r, g, b):
         blf.size(0,18)
         blf.position(0, pos[0]+10,pos[1], 0)
@@ -217,14 +217,14 @@ def DrawDebug(self, drata: VlDrawData):
     if not self.tree:
         return
     col = Color4((1.0, 0.5, 0.5, 1.0))
-    list_ftgNodes = self.ToolGetNearestNodes(cur_x_off=0)
+    list_ftgNodes = self.get_nearest_nodes(cur_x_off=0)
     if not list_ftgNodes:
         return
     DrawWorldStick(drata, drata.cursorLoc, list_ftgNodes[0].pos, col, col)
     for cyc, li in enumerate(list_ftgNodes):
         DrawVlWidePoint(drata, li.pos, col1=col, col2=col, resl=4, forciblyCol=True)
         DebugTextDraw(drata.VecUiViewToReg(li.pos), str(cyc)+" Node goal here", col.x, col.y, col.z)
-    list_ftgSksIn, list_ftgSksOut = self.ToolGetNearestSockets(list_ftgNodes[0].tar)
+    list_ftgSksIn, list_ftgSksOut = self.get_nearest_sockets(list_ftgNodes[0].tar)
     if list_ftgSksIn:
         col = Color4((0.5, 1, 0.5, 1))
         DrawVlWidePoint(drata, list_ftgSksIn[0].pos, col1=col, col2=col, resl=4, forciblyCol=True)
@@ -234,7 +234,7 @@ def DrawDebug(self, drata: VlDrawData):
         DrawVlWidePoint(drata, list_ftgSksOut[0].pos, col1=col, col2=col, resl=4, forciblyCol=True)
         DebugTextDraw(drata.VecUiViewToReg(list_ftgSksOut[0].pos), "Nearest socketOut here", 0.75, 0.75, 1)
 
-def TemplateDrawNodeFull(drata: VlDrawData, ftgNd: Fotago, *, side=1, tool_name=""): # 模板重新思考过了; 很好. 现在它变得像其他所有的一样了.. 至少没有旧版本中的意大利面条式代码了.
+def TemplateDrawNodeFull(drata: DrawDataTool, ftgNd: Fotago, *, side=1, tool_name=""): # 模板重新思考过了; 很好. 现在它变得像其他所有的一样了.. 至少没有旧版本中的意大利面条式代码了.
     #todo1v6 模板只有一个 ftg, 没有分层, 两个调用会从一个绘制点和线到另一个的文本上方.
     if ftgNd:
         ndTar = ftgNd.tar
@@ -275,7 +275,7 @@ def TemplateDrawNodeFull(drata: VlDrawData, ftgNd: Fotago, *, side=1, tool_name=
 # 高级套接字绘制模板. 现在名称中有"Sk", 因为节点已完全进入 VL.
 # 在旧版本中的硬核之后, 使用这个模板简直是享受 (甚至不要看那里, 那里简直是地狱).
 def TemplateDrawSksToolHh(
-    drata: VlDrawData,
+    drata: DrawDataTool,
     *args_ftgSks: Fotago,
     sideMarkHh=1,
     isDrawText=True,
@@ -396,7 +396,7 @@ class TestDraw:
             # 该死的拓扑!
             prefs.dsIsTestDrawing = True
             return # 不知道是否必须退出.
-        drata = VlDrawData(context, context.space_data.cursor_location, context.preferences.system.dpi/72, prefs)
+        drata = DrawDataTool(context, context.space_data.cursor_location, context.preferences.system.dpi/72, prefs)
         cls.ctView2d = View2D.GetFields(context.region.view2d)
         drata.worldZoom = cls.ctView2d.GetZoom()
         ##

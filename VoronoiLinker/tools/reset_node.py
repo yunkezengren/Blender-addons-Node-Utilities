@@ -13,7 +13,7 @@ class NODE_OT_voronoi_reset_node(SingleNodeTool):
     isResetEnums: bpy.props.BoolProperty(name="Reset enums", default=False)
     isResetOnDrag: bpy.props.BoolProperty(name="Reset on grag (not recommended)", default=False)
     isSelectResetedNode: bpy.props.BoolProperty(name="Select reseted node", default=True)
-    def CallbackDrawTool(self, drata):              # 小王-工具提示
+    def callback_draw_tool(self, drata):              # 小王-工具提示
         if self.isResetEnums:
             mode = "完全重置节点"
         else:
@@ -40,23 +40,23 @@ class NODE_OT_voronoi_reset_node(SingleNodeTool):
         tree.nodes.active = ndNew
         ndNew.select = self.isSelectResetedNode
         return ndNew
-    def NextAssignmentTool(self, isFirstActivation, prefs, tree):
+    def find_targets_tool(self, isFirstActivation, prefs, tree):
         solder_sk_links(tree)
         self.fotagoNd = None
-        for ftgNd in self.ToolGetNearestNodes(includePoorNodes=True, cur_x_off=0):
+        for ftgNd in self.get_nearest_nodes(includePoorNodes=True, cur_x_off=0):
             nd = ftgNd.tar
             if nd.type=='REROUTE': #"你确定要重新创建转向节点吗？".
                 continue
             self.fotagoNd = ftgNd
             if (self.isResetOnDrag)and(nd not in self.set_done):
                 self.set_done.add(self.VrntDoResetNode(self.fotagoNd.tar, tree))
-                self.NextAssignmentTool(isFirstActivation, prefs, tree)
+                self.find_targets_tool(isFirstActivation, prefs, tree)
                 #总的来说'isResetOnDrag'有点问题 -- 需要为新创建的节点重绘以获取其高度；或者我没什么好主意.
                 #并且点会吸附到节点角落一帧.
             break
-    def MatterPurposePoll(self):
+    def can_run(self):
         return (not self.isResetOnDrag)and(self.fotagoNd)
-    def MatterPurposeTool(self, event, prefs, tree):
+    def run(self, event, prefs, tree):
         self.VrntDoResetNode(self.fotagoNd.tar, tree)
-    def InitTool(self, event, prefs, tree):
+    def initialize(self, event, prefs, tree):
         self.set_done = set() #没有这个会有非常“可怕”的行为，如果过度操作，很可能会崩溃.

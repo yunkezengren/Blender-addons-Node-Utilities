@@ -19,18 +19,18 @@ class NODE_OT_voronoi_mixer(TripleSocketTool):
     isCanFromOne:       bpy.props.BoolProperty(name="Can from one socket", default=True) #放在第一位, 以便在 kmi 中与 VQMT 类似.
     isHideOptions:      bpy.props.BoolProperty(name="Hide node options",   default=False)
     isPlaceImmediately: bpy.props.BoolProperty(name="Place immediately",   default=False)
-    def CallbackDrawTool(self, drata):
+    def callback_draw_tool(self, drata):
         TemplateDrawSksToolHh(drata, self.fotagoSk0, self.fotagoSk1, self.fotagoSk2, tool_name="Quick Mix")
-    def NextAssignmentTool(self, isFirstActivation, prefs, tree):
+    def find_targets_tool(self, isFirstActivation, prefs, tree):
         if isFirstActivation:
             self.fotagoSk0 = None #需要清空, 因为下面有两个 continue.
         if not self.canPickThird:
             self.fotagoSk1 = None
         soldReroutesCanInAnyType = prefs.vmtReroutesCanInAnyType
-        for ftgNd in self.ToolGetNearestNodes(cur_x_off=Cursor_X_Offset):
+        for ftgNd in self.get_nearest_nodes(cur_x_off=Cursor_X_Offset):
             nd = ftgNd.tar
             unhide_node_reassign(nd, self, cond=isFirstActivation, flag=True)
-            list_ftgSksOut = self.ToolGetNearestSockets(nd, cur_x_off=Cursor_X_Offset)[1]
+            list_ftgSksOut = self.get_nearest_sockets(nd, cur_x_off=Cursor_X_Offset)[1]
             if not list_ftgSksOut:
                 continue
             #节点过滤器没有必要.
@@ -49,7 +49,7 @@ class NODE_OT_voronoi_mixer(TripleSocketTool):
                         orV = (skOut1.bl_idname == 'NodeSocketVirtual') or (skOut0.bl_idname == 'NodeSocketVirtual')
                         #现在 VMT 又可以连接到虚拟接口了
                         tgl = (skOut1.bl_idname == 'NodeSocketVirtual') ^ (skOut0.bl_idname == 'NodeSocketVirtual')
-                        tgl = tgl or (self.SkBetweenFieldsCheck(skOut0, skOut1) or ((skOut1.bl_idname == skOut0.bl_idname) and (not orV)))
+                        tgl = tgl or (self.check_between_sk_fields(skOut0, skOut1) or ((skOut1.bl_idname == skOut0.bl_idname) and (not orV)))
                         tgl = tgl or ((skOut0.node.type == 'REROUTE') or (skOut1.node.type == 'REROUTE')) and (soldReroutesCanInAnyType)
                         if tgl:
                             self.fotagoSk1 = ftg
@@ -73,14 +73,14 @@ class NODE_OT_voronoi_mixer(TripleSocketTool):
             #因为如果第一个(最近的)节点搜索结果失败, 循环将结束, 工具将不会选择任何东西, 即使旁边有合适的.
             if self.fotagoSk0:  # 在使用现在不存在的 isCanReOut 时尤其明显; 如果没有这个, 结果会根据光标位置成功/不成功地选择.
                 break
-    def MatterPurposePoll(self):
+    def can_run(self):
         if not self.fotagoSk0:
             return False
         if self.isCanFromOne:
             return (self.fotagoSk0.blid!='NodeSocketVirtual')or(self.fotagoSk1)
         else:
             return self.fotagoSk1
-    def MatterPurposeTool(self, event, prefs, tree):
+    def run(self, event, prefs, tree):
         VmtData.sk0 = self.fotagoSk0.tar
         socket1 = opt_ftg_socket(self.fotagoSk1)
         VmtData.sk1 = socket1

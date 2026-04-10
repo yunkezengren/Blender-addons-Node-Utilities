@@ -182,7 +182,7 @@ class NODE_OT_voronoi_enum_selector(SingleNodeTool):
     isToggleOptions:     bpy.props.BoolProperty(name="Toggle node options", default=False)
     isSelectNode:        bpy.props.IntProperty(name="Select target node",  default=1, min=0, max=3, description="0 – Do not select.\n1 – Select.\n2 – And center.\n3 – And zooming")
     rename_node:         bpy.props.BoolProperty(name="Rename Node Only Chinese", default=True, description="Rename nodes when toggling options, currently only support Chinese")
-    def CallbackDrawTool(self, drata):              # 工具提示
+    def callback_draw_tool(self, drata):              # 工具提示
         if self.isToggleOptions:
             mode = "Hide Options"
             if self.firstResult == False:           # 最近节点选项是隐藏的，后续就是显示选项
@@ -202,9 +202,9 @@ class NODE_OT_voronoi_enum_selector(SingleNodeTool):
             success = not nd.show_options
             nd.show_options = True
             return success
-    def NextAssignmentTool(self, _isFirstActivation, prefs, tree):
+    def find_targets_tool(self, _isFirstActivation, prefs, tree):
         self.fotagoNd = None
-        for ftgNd in self.ToolGetNearestNodes(cur_x_off=0):
+        for ftgNd in self.get_nearest_nodes(cur_x_off=0):
             node = ftgNd.tar
             if node.type=='REROUTE': # 对于这个工具, reroute 会被跳过, 原因很明显.
                 continue
@@ -274,17 +274,17 @@ class NODE_OT_voronoi_enum_selector(SingleNodeTool):
             # ops运行唤出菜单后生效,再更改选项不生效，不是实时更改name
             # # rename_node_based_option(ndTar)
             return True # 用于 modal(), 返回成功.
-    def MatterPurposeTool(self, event, prefs, tree):
+    def run(self, event, prefs, tree):
         if self.isToggleOptions:
             if not prefs.vestIsToggleNodesOnDrag: # 和 VHT 中一样.
                 self.ToggleOptionsFromNode(self.fotagoNd.tar, self.ToggleOptionsFromNode(self.fotagoNd.tar, True), True)
         else:
             if not self.isInstantActivation:
                 self.DoActivation(prefs, tree)
-    def InitTool(self, event, prefs, tree):
+    def initialize(self, event, prefs, tree):
         if (self.isInstantActivation)and(not self.isToggleOptions):
             # 注意: 盒子可能会完全覆盖节点及其连接线.
-            self.NextAssignmentRoot(None)
+            self.find_targets_base(None)
             if not self.fotagoNd:
                 return {'CANCELLED'}
             self.DoActivation(prefs, tree)

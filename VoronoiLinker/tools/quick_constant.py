@@ -18,16 +18,16 @@ class NODE_OT_voronoi_quick_constant(TripleSocketTool):
     usefulnessForCustomTree = False
     canDrawInAddonDiscl = False
     isPlaceImmediately: bpy.props.BoolProperty(name="Place immediately", default=False)
-    def CallbackDrawTool(self, drata):
+    def callback_draw_tool(self, drata):
         TemplateDrawSksToolHh(drata, self.fotagoSk0, self.fotagoSk1, self.fotagoSk2, tool_name="Quick Constant")
-    def NextAssignmentTool(self, isFirstActivation, prefs, tree):
+    def find_targets_tool(self, isFirstActivation, prefs, tree):
         if isFirstActivation:
             self.fotagoSk0 = None
         if not self.canPickThird:
             self.fotagoSk1 = None
-        for ftgNd in self.ToolGetNearestNodes(cur_x_off= -Cursor_X_Offset):
+        for ftgNd in self.get_nearest_nodes(cur_x_off= -Cursor_X_Offset):
             nd = ftgNd.tar
-            list_ftgSksOut = self.ToolGetNearestSockets(nd, cur_x_off= -Cursor_X_Offset)[0]
+            list_ftgSksOut = self.get_nearest_sockets(nd, cur_x_off= -Cursor_X_Offset)[0]
             if not list_ftgSksOut:
                 continue
             if isFirstActivation:
@@ -67,9 +67,9 @@ class NODE_OT_voronoi_quick_constant(TripleSocketTool):
                     unhide_node_reassign(nd, self, cond=self.fotagoSk2, flag=False)
                     if self.fotagoSk2:
                         break
-    def MatterPurposePoll(self):
+    def can_run(self):
         return not not self.fotagoSk0
-    def MatterPurposeTool(self, event, prefs, tree):
+    def run(self, event, prefs, tree):
         skIn0 = self.fotagoSk0.tar
         if skIn0.type in ["ROTATION", "MATRIX"]:
             Convert_Data.sk0 = skIn0

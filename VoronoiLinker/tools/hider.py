@@ -117,16 +117,16 @@ class NODE_OT_voronoi_hider(AnyTargetTool):
     usefulnessForUndefTree = True
     toolMode: bpy.props.EnumProperty(name="Mode", default=eMode.HIDE_SOCKET.value, items=ModeItems)
     isTriggerOnCollapsedNodes: bpy.props.BoolProperty(name="Trigger on collapsed nodes", default=True)
-    def CallbackDrawTool(self, drata):
+    def callback_draw_tool(self, drata):
         # 模式名匹配
         match eMode(self.toolMode):
             case eMode.HIDE_NODE:   mode = "Auto Hide/Show Sockets"
             case eMode.HIDE_SOCKET: mode = "Hide Socket"
             case eMode.HIDE_VALUE:  mode = "Hide/Show Socket Value"
         self.TemplateDrawAny(drata, self.fotagoAny, cond=self.toolMode==eMode.HIDE_NODE.value, tool_name=mode)
-    def NextAssignmentTool(self, _isFirstActivation, prefs, tree):
+    def find_targets_tool(self, _isFirstActivation, prefs, tree):
         self.fotagoAny = None
-        for ftgNd in self.ToolGetNearestNodes(cur_x_off=0):
+        for ftgNd in self.get_nearest_nodes(cur_x_off=0):
             nd = ftgNd.tar
             if (not self.isTriggerOnCollapsedNodes)and(nd.hide):
                 continue
@@ -136,7 +136,7 @@ class NODE_OT_voronoi_hider(AnyTargetTool):
             match eMode(self.toolMode):
                 case eMode.HIDE_SOCKET|eMode.HIDE_VALUE:
                     # 对于套接字模式, 折叠处理和所有其他一样.
-                    list_ftgSksIn, list_ftgSksOut = self.ToolGetNearestSockets(nd, cur_x_off=0)
+                    list_ftgSksIn, list_ftgSksOut = self.get_nearest_sockets(nd, cur_x_off=0)
                     def GetNotLinked(list_ftgSks): #Findanysk.
                         for ftg in list_ftgSks:
                             if not ftg.tar.vl_sold_is_final_linked_cou:
@@ -165,7 +165,7 @@ class NODE_OT_voronoi_hider(AnyTargetTool):
                         #Todo0v6SF 唯一可能的解决方案是, 在绘制一帧后_再_改变节点.
                         #^ 也就是说, 附加到新节点一帧, 然后立即处理它, 同时寻找新节点并向其绘制 (如 wiki 中的示例).
             break
-    def MatterPurposeTool(self, event, prefs, tree):
+    def run(self, event, prefs, tree):
         match eMode(self.toolMode):
             case eMode.HIDE_NODE:
                 if not prefs.vhtIsToggleNodesOnDrag:
@@ -208,7 +208,7 @@ class NODE_OT_voronoi_hider(AnyTargetTool):
                 else:
                     socket.hide_value = not socket.hide_value
 
-    def InitTool(self, event, prefs, tree):
+    def initialize(self, event, prefs, tree):
         self.firstResult = None # 从第一个节点获取“折叠”或“展开”的动作, 然后将其广播到所有其他遇到的节点.
     @staticmethod
     def draw_in_pref_settings(col: bpy.types.UILayout, prefs):

@@ -76,9 +76,9 @@ class NODE_OT_voronoi_ranto(SingleNodeTool): #完成了.
             for nd in rada.dict_ndTopoWorking:
                 nd.select = True
         #ndTar.location = ndTar.location #bpy.ops.wm.redraw_timer(type='DRAW', iterations=0)
-    def NextAssignmentTool(self, _isFirstActivation, prefs, tree):
+    def find_targets_tool(self, _isFirstActivation, prefs, tree):
         self.fotagoNd = None
-        for ftgNd in self.ToolGetNearestNodes(cur_x_off=0):
+        for ftgNd in self.get_nearest_nodes(cur_x_off=0):
             nd = ftgNd.tar
             if nd.type=='REROUTE':
                 continue #为此，请参考原始的RANTO插件.
@@ -88,14 +88,14 @@ class NODE_OT_voronoi_ranto(SingleNodeTool): #完成了.
             if prefs.vrtIsLiveRanto:
                 self.DoRANTO(nd, tree, prefs.vrtIsFixIslands)
             break
-    def MatterPurposeTool(self, event, prefs, tree):
+    def run(self, event, prefs, tree):
         ndTar = self.fotagoNd.tar
         #if self.isAccumulate:
         #    self.ndMaxAccRoot = None
         #    self.lastNdProc = None
         self.DoRANTO(ndTar, tree, prefs.vrtIsFixIslands)
         DisplayMessage("RANTO", _iface("This tool is empty")+" ¯\_(ツ)_/¯")
-    def InitTool(self, event, prefs, tree):
+    def initialize(self, event, prefs, tree):
         self.lastNdProc = None
         #self.ndMaxAccRoot = None
     @staticmethod
