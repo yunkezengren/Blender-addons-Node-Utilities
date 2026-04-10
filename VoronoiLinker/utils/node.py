@@ -160,7 +160,7 @@ class VlrtData:
     reprLastSkOut = ""
     reprLastSkIn = ""
 
-def opt_tar_socket(tar: Target) -> NodeSocket:
+def opt_tar_socket(tar: Target) -> NodeSocket | None:
     return tar.tar if tar else None
 
 def IsClassicSk(sk: NodeSocket):

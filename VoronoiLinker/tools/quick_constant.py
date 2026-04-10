@@ -11,6 +11,7 @@ B = bpy.types
 def get_const_node(tree: NodeTree, sk_type: str):
     return AllQuickConstant.get(tree.bl_idname, None).get(sk_type, None)
 
+# todo: 允许 同时从 浮点 整数 拉出 浮点/
 class NODE_OT_voronoi_quick_constant(TripleSocketTool):
     bl_idname = 'node.voronoi_quick_constant'
     bl_label = "Voronoi Quick Constant"
@@ -61,7 +62,7 @@ class NODE_OT_voronoi_quick_constant(TripleSocketTool):
                         if tar.tar.type==sk_out0.type:
                             self.target_sk2 = tar
                             break
-                    if (self.target_sk2)and( (self.target_sk2.tar==sk_out0)or(sk_out1)and(self.target_sk2.tar==sk_out1) ):
+                    if (self.target_sk2) and ((self.target_sk2.tar == sk_out0) or (sk_out1) and (self.target_sk2.tar == sk_out1)):
                         self.target_sk2 = None
                         break
                     unhide_node_reassign(nd, self, cond=self.target_sk2, flag=False)
@@ -102,7 +103,7 @@ class NODE_OT_voronoi_quick_constant(TripleSocketTool):
             if isinstance(new_node, (B.NodeClosureOutput, B.NodeCombineBundle)):
                 bpy.ops.node.sockets_sync()
                 return
-            
+
             if not hasattr(skIn0, "default_value"): return
             value = skIn0.default_value
 
