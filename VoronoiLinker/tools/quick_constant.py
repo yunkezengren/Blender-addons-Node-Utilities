@@ -19,8 +19,8 @@ class NODE_OT_voronoi_quick_constant(TripleSocketTool):
     use_for_custom_tree = False
     can_draw_in_pref_setting = False
     isPlaceImmediately: bpy.props.BoolProperty(name="Place immediately", default=False)
-    def callback_draw_tool(self, drata):
-        TemplateDrawSksToolHh(drata, self.target_sk0, self.target_sk1, self.target_sk2, tool_name="Quick Constant")
+    def callback_draw_tool(self, drawer):
+        TemplateDrawSksToolHh(drawer, self.target_sk0, self.target_sk1, self.target_sk2, tool_name="Quick Constant")
     def find_targets_tool(self, is_first_active, prefs, tree):
         if is_first_active:
             self.target_sk0 = None

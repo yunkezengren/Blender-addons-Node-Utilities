@@ -20,8 +20,8 @@ class NODE_OT_voronoi_linker(PairSocketTool):  # 神圣中的神圣. 它存在�
     bl_description = "The sacred tool. The reason this entire addon was created.\nA moment of silence in honor of NodeWrangler, the original ancestor."
     use_for_custom_tree = True
     use_for_none_tree = True
-    def callback_draw_tool(self, drata):
-        TemplateDrawSksToolHh(drata, self.target_skOut, self.target_skIn, sideMarkHh=-1, isClassicFlow=True, tool_name="Linker")
+    def callback_draw_tool(self, drawer):
+        TemplateDrawSksToolHh(drawer, self.target_skOut, self.target_skIn, sideMarkHh=-1, isClassicFlow=True, tool_name="Linker")
     @staticmethod
     def SkPriorityIgnoreCheck(sk): #False -- 忽略.
         # 这个函数是应外部请求添加的 (就像 VLNST).

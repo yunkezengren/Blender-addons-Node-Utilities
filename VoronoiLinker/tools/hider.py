@@ -118,13 +118,13 @@ class NODE_OT_voronoi_hider(AnyTargetTool):
     use_for_none_tree = True
     toolMode: bpy.props.EnumProperty(name="Mode", default=eMode.HIDE_SOCKET.value, items=ModeItems)
     isTriggerOnCollapsedNodes: bpy.props.BoolProperty(name="Trigger on collapsed nodes", default=True)
-    def callback_draw_tool(self, drata):
+    def callback_draw_tool(self, drawer):
         # 模式名匹配
         match eMode(self.toolMode):
             case eMode.HIDE_NODE:   mode = "Auto Hide/Show Sockets"
             case eMode.HIDE_SOCKET: mode = "Hide Socket"
             case eMode.HIDE_VALUE:  mode = "Hide/Show Socket Value"
-        self.template_draw_any(drata, self.target_any, cond=self.toolMode==eMode.HIDE_NODE.value, tool_name=mode)
+        self.template_draw_any(drawer, self.target_any, cond=self.toolMode==eMode.HIDE_NODE.value, tool_name=mode)
     def find_targets_tool(self, _is_first_active, prefs, tree):
         self.target_any = None
         for tar_nd in self.get_nearest_nodes(cur_x_off=0):

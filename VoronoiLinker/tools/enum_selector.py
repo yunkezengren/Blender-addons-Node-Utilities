@@ -182,15 +182,15 @@ class NODE_OT_voronoi_enum_selector(SingleNodeTool):
     isToggleOptions:     bpy.props.BoolProperty(name="Toggle node options", default=False)
     isSelectNode:        bpy.props.IntProperty(name="Select target node",  default=1, min=0, max=3, description="0 – Do not select.\n1 – Select.\n2 – And center.\n3 – And zooming")
     rename_node:         bpy.props.BoolProperty(name="Rename Node Only Chinese", default=True, description="Rename nodes when toggling options, currently only support Chinese")
-    def callback_draw_tool(self, drata):              # 工具提示
+    def callback_draw_tool(self, drawer):              # 工具提示
         if self.isToggleOptions:
             mode = "Hide Options"
             if self.firstResult == False:           # 最近节点选项是隐藏的，后续就是显示选项
                 mode = "Show Options"
         else:
             mode = "Toggle Options"
-        TemplateDrawNodeFull(drata, self.target_nd, tool_name=mode)
-        # self.template_draw_any(drata, self.target_any, cond=self.toolMode=='NODE', tool_name=name)
+        TemplateDrawNodeFull(drawer, self.target_nd, tool_name=mode)
+        # self.template_draw_any(drawer, self.target_any, cond=self.toolMode=='NODE', tool_name=name)
     def ToggleOptionsFromNode(self, nd, lastResult, isCanDo=False): # 工作原理复制自 VHT HideFromNode().
         if lastResult:
             success = nd.show_options

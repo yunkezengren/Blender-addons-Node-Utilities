@@ -10,7 +10,7 @@ from .common_func import is_builtin_tree_idname, user_node_keymap
 from .common_class import Target
 from .globals import set_utilTypeSkFields
 from .preference import pref, VoronoiAddonPrefs
-from .utils.drawing import DrawDebug, TemplateDrawNodeFull, TemplateDrawSksToolHh, DrawDataTool
+from .utils.drawing import DrawDebug, TemplateDrawNodeFull, TemplateDrawSksToolHh, Drawer
 from .utils.node import nearest_nodes_tar, nearest_sockets_tar, RestoreCollapsedNodes, SaveCollapsedNodes
 from .utils.solder import solder_sk_links, solder_theme_cols
 
@@ -39,7 +39,7 @@ class VlToolMixin: #-1
     use_for_none_tree = None
     can_draw_in_pref_setting = None
     can_draw_in_appearence = None
-    def callback_draw_tool(self, drata: DrawDataTool): pass
+    def callback_draw_tool(self, drawer: Drawer): pass
     def find_targets_tool(self, is_first_active: bool, prefs: VoronoiAddonPrefs, tree: NodeTree): pass
     def handle_modal(self, event: Event, prefs: VoronoiAddonPrefs): pass
     def run(self, event: Event, prefs: VoronoiAddonPrefs, tree: NodeTree): pass
@@ -58,14 +58,14 @@ class BaseTool(BaseOperator, VlToolMixin):  #0
                                 default=False,
                                 description="Clicking over a node activates selection, not the tool")
 
-    def callback_draw_base(self, drata: DrawDataTool, context: Context):
-        if drata.whereActivated != context.space_data:  # 需要只在活动的编辑器中绘制, 而不是在所有打开相同树的编辑器中绘制.
+    def callback_draw_base(self, drawer: Drawer, context: Context):
+        if drawer.whereActivated != context.space_data:  # 需要只在活动的编辑器中绘制, 而不是在所有打开相同树的编辑器中绘制.
             return
-        drata.worldZoom = self.ctView2d.GetZoom()  # 每次都从 EdgePan 和鼠标滚轮获取. 以前可以一次性焊接.
+        drawer.worldZoom = self.ctView2d.GetZoom()  # 每次都从 EdgePan 和鼠标滚轮获取. 以前可以一次性焊接.
         if self.prefs.dsIsFieldDebug:
-            DrawDebug(self, drata)
+            DrawDebug(self, drawer)
         if self.tree:  # 现在对于没有树的情况可以不显示任何迹象; 由于拓扑结构的头疼问题以及在插件树中传递热键时工具的跳过问题而关闭 (?).
-            self.callback_draw_tool(drata)
+            self.callback_draw_tool(drawer)
 
     def get_nearest_nodes(self, includePoorNodes=False, cur_x_off: float = 0):
         self.cursorLoc.x += cur_x_off  # 唤起位置偏移
@@ -150,7 +150,7 @@ class BaseTool(BaseOperator, VlToolMixin):  #0
         self.prefs = pref()  # "原来是这么简单".
         self.uiScale = context.preferences.system.dpi / 72
         self.cursorLoc: Vec2 = context.space_data.cursor_location  # 这是 class Vector, 通过引用复制; 所以可以在这里设置(绑定)一次, 就不用担心了.
-        self.drata = DrawDataTool(context, self.cursorLoc, self.uiScale, self.prefs)
+        self.drawer = Drawer(context, self.cursorLoc, self.uiScale, self.prefs)
         solder_theme_cols(context.preferences.themes[0].node_editor)  # 和 fontId 一样; 虽然在大多数情况下主题在整个会话期间不会改变.
         self.region = context.region
         self.ctView2d = View2D.GetFields(context.region.view2d)
@@ -165,7 +165,7 @@ class BaseTool(BaseOperator, VlToolMixin):  #0
         edge_pan_init(self, context.area)
         ##
         self.handle = SpaceNodeEditor.draw_handler_add(self.callback_draw_base, (
-            self.drata,
+            self.drawer,
             context,
         ), 'WINDOW', 'POST_PIXEL')
         if tree:  # 注意: 参见本地拓扑结构, 工具本身可以, 但每个工具都明确地对缺失的树禁用了.
@@ -180,8 +180,8 @@ class BaseTool(BaseOperator, VlToolMixin):  #0
 # One  Pair  Triple
 class SingleSocketTool(BaseTool):  #1
 
-    def callback_draw_tool(self, drata: DrawDataTool):
-        TemplateDrawSksToolHh(drata, self.target_sk)
+    def callback_draw_tool(self, drawer: Drawer):
+        TemplateDrawSksToolHh(drawer, self.target_sk)
 
     def can_run(self):
         return not not self.target_sk
@@ -194,8 +194,8 @@ class PairSocketTool(SingleSocketTool):  #2
                                      default=True,
                                      description="Tool can connecting between different field types")
 
-    def callback_draw_tool(self, drata: DrawDataTool):
-        TemplateDrawSksToolHh(drata, self.target_sk0, self.target_sk1)
+    def callback_draw_tool(self, drawer: Drawer):
+        TemplateDrawSksToolHh(drawer, self.target_sk0, self.target_sk1)
 
     def check_between_sk_fields(self, sk1: NodeSocket, sk2: NodeSocket):
         # 注意: 考虑到此函数的目的和名称, sk1 和 sk2 无论如何都应该是来自字段, 且仅来自字段.
@@ -220,8 +220,8 @@ class TripleSocketTool(PairSocketTool):  #3
 
 class SingleNodeTool(BaseTool):  #1
 
-    def callback_draw_tool(self, drata: DrawDataTool):
-        TemplateDrawNodeFull(drata, self.target_nd)
+    def callback_draw_tool(self, drawer: Drawer):
+        TemplateDrawNodeFull(drawer, self.target_nd)
 
     def can_run(self):
         return not not self.target_nd
@@ -241,11 +241,11 @@ class PairNodeTool(SingleSocketTool):  #2
 class AnyTargetTool(SingleSocketTool, SingleNodeTool):  #2
 
     @staticmethod
-    def template_draw_any(drata: DrawDataTool, tar: Target, *, cond: bool, tool_name=""):
+    def template_draw_any(drawer: Drawer, tar: Target, *, cond: bool, tool_name=""):
         if cond:
-            TemplateDrawNodeFull(drata, tar, tool_name=tool_name)
+            TemplateDrawNodeFull(drawer, tar, tool_name=tool_name)
         else:
-            TemplateDrawSksToolHh(drata, tar, tool_name=tool_name)  # 绘制工具提示
+            TemplateDrawSksToolHh(drawer, tar, tool_name=tool_name)  # 绘制工具提示
 
     def can_run(self):
         return self.target_any

@@ -12,16 +12,16 @@ class NODE_OT_voronoi_links_transfer(PairNodeTool):
     use_for_custom_tree = True
     can_draw_in_pref_setting = False
     isByIndexes: bpy.props.BoolProperty(name="Transfer by indexes", default=False)
-    def callback_draw_tool(self, drata):
+    def callback_draw_tool(self, drawer):
         # VLT 模式
         if not self.target_nd0:
-            TemplateDrawSksToolHh(drata, None, tool_name="Links Transfer")
+            TemplateDrawSksToolHh(drawer, None, tool_name="Links Transfer")
         elif (self.target_nd0)and(not self.target_nd1):
-            TemplateDrawNodeFull(drata, self.target_nd0, side=-1, tool_name="Transfer")
-            TemplateDrawSksToolHh(drata, None, tool_name="Links Transfer")
+            TemplateDrawNodeFull(drawer, self.target_nd0, side=-1, tool_name="Transfer")
+            TemplateDrawSksToolHh(drawer, None, tool_name="Links Transfer")
         else:
-            TemplateDrawNodeFull(drata, self.target_nd0, side=-1, tool_name="Transfer")
-            TemplateDrawNodeFull(drata, self.target_nd1, side=1, tool_name="Transfer")
+            TemplateDrawNodeFull(drawer, self.target_nd0, side=-1, tool_name="Transfer")
+            TemplateDrawNodeFull(drawer, self.target_nd1, side=1, tool_name="Transfer")
     def find_targets_tool(self, is_first_active, prefs, tree):
         if is_first_active:
             self.target_nd0 = None

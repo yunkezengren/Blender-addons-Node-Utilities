@@ -367,11 +367,11 @@ class NODE_OT_voronoi_preview(SingleSocketTool):
     isSelectingPreviewedNode: bpy.props.BoolProperty(name="Select previewed node", default=True)
     isTriggerOnlyOnLink:      bpy.props.BoolProperty(name="Only linked",           default=False, description="Trigger only on linked socket") #最初在 prefs 中.
     isEqualAnchorType:        bpy.props.BoolProperty(name="Equal anchor type",     default=False, description="Trigger only on anchor type sockets")
-    def callback_draw_tool(self, drata):
+    def callback_draw_tool(self, drawer):
         if (self.prefs.vptRvEeSksHighlighting)and(self.target_sk): #帮助逆向工程 -- 高亮连接点, 并同时显示这些接口的名称.
             solder_sk_links(self.tree) #否则在 `tar.tar==sk:` 上会崩溃.
             #确定标签的缩放比例:
-            soldCursorLoc = drata.cursorLoc
+            soldCursorLoc = drawer.cursorLoc
             #绘制:
             ndTar = self.target_sk.tar.node
             for isSide in (False, True):
@@ -380,17 +380,17 @@ class NODE_OT_voronoi_preview(SingleSocketTool):
                         sk = lk.to_socket if isSide else lk.from_socket
                         nd = sk.node
                         if (nd.type!='REROUTE')and(not nd.hide):
-                            tar_sks = GenTarsFromPuts(nd, not isSide, soldCursorLoc, drata.uiScale)
+                            tar_sks = GenTarsFromPuts(nd, not isSide, soldCursorLoc, drawer.uiScale)
                             for tar in tar_sks:
                                 if tar.tar==sk:
                                     #不支持遍历转接点. 因为懒, 而且懒得为此重写代码.
-                                    if drata.dsIsDrawSkArea:
-                                        DrawVlSocketArea(drata, tar.tar, tar.boxHeiBound, Color4(get_sk_color_safe(tar.tar)))
-                                    DrawVlSkText(drata, tar.pos, (1-isSide*2, -0.5), tar, fontSizeOverwrite=min(24*drata.worldZoom*self.prefs.vptHlTextScale, 25))
+                                    if drawer.dsIsDrawSkArea:
+                                        DrawVlSocketArea(drawer, tar.tar, tar.boxHeiBound, Color4(get_sk_color_safe(tar.tar)))
+                                    DrawVlSkText(drawer, tar.pos, (1-isSide*2, -0.5), tar, fontSizeOverwrite=min(24*drawer.worldZoom*self.prefs.vptHlTextScale, 25))
                                     break
                         nd.hide = False #在绘制时写入. 至少不像 VMLT 中那么严重.
                         #todo0SF: 使用 bpy.ops.wm.redraw_timer 会导致死锁. 所以这里还有另一个“跳帧”.
-        TemplateDrawSksToolHh(drata, self.target_sk, isDrawMarkersMoreTharOne=True, tool_name="Preview")
+        TemplateDrawSksToolHh(drawer, self.target_sk, isDrawMarkersMoreTharOne=True, tool_name="Preview")
     @staticmethod
     def OmgNodeColor(nd, col=None):
         set_omgApiNodesColor = {'FunctionNodeInputColor'} #https://projects.blender.org/blender/blender/issues/104909

@@ -15,20 +15,20 @@ class NODE_OT_voronoi_mass_linker(BaseTool):  # "猫狗合体", 既不是节点,
     # 而且, 正是它出现在/将出现在插件的预览图上, 因为它在所有工具中具有最大的视觉表现力 (而且没有上限).
     use_for_custom_tree = True
     isIgnoreExistingLinks: bpy.props.BoolProperty(name="Ignore existing links", default=False)
-    def callback_draw_tool(self, drata):
-        # TemplateDrawSksToolHh(drata, self.target_sk0, self.target_sk1, self.target_sk2, tool_name="Quick Dimensions - 暂时只输出有效")
-        # TemplateDrawSksToolHh(drata, None, None, sideMarkHh=-1, isClassicFlow=True, tool_name="Linker")
+    def callback_draw_tool(self, drawer):
+        # TemplateDrawSksToolHh(drawer, self.target_sk0, self.target_sk1, self.target_sk2, tool_name="Quick Dimensions - 暂时只输出有效")
+        # TemplateDrawSksToolHh(drawer, None, None, sideMarkHh=-1, isClassicFlow=True, tool_name="Linker")
         #这里违反了本地 VL 的读写概念, CallbackDraw 会查找并记录找到的接口, 而不是简单地读取和绘制. 我想这样更容易实现这个工具.
         self.list_equalTarSks.clear() #每次都清除. P.s. 在开始时执行此操作很重要, 而不是在两个节点的分支中.
         if not self.ndTar0:
-            TemplateDrawSksToolHh(drata, None, None, isClassicFlow=True, tool_name="MassLinker")
+            TemplateDrawSksToolHh(drawer, None, None, isClassicFlow=True, tool_name="MassLinker")
         elif (self.ndTar0)and(not self.ndTar1):
             tar_sks_out = self.get_nearest_sockets(self.ndTar0)[1]
             if tar_sks_out:
                 #不知道它会连接到谁, 以及会成功连接到谁 -- 从所有接口开始绘制.
-                TemplateDrawSksToolHh(drata, *tar_sks_out, isDrawText=False, isClassicFlow=True, tool_name="MassLinker") #"全体到光标!"
+                TemplateDrawSksToolHh(drawer, *tar_sks_out, isDrawText=False, isClassicFlow=True, tool_name="MassLinker") #"全体到光标!"
             else:
-                TemplateDrawSksToolHh(drata, None, None, isClassicFlow=True, tool_name="MassLinker")
+                TemplateDrawSksToolHh(drawer, None, None, isClassicFlow=True, tool_name="MassLinker")
         else:
             tar_sks_out = self.get_nearest_sockets(self.ndTar0)[1]
             tar_sks_in = self.get_nearest_sockets(self.ndTar1)[0]
@@ -48,10 +48,10 @@ class NODE_OT_voronoi_mass_linker(BaseTool):  # "猫狗合体", 既不是节点,
                         if tgl:
                             self.list_equalTarSks.append( (taro, tari) )
             if not self.list_equalTarSks:
-                DrawVlWidePoint(drata, drata.cursorLoc, col1=drata.dsCursorColor, col2=drata.dsCursorColor) #否则一切都会消失.
+                DrawVlWidePoint(drawer, drawer.cursorLoc, col1=drawer.dsCursorColor, col2=drawer.dsCursorColor) #否则一切都会消失.
             for li in self.list_equalTarSks:
                 #因为是按名称搜索, 所以这里会绘制并可能在下面同时从两个 (或更多) 接口连接到同一个接口. 就像同名“冲突”一样.
-                TemplateDrawSksToolHh(drata, li[0], li[1], isDrawText=False, isClassicFlow=True, tool_name="MassLinker") #*[ti for li in self.list_equalTarSks for ti in li]
+                TemplateDrawSksToolHh(drawer, li[0], li[1], isDrawText=False, isClassicFlow=True, tool_name="MassLinker") #*[ti for li in self.list_equalTarSks for ti in li]
     def find_targets_tool(self, is_first_active, prefs, tree):
         for tar_nd in self.get_nearest_nodes(cur_x_off=Cursor_X_Offset):
             nd = tar_nd.tar

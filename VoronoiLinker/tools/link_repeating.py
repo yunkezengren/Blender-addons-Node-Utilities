@@ -24,8 +24,8 @@ class NODE_OT_voronoi_link_repeating(AnyTargetTool):  # 分离成单独的工具
     use_for_custom_tree = True
     can_draw_in_pref_setting = False
     toolMode: bpy.props.EnumProperty(name="Mode", default=eMode.SOCKET.value, items=ModeItems)
-    def callback_draw_tool(self, drata):
-        self.template_draw_any(drata, self.target_any, cond=self.toolMode==eMode.NODE.value)
+    def callback_draw_tool(self, drawer):
+        self.template_draw_any(drawer, self.target_any, cond=self.toolMode==eMode.NODE.value)
     def find_targets_tool(self, _is_first_active, prefs, tree):
         def IsSkBetweenFields(sk1, sk2):
             return (sk1.type in set_utilTypeSkFields)and( (sk2.type in set_utilTypeSkFields)or(sk1.type==sk2.type) )

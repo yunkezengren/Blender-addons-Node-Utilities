@@ -13,13 +13,13 @@ class NODE_OT_voronoi_reset_node(SingleNodeTool):
     isResetEnums: bpy.props.BoolProperty(name="Reset enums", default=False)
     isResetOnDrag: bpy.props.BoolProperty(name="Reset on grag (not recommended)", default=False)
     isSelectResetedNode: bpy.props.BoolProperty(name="Select reseted node", default=True)
-    def callback_draw_tool(self, drata):              # 小王-工具提示
+    def callback_draw_tool(self, drawer):              # 小王-工具提示
         if self.isResetEnums:
             mode = "完全重置节点"
         else:
             mode = "重置节点"
-        TemplateDrawNodeFull(drata, self.target_nd, tool_name=mode)
-        # self.template_draw_any(drata, self.target_any, cond=self.toolMode=='NODE', tool_name=name)
+        TemplateDrawNodeFull(drawer, self.target_nd, tool_name=mode)
+        # self.template_draw_any(drawer, self.target_any, cond=self.toolMode=='NODE', tool_name=name)
     def VrntDoResetNode(self, ndTar, tree):
         ndNew = tree.nodes.new(ndTar.bl_idname)
         ndNew.location = ndTar.location

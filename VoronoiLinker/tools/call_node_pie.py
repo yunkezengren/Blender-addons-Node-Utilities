@@ -9,8 +9,8 @@ class NODE_OT_voronoi_call_node_pie(AnyTargetTool):
     can_draw_in_pref_setting = False
     isTriggerOnCollapsedNodes: bpy.props.BoolProperty(name="Trigger on collapsed nodes", default=True)
 
-    def callback_draw_tool(self, drata):
-        self.template_draw_any(drata, self.target_any, cond=False, tool_name="Node Pie Menu")
+    def callback_draw_tool(self, drawer):
+        self.template_draw_any(drawer, self.target_any, cond=False, tool_name="Node Pie Menu")
 
     def find_targets_tool(self, _is_first_active, prefs, tree):
         self.target_any: Target = None

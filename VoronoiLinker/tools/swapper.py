@@ -26,13 +26,13 @@ class NODE_OT_voronoi_swapper(PairSocketTool):
     can_draw_in_pref_setting = False
     toolMode:     bpy.props.EnumProperty(name="Mode", default=eMode.SWAP.value, items=ModeItems)
     isCanAnyType: bpy.props.BoolProperty(name="Can swap with any socket type", default=False)
-    def callback_draw_tool(self, drata):      # 我模仿着加的
+    def callback_draw_tool(self, drawer):      # 我模仿着加的
         # 小王-模式名匹配
         match eMode(self.toolMode):
             case eMode.SWAP: mode = "交换连线"
             case eMode.ADD:  mode = "移动并加入连线"
             case eMode.TRAN: mode = "移动并替换连线"
-        TemplateDrawSksToolHh(drata, self.target_sk0, self.target_sk1, tool_name=mode,)
+        TemplateDrawSksToolHh(drawer, self.target_sk0, self.target_sk1, tool_name=mode,)
     def find_targets_tool(self, is_first_active, prefs, tree):
         if is_first_active:
             self.target_sk0 = None

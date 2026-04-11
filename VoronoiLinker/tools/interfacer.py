@@ -43,7 +43,7 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
     can_draw_in_pref_setting = False
     toolMode: bpy.props.EnumProperty(name="Mode", default=eMode.NEW.value, items=ModeItems)
 
-    def callback_draw_tool(self, drata):
+    def callback_draw_tool(self, drawer):
         match eMode(self.toolMode):
             case eMode.NEW:    mode = "Connect Extend Socket"
             case eMode.CREATE: mode = "Insert to Add Socket"
@@ -54,40 +54,40 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
             case eMode.TYPE:   mode = "Change Socket Type"
         match eMode(self.toolMode):
             case eMode.NEW:
-                TemplateDrawSksToolHh(drata, self.target_skRosw, self.target_skMain, isClassicFlow=True, tool_name=mode)
+                TemplateDrawSksToolHh(drawer, self.target_skRosw, self.target_skMain, isClassicFlow=True, tool_name=mode)
             case eMode.CREATE:
                 tarMain = self.target_skMain
                 if tarMain:
-                    TemplateDrawSksToolHh(drata, tarMain, sideMarkHh=-2, tool_name=mode)
+                    TemplateDrawSksToolHh(drawer, tarMain, sideMarkHh=-2, tool_name=mode)
                 tarNdTar = self.target_ndTar
                 if tarNdTar:
-                    TemplateDrawNodeFull(drata, tarNdTar, tool_name="Node Group")
+                    TemplateDrawNodeFull(drawer, tarNdTar, tool_name="Node Group")
                     tar_sks_in, tar_sks_out = self.get_nearest_sockets(tarNdTar.tar, cur_x_off=0)
                     if not tar_sks_in: return
                     near_group_in = tar_sks_in[0]  # 节点组可能没有输入接口:
 
                     y = tarNdTar.pos.y
                     boxHeiBound = Vec((y - 7, y + 7))
-                    DrawVlSocketArea(drata, near_group_in.tar, boxHeiBound, Color4(get_sk_color_safe(tarMain.tar)))
+                    DrawVlSocketArea(drawer, near_group_in.tar, boxHeiBound, Color4(get_sk_color_safe(tarMain.tar)))
             case eMode.FLIP:
                 # todo 接口1移到接口2上  FLIP模式，在两个接口绘制名后加上 接口1 接口2
                 # tarMain = self.target_skMain
                 # if tarMain:
-                # TemplateDrawSksToolHh(drata, tarMain, isFlipSide=True, tool_name="")
+                # TemplateDrawSksToolHh(drawer, tarMain, isFlipSide=True, tool_name="")
 
-                TemplateDrawSksToolHh(drata, self.target_skMain, self.target_skRosw, tool_name=mode)
+                TemplateDrawSksToolHh(drawer, self.target_skMain, self.target_skRosw, tool_name=mode)
                 tarNdTar = self.target_ndTar
                 if tarNdTar:
-                    # TemplateDrawNodeFull(drata, tarNdTar, tool_name="Interfacer")
+                    # TemplateDrawNodeFull(drawer, tarNdTar, tool_name="Interfacer")
                     tar_sks_in, tar_sks_out = self.get_nearest_sockets(tarNdTar.tar, cur_x_off=0)
                     near_group_in = tar_sks_in[0]
 
                     y = tarNdTar.pos.y
                     boxHeiBound = Vec((y-20, y+20 ))
-                    DrawVlSocketArea(drata, near_group_in.tar, boxHeiBound, Color4(get_sk_color_safe(tarMain.tar)))
-                    # DrawVlSocketArea(drata, near_group_in.tar, near_group_in.boxHeiBound, Color4(get_sk_color_safe(near_group_in.tar)))
+                    DrawVlSocketArea(drawer, near_group_in.tar, boxHeiBound, Color4(get_sk_color_safe(tarMain.tar)))
+                    # DrawVlSocketArea(drawer, near_group_in.tar, near_group_in.boxHeiBound, Color4(get_sk_color_safe(near_group_in.tar)))
             case _:
-                TemplateDrawSksToolHh(drata, self.target_skMain, self.target_skRosw, tool_name=mode)
+                TemplateDrawSksToolHh(drawer, self.target_skMain, self.target_skRosw, tool_name=mode)
 
     def find_targets_toolCopyPaste(self, _is_first_active, prefs, tree):
         self.target_skMain = None
