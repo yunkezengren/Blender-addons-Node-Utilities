@@ -1,7 +1,7 @@
 import bpy
 from ..base_tool import SingleNodeTool
 from ..common_class import TryAndPass
-from ..utils.drawing import TemplateDrawNodeFull
+from ..utils.drawing import draw_node_template
 from ..utils.solder import solder_sk_links
 
 class NODE_OT_voronoi_reset_node(SingleNodeTool):
@@ -18,7 +18,7 @@ class NODE_OT_voronoi_reset_node(SingleNodeTool):
             mode = "完全重置节点"
         else:
             mode = "重置节点"
-        TemplateDrawNodeFull(drawer, self.target_nd, tool_name=mode)
+        draw_node_template(drawer, self.target_nd, tool_name=mode)
         # self.template_draw_any(drawer, self.target_any, cond=self.toolMode=='NODE', tool_name=name)
     def VrntDoResetNode(self, ndTar, tree):
         ndNew = tree.nodes.new(ndTar.bl_idname)

@@ -1,7 +1,7 @@
 import bpy
 from bpy.types import NodeTree
 from ..base_tool import unhide_node_reassign, PairSocketTool
-from ..utils.drawing import TemplateDrawSksToolHh
+from ..utils.drawing import draw_sockets_template
 from ..utils.node import IsClassicSk, opt_tar_socket, VlrtRememberLastSockets
 from ..utils.ui import draw_hand_split_prop
 from ..globals import sk_types_no_convert, implicit_convert_map
@@ -21,7 +21,7 @@ class NODE_OT_voronoi_linker(PairSocketTool):  # 神圣中的神圣. 它存在�
     use_for_custom_tree = True
     use_for_none_tree = True
     def callback_draw_tool(self, drawer):
-        TemplateDrawSksToolHh(drawer, self.target_skOut, self.target_skIn, sideMarkHh=-1, isClassicFlow=True, tool_name="Linker")
+        draw_sockets_template(drawer, self.target_skOut, self.target_skIn, side_mark_offset=-1, is_classic_flow=True, tool_name="Linker")
     @staticmethod
     def SkPriorityIgnoreCheck(sk): #False -- 忽略.
         # 这个函数是应外部请求添加的 (就像 VLNST).

@@ -1,5 +1,5 @@
 import bpy
-from ..base_tool import unhide_node_reassign, TemplateDrawSksToolHh, TripleSocketTool
+from ..base_tool import unhide_node_reassign, draw_sockets_template, TripleSocketTool
 from ..common_class import VqmtData
 from ..common_func import DisplayMessage, SetPieData
 from ..preference import pref
@@ -31,7 +31,7 @@ class NODE_OT_voronoi_quick_math(TripleSocketTool):
     justPieCall:           bpy.props.IntProperty(name="Just call pie", default=0, min=0, max=5,
                                                  description="Call pie to add a node, bypassing the sockets selection.\n0–Disable.\n1–Float.\n2–Vector.\n3–Boolean.\n4–Color.\n5–Int")
     def callback_draw_tool(self, drawer):
-        TemplateDrawSksToolHh(drawer, self.target_sk0, self.target_sk1, self.target_sk2, tool_name="Quick Math")
+        draw_sockets_template(drawer, self.target_sk0, self.target_sk1, self.target_sk2, tool_name="Quick Math")
     def find_targets_tool(self, is_first_active, prefs, tree):
         if is_first_active:
             self.target_sk0 = None

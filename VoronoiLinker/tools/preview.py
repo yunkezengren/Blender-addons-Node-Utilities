@@ -6,7 +6,7 @@ from ..common_class import VptData
 from ..common_func import sk_type_to_idname
 from ..globals import Cursor_X_Offset, is_bl4_plus, voronoiAnchorCnName, voronoiAnchorDtName, voronoiPreviewResultNdName, voronoiSkPreviewName
 from ..utils.color import Color4, get_sk_color_safe, power_color4
-from ..utils.drawing import DrawVlSkText, DrawVlSocketArea, TemplateDrawSksToolHh
+from ..utils.drawing import draw_socket_text, draw_socket_area, draw_sockets_template
 from ..utils.node import GenTarsFromPuts, SelectAndActiveNdOnly, VlrtRememberLastSockets
 from ..utils.solder import solder_sk_links, SoldThemeCols
 from ..utils.ui import draw_hand_split_prop, LyAddNoneBox
@@ -385,12 +385,12 @@ class NODE_OT_voronoi_preview(SingleSocketTool):
                                 if tar.tar==sk:
                                     #不支持遍历转接点. 因为懒, 而且懒得为此重写代码.
                                     if drawer.dsIsDrawSkArea:
-                                        DrawVlSocketArea(drawer, tar.tar, tar.boxHeiBound, Color4(get_sk_color_safe(tar.tar)))
-                                    DrawVlSkText(drawer, tar.pos, (1-isSide*2, -0.5), tar, fontSizeOverwrite=min(24*drawer.worldZoom*self.prefs.vptHlTextScale, 25))
+                                        draw_socket_area(drawer, tar.tar, tar.boxHeiBound, Color4(get_sk_color_safe(tar.tar)))
+                                    draw_socket_text(drawer, tar.pos, (1-isSide*2, -0.5), tar, font_size_override=min(24*drawer.worldZoom*self.prefs.vptHlTextScale, 25))
                                     break
                         nd.hide = False #在绘制时写入. 至少不像 VMLT 中那么严重.
                         #todo0SF: 使用 bpy.ops.wm.redraw_timer 会导致死锁. 所以这里还有另一个“跳帧”.
-        TemplateDrawSksToolHh(drawer, self.target_sk, isDrawMarkersMoreTharOne=True, tool_name="Preview")
+        draw_sockets_template(drawer, self.target_sk, is_draw_markers_more_than_one=True, tool_name="Preview")
     @staticmethod
     def OmgNodeColor(nd, col=None):
         set_omgApiNodesColor = {'FunctionNodeInputColor'} #https://projects.blender.org/blender/blender/issues/104909

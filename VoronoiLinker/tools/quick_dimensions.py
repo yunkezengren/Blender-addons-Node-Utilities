@@ -2,7 +2,7 @@ import bpy
 from bpy.types import NodeTree
 from ..base_tool import unhide_node_reassign, TripleSocketTool
 from ..globals import AllQuickDimensions, Cursor_X_Offset
-from ..utils.drawing import TemplateDrawSksToolHh
+from ..utils.drawing import draw_sockets_template
 from ..utils.node import node_enum_props, opt_tar_socket, remember_add_link
 from .matrix_convert import Convert_Data, PIE_MT_Convert_Rotation_To, PIE_MT_Separate_Matrix
 
@@ -17,7 +17,7 @@ class NODE_OT_voronoi_quick_dimensions(TripleSocketTool):
     can_draw_in_pref_setting = False
     isPlaceImmediately: bpy.props.BoolProperty(name="Place immediately", default=False)
     def callback_draw_tool(self, drawer):
-        TemplateDrawSksToolHh(drawer, self.target_sk0, self.target_sk1, self.target_sk2, tool_name="Quick Dimensions")
+        draw_sockets_template(drawer, self.target_sk0, self.target_sk1, self.target_sk2, tool_name="Quick Dimensions")
     def find_targets_tool(self, is_first_active, prefs, tree):
         if is_first_active:
             self.target_sk0 = None

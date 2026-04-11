@@ -1,7 +1,7 @@
 import bpy
 from ..base_tool import unhide_node_reassign, BaseTool
 from ..globals import Cursor_X_Offset
-from ..utils.drawing import DrawVlWidePoint, TemplateDrawSksToolHh
+from ..utils.drawing import draw_socket_point, draw_sockets_template
 from ..utils.node import CompareSkLabelName, VlrtRememberLastSockets
 from ..utils.ui import draw_hand_split_prop
 
@@ -16,28 +16,28 @@ class NODE_OT_voronoi_mass_linker(BaseTool):  # "猫狗合体", 既不是节点,
     use_for_custom_tree = True
     isIgnoreExistingLinks: bpy.props.BoolProperty(name="Ignore existing links", default=False)
     def callback_draw_tool(self, drawer):
-        # TemplateDrawSksToolHh(drawer, self.target_sk0, self.target_sk1, self.target_sk2, tool_name="Quick Dimensions - 暂时只输出有效")
-        # TemplateDrawSksToolHh(drawer, None, None, sideMarkHh=-1, isClassicFlow=True, tool_name="Linker")
+        # draw_sockets_template(drawer, self.target_sk0, self.target_sk1, self.target_sk2, tool_name="Quick Dimensions - 暂时只输出有效")
+        # draw_sockets_template(drawer, None, None, side_mark_offset=-1, is_classic_flow=True, tool_name="Linker")
         #这里违反了本地 VL 的读写概念, CallbackDraw 会查找并记录找到的接口, 而不是简单地读取和绘制. 我想这样更容易实现这个工具.
         self.list_equalTarSks.clear() #每次都清除. P.s. 在开始时执行此操作很重要, 而不是在两个节点的分支中.
         if not self.ndTar0:
-            TemplateDrawSksToolHh(drawer, None, None, isClassicFlow=True, tool_name="MassLinker")
+            draw_sockets_template(drawer, None, None, is_classic_flow=True, tool_name="MassLinker")
         elif (self.ndTar0)and(not self.ndTar1):
             tar_sks_out = self.get_nearest_sockets(self.ndTar0)[1]
             if tar_sks_out:
                 #不知道它会连接到谁, 以及会成功连接到谁 -- 从所有接口开始绘制.
-                TemplateDrawSksToolHh(drawer, *tar_sks_out, isDrawText=False, isClassicFlow=True, tool_name="MassLinker") #"全体到光标!"
+                draw_sockets_template(drawer, *tar_sks_out, is_draw_text=False, is_classic_flow=True, tool_name="MassLinker") #"全体到光标!"
             else:
-                TemplateDrawSksToolHh(drawer, None, None, isClassicFlow=True, tool_name="MassLinker")
+                draw_sockets_template(drawer, None, None, is_classic_flow=True, tool_name="MassLinker")
         else:
             tar_sks_out = self.get_nearest_sockets(self.ndTar0)[1]
             tar_sks_in = self.get_nearest_sockets(self.ndTar1)[0]
             for taro in tar_sks_out:
                 for tari in tar_sks_in:
-                    #因为是“批量”的 -- 标准必须自动化, 并对所有情况都统一.
+                    #因为是"批量"的 -- 标准必须自动化, 并对所有情况都统一.
                     if CompareSkLabelName(taro.tar, tari.tar, self.prefs.vmltIgnoreCase): #只与名称相同的接口连接.
                         tgl = False
-                        if self.isIgnoreExistingLinks: #如果是不分青红皂白地连接, 就排除已经存在的“期望”连接. 这是为了美观.
+                        if self.isIgnoreExistingLinks: #如果是不分青红皂白地连接, 就排除已经存在的"期望"连接. 这是为了美观.
                             for lk in tari.tar.vl_sold_links_final:
                                 #需要检查 is_linked, 以便可以启用已禁用的链接, 替换它们.
                                 if (lk.from_socket.is_linked)and(lk.from_socket==taro.tar):
@@ -48,10 +48,10 @@ class NODE_OT_voronoi_mass_linker(BaseTool):  # "猫狗合体", 既不是节点,
                         if tgl:
                             self.list_equalTarSks.append( (taro, tari) )
             if not self.list_equalTarSks:
-                DrawVlWidePoint(drawer, drawer.cursorLoc, col1=drawer.dsCursorColor, col2=drawer.dsCursorColor) #否则一切都会消失.
+                draw_socket_point(drawer, drawer.cursorLoc, color1=drawer.dsCursorColor, color2=drawer.dsCursorColor) #否则一切都会消失.
             for li in self.list_equalTarSks:
-                #因为是按名称搜索, 所以这里会绘制并可能在下面同时从两个 (或更多) 接口连接到同一个接口. 就像同名“冲突”一样.
-                TemplateDrawSksToolHh(drawer, li[0], li[1], isDrawText=False, isClassicFlow=True, tool_name="MassLinker") #*[ti for li in self.list_equalTarSks for ti in li]
+                #因为是按名称搜索, 所以这里会绘制并可能在下面同时从两个 (或更多) 接口连接到同一个接口. 就像同名"冲突"一样.
+                draw_sockets_template(drawer, li[0], li[1], is_draw_text=False, is_classic_flow=True, tool_name="MassLinker") #*[ti for li in self.list_equalTarSks for ti in li]
     def find_targets_tool(self, is_first_active, prefs, tree):
         for tar_nd in self.get_nearest_nodes(cur_x_off=Cursor_X_Offset):
             nd = tar_nd.tar

@@ -10,7 +10,7 @@ from .common_func import is_builtin_tree_idname, user_node_keymap
 from .common_class import Target
 from .globals import set_utilTypeSkFields
 from .preference import pref, VoronoiAddonPrefs
-from .utils.drawing import DrawDebug, TemplateDrawNodeFull, TemplateDrawSksToolHh, Drawer
+from .utils.drawing import draw_debug_info, draw_node_template, draw_sockets_template, Drawer
 from .utils.node import nearest_nodes_tar, nearest_sockets_tar, RestoreCollapsedNodes, SaveCollapsedNodes
 from .utils.solder import solder_sk_links, solder_theme_cols
 
@@ -63,7 +63,7 @@ class BaseTool(BaseOperator, VlToolMixin):  #0
             return
         drawer.worldZoom = self.ctView2d.GetZoom()  # 每次都从 EdgePan 和鼠标滚轮获取. 以前可以一次性焊接.
         if self.prefs.dsIsFieldDebug:
-            DrawDebug(self, drawer)
+            draw_debug_info(self, drawer)
         if self.tree:  # 现在对于没有树的情况可以不显示任何迹象; 由于拓扑结构的头疼问题以及在插件树中传递热键时工具的跳过问题而关闭 (?).
             self.callback_draw_tool(drawer)
 
@@ -181,7 +181,7 @@ class BaseTool(BaseOperator, VlToolMixin):  #0
 class SingleSocketTool(BaseTool):  #1
 
     def callback_draw_tool(self, drawer: Drawer):
-        TemplateDrawSksToolHh(drawer, self.target_sk)
+        draw_sockets_template(drawer, self.target_sk)
 
     def can_run(self):
         return not not self.target_sk
@@ -195,7 +195,7 @@ class PairSocketTool(SingleSocketTool):  #2
                                      description="Tool can connecting between different field types")
 
     def callback_draw_tool(self, drawer: Drawer):
-        TemplateDrawSksToolHh(drawer, self.target_sk0, self.target_sk1)
+        draw_sockets_template(drawer, self.target_sk0, self.target_sk1)
 
     def check_between_sk_fields(self, sk1: NodeSocket, sk2: NodeSocket):
         # 注意: 考虑到此函数的目的和名称, sk1 和 sk2 无论如何都应该是来自字段, 且仅来自字段.
@@ -221,7 +221,7 @@ class TripleSocketTool(PairSocketTool):  #3
 class SingleNodeTool(BaseTool):  #1
 
     def callback_draw_tool(self, drawer: Drawer):
-        TemplateDrawNodeFull(drawer, self.target_nd)
+        draw_node_template(drawer, self.target_nd)
 
     def can_run(self):
         return not not self.target_nd
@@ -243,9 +243,9 @@ class AnyTargetTool(SingleSocketTool, SingleNodeTool):  #2
     @staticmethod
     def template_draw_any(drawer: Drawer, tar: Target, *, cond: bool, tool_name=""):
         if cond:
-            TemplateDrawNodeFull(drawer, tar, tool_name=tool_name)
+            draw_node_template(drawer, tar, tool_name=tool_name)
         else:
-            TemplateDrawSksToolHh(drawer, tar, tool_name=tool_name)  # 绘制工具提示
+            draw_sockets_template(drawer, tar, tool_name=tool_name)  # 绘制工具提示
 
     def can_run(self):
         return self.target_any

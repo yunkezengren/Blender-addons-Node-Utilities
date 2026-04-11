@@ -1,5 +1,5 @@
 import bpy
-from ..base_tool import unhide_node_reassign, TemplateDrawSksToolHh, SingleSocketTool
+from ..base_tool import unhide_node_reassign, draw_sockets_template, SingleSocketTool
 from ..utils.node import MinFromTars, VlrtRememberLastSockets
 from ..utils.ui import LyAddNiceColorProp
 
@@ -9,7 +9,7 @@ class NODE_OT_voronoi_dummy(SingleSocketTool):   # 快速便捷地添加新工�
     use_for_custom_tree = True
     isDummy: bpy.props.BoolProperty(name="Dummy", default=False)
     def callback_draw_tool(self, drawer):
-        TemplateDrawSksToolHh(drawer, self.target_sk)
+        draw_sockets_template(drawer, self.target_sk)
     def find_targets_tool(self, _is_first_active, prefs, tree):
         self.target_sk = None
         for tar_nd in self.get_nearest_nodes(cur_x_off=0):

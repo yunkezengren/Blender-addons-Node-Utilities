@@ -5,7 +5,7 @@ from ..base_tool import unhide_node_reassign, PairSocketTool
 from ..common_class import VlnstData
 from ..common_func import sk_label_or_name
 from ..globals import sk_type_idname_map
-from ..utils.drawing import DrawVlWidePoint, TemplateDrawSksToolHh
+from ..utils.drawing import draw_socket_point, draw_sockets_template
 from ..utils.node import MinFromTars, opt_tar_socket, sk_type_to_idname
 from ..utils.ui import LyAddNiceColorProp, draw_hand_split_prop
 
@@ -168,9 +168,9 @@ class NODE_OT_voronoi_lazy_node_stencils(PairSocketTool):  # 第一个应外部�
     bl_description = "Power. Three letters for a tool, we've come to this... Encapsulates Ctrl-T from\nNodeWrangler, and the never-implemented 'VoronoiLazyNodeContinuationTool'."
     def callback_draw_tool(self, drawer):
         # 注意: 对于不同的性别, 文本侧与套接字性别的对应关系不明显. 大概要接受了.
-        TemplateDrawSksToolHh(drawer, self.target_sk0, self.target_sk1, tool_name="Lazy Node Stencils")
+        draw_sockets_template(drawer, self.target_sk0, self.target_sk1, tool_name="Lazy Node Stencils")
         if ( (not not self.target_sk0)^(not not self.target_sk1) )and(drawer.dsIsDrawPoint):
-            DrawVlWidePoint(drawer, drawer.cursorLoc, col1=drawer.dsCursorColor, col2=drawer.dsCursorColor) # 为了美观.
+            draw_socket_point(drawer, drawer.cursorLoc, color1=drawer.dsCursorColor, color2=drawer.dsCursorColor) # 为了美观.
     def find_targets_tool(self, is_first_active, prefs, tree):
         def FindAnySk():
             tar_sk_out, tar_sk_in = None, None

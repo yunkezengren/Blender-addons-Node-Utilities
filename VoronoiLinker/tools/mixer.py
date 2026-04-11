@@ -5,7 +5,7 @@ from ..common_class import VmtData
 from ..common_func import DisplayMessage, SetPieData
 from ..globals import Cursor_X_Offset
 from ..utils.color import get_sk_color_safe, power_color4
-from ..utils.drawing import TemplateDrawSksToolHh
+from ..utils.drawing import draw_sockets_template
 from ..utils.node import opt_tar_socket
 from ..utils.ui import draw_hand_split_prop, draw_panel_column, draw_hand_split_prop
 from .mixer_sub import DoMix, mixer_default, mixer_tree_sk_nodes, NODE_MT_mixer_pie
@@ -20,7 +20,7 @@ class NODE_OT_voronoi_mixer(TripleSocketTool):
     isHideOptions:      bpy.props.BoolProperty(name="Hide node options",   default=False)
     isPlaceImmediately: bpy.props.BoolProperty(name="Place immediately",   default=False)
     def callback_draw_tool(self, drawer):
-        TemplateDrawSksToolHh(drawer, self.target_sk0, self.target_sk1, self.target_sk2, tool_name="Quick Mix")
+        draw_sockets_template(drawer, self.target_sk0, self.target_sk1, self.target_sk2, tool_name="Quick Mix")
     def find_targets_tool(self, is_first_active, prefs, tree):
         if is_first_active:
             self.target_sk0 = None #需要清空, 因为下面有两个 continue.

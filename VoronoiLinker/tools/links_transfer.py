@@ -1,5 +1,5 @@
 import bpy
-from ..base_tool import TemplateDrawNodeFull, TemplateDrawSksToolHh, PairNodeTool
+from ..base_tool import draw_node_template, draw_sockets_template, PairNodeTool
 from ..common_func import sk_label_or_name
 from ..utils.node import GenTarFromNd, is_socket_visible
 from ..utils.solder import solder_sk_links
@@ -15,13 +15,13 @@ class NODE_OT_voronoi_links_transfer(PairNodeTool):
     def callback_draw_tool(self, drawer):
         # VLT 模式
         if not self.target_nd0:
-            TemplateDrawSksToolHh(drawer, None, tool_name="Links Transfer")
+            draw_sockets_template(drawer, None, tool_name="Links Transfer")
         elif (self.target_nd0)and(not self.target_nd1):
-            TemplateDrawNodeFull(drawer, self.target_nd0, side=-1, tool_name="Transfer")
-            TemplateDrawSksToolHh(drawer, None, tool_name="Links Transfer")
+            draw_node_template(drawer, self.target_nd0, side=-1, tool_name="Transfer")
+            draw_sockets_template(drawer, None, tool_name="Links Transfer")
         else:
-            TemplateDrawNodeFull(drawer, self.target_nd0, side=-1, tool_name="Transfer")
-            TemplateDrawNodeFull(drawer, self.target_nd1, side=1, tool_name="Transfer")
+            draw_node_template(drawer, self.target_nd0, side=-1, tool_name="Transfer")
+            draw_node_template(drawer, self.target_nd1, side=1, tool_name="Transfer")
     def find_targets_tool(self, is_first_active, prefs, tree):
         if is_first_active:
             self.target_nd0 = None

@@ -3,12 +3,12 @@ from enum import Enum
 import bpy
 from mathutils import Vector as Vec
 from bpy.types import NodeTree
-from ..base_tool import unhide_node_reassign, TemplateDrawNodeFull, TemplateDrawSksToolHh, PairSocketTool
+from ..base_tool import unhide_node_reassign, draw_node_template, draw_sockets_template, PairSocketTool
 from ..node_items import NodeItemsUtils
 from ..common_func import sk_label_or_name
 from ..globals import set_utilEquestrianPortalBlids
 from ..utils.color import Color4, get_sk_color_safe
-from ..utils.drawing import DrawVlSocketArea
+from ..utils.drawing import draw_socket_area
 from ..utils.node import DoLinkHh, FindAnySk, MinFromTars, opt_tar_socket
 from ..utils.ui import draw_hand_split_prop
 
@@ -54,40 +54,40 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
             case eMode.TYPE:   mode = "Change Socket Type"
         match eMode(self.toolMode):
             case eMode.NEW:
-                TemplateDrawSksToolHh(drawer, self.target_skRosw, self.target_skMain, isClassicFlow=True, tool_name=mode)
+                draw_sockets_template(drawer, self.target_skRosw, self.target_skMain, is_classic_flow=True, tool_name=mode)
             case eMode.CREATE:
                 tarMain = self.target_skMain
                 if tarMain:
-                    TemplateDrawSksToolHh(drawer, tarMain, sideMarkHh=-2, tool_name=mode)
+                    draw_sockets_template(drawer, tarMain, side_mark_offset=-2, tool_name=mode)
                 tarNdTar = self.target_ndTar
                 if tarNdTar:
-                    TemplateDrawNodeFull(drawer, tarNdTar, tool_name="Node Group")
+                    draw_node_template(drawer, tarNdTar, tool_name="Node Group")
                     tar_sks_in, tar_sks_out = self.get_nearest_sockets(tarNdTar.tar, cur_x_off=0)
                     if not tar_sks_in: return
                     near_group_in = tar_sks_in[0]  # 节点组可能没有输入接口:
 
                     y = tarNdTar.pos.y
                     boxHeiBound = Vec((y - 7, y + 7))
-                    DrawVlSocketArea(drawer, near_group_in.tar, boxHeiBound, Color4(get_sk_color_safe(tarMain.tar)))
+                    draw_socket_area(drawer, near_group_in.tar, boxHeiBound, Color4(get_sk_color_safe(tarMain.tar)))
             case eMode.FLIP:
                 # todo 接口1移到接口2上  FLIP模式，在两个接口绘制名后加上 接口1 接口2
                 # tarMain = self.target_skMain
                 # if tarMain:
-                # TemplateDrawSksToolHh(drawer, tarMain, isFlipSide=True, tool_name="")
+                # draw_sockets_template(drawer, tarMain, is_flip_side=True, tool_name="")
 
-                TemplateDrawSksToolHh(drawer, self.target_skMain, self.target_skRosw, tool_name=mode)
+                draw_sockets_template(drawer, self.target_skMain, self.target_skRosw, tool_name=mode)
                 tarNdTar = self.target_ndTar
                 if tarNdTar:
-                    # TemplateDrawNodeFull(drawer, tarNdTar, tool_name="Interfacer")
+                    # draw_node_template(drawer, tarNdTar, tool_name="Interfacer")
                     tar_sks_in, tar_sks_out = self.get_nearest_sockets(tarNdTar.tar, cur_x_off=0)
                     near_group_in = tar_sks_in[0]
 
                     y = tarNdTar.pos.y
                     boxHeiBound = Vec((y-20, y+20 ))
-                    DrawVlSocketArea(drawer, near_group_in.tar, boxHeiBound, Color4(get_sk_color_safe(tarMain.tar)))
-                    # DrawVlSocketArea(drawer, near_group_in.tar, near_group_in.boxHeiBound, Color4(get_sk_color_safe(near_group_in.tar)))
+                    draw_socket_area(drawer, near_group_in.tar, boxHeiBound, Color4(get_sk_color_safe(tarMain.tar)))
+                    # draw_socket_area(drawer, near_group_in.tar, near_group_in.boxHeiBound, Color4(get_sk_color_safe(near_group_in.tar)))
             case _:
-                TemplateDrawSksToolHh(drawer, self.target_skMain, self.target_skRosw, tool_name=mode)
+                draw_sockets_template(drawer, self.target_skMain, self.target_skRosw, tool_name=mode)
 
     def find_targets_toolCopyPaste(self, _is_first_active, prefs, tree):
         self.target_skMain = None

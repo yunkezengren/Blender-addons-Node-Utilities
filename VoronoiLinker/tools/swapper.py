@@ -2,7 +2,7 @@ from enum import Enum
 
 import bpy
 from ..base_tool import unhide_node_reassign, PairSocketTool
-from ..utils.drawing import TemplateDrawSksToolHh
+from ..utils.drawing import draw_sockets_template
 from ..utils.node import MinFromTars, opt_tar_socket
 
 class SwapperMode(Enum):
@@ -32,7 +32,7 @@ class NODE_OT_voronoi_swapper(PairSocketTool):
             case eMode.SWAP: mode = "交换连线"
             case eMode.ADD:  mode = "移动并加入连线"
             case eMode.TRAN: mode = "移动并替换连线"
-        TemplateDrawSksToolHh(drawer, self.target_sk0, self.target_sk1, tool_name=mode,)
+        draw_sockets_template(drawer, self.target_sk0, self.target_sk1, tool_name=mode,)
     def find_targets_tool(self, is_first_active, prefs, tree):
         if is_first_active:
             self.target_sk0 = None

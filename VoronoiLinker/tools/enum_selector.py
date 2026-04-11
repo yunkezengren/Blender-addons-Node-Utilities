@@ -2,7 +2,7 @@ import bpy
 from bpy.types import EnumProperty, UILayout, Node, Menu
 from ..base_tool import BaseOperator, SingleNodeTool
 from ..common_class import VestData
-from ..utils.drawing import TemplateDrawNodeFull
+from ..utils.drawing import draw_node_template
 from ..utils.node import node_enum_props, node_visible_menu_inputs, SelectAndActiveNdOnly
 from ..utils.ui import draw_hand_split_prop, draw_panel_column, draw_hand_split_prop
 
@@ -158,7 +158,7 @@ def rename_node_based_option(node: Node):
         domain_cn = get_mesh_domain_cn[node.mode]
         node.label = domain_cn + " -> 点"
     if node.bl_idname == "GeometryNodeResampleCurve":
-        if node.mode == "EVALUATED":
+        if hasattr(node, "mode") and node.mode == "EVALUATED":
             node.label = "曲线重采样: 已解算"
     if node.bl_idname == "ShaderNodeVectorRotate":
         rot_type = node.rotation_type
@@ -189,7 +189,7 @@ class NODE_OT_voronoi_enum_selector(SingleNodeTool):
                 mode = "Show Options"
         else:
             mode = "Toggle Options"
-        TemplateDrawNodeFull(drawer, self.target_nd, tool_name=mode)
+        draw_node_template(drawer, self.target_nd, tool_name=mode)
         # self.template_draw_any(drawer, self.target_any, cond=self.toolMode=='NODE', tool_name=name)
     def ToggleOptionsFromNode(self, nd, lastResult, isCanDo=False): # 工作原理复制自 VHT HideFromNode().
         if lastResult:
