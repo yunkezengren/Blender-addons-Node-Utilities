@@ -27,10 +27,10 @@ class NODE_OT_voronoi_call_node_pie(AnyTargetTool):
             tar_sks_in, tar_sks_out = self.get_nearest_sockets(nd)  # ->([], [])  <class Target> 这里 .tar 是 Socket
             tar_sockets.extend(tar_sks_in)
             tar_sockets.extend(tar_sks_out)
-        tar_sockets.sort(key=lambda soc: soc.dist)
+        tar_sockets.sort(key=lambda soc: soc.distance)
         near_tar_sk = None
         for tar_sk in tar_sockets:
-            if tar_sk.blid != "NodeSocketVirtual":
+            if tar_sk.idname != "NodeSocketVirtual":
                 near_tar_sk = tar_sk
                 break
         self.target_any = near_tar_sk

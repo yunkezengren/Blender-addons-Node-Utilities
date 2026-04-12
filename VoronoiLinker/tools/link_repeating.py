@@ -44,7 +44,7 @@ class NODE_OT_voronoi_link_repeating(AnyTargetTool):  # 分离成单独的工具
                 tar_sks_in, tar_sks_out = self.get_nearest_sockets(nd, cur_x_off=-Cursor_X_Offset)
                 if skLastOut:
                     for tar in tar_sks_in:
-                        if (skLastOut.bl_idname==tar.blid)or(IsSkBetweenFields(skLastOut, tar.tar)):
+                        if (skLastOut.bl_idname==tar.idname)or(IsSkBetweenFields(skLastOut, tar.tar)):
                             can = True
                             for lk in tar.tar.vl_sold_links_final:
                                 if lk.from_socket==skLastOut: # 识别已有的链接, 并且不选择这样的套接字.

@@ -37,7 +37,7 @@ class NODE_OT_voronoi_linker(PairSocketTool):  # 神圣中的神圣. 它存在�
             tar_sks_in, tar_sks_out = self.get_nearest_sockets(nd, cur_x_off=-20)
             if is_first_active:
                 for tar in tar_sks_out:
-                    if (self.isFirstCling)or(tar.blid!='')and( (not prefs.vltPriorityIgnoring)or(self.SkPriorityIgnoreCheck(tar.tar)) ):
+                    if (self.isFirstCling)or(tar.idname!='')and( (not prefs.vltPriorityIgnoring)or(self.SkPriorityIgnoreCheck(tar.tar)) ):
                         self.target_skOut = tar
                         break
             self.isFirstCling = True

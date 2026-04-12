@@ -26,11 +26,11 @@ class NODE_OT_voronoi_warper(SingleSocketTool):
         def FindAnySk():
             tar_sk_out, tar_sk_in = None, None
             for tar in tar_sks_out:
-                if (tar.tar.vl_sold_is_final_linked_cou)and(tar.blid!='NodeSocketVirtual'):
+                if (tar.tar.vl_sold_is_final_linked_cou)and(tar.idname!='NodeSocketVirtual'):
                     tar_sk_out = tar
                     break
             for tar in tar_sks_in:
-                if (tar.tar.vl_sold_is_final_linked_cou)and(tar.blid!='NodeSocketVirtual'):
+                if (tar.tar.vl_sold_is_final_linked_cou)and(tar.idname!='NodeSocketVirtual'):
                     tar_sk_in = tar
                     break
             return MinFromTars(tar_sk_out, tar_sk_in)

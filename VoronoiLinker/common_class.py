@@ -5,20 +5,15 @@ from collections.abc import Sequence
 float2 = Sequence[float]
 float4 = Sequence[float]
 
-class Target():  # Found Target Goal (找到的目标), "剩下的你们自己看着办".
-    # def __getattr__(self, att): # 天才. 仅次于 '(*args): return Vector((args))'.
-    #    return getattr(self.target, att) # 但要小心, 它的速度慢了大约5倍.
-    def __init__(self, target: Node | NodeSocket, *, dist=0.0, pos=Vec2((0.0, 0.0)), dir=0, boxHeiBound=(0.0, 0.0), text=""):
-        self.tar = target  # 可能是 node 或 socket
-        #self.sk = target                  # Target.sk = property(lambda a:a.target)
-        #self.nd = target                  # Target.nd = property(lambda a:a.target)
-        self.blid: str = target.bl_idname  # Target.blid = property(lambda a:a.target.bl_idname)
-        self.dist = dist
-        self.pos = pos
-        # 下面的仅用于插槽.
-        self.dir = dir
-        self.boxHeiBound = boxHeiBound
-        self.soldText = text  # 用于支持其他语言的翻译. 每次绘制时都获取翻译太不方便了, 所以直接"焊接"上去.
+class Target():
+    def __init__(self, target: Node | NodeSocket, *, distance=0.0, pos=Vec2((0.0, 0.0)), side=0, bottom_top=(0.0, 0.0), text=""):
+        self.tar = target
+        self.idname = target.bl_idname # Blender ID名称: 用于标识节点/接口的类型
+        self.distance = distance       # 距离: 从光标/采样点到目标对象的距离(用于排序最近目标)
+        self.pos = pos                 # 位置: 目标对象在屏幕/世界坐标系中的位置
+        self.side = side               # 1=输出(节点右侧), -1=输入(节点左侧), 0=默认节点本身
+        self.bottom_top = bottom_top   # 绘制区域垂直边界: (底部Y坐标, 顶部Y坐标), 用于高亮显示接口区域
+        self.text = text               # 显示文本: 预缓存的翻译后文本(如接口名称)
 
 class VestData:
     list_enumProps = []                      # 节点的下拉菜单/选项用于焊接，并在调用前检查是否存在。

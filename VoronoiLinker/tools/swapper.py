@@ -45,26 +45,26 @@ class NODE_OT_voronoi_swapper(PairSocketTool):
             if is_first_active:
                 tar_sk_out, tar_sk_in = None, None
                 for tar in tar_sks_out: #todo0NA 但这不就是Findanysk吗!?
-                    if tar.blid!='NodeSocketVirtual':
+                    if tar.idname!='NodeSocketVirtual':
                         tar_sk_out = tar
                         break
                 for tar in tar_sks_in:
-                    if tar.blid!='NodeSocketVirtual':
+                    if tar.idname!='NodeSocketVirtual':
                         tar_sk_in = tar
                         break
-                #也允许对输入接口使用“添加”功能，但仅限于多输入接口，因为这很明显
+                #也允许对输入接口使用"添加"功能，但仅限于多输入接口，因为这很明显
                 if (self.toolMode==eMode.ADD.value)and(tar_sk_in):
                     #按类型检查，而不是按'is_multi_input'，这样就可以从常规输入添加到多输入.
-                    if (tar_sk_in.blid not in ('NodeSocketGeometry','NodeSocketString')):#or(not tar_sk_in.tar.is_multi_input): #没有第二个条件可能性更多.
+                    if (tar_sk_in.idname not in ('NodeSocketGeometry','NodeSocketString')):#or(not tar_sk_in.tar.is_multi_input): #没有第二个条件可能性更多.
                         tar_sk_in = None
                 self.target_sk0 = MinFromTars(tar_sk_out, tar_sk_in)
             #这里积累了很多奇怪的关于None等的检查 -- 这是我将自己发明的许多高级函数连接在一起的结果.
             skOut0 = opt_tar_socket(self.target_sk0)
             if skOut0:
                 for tar in tar_sks_out if skOut0.is_output else tar_sks_in:
-                    if tar.blid=='NodeSocketVirtual':
+                    if tar.idname=='NodeSocketVirtual':
                         continue
-                    if (self.isCanAnyType)or(skOut0.bl_idname==tar.blid)or(self.check_between_sk_fields(skOut0, tar.tar)):
+                    if (self.isCanAnyType)or(skOut0.bl_idname==tar.idname)or(self.check_between_sk_fields(skOut0, tar.tar)):
                         self.target_sk1 = tar
                     if self.target_sk1: #如果成功则停止搜索.
                         break

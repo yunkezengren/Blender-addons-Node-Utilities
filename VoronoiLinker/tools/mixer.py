@@ -77,7 +77,7 @@ class NODE_OT_voronoi_mixer(TripleSocketTool):
         if not self.target_sk0:
             return False
         if self.isCanFromOne:
-            return (self.target_sk0.blid!='NodeSocketVirtual')or(self.target_sk1)
+            return (self.target_sk0.idname!='NodeSocketVirtual')or(self.target_sk1)
         else:
             return self.target_sk1
     def run(self, event, prefs, tree):

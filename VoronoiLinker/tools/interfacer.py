@@ -120,7 +120,7 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
             skRosw = opt_tar_socket(self.target_skRosw)
             if skRosw:
                 for tar in tar_sks_out if skRosw.is_output else tar_sks_in:
-                    if (tar.blid!='NodeSocketVirtual')and(NodeItemsUtils.IsSimRepCorrectSk(nd, tar.tar)):
+                    if (tar.idname!='NodeSocketVirtual')and(NodeItemsUtils.IsSimRepCorrectSk(nd, tar.tar)):
                         self.target_skMain = tar
                         break
                 if (self.target_skMain)and(self.target_skMain.tar==skRosw):
@@ -139,13 +139,13 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
                         self.target_skRosw = None
                         for tar in tar_sks_out:
                             self.target_skRosw = tar
-                            self.tglCrossVirt = tar.blid == 'NodeSocketVirtual'
+                            self.tglCrossVirt = tar.idname == 'NodeSocketVirtual'
                             break
                         unhide_node_reassign(nd, self, cond=self.target_skRosw, flag=True)
                     skRosw = opt_tar_socket(self.target_skRosw)
                     if skRosw:
                         for tar in tar_sks_in:
-                            if (tar.blid == 'NodeSocketVirtual') ^ self.tglCrossVirt:
+                            if (tar.idname == 'NodeSocketVirtual') ^ self.tglCrossVirt:
                                 self.target_skMain = tar
                                 break
                         if (self.target_skMain) and (self.target_skMain.tar.node == skRosw.node):  #todo0NA 概括这种检查到类中.
@@ -155,11 +155,11 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
                     if is_first_active:
                         tar_sk_out, tar_sk_in = None, None
                         for tar in tar_sks_in:
-                            if (tar.blid != 'NodeSocketVirtual') and (NodeItemsUtils.IsSimRepCorrectSk(nd, tar.tar)):
+                            if (tar.idname != 'NodeSocketVirtual') and (NodeItemsUtils.IsSimRepCorrectSk(nd, tar.tar)):
                                 tar_sk_in = tar
                                 break
                         for tar in tar_sks_out:
-                            if (tar.blid != 'NodeSocketVirtual') and (NodeItemsUtils.IsSimRepCorrectSk(nd, tar.tar)):
+                            if (tar.idname != 'NodeSocketVirtual') and (NodeItemsUtils.IsSimRepCorrectSk(nd, tar.tar)):
                                 tar_sk_out = tar
                                 break
                         self.target_skMain = MinFromTars(tar_sk_out, tar_sk_in)
@@ -240,7 +240,7 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
                     min = 16777216.0
                     tar_sks_in, tar_sks_out = self.get_nearest_sockets(_tar_nd)
                     for tar in tar_sks_in if skMain.is_output else tar_sks_out:
-                        if (tar.blid != 'NodeSocketVirtual') and (NodeItemsUtils.IsSimRepCorrectSk(_tar_nd, tar.tar)):
+                        if (tar.idname != 'NodeSocketVirtual') and (NodeItemsUtils.IsSimRepCorrectSk(_tar_nd, tar.tar)):
                             length = (tarNdTar.pos - tar.pos).length
                             if min > length:
                                 min = length

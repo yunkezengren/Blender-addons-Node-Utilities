@@ -244,7 +244,7 @@ def draw_socket_text(drawer: Drawer,
         bg_color = clamp_color(get_sk_color(target.tar))
     else:
         text_color = bg_color = drawer.dsUniformColor
-    return draw_world_text(drawer, pos, offset, target.soldText, text_color, bg_color, font_size_override)
+    return draw_world_text(drawer, pos, offset, target.text, text_color, bg_color, font_size_override)
 
 def draw_debug_info(self, drawer: Drawer) -> None:
 
@@ -328,7 +328,7 @@ def draw_sockets_template(
 ) -> None:
 
     def get_pos_from_target(target: Target) -> Vec2:
-        return target.pos + Vec2((drawer.dsPointOffsetX * target.dir, 0.0))
+        return target.pos + Vec2((drawer.dsPointOffsetX * target.side, 0.0))
 
     target_sockets = [ar for ar in args_targets if ar]
     cursor_loc = drawer.cursorLoc
@@ -348,7 +348,7 @@ def draw_sockets_template(
     if (is_classic_flow) and (drawer.dsIsDrawLine) and (len(target_sockets) == 2):
         target1 = target_sockets[0]
         target2 = target_sockets[1]
-        if target1.dir * target2.dir < 0:  # 对于 VMLT, 为了不为它的两个套接字绘制, 它们在同一侧.
+        if target1.side * target2.side < 0:  # 对于 VMLT, 为了不为它的两个套接字绘制, 它们在同一侧.
             if drawer.dsIsColoredLine:
                 color1 = get_sk_color_safe(target1.tar)
                 color2 = get_sk_color_safe(target2.tar)
@@ -367,21 +367,21 @@ def draw_sockets_template(
                 color1 = color2 = drawer.dsUniformColor
             draw_connection_line(drawer, get_pos_from_target(target), cursor_loc, color1, color2)
         if drawer.dsIsDrawSkArea:
-            draw_socket_area(drawer, target.tar, target.boxHeiBound, Vec4(get_sk_color_safe(target.tar)))
+            draw_socket_area(drawer, target.tar, target.bottom_top, Vec4(get_sk_color_safe(target.tar)))
         if drawer.dsIsDrawPoint:
             draw_socket_point(drawer, get_pos_from_target(target), Vec4(clamp_color(get_sk_color(target.tar))),
                               Vec4(get_sk_color_safe(target.tar)))
     # 文本
     if is_draw_text:  # 文本应该在所有其他 ^ 之上.
-        targets_in = [target for target in target_sockets if target.dir < 0]
-        targets_out = [target for target in target_sockets if target.dir > 0]
+        targets_in = [target for target in target_sockets if target.side < 0]
+        targets_out = [target for target in target_sockets if target.side > 0]
         x_offset = 0
         sold_override_dir = abs(side_mark_offset) > 1 and (1 if side_mark_offset > 0 else -1)
         for list_targets in targets_in, targets_out:  # "累积", 天才! 意大利面条式代码的头疼消失了.
             hig = len(list_targets) - 1
             for cyc, target in enumerate(list_targets):
                 ofs_y = 0.75*hig - 1.5*cyc
-                dir = sold_override_dir if sold_override_dir else target.dir * side_mark_offset
+                dir = sold_override_dir if sold_override_dir else target.side * side_mark_offset
                 x_offset = drawer.dsDistFromCursor * dir
                 frame_dim = draw_socket_text(drawer, cursor_loc, (drawer.dsDistFromCursor * dir, ofs_y - 0.5), target)
                 if (drawer.dsIsDrawMarker) and ((target.tar.vl_sold_is_final_linked_cou) and (not is_draw_markers_more_than_one) or
@@ -389,7 +389,7 @@ def draw_sockets_template(
                     draw_socket_marker(drawer, cursor_loc, (frame_dim[0] * dir, frame_dim[1] * ofs_y), get_sk_color_safe(target.tar))
             # 绘制工具提示
             target_show_name = copy.copy(target)
-            target_show_name.soldText = _iface(tool_name).capitalize()
+            target_show_name.text = _iface(tool_name).capitalize()
             if x_offset != 0:
                 cursor_loc2 = cursor_loc.copy() + Vec2((0, 50))  # 额外绘制
                 draw_socket_text(drawer, cursor_loc2, (x_offset, 0), target_show_name)

@@ -385,7 +385,7 @@ class NODE_OT_voronoi_preview(SingleSocketTool):
                                 if tar.tar==sk:
                                     #不支持遍历转接点. 因为懒, 而且懒得为此重写代码.
                                     if drawer.dsIsDrawSkArea:
-                                        draw_socket_area(drawer, tar.tar, tar.boxHeiBound, get_sk_color_safe(tar.tar))
+                                        draw_socket_area(drawer, tar.tar, tar.bottom_top, get_sk_color_safe(tar.tar))
                                     draw_socket_text(drawer, tar.pos, (1-isSide*2, -0.5), tar, font_size_override=min(24*drawer.worldZoom*self.prefs.vptHlTextScale, 25))
                                     break
                         nd.hide = False #在绘制时写入. 至少不像 VMLT 中那么严重.
@@ -443,11 +443,11 @@ class NODE_OT_voronoi_preview(SingleSocketTool):
                     continue
                 #这个工具会触发除虚拟接口外的任何输出. 在几何节点中只寻找几何输出.
                 #锚点吸引预览; 转接点可以接受任何类型; 因此 -- 如果有锚点, 则禁用仅对几何接口的触发
-                if (tar.blid!='NodeSocketVirtual')and( (not isGeoTree)or(tar.tar.type=='GEOMETRY')or(self.isAnyAncohorExist) ):
+                if (tar.idname!='NodeSocketVirtual')and( (not isGeoTree)or(tar.tar.type=='GEOMETRY')or(self.isAnyAncohorExist) ):
                     can = True
                     if rrAnch:=tree.nodes.get(voronoiAnchorCnName): #EqualAnchorType.
                         rrSkBlId = rrAnch.outputs[0].bl_idname
-                        can = (not self.isEqualAnchorType)or(tar.blid==rrSkBlId)or(rrSkBlId=='NodeSocketVirtual')
+                        can = (not self.isEqualAnchorType)or(tar.idname==rrSkBlId)or(rrSkBlId=='NodeSocketVirtual')
                     #todo1v6 对于邻近锚点也按类型选择?
                     can = (can)and(not tar.tar.node.label==voronoiAnchorDtName) #tar.tar.node not in self.list_distanceAnchors
                     if can:
