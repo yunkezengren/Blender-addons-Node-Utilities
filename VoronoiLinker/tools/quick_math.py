@@ -4,7 +4,7 @@ from ..common_class import VqmtData
 from ..common_func import DisplayMessage, SetPieData
 from ..preference import pref
 from ..globals import Cursor_X_Offset, float_int_color
-from ..utils.color import get_sk_color_safe, power_color4
+from ..utils.color import get_sk_color_safe, power_color
 from ..utils.node import DoQuickMath, opt_tar_socket
 from ..utils.solder import dict_skTypeHandSolderingColor
 from ..utils.ui import draw_hand_split_prop, draw_panel_column
@@ -166,9 +166,9 @@ class NODE_OT_voronoi_quick_math(TripleSocketTool):
                 # case 'INT':     opr = self.quickOprInt
             return DoQuickMath(event, tree, opr)
         # print('这里只在绘制连线时调用一次,切换饼菜单不会刷新这里')
-        self.VqmSetPieData(prefs, power_color4(get_sk_color_safe(VqmtData.sk0), pw=2.2))
+        self.VqmSetPieData(prefs, power_color(get_sk_color_safe(VqmtData.sk0), power=2.2))
         if self.int_default_float:     # 整数接口浮点饼
-            color = power_color4(float_int_color["VALUE"], pw=2.2)
+            color = power_color(float_int_color["VALUE"], power=2.2)
             pref().vaDecorColSkBack = color
             pref().vaDecorColSk = color
         VqmtData.isJustPie = False

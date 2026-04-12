@@ -4,7 +4,7 @@ from ..base_tool import unhide_node_reassign, TripleSocketTool
 from ..common_class import VmtData
 from ..common_func import DisplayMessage, SetPieData
 from ..globals import Cursor_X_Offset
-from ..utils.color import get_sk_color_safe, power_color4
+from ..utils.color import get_sk_color_safe, power_color
 from ..utils.drawing import draw_sockets_template
 from ..utils.node import opt_tar_socket
 from ..utils.ui import draw_hand_split_prop, draw_panel_column, draw_hand_split_prop
@@ -93,7 +93,7 @@ class NODE_OT_voronoi_mixer(TripleSocketTool):
         if socket1 and socket1.type == "MATRIX":
             VmtData.skType = "MATRIX"
             _sk = VmtData.sk1
-        SetPieData(self, VmtData, prefs, power_color4(get_sk_color_safe(_sk), pw=2.2))
+        SetPieData(self, VmtData, prefs, power_color(get_sk_color_safe(_sk), power=2.2))
         if not self.in_builtin_tree: #由于 use_for_custom_tree, 这是个无用的检查.
             return {'CANCELLED'} #如果操作地点不在经典编辑器中, 就直接退出. 因为经典编辑器对所有人都一样, 而插件编辑器有无数种.
 

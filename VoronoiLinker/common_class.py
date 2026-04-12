@@ -1,5 +1,9 @@
 from bpy.types import Node, NodeSocket
 from mathutils import Vector as Vec2
+from collections.abc import Sequence
+
+float2 = Sequence[float]
+float4 = Sequence[float]
 
 class Target():  # Found Target Goal (找到的目标), "剩下的你们自己看着办".
     # def __getattr__(self, att): # 天才. 仅次于 '(*args): return Vector((args))'.

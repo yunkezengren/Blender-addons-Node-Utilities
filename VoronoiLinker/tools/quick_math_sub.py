@@ -4,7 +4,7 @@ from ..base_tool import BaseOperator
 from ..common_class import VqmtData
 from ..preference import pref
 from ..globals import Color_Bar_Width, dict_vqmtQuickMathMain, dict_vqmtQuickPresets, float_int_color, floatIntColorInverse
-from ..utils.color import get_sk_color, power_color4
+from ..utils.color import get_sk_color, power_color
 from ..utils.node import DoQuickMath
 
 class NODE_OT_quick_math_sub(BaseOperator):
@@ -22,7 +22,7 @@ class NODE_OT_quick_math_sub(BaseOperator):
         if self.operation == "切换浮点/整数菜单":   #  这时候类型只会是下面两种
             _switch = {"VALUE":"INT", "INT":"VALUE"}
             VqmtData.qmSkType = _switch[VqmtData.qmSkType]
-            color = power_color4(float_int_color[VqmtData.qmSkType], pw=2.2)
+            color = power_color(float_int_color[VqmtData.qmSkType], power=2.2)
             pref().vaDecorColSkBack = color
             pref().vaDecorColSk = color
 

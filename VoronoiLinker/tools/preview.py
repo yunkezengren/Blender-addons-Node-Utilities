@@ -5,11 +5,11 @@ from ..Structure import BNode
 from ..common_class import VptData
 from ..common_func import sk_type_to_idname
 from ..globals import Cursor_X_Offset, is_bl4_plus, voronoiAnchorCnName, voronoiAnchorDtName, voronoiPreviewResultNdName, voronoiSkPreviewName
-from ..utils.color import Color4, get_sk_color_safe, power_color4
+from ..utils.color import get_sk_color_safe, power_color
 from ..utils.drawing import draw_socket_text, draw_socket_area, draw_sockets_template
 from ..utils.node import GenTarsFromPuts, SelectAndActiveNdOnly, VlrtRememberLastSockets
 from ..utils.solder import solder_sk_links, SoldThemeCols
-from ..utils.ui import draw_hand_split_prop, LyAddNoneBox
+from ..utils.ui import draw_hand_split_prop
 
 viaverSkfMethod = -1 # 用于成功交互方法的切换开关. 本可以按版本分布到映射表中, 但"根据实际情况"尝试有其独特的美学魅力.
 
@@ -201,7 +201,7 @@ def VptPreviewFromSk(self, prefs, skTar):
                 ndRvSave.show_options = False
                 ndRvSave.blend_type = 'ADD'
                 ndRvSave.inputs[0].default_value = 0
-                ndRvSave.inputs[1].default_value = power_color4(SoldThemeCols.color_node4, pw=2.2)
+                ndRvSave.inputs[1].default_value = power_color(SoldThemeCols.color_node4, power=2.2)
                 ndRvSave.inputs[2].default_value = ndRvSave.inputs[1].default_value # 有点多余.
                 ndRvSave.inputs[0].hide = True
                 ndRvSave.inputs[1].name = "Color"
@@ -385,7 +385,7 @@ class NODE_OT_voronoi_preview(SingleSocketTool):
                                 if tar.tar==sk:
                                     #不支持遍历转接点. 因为懒, 而且懒得为此重写代码.
                                     if drawer.dsIsDrawSkArea:
-                                        draw_socket_area(drawer, tar.tar, tar.boxHeiBound, Color4(get_sk_color_safe(tar.tar)))
+                                        draw_socket_area(drawer, tar.tar, tar.boxHeiBound, get_sk_color_safe(tar.tar))
                                     draw_socket_text(drawer, tar.pos, (1-isSide*2, -0.5), tar, font_size_override=min(24*drawer.worldZoom*self.prefs.vptHlTextScale, 25))
                                     break
                         nd.hide = False #在绘制时写入. 至少不像 VMLT 中那么严重.

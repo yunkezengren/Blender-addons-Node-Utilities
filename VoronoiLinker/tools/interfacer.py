@@ -7,7 +7,7 @@ from ..base_tool import unhide_node_reassign, draw_node_template, draw_sockets_t
 from ..node_items import NodeItemsUtils
 from ..common_func import sk_label_or_name
 from ..globals import set_utilEquestrianPortalBlids
-from ..utils.color import Color4, get_sk_color_safe
+from ..utils.color import get_sk_color_safe
 from ..utils.drawing import draw_socket_area
 from ..utils.node import DoLinkHh, FindAnySk, MinFromTars, opt_tar_socket
 from ..utils.ui import draw_hand_split_prop
@@ -68,7 +68,7 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
 
                     y = tarNdTar.pos.y
                     boxHeiBound = Vec((y - 7, y + 7))
-                    draw_socket_area(drawer, near_group_in.tar, boxHeiBound, Color4(get_sk_color_safe(tarMain.tar)))
+                    draw_socket_area(drawer, near_group_in.tar, boxHeiBound, get_sk_color_safe(tarMain.tar))
             case eMode.FLIP:
                 # todo 接口1移到接口2上  FLIP模式，在两个接口绘制名后加上 接口1 接口2
                 # tarMain = self.target_skMain
@@ -84,8 +84,7 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
 
                     y = tarNdTar.pos.y
                     boxHeiBound = Vec((y-20, y+20 ))
-                    draw_socket_area(drawer, near_group_in.tar, boxHeiBound, Color4(get_sk_color_safe(tarMain.tar)))
-                    # draw_socket_area(drawer, near_group_in.tar, near_group_in.boxHeiBound, Color4(get_sk_color_safe(near_group_in.tar)))
+                    draw_socket_area(drawer, near_group_in.tar, boxHeiBound, get_sk_color_safe(tarMain.tar))
             case _:
                 draw_sockets_template(drawer, self.target_skMain, self.target_skRosw, tool_name=mode)
 
