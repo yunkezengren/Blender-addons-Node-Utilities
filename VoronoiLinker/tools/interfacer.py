@@ -2,11 +2,10 @@ from enum import Enum
 
 import bpy
 from mathutils import Vector as Vec
-from bpy.types import NodeTree
+from bpy.types import NodeTree, NodeSocket, NodeSocketVirtual
 from ..base_tool import unhide_node_reassign, draw_node_template, draw_sockets_template, PairSocketTool
 from ..node_items import NodeItemsUtils
 from ..common_func import sk_label_or_name
-from ..globals import set_utilEquestrianPortalBlids
 from ..utils.color import get_sk_color_safe
 from ..utils.drawing import draw_socket_area
 from ..utils.node import DoLinkHh, FindAnySk, MinFromTars, opt_tar_socket
@@ -61,14 +60,12 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
                     draw_sockets_template(drawer, tarMain, side_mark_offset=-2, tool_name=mode)
                 tarNdTar = self.target_ndTar
                 if tarNdTar:
-                    draw_node_template(drawer, tarNdTar, tool_name="Node Group")
                     tar_sks_in, tar_sks_out = self.get_nearest_sockets(tarNdTar.tar, cur_x_off=0)
                     if not tar_sks_in: return
-                    near_group_in = tar_sks_in[0]  # 节点组可能没有输入接口:
 
                     y = tarNdTar.pos.y
-                    boxHeiBound = Vec((y - 7, y + 7))
-                    draw_socket_area(drawer, near_group_in.tar, boxHeiBound, get_sk_color_safe(tarMain.tar))
+                    height_box = Vec((y - 7, y + 7))
+                    draw_socket_area(drawer, tar_sks_in[0].tar, height_box, Vec(get_sk_color_safe(tarMain.tar)))
             case eMode.FLIP:
                 # todo 接口1移到接口2上  FLIP模式，在两个接口绘制名后加上 接口1 接口2
                 # tarMain = self.target_skMain
@@ -83,12 +80,12 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
                     near_group_in = tar_sks_in[0]
 
                     y = tarNdTar.pos.y
-                    boxHeiBound = Vec((y-20, y+20 ))
-                    draw_socket_area(drawer, near_group_in.tar, boxHeiBound, get_sk_color_safe(tarMain.tar))
+                    height_box = Vec((y-20, y+20 ))
+                    draw_socket_area(drawer, near_group_in.tar, height_box, Vec(get_sk_color_safe(tarMain.tar)))
             case _:
                 draw_sockets_template(drawer, self.target_skMain, self.target_skRosw, tool_name=mode)
 
-    def find_targets_toolCopyPaste(self, _is_first_active, prefs, tree):
+    def find_targets_copy_paste(self, prefs):
         self.target_skMain = None
         if (self.toolMode == eMode.PASTE.value) and (not self.clipboard):  # 预料之中; 还有 #https://projects.blender.org/blender/blender/issues/113860
             return  #Todo0VV 遍历版本并指出哪些会崩溃.
@@ -103,7 +100,8 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
             if self.target_skMain:
                 unhide_node_reassign(nd, self, cond=self.target_skMain.tar.node == nd, flag=True)
             break
-    def find_targets_toolSwapFlip(self, is_first_active, prefs, tree):
+    
+    def find_targets_swap_flip(self, is_first_active):
         self.target_skMain = None
         for tar_nd in self.get_nearest_nodes(cur_x_off=0):
             nd = tar_nd.tar
@@ -126,7 +124,8 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
                 if (self.target_skMain)and(self.target_skMain.tar==skRosw):
                     self.target_skMain = None
             break
-    def find_targets_toolNewCreate(self, is_first_active, prefs, tree):
+    
+    def find_targets_new_create(self, is_first_active):
         for tar_nd in self.get_nearest_nodes(includePoorNodes=True, cur_x_off=0):
             nd = tar_nd.tar
             if nd.type=='REROUTE':
@@ -178,11 +177,11 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
     def find_targets_tool(self, is_first_active, prefs, tree):
         match eMode(self.toolMode):
             case eMode.COPY | eMode.PASTE:
-                self.find_targets_toolCopyPaste(is_first_active, prefs, tree)
+                self.find_targets_copy_paste(prefs)
             case eMode.SWAP | eMode.FLIP:
-                self.find_targets_toolSwapFlip(is_first_active, prefs, tree)
+                self.find_targets_swap_flip(is_first_active)
             case eMode.NEW | eMode.CREATE:
-                self.find_targets_toolNewCreate(is_first_active, prefs, tree)
+                self.find_targets_new_create(is_first_active)
 
     def can_run(self):
         match eMode(self.toolMode):
@@ -191,15 +190,13 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
             case eMode.SWAP | eMode.FLIP:
                 return self.target_skRosw and self.target_skMain
             case eMode.NEW:
-                for dk, dv in self.dict_ndHidingVirtualIn.items():
-                    dk.inputs[-1].hide = dv
-                for dk, dv in self.dict_ndHidingVirtualOut.items():
-                    dk.outputs[-1].hide = dv
+                for sk, hide in self.hide_extend_sks.items():
+                    sk.hide = hide
                 return self.target_skRosw and self.target_skMain
             case eMode.CREATE:
                 return self.target_skMain and self.target_ndTar
 
-    def run(self, event, prefs, tree: NodeTree):
+    def run(self, event, prefs, tree):
         links = tree.links
         match eMode(self.toolMode):
             case eMode.COPY:
@@ -277,18 +274,18 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
     def initialize(self, event, prefs, tree):
         self.target_skMain = None
         self.target_skRosw = None  #RootSwap
+        def store_extend_hide_state(extend_sk: NodeSocket):
+            if isinstance(extend_sk, NodeSocketVirtual):
+                self.hide_extend_sks[extend_sk] = extend_sk.hide
+                extend_sk.hide = False
         match eMode(self.toolMode):
             case eMode.NEW:
-                self.dict_ndHidingVirtualIn = {}
-                self.dict_ndHidingVirtualOut = {}
+                self.hide_extend_sks: dict[NodeSocketVirtual, bool] = {}
                 for nd in tree.nodes:
-                    if nd.bl_idname in set_utilEquestrianPortalBlids:
-                        if nd.inputs:
-                            self.dict_ndHidingVirtualIn[nd] = nd.inputs[-1].hide
-                            nd.inputs[-1].hide = False
-                        if nd.outputs:
-                            self.dict_ndHidingVirtualOut[nd] = nd.outputs[-1].hide
-                            nd.outputs[-1].hide = False
+                    if nd.inputs:
+                        store_extend_hide_state(nd.inputs[-1])
+                    if nd.outputs:
+                        store_extend_hide_state(nd.outputs[-1])
                 self.tglCrossVirt = None
                 # 某个 bug, 如果不重绘, 第一个找到的虚拟的就无法正确选择.
                 bpy.ops.wm.redraw_timer(type='DRAW', iterations=0)
@@ -297,8 +294,8 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
             case eMode.FLIP:
                 self.target_ndTar = None
         NODE_OT_voronoi_interfacer.clipboard = property(lambda _: bpy.context.window_manager.clipboard,
-                                                   lambda _, v: setattr(bpy.context.window_manager, 'clipboard', v))
+                                                        lambda _, v: setattr(bpy.context.window_manager, 'clipboard', v))
 
     @staticmethod
-    def draw_in_pref_settings(col: bpy.types.UILayout, prefs):
+    def draw_in_pref_settings(col, prefs):
         draw_hand_split_prop(col, prefs, 'vitPasteToAnySocket')

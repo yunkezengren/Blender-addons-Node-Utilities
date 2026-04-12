@@ -117,9 +117,9 @@ def GenTarsFromPuts(nd: Node, isSide, samplePos, uiScale): # 为 vptRvEeSksHighl
                     hei = 2
                 elif not( (nd.type in ('BSDF_PRINCIPLED','SUBSURFACE_SCATTERING'))and(not is_bl4_plus) )or( not(sk.name in ("Subsurface Radius","Radius"))):
                     hei = 3
-            boxHeiBound = (pos.y-11-hei*20,  pos.y+11+max(sk.vl_sold_is_final_linked_cou-2,0)*5*(not isSide))
+            height_box = (pos.y-11-hei*20,  pos.y+11+max(sk.vl_sold_is_final_linked_cou-2,0)*5*(not isSide))
             txt = _iface(sk_label_or_name(sk)) if sk.bl_idname!='NodeSocketVirtual' else _iface("Virtual" if not sk.name else sk_label_or_name(sk))
-            results.append(Target(sk, distance=(samplePos-pos).length, pos=pos, side= 1 if sk.is_output else -1 , bottom_top=boxHeiBound, text=txt))
+            results.append(Target(sk, distance=(samplePos-pos).length, pos=pos, side= 1 if sk.is_output else -1 , bottom_top=height_box, text=txt))
     return results
 
 def nearest_sockets_tar(nd: Node, samplePos, uiScale): # 返回"最近的插槽"列表. 真实的 Voronoi 图单元距离场. 没错, 这个插件就是因此得名的.

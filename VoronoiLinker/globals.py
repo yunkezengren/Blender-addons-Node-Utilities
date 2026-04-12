@@ -81,7 +81,7 @@ set_classicSocketsBlid = {
     'NodeSocketMatrix',
 }
 
-# 新建接口-用到了
+# 新建接口-用到了-弃用
 set_utilEquestrianPortalBlids = {'NodeGroupInput', 'NodeGroupOutput',
                                  'GeometryNodeSimulationInput', 'GeometryNodeSimulationOutput',
                                  'GeometryNodeRepeatInput', 'GeometryNodeRepeatOutput',
