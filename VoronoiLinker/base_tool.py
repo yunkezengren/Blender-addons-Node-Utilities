@@ -224,7 +224,7 @@ class SingleNodeTool(BaseTool):  #1
         draw_node_template(drawer, self.target_nd)
 
     def can_run(self):
-        return not not self.target_nd
+        return bool(self.target_nd)
 
     def initialize_pre(self, event: Event):
         self.target_nd = None

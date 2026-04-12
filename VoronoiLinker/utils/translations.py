@@ -224,7 +224,7 @@ _translations_dict: dict[tuple[context_s, str], dict[locale_s, str]] = {
     },
 
     # VMT mixer labels
-    ("*", "Switch  "): {
+    ("*", "A Switch"): {
         "zh_HANS": "A 切换",
         "ru_RU": "Переключение",
     },
@@ -247,7 +247,27 @@ _translations_dict: dict[tuple[context_s, str], dict[locale_s, str]] = {
         "zh_HANS": "X 混合",
         "ru_RU": "Mix ",
     },
-    ("*", "Split Viewer "): {
+    ("*", "S Index Switch"): {
+        "zh_HANS": "S 索引切换",
+        "ru_RU": "S Index Switch",
+    },
+    ("*", "D Menu Switch"): {
+        "zh_HANS": "D 菜单切换",
+        "ru_RU": "D Menu Switch",
+    },
+    ("*", "Q Join String"): {
+        "zh_HANS": "Q 连接字符串",
+        "ru_RU": "Q Join String",
+    },
+    ("*", "String Length "): {
+        "zh_HANS": "字符串长度",
+        "ru_RU": "String Length ",
+    },
+    ("*", "Replace String "): {
+        "zh_HANS": "替换字符串",
+        "ru_RU": "Replace String ",
+    },
+        ("*", "Split Viewer "): {
         "zh_HANS": "分离查看器",
         "ru_RU": "Split Viewer ",
     },
@@ -271,26 +291,6 @@ _translations_dict: dict[tuple[context_s, str], dict[locale_s, str]] = {
         "zh_HANS": "相加着色器",
         "ru_RU": "Add Shader ",
     },
-    ("*", "Index Switch "): {
-        "zh_HANS": "S 索引切换",
-        "ru_RU": "Index Switch ",
-    },
-    ("*", "Menu Switch  "): {
-        "zh_HANS": "D 菜单切换",
-        "ru_RU": "Menu Switch  ",
-    },
-    ("*", "Join String "): {
-        "zh_HANS": "J 连接字符串",
-        "ru_RU": "Join String ",
-    },
-    ("*", "String Length "): {
-        "zh_HANS": "字符串长度",
-        "ru_RU": "String Length ",
-    },
-    ("*", "Replace String "): {
-        "zh_HANS": "替换字符串",
-        "ru_RU": "Replace String ",
-    },
     ("*", "Or "): {
         "zh_HANS": "或",
         "ru_RU": "Or ",
@@ -303,25 +303,25 @@ _translations_dict: dict[tuple[context_s, str], dict[locale_s, str]] = {
         "zh_HANS": "D 距离",
         "ru_RU": "Distance ",
     },
-    ("*", "Join "): {
-        "zh_HANS": "J 合并",
-        "ru_RU": "Join ",
+    ("*", "Q Join Geometry"): {
+        "zh_HANS": "Q 合并",
+        "ru_RU": "Q Join Geometry",
     },
     ("*", "Instance on Points "): {
-        "zh_HANS": "实例化与点上",
+        "zh_HANS": "W 实例化与点上",
         "ru_RU": "Instance on Points ",
     },
     ("*", "Curve to Mesh "): {
-        "zh_HANS": "曲线转网格",
+        "zh_HANS": "E 曲线转网格",
         "ru_RU": "Curve to Mesh ",
     },
     ("*", "Boolean "): {
         "zh_HANS": "布尔",
         "ru_RU": "Boolean ",
     },
-    ("*", "To Instance "): {
-        "zh_HANS": "G 几何转实例",
-        "ru_RU": "To Instance ",
+    ("*", "R To Instance"): {
+        "zh_HANS": "R 几何转实例",
+        "ru_RU": "R To Instance",
     },
 
     # Quick Math labels

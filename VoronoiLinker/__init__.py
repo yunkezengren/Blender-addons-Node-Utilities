@@ -22,7 +22,7 @@ from .tools.quick_math_sub import NODE_OT_quick_math_sub, NODE_MT_quick_math_pie
 from .tools.reset_node import NODE_OT_voronoi_reset_node
 from .tools.swapper import SwapperMode, NODE_OT_voronoi_swapper
 from .tools.warper import NODE_OT_voronoi_warper
-from .translations import translations_dict
+from .utils.translations import translations_dict
 from .utils.solder import register_socket_properties, assign_tool_class_names, unregister_socket_properties
 from .preference import VoronoiAddonPrefs, VoronoiOpAddonTabs, pref, add_dynamic_properties, update_lang_deb_enum_items
 
