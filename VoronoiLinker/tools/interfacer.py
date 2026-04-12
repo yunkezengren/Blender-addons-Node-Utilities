@@ -43,14 +43,16 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
     toolMode: bpy.props.EnumProperty(name="Mode", default=eMode.NEW.value, items=ModeItems)
 
     def callback_draw_tool(self, drawer):
-        match eMode(self.toolMode):
-            case eMode.NEW:    mode = "Connect Extend Socket"
-            case eMode.CREATE: mode = "Insert to Add Socket"
-            case eMode.COPY:   mode = "Copy Socket Name"
-            case eMode.PASTE:  mode = "Paste Socket Name"
-            case eMode.FLIP:   mode = "Move Before Socket"
-            case eMode.SWAP:   mode = "Swap Sockets"
-            case eMode.TYPE:   mode = "Change Socket Type"
+        mode_map = {
+            eMode.NEW:    "Connect Extend Socket",
+            eMode.CREATE: "Insert to Add Socket",
+            eMode.COPY:   "Copy Socket Name",
+            eMode.PASTE:  "Paste Socket Name",
+            eMode.FLIP:   "Move Before Socket",
+            eMode.SWAP:   "Swap Sockets",
+            eMode.TYPE:   "Change Socket Type",
+        }
+        mode = mode_map[eMode(self.toolMode)]
         match eMode(self.toolMode):
             case eMode.NEW:
                 draw_sockets_template(drawer, self.target_skRosw, self.target_skMain, is_classic_flow=True, tool_name=mode)
@@ -87,7 +89,8 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
 
     def find_targets_copy_paste(self, prefs):
         self.target_skMain = None
-        if (self.toolMode == eMode.PASTE.value) and (not self.clipboard):  # 预料之中; 还有 #https://projects.blender.org/blender/blender/issues/113860
+        if (self.toolMode
+                == eMode.PASTE.value) and (not self.clipboard):  # 预料之中; 还有 #https://projects.blender.org/blender/blender/issues/113860
             return  #Todo0VV 遍历版本并指出哪些会崩溃.
         for tar_nd in self.get_nearest_nodes(cur_x_off=0):
             nd = tar_nd.tar
@@ -100,16 +103,16 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
             if self.target_skMain:
                 unhide_node_reassign(nd, self, cond=self.target_skMain.tar.node == nd, flag=True)
             break
-    
+
     def find_targets_swap_flip(self, is_first_active):
         self.target_skMain = None
         for tar_nd in self.get_nearest_nodes(cur_x_off=0):
             nd = tar_nd.tar
-            if nd.type=='REROUTE':
+            if nd.type == 'REROUTE':
                 continue
             if nd.type not in NodeItemsUtils.support_types:
-                break # 光标必须靠近骑士 (或组节点); 但也可以通过选择同一个套接字来取消, 所以不确定.
-            if (self.target_skRosw)and(self.target_skRosw.tar.node!=nd):
+                break  # 光标必须靠近骑士 (或组节点); 但也可以通过选择同一个套接字来取消, 所以不确定.
+            if (self.target_skRosw) and (self.target_skRosw.tar.node != nd):
                 continue
             tar_sks_in, tar_sks_out = self.get_nearest_sockets(nd, cur_x_off=0)
             if is_first_active:
@@ -118,13 +121,13 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
             skRosw = opt_tar_socket(self.target_skRosw)
             if skRosw:
                 for tar in tar_sks_out if skRosw.is_output else tar_sks_in:
-                    if (tar.idname!='NodeSocketVirtual')and(NodeItemsUtils.IsSimRepCorrectSk(nd, tar.tar)):
+                    if (tar.idname != 'NodeSocketVirtual') and (NodeItemsUtils.IsSimRepCorrectSk(nd, tar.tar)):
                         self.target_skMain = tar
                         break
-                if (self.target_skMain)and(self.target_skMain.tar==skRosw):
+                if (self.target_skMain) and (self.target_skMain.tar == skRosw):
                     self.target_skMain = None
             break
-    
+
     def find_targets_new_create(self, is_first_active):
         for tar_nd in self.get_nearest_nodes(includePoorNodes=True, cur_x_off=0):
             nd = tar_nd.tar
