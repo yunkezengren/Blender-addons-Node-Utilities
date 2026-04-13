@@ -202,7 +202,7 @@ class NODE_OT_voronoi_lazy_node_stencils(PairSocketTool):  # 第一个应外部�
     def run(self, event, prefs, tree):
         VlnstLazyTemplate(prefs, tree, opt_tar_socket(self.target_sk0), opt_tar_socket(self.target_sk1), self.cursorLoc)
     @staticmethod
-    def draw_in_pref_settings(col: bpy.types.UILayout, prefs):
+    def draw_pref_settings(col, prefs):
         draw_hand_split_prop(col, prefs,'vlnstNonColorName')
         if prefs.vlnstLastExecError:
             draw_hand_split_prop(col, prefs,'vlnstLastExecError')

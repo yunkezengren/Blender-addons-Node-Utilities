@@ -23,7 +23,7 @@ class NODE_OT_voronoi_swapper(PairSocketTool):
     bl_label = "Voronoi Swapper"
     bl_description = "Tool for swapping links between two sockets, or adding them to one of them.\nNo link swap will occur if it ends up originating from its own node."
     use_for_custom_tree = True
-    can_draw_in_pref_setting = False
+    can_draw_settings = False
     toolMode:     bpy.props.EnumProperty(name="Mode", default=eMode.SWAP.value, items=ModeItems)
     isCanAnyType: bpy.props.BoolProperty(name="Can swap with any socket type", default=False)
     def callback_draw_tool(self, drawer):      # 我模仿着加的

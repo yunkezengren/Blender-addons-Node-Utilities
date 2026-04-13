@@ -228,18 +228,18 @@ class VoronoiAddonPrefs(bpy.types.AddonPreferences):
     vOwZoomMin             : FloatProperty(name="Zoom min", default=0.05,  min=0.0078125, max=1.0,  precision=3)
     vOwZoomMax             : FloatProperty(name="Zoom max", default=2.301, min=1.0,       max=16.0, precision=3)
     # ------
-    def LyDrawTabSettings(self, where: UILayout):
-        colMain = where.column()
-        LyAddThinSep(colMain, 0.1)
+    def draw_tab_settings(self, layout: UILayout):
+        col = layout.column()
+        LyAddThinSep(col, 0.1)
         # 延迟导入以避免循环导入
         from . import vt_classes
         for cls in vt_classes:
-            if cls.can_draw_in_pref_setting:
-                if colDiscl := draw_panel_column(colMain, format_tool_set(cls)):
-                    cls.draw_in_pref_settings(colDiscl, self)
+            if cls.can_draw_settings:
+                if body_col := draw_panel_column(col, format_tool_set(cls)):
+                    cls.draw_pref_settings(body_col, self)
 
-    def LyDrawTabAppearance(self, where: UILayout):
-        colMain = where.column()
+    def draw_tab_appearance(self, layout: UILayout):
+        colMain = layout.column()
         #draw_hand_split_prop(draw_panel_column(colMain, text="Main"), self,'vSearchMethod')
         ##
         if p_col := draw_panel_column(colMain, "Edge pan"):
@@ -253,17 +253,17 @@ class VoronoiAddonPrefs(bpy.types.AddonPreferences):
         ##
         from . import vt_classes
         for cls in vt_classes:
-            if cls.can_draw_in_appearence:
-                cls.LyDrawInAppearance(colMain, self)
+            if cls.can_draw_appearance:
+                cls.draw_pref_appearance(colMain, self)
 
-    def LyDrawTabDraw(self, where: UILayout):
+    def draw_tab_draw(self, layout: UILayout):
 
-        def LyAddPairProp(where: UILayout, txt):
-            row = where.row(align=True)
+        def LyAddPairProp(layout: UILayout, txt):
+            row = layout.row(align=True)
             row.prop(self, txt)
             row.active = getattr(self, txt.replace("Colored", "Draw"))
 
-        colMain = where.column()
+        colMain = layout.column()
         splDrawColor = colMain.box().split(align=True)
         splDrawColor.use_property_split = True
         colDraw = splDrawColor.column(align=True, heading='Draw')
@@ -341,8 +341,8 @@ class VoronoiAddonPrefs(bpy.types.AddonPreferences):
             with LyAddQuickInactiveCol(colDev, active=self.dsIsTestDrawing) as row:
                 row.prop(self, 'dsIsTestDrawing')
 
-    def LyDrawTabKeymaps(self, where: UILayout):
-        colMain = where.column()
+    def draw_tab_keymaps(self, layout: UILayout):
+        colMain = layout.column()
         colMain.separator()
         rowLabelMain = colMain.row(align=True)
         rowLabel = rowLabelMain.row(align=True)
@@ -393,11 +393,11 @@ class VoronoiAddonPrefs(bpy.types.AddonPreferences):
         rowAddNew.separator()
         rowAddNew.operator(VoronoiOpAddonTabs.bl_idname, text="Add New", icon='ADD').opt = 'AddNewKmi'  # NONE  ADD
 
-        def LyAddKmisCategory(where: UILayout, cat):
+        def LyAddKmisCategory(layout: UILayout, cat):
             if not cat.matched_items:
                 return
             txt = self.bl_rna.properties[cat.prop_name].name
-            panel, body = where.panel(idname=cat.prop_name, default_closed=True)
+            panel, body = layout.panel(idname=cat.prop_name, default_closed=True)
             panel.label(text=_iface(txt) + f" ({cat.count})")
             if body:
                 for li in sorted(cat.matched_items, key=lambda a: a.id):
@@ -412,19 +412,19 @@ class VoronoiAddonPrefs(bpy.types.AddonPreferences):
         LyAddKmisCategory(colList, kmiCats.qqm)
         rowLabelPost.label(text=f"({scoAll})", translate=False)
 
-    def LyDrawTabInfo(self, where: UILayout):
+    def draw_tab_info(self, layout: UILayout):
 
-        def LyAddUrlHl(where: UILayout, text, url, txtHl=""):
-            row = where.row(align=True)
+        def LyAddUrlHl(layout: UILayout, text, url, txtHl=""):
+            row = layout.row(align=True)
             row.alignment = 'LEFT'
             if txtHl:
                 txtHl = "#:~:text=" + txtHl
             row.operator('wm.url_open', text=text, icon='URL').url = url + txtHl
             row.label()
 
-        LyAddUrlHl(where, "Check for updates yourself", "https://github.com/yunkezengren/Blender-addons-Node-Utilities/releases")
+        LyAddUrlHl(layout, "Check for updates yourself", "https://github.com/yunkezengren/Blender-addons-Node-Utilities/releases")
 
-        panel, body = where.panel(idname="工具描述", default_closed=True)
+        panel, body = layout.panel(idname="工具描述", default_closed=True)
         panel.label(text="Description")
         if body:
             body = body.split(factor=0.01)
@@ -445,13 +445,13 @@ class VoronoiAddonPrefs(bpy.types.AddonPreferences):
                         text_row.label(icon='BLANK1')
                         text_row.label(text=li, translate=False)
 
-        panel, body = where.panel(idname="old", default_closed=True)
+        panel, body = layout.panel(idname="old", default_closed=True)
         panel.label(text="Settings from original author (I don't understand some of them)")
         if body:
             body = body.split(factor=0.05)
             body.label()
-            where = body
-            colMain = where.column()
+            layout = body
+            colMain = layout.column()
             colUrls = colMain.column()
             LyAddUrlHl(colUrls, "Check for updates yourself", "https://github.com/ugorek000/VoronoiLinker", txtHl="Latest%20version")
             LyAddUrlHl(colUrls, "VL Wiki", old_info['wiki_url'])
@@ -498,15 +498,15 @@ class VoronoiAddonPrefs(bpy.types.AddonPreferences):
                         row.label(text="{}", translate=False)
                 colLangDebug.row().prop(self, 'vaLangDebEnum', expand=True)
 
-                def LyAddAlertNested(where: UILayout, text):
-                    with LyAddQuickInactiveCol(where) as row:
+                def LyAddAlertNested(layout: UILayout, text):
+                    with LyAddQuickInactiveCol(layout) as row:
                         row.label(text=text, translate=False)
-                    row = where.row(align=True)
+                    row = layout.row(align=True)
                     row.label(icon='BLANK1')
                     return row.column(align=True)
 
-                def LyAddTran(where: UILayout, label, text, *, dot="."):
-                    rowRoot = where.row(align=True)
+                def LyAddTran(layout: UILayout, label, text, *, dot="."):
+                    rowRoot = layout.row(align=True)
                     with LyAddQuickInactiveCol(rowRoot) as row:
                         row.alignment = 'LEFT'
                         row.label(text=label + ": ", translate=False)
@@ -519,8 +519,8 @@ class VoronoiAddonPrefs(bpy.types.AddonPreferences):
                         for cyc, li in enumerate(list_split):
                             col.label(text=li + (dot if cyc == hig else ""), translate=False)
 
-                def LyAddTranDataForProp(where: UILayout, pr, dot="."):
-                    colRoot = where.column(align=True)
+                def LyAddTranDataForProp(layout: UILayout, pr, dot="."):
+                    colRoot = layout.column(align=True)
                     with LyAddQuickInactiveCol(colRoot) as row:
                         row.label(text=pr.identifier, translate=False)
                     row = colRoot.row(align=True)
@@ -598,11 +598,11 @@ class VoronoiAddonPrefs(bpy.types.AddonPreferences):
 
     def draw(self, context):
 
-        def LyAddDecorLyColRaw(where: UILayout, sy=0.05, sx=1.0, en=False):
-            where.prop(self, 'vaDecorLy', text="")
-            where.scale_x = sx
-            where.scale_y = sy  # 如果小于 0.05, 布局会消失, 圆角也会消失.
-            where.enabled = en
+        def LyAddDecorLyColRaw(layout: UILayout, sy=0.05, sx=1.0, en=False):
+            layout.prop(self, 'vaDecorLy', text="")
+            layout.scale_x = sx
+            layout.scale_y = sy  # 如果小于 0.05, 布局会消失, 圆角也会消失.
+            layout.enabled = en
 
         colLy = self.layout.column()
         colMain = colLy.column(align=True)
@@ -621,15 +621,15 @@ class VoronoiAddonPrefs(bpy.types.AddonPreferences):
         #LyAddDecorLyColRaw(p_col.row(align=True), sy=0.25) # 盒子无法收缩到比其空状态更小. 不得不寻找其他方法..
         match self.vaUiTabs:
             case 'SETTINGS':
-                self.LyDrawTabSettings(colMain)
+                self.draw_tab_settings(colMain)
             case 'APPEARANCE':
-                self.LyDrawTabAppearance(colMain)
+                self.draw_tab_appearance(colMain)
             case 'DRAW':
-                self.LyDrawTabDraw(colMain)
+                self.draw_tab_draw(colMain)
             case 'KEYMAP':
-                self.LyDrawTabKeymaps(colMain)
+                self.draw_tab_keymaps(colMain)
             case 'INFO':
-                self.LyDrawTabInfo(colMain)
+                self.draw_tab_info(colMain)
 
 def GetVlKeyconfigAsPy():  # 从 'bl_keymap_utils.io' 借来的. 我完全不知道它是如何工作的.
 

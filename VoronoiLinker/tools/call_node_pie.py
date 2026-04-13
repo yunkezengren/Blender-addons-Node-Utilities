@@ -6,7 +6,7 @@ class NODE_OT_voronoi_call_node_pie(AnyTargetTool):
     """ Voronoi 联动 Node Pie """
     bl_idname = 'node.voronoi_call_node_pie'
     bl_label = "Voronoi Call Node Pie"
-    can_draw_in_pref_setting = False
+    can_draw_settings = False
     isTriggerOnCollapsedNodes: bpy.props.BoolProperty(name="Trigger on collapsed nodes", default=True)
 
     def callback_draw_tool(self, drawer):

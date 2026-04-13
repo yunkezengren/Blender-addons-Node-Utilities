@@ -25,6 +25,7 @@ from .tools.warper import NODE_OT_voronoi_warper
 from .utils.translations import translations_dict
 from .utils.solder import register_socket_properties, assign_tool_class_names, unregister_socket_properties
 from .preference import VoronoiAddonPrefs, VoronoiOpAddonTabs, pref, add_dynamic_properties, update_lang_deb_enum_items
+from .base_tool import BaseTool
 
 try:
     from rich import traceback
@@ -154,7 +155,7 @@ operator_keymaps: dict[type[Operator], list[str | tuple[str, dict[str, Any]]]] =
 }
 
 all_classes: list[type[Operator]] = []  # 所有需要注册的类 (包括工具、偏好、饼菜单等)
-vt_classes: list[type[Operator]] = []  # 只存放 V*T (Voronoi Tool) 工具
+vt_classes: list[type[BaseTool]] = []  # 只存放 V*T (Voronoi Tool) 工具
 keymap_item_defs: list[tuple[str, str, bool, bool, bool, bool, dict[str, Any]]] = []
 
 num_to_word: dict[str, str] = {"1": 'ONE', "2": 'TWO', "3": 'THREE', "4": 'FOUR', "5": 'FIVE', "6": 'SIX', "7": 'SEVEN', "8": 'EIGHT', "9": 'NINE', "0": 'ZERO'}

@@ -99,6 +99,6 @@ class NODE_OT_voronoi_ranto(SingleNodeTool): #完成了.
         self.lastNdProc = None
         #self.ndMaxAccRoot = None
     @staticmethod
-    def draw_in_pref_settings(col: bpy.types.UILayout, prefs):
+    def draw_pref_settings(col, prefs):
         LyAddLeftProp(col, prefs,'vrtIsLiveRanto')
         LyAddLeftProp(col, prefs,'vrtIsFixIslands')

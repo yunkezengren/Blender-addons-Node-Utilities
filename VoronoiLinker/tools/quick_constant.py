@@ -17,7 +17,7 @@ class NODE_OT_voronoi_quick_constant(TripleSocketTool):
     bl_label = "Voronoi Quick Constant"
     bl_description = "Tool for quickly adding constant value nodes.\nSupports various data types including vectors, colors, matrices and more."
     use_for_custom_tree = False
-    can_draw_in_pref_setting = False
+    can_draw_settings = False
     isPlaceImmediately: bpy.props.BoolProperty(name="Place immediately", default=False)
     def callback_draw_tool(self, drawer):
         draw_sockets_template(drawer, self.target_sk0, self.target_sk1, self.target_sk2, tool_name="Quick Constant")

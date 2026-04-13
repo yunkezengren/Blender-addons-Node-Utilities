@@ -158,7 +158,7 @@ class NODE_OT_voronoi_linker(PairSocketTool):  # 神圣中的神圣. 它存在�
             bpy.ops.node.select_all(action='DESELECT')
             tree.nodes.active = None
     @staticmethod
-    def draw_in_pref_settings(col: bpy.types.UILayout, prefs):
+    def draw_pref_settings(col, prefs):
         draw_hand_split_prop(col, prefs,'vltRepickKey', link_btn=True)
         draw_hand_split_prop(col, prefs,'vltReroutesCanInAnyType')
         draw_hand_split_prop(col, prefs,'vltDeselectAllNodes')

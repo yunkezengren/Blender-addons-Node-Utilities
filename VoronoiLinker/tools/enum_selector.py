@@ -86,6 +86,7 @@ def draw_enum_property_selectors(parent_layout: UILayout, domain_layout=None):
 
     # 在我最初的想法中, 我错误地称这个工具为“Prop Selector”. 需要想办法区分节点的通用属性和在选项中绘制的属性.
     # 幸运的是, 每个节点没有不同的枚举...
+
 class NODE_OT_enum_selector_box(BaseOperator):
     bl_idname = 'node.enum_selector_box'
     bl_label = "Enum Selector"
@@ -176,7 +177,7 @@ class NODE_OT_voronoi_enum_selector(SingleNodeTool):
     bl_label = "Voronoi Enum Selector"
     bl_description = "Tool for convenient lazy switching of enumeration properties.\nEliminates the need for mouse aiming, clicking, and then aiming and clicking again."
     use_for_custom_tree = True
-    can_draw_in_appearence = True
+    can_draw_appearance = True
     isInstantActivation: bpy.props.BoolProperty(name="Instant activation",  default=True,  description="Skip drawing to a node and activation when release, and activate immediately when pressed")
     isPieChoice:         bpy.props.BoolProperty(name="Pie choice",          default=False, description="Allows to select an enum by releasing the key")
     isToggleOptions:     bpy.props.BoolProperty(name="Toggle node options", default=False)
@@ -291,11 +292,11 @@ class NODE_OT_voronoi_enum_selector(SingleNodeTool):
             return {'FINISHED'} # 完成工具很重要.
         self.firstResult = None # 理想情况下也应该在上面, 但不是必须的, 参见 isToggleOptions 的拓扑.
     @staticmethod
-    def draw_in_pref_settings(col: bpy.types.UILayout, prefs):
+    def draw_pref_settings(col, prefs):
         draw_hand_split_prop(col, prefs,'vestIsToggleNodesOnDrag')
     @staticmethod
-    def LyDrawInAppearance(colLy, prefs): # 注意: 这是 @staticmethod.
-        if p_col := draw_panel_column(colLy, "Enum Select Box"):
+    def draw_pref_appearance(col, prefs): # 注意: 这是 @staticmethod.
+        if p_col := draw_panel_column(col, "Enum Select Box"):
             draw_hand_split_prop(p_col, prefs,'vestBoxScale')
             draw_hand_split_prop(p_col, prefs,'vestDisplayLabels', bool_label_left=True)
             draw_hand_split_prop(p_col, prefs,'vestDarkStyle', bool_label_left=True)

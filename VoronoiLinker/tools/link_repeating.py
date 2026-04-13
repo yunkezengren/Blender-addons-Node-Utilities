@@ -22,7 +22,7 @@ class NODE_OT_voronoi_link_repeating(AnyTargetTool):  # 分离成单独的工具
     bl_label = "Voronoi Link Repeating"
     bl_description = "A full-fledged branch from VLT, repeats any previous link from most\nother tools. Provides convenience for \"one to many\" connections."
     use_for_custom_tree = True
-    can_draw_in_pref_setting = False
+    can_draw_settings = False
     toolMode: bpy.props.EnumProperty(name="Mode", default=eMode.SOCKET.value, items=ModeItems)
     def callback_draw_tool(self, drawer):
         self.template_draw_any(drawer, self.target_any, cond=self.toolMode==eMode.NODE.value)

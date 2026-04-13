@@ -10,7 +10,7 @@ class NODE_OT_voronoi_links_transfer(PairNodeTool):
     bl_label = "Voronoi Links Transfer"
     bl_description = "Tool for rare needs of transferring all links from one node to another.\nIn the future, it will most likely be merged with VST."
     use_for_custom_tree = True
-    can_draw_in_pref_setting = False
+    can_draw_settings = False
     isByIndexes: bpy.props.BoolProperty(name="Transfer by indexes", default=False)
     def callback_draw_tool(self, drawer):
         # VLT 模式

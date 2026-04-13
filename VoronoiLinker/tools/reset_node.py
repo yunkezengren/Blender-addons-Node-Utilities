@@ -9,7 +9,7 @@ class NODE_OT_voronoi_reset_node(SingleNodeTool):
     bl_label = "Voronoi Reset Node"
     bl_description = "Tool for resetting nodes without the need for aiming, with mouse guidance convenience\nand ignoring enumeration properties. Was created because NW had something similar."
     use_for_custom_tree = True
-    can_draw_in_pref_setting = False
+    can_draw_settings = False
     isResetEnums: bpy.props.BoolProperty(name="Reset enums", default=False)
     isResetOnDrag: bpy.props.BoolProperty(name="Reset on grag (not recommended)", default=False)
     isSelectResetedNode: bpy.props.BoolProperty(name="Select reseted node", default=True)

@@ -39,7 +39,7 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
     bl_label = "Voronoi Interfacer"
     bl_description = "A tool on the level of \"The Great Trio\". A branch from VLT for convenient acceleration\nof the creation process and special manipulations with interfaces. \"Interface Manager\"."
     use_for_custom_tree = False
-    can_draw_in_pref_setting = False
+    can_draw_settings = False
     toolMode: bpy.props.EnumProperty(name="Mode", default=eMode.NEW.value, items=ModeItems)
 
     def callback_draw_tool(self, drawer):
@@ -300,5 +300,5 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
                                                         lambda _, v: setattr(bpy.context.window_manager, 'clipboard', v))
 
     @staticmethod
-    def draw_in_pref_settings(col, prefs):
+    def draw_pref_settings(col, prefs):
         draw_hand_split_prop(col, prefs, 'vitPasteToAnySocket')

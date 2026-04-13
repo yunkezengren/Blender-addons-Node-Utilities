@@ -212,7 +212,7 @@ class NODE_OT_voronoi_hider(AnyTargetTool):
     def initialize(self, event, prefs, tree):
         self.firstResult = None # 从第一个节点获取“折叠”或“展开”的动作, 然后将其广播到所有其他遇到的节点.
     @staticmethod
-    def draw_in_pref_settings(col: bpy.types.UILayout, prefs):
+    def draw_pref_settings(col, prefs):
         draw_hand_split_prop(col, prefs, 'vhtHideBoolSocket')
         draw_hand_split_prop(col, prefs, 'vhtHideHiddenBoolSocket')
         draw_hand_split_prop(col, prefs, 'vhtNeverHideGeometry')

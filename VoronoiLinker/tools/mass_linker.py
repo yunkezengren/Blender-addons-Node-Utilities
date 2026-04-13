@@ -108,5 +108,5 @@ class NODE_OT_voronoi_mass_linker(BaseTool):  # "猫狗合体", 既不是节点,
         self.ndTar1 = None
         self.list_equalTarSks = []
     @staticmethod
-    def draw_in_pref_settings(col: bpy.types.UILayout, prefs):
+    def draw_pref_settings(col, prefs):
         draw_hand_split_prop(col, prefs,'vmltIgnoreCase')

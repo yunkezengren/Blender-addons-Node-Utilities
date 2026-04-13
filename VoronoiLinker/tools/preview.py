@@ -522,7 +522,7 @@ class NODE_OT_voronoi_preview(SingleSocketTool):
             rrAnch.label = voronoiAnchorCnName #这个设置只是加速了意识到的过程.
         self.isAnyAncohorExist = not not (rrAnch or list_distAnchs) #对于几何节点; 如果其中有锚点, 则不仅触发几何接口.
     @staticmethod
-    def draw_in_pref_settings(col: bpy.types.UILayout, prefs):
+    def draw_pref_settings(col, prefs):
         draw_hand_split_prop(col, prefs,'vptAllowClassicGeoViewer')
         draw_hand_split_prop(col, prefs,'vptAllowClassicCompositorViewer')
         draw_hand_split_prop(col, prefs,'vptIsLivePreview')

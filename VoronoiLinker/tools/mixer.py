@@ -15,7 +15,7 @@ class NODE_OT_voronoi_mixer(TripleSocketTool):
     bl_label = "Voronoi Mixer"
     bl_description = "The canonical tool for frequent mixing needs.\nMost likely 70% will go to using \"Instance on Points\"."
     use_for_custom_tree = False
-    can_draw_in_appearence = True
+    can_draw_appearance = True
     isCanFromOne:       bpy.props.BoolProperty(name="Can from one socket", default=True) #放在第一位, 以便在 kmi 中与 VQMT 类似.
     isHideOptions:      bpy.props.BoolProperty(name="Hide node options",   default=False)
     isPlaceImmediately: bpy.props.BoolProperty(name="Place immediately",   default=False)
@@ -109,17 +109,15 @@ class NODE_OT_voronoi_mixer(TripleSocketTool):
             txt_vmtNoMixingOptions = "No mixing options"
             DisplayMessage(self.bl_label, txt_vmtNoMixingOptions, icon='RADIOBUT_OFF')
     @staticmethod
-    def draw_in_pref_settings(col: bpy.types.UILayout, prefs):
+    def draw_pref_settings(col, prefs):
         draw_hand_split_prop(col, prefs,'vmtReroutesCanInAnyType')
-    @classmethod
-    def LyDrawInAppearance(cls, colLy, prefs):
-        if p_col := draw_panel_column(colLy, "Mix Pie"):
-            tlw = cls.vlTripleName.lower()
-            draw_hand_split_prop(p_col, prefs,f'{tlw}PieType')
+    @staticmethod
+    def draw_pref_appearance(col, prefs):
+        if p_col := draw_panel_column(col, "Mix Pie"):
+            draw_hand_split_prop(p_col, prefs, 'vmtPieType')
             colProps = p_col.column(align=True)
-            draw_hand_split_prop(colProps, prefs,f'{tlw}PieScale')
-            draw_hand_split_prop(colProps, prefs,f'{tlw}PieAlignment')
-            draw_hand_split_prop(colProps, prefs,f'{tlw}PieSocketDisplayType')
-            draw_hand_split_prop(colProps, prefs,f'{tlw}PieDisplaySocketColor')
-            colProps.active = getattr(prefs,f'{tlw}PieType')=='CONTROL'
-
+            draw_hand_split_prop(colProps, prefs, 'vmtPieScale')
+            draw_hand_split_prop(colProps, prefs, 'vmtPieAlignment')
+            draw_hand_split_prop(colProps, prefs, 'vmtPieSocketDisplayType')
+            draw_hand_split_prop(colProps, prefs, 'vmtPieDisplaySocketColor')
+            colProps.active = getattr(prefs, 'vmtPieType') == 'CONTROL'

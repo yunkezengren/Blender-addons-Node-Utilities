@@ -37,8 +37,8 @@ class VlToolMixin: #-1
     use_for_custom_tree = None
     use_for_undef_tree = None
     use_for_none_tree = None
-    can_draw_in_pref_setting = None
-    can_draw_in_appearence = None
+    can_draw_settings = None
+    can_draw_appearance = None
     def callback_draw_tool(self, drawer: Drawer): pass
     def find_targets_tool(self, is_first_active: bool, prefs: VoronoiAddonPrefs, tree: NodeTree): pass
     def handle_modal(self, event: Event, prefs: VoronoiAddonPrefs): pass
@@ -46,13 +46,15 @@ class VlToolMixin: #-1
     def initialize_pre(self, event: Event): return {}
     def initialize(self, event: Event, prefs: VoronoiAddonPrefs, tree: NodeTree): return {}
     @staticmethod
-    def draw_in_pref_settings(col: UILayout, prefs: VoronoiAddonPrefs): pass
+    def draw_pref_settings(col: UILayout, prefs: VoronoiAddonPrefs): pass
+    @staticmethod
+    def draw_pref_appearance(col: UILayout, prefs: VoronoiAddonPrefs): pass
 
 class BaseTool(BaseOperator, VlToolMixin):  #0
     use_for_undef_tree = False
     use_for_none_tree = False
-    can_draw_in_pref_setting = True
-    can_draw_in_appearence = False
+    can_draw_settings = True
+    can_draw_appearance = False
     # 点击节点编辑器总是不可避免的, 那里有节点, 所以对于所有工具
     isPassThrough: BoolProperty(name="Pass through node selecting",
                                 default=False,
@@ -177,7 +179,6 @@ class BaseTool(BaseOperator, VlToolMixin):  #0
         context.window_manager.modal_handler_add(self)
         return {'RUNNING_MODAL'}
 
-# One  Pair  Triple
 class SingleSocketTool(BaseTool):  #1
 
     def callback_draw_tool(self, drawer: Drawer):

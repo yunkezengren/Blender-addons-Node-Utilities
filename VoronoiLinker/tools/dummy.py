@@ -33,5 +33,5 @@ class NODE_OT_voronoi_dummy(SingleSocketTool):   # 快速便捷地添加新工�
     def initialize(self, event, prefs, tree):
         self.target_sk = None
     @staticmethod
-    def draw_in_pref_settings(col: bpy.types.UILayout, prefs):
+    def draw_pref_settings(col, prefs):
         LyAddNiceColorProp(col, prefs,'vdtDummy')

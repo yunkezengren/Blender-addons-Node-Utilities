@@ -83,5 +83,5 @@ class NODE_OT_voronoi_warper(SingleSocketTool):
             if nd.type=='REROUTE':
                 self.dict_saveRestoreRerouteSelecting[nd] = nd.select
     @staticmethod
-    def draw_in_pref_settings(col: bpy.types.UILayout, prefs):
+    def draw_pref_settings(col, prefs):
         draw_hand_split_prop(col, prefs,'vwtSelectTargetKey', link_btn=True)

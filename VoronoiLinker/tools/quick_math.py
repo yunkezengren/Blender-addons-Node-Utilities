@@ -8,6 +8,7 @@ from ..utils.color import get_sk_color_safe, power_color
 from ..utils.node import DoQuickMath, opt_tar_socket
 from ..utils.solder import dict_skTypeHandSolderingColor
 from ..utils.ui import draw_hand_split_prop, draw_panel_column
+BP = bpy.props
 
 set_vqmtSkTypeFields = {'VALUE', 'RGBA', 'VECTOR', 'INT', 'BOOLEAN', 'ROTATION'}
 fitVqmtRloDescr = "Bypassing the pie call, activates the last used operation for the selected socket type.\n"+\
@@ -18,17 +19,17 @@ class NODE_OT_voronoi_quick_math(TripleSocketTool):
     bl_label = "Voronoi Quick Math"
     bl_description = "A full-fledged branch from VMT. Quick and quick-quick math at speeds.\nHas additional mini-functionality. Also see \"Quick quick math\" in the layout."
     use_for_custom_tree = False
-    can_draw_in_appearence = True
-    quickOprFloat:         bpy.props.StringProperty(name="Float (quick)",  default="") #它们在前面, 以便在 kmi 中对齐显示.
-    quickOprInt:           bpy.props.StringProperty(name="Int (quick)",  default="") #它们在前面, 以便在 kmi 中对齐显示.
-    quickOprVector:        bpy.props.StringProperty(name="Vector (quick)", default="") #quick 在第二位, 以便在空间不足时显示第一个词, 所以不得不用括号括起来.
-    isCanFromOne:          bpy.props.BoolProperty(name="Can from one socket", default=True)
-    isRepeatLastOperation: bpy.props.BoolProperty(name="Repeat last operation", default=False, description=fitVqmtRloDescr) #嗯, qqm 四重奏现在迫使它们不断对齐.
-    isHideOptions:         bpy.props.BoolProperty(name="Hide node options",   default=True)
-    isPlaceImmediately:    bpy.props.BoolProperty(name="Place immediately",   default=False)
-    quickOprBool:          bpy.props.StringProperty(name="Bool (quick)",   default="")
-    quickOprColor:         bpy.props.StringProperty(name="Color (quick)",  default="")
-    justPieCall:           bpy.props.IntProperty(name="Just call pie", default=0, min=0, max=5,
+    can_draw_appearance = True
+    quickOprFloat:         BP.StringProperty(name="Float (quick)",  default="") #它们在前面, 以便在 kmi 中对齐显示.
+    quickOprInt:           BP.StringProperty(name="Int (quick)",  default="") #它们在前面, 以便在 kmi 中对齐显示.
+    quickOprVector:        BP.StringProperty(name="Vector (quick)", default="") #quick 在第二位, 以便在空间不足时显示第一个词, 所以不得不用括号括起来.
+    isCanFromOne:          BP.BoolProperty(name="Can from one socket", default=True)
+    isRepeatLastOperation: BP.BoolProperty(name="Repeat last operation", default=False, description=fitVqmtRloDescr) #嗯, qqm 四重奏现在迫使它们不断对齐.
+    isHideOptions:         BP.BoolProperty(name="Hide node options",   default=True)
+    isPlaceImmediately:    BP.BoolProperty(name="Place immediately",   default=False)
+    quickOprBool:          BP.StringProperty(name="Bool (quick)",   default="")
+    quickOprColor:         BP.StringProperty(name="Color (quick)",  default="")
+    justPieCall:           BP.IntProperty(name="Just call pie", default=0, min=0, max=5,
                                                  description="Call pie to add a node, bypassing the sockets selection.\n0–Disable.\n1–Float.\n2–Vector.\n3–Boolean.\n4–Color.\n5–Int")
     def callback_draw_tool(self, drawer):
         draw_sockets_template(drawer, self.target_sk0, self.target_sk1, self.target_sk2, tool_name="Quick Math")
@@ -199,17 +200,16 @@ class NODE_OT_voronoi_quick_math(TripleSocketTool):
             return {'FINISHED'}
         self.isQuickQuickMath = not not( (self.quickOprFloat)or(self.quickOprVector)or(self.quickOprBool)or(self.quickOprColor) )
     @staticmethod
-    def draw_in_pref_settings(col: bpy.types.UILayout, prefs):
+    def draw_pref_settings(col, prefs):
         draw_hand_split_prop(col, prefs,'vqmtIncludeThirdSk')
         tgl = prefs.vqmtPieType=='CONTROL'
         draw_hand_split_prop(col, prefs,'vqmtIncludeQuickPresets',   active=tgl)
         draw_hand_split_prop(col, prefs,'vqmtIncludeExistingValues', active=tgl)
         draw_hand_split_prop(col, prefs,'vqmtDisplayIcons',          active=tgl)
         draw_hand_split_prop(col, prefs,'vqmtRepickKey', link_btn=True)
-    @classmethod
-    def LyDrawInAppearance(cls, colLy, prefs):
-        #VoronoiMixerTool.__dict__['LyDrawInAppearance'].__func__(cls, colLy, prefs) #该死. 由于 @classmethod 而绕过. 但现在没必要了, 因为有了 vqmtPieScaleExtra.
-        if p_col := draw_panel_column(colLy, "Quick Math Pie"):
+    @staticmethod
+    def draw_pref_appearance(col, prefs):
+        if p_col := draw_panel_column(col, "Quick Math Pie"):
             draw_hand_split_prop(p_col, prefs,'vqmtPieType')
             colProps = p_col.column(align=True)
             draw_hand_split_prop(colProps, prefs,'vqmtPieScale')
