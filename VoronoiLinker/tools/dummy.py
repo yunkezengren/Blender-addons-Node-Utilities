@@ -1,7 +1,7 @@
 import bpy
 from ..base_tool import unhide_node_reassign, draw_sockets_template, SingleSocketTool
 from ..utils.node import MinFromTars, VlrtRememberLastSockets
-from ..utils.ui import LyAddNiceColorProp
+from ..utils.ui import add_nice_color_prop
 
 class NODE_OT_voronoi_dummy(SingleSocketTool):   # 快速便捷地添加新工具的模板
     bl_idname = 'node.voronoi_dummy'
@@ -34,4 +34,4 @@ class NODE_OT_voronoi_dummy(SingleSocketTool):   # 快速便捷地添加新工�
         self.target_sk = None
     @staticmethod
     def draw_pref_settings(col, prefs):
-        LyAddNiceColorProp(col, prefs,'vdtDummy')
+        add_nice_color_prop(col, prefs,'vdtDummy')

@@ -6,7 +6,7 @@ from ..common_class import VlnstData
 from ..globals import sk_type_idname_map
 from ..utils.drawing import draw_socket_point, draw_sockets_template
 from ..utils.node import sk_label_or_name, sk_type_to_idname, MinFromTars, opt_tar_socket
-from ..utils.ui import LyAddNiceColorProp, draw_hand_split_prop
+from ..utils.ui import add_nice_color_prop, draw_hand_split_prop
 
 # 突然发现, 我以前对"懒人延续"工具的想法被封装在了这个工具里. 真是出乎意料.
 # 这个工具, 和 ^ (其中插槽和节点明确决定了下一个节点) 一样, 只不过是针对两个插槽的; 而且可能性更多!

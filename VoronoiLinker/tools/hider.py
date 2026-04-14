@@ -4,7 +4,7 @@ import bpy
 from ..base_tool import unhide_node_reassign, AnyTargetTool
 from ..common_class import Target
 from ..utils.node import MinFromTars, sk_label_or_name
-from ..utils.ui import draw_hand_split_prop, LyAddLeftProp
+from ..utils.ui import draw_hand_split_prop, add_left_prop
 
 def HideFromNode(prefs, ndTarget, lastResult, isCanDo=False): # 最初是我个人的实用工具, 在 VL 之前就创建了.
     set_equestrianHideVirtual = {'GROUP_INPUT','SIMULATION_INPUT','SIMULATION_OUTPUT','REPEAT_INPUT','REPEAT_OUTPUT'}

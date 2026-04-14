@@ -8,7 +8,7 @@ from bpy.types import KeyMapItem, UILayout
 
 from .common_class import VlnstUpdateLastExecError
 from .globals import dict_vlHhTranslations, dict_vmtMixerNodesDefs, dict_vqmtQuickMathMain
-from .utils.ui import draw_hand_split_prop, draw_panel_column, LyAddQuickInactiveCol, LyAddThinSep, get_first_upper_letters, format_tool_label, user_node_keymap
+from .utils.ui import draw_hand_split_prop, draw_panel_column, QuickInactiveColumn, add_thin_sep, get_first_upper_letters, format_tool_label, user_node_keymap
 
 old_info = {
     'description': "Various utilities for nodes connecting, based on distance field.",
@@ -229,7 +229,7 @@ class VoronoiAddonPrefs(bpy.types.AddonPreferences):
     # ------
     def draw_tab_settings(self, layout: UILayout):
         col = layout.column()
-        LyAddThinSep(col, 0.1)
+        add_thin_sep(col, 0.1)
         # 延迟导入以避免循环导入
         from . import vt_classes
         for cls in vt_classes:
@@ -271,7 +271,7 @@ class VoronoiAddonPrefs(bpy.types.AddonPreferences):
         colDraw.prop(self, 'dsIsDrawPoint')
         colDraw.prop(self, 'dsIsDrawLine')
         colDraw.prop(self, 'dsIsDrawSkArea')
-        with LyAddQuickInactiveCol(colDraw, active=self.dsIsDrawText) as row:
+        with QuickInactiveColumn(colDraw, active=self.dsIsDrawText) as row:
             row.prop(self, 'dsIsDrawNodeNameLabel', text="Node label")  # "Text for node"
         colCol = splDrawColor.column(align=True, heading='Colored')
         LyAddPairProp(colCol, 'dsIsColoredText')
@@ -280,7 +280,7 @@ class VoronoiAddonPrefs(bpy.types.AddonPreferences):
         LyAddPairProp(colCol, 'dsIsColoredLine')
         LyAddPairProp(colCol, 'dsIsColoredSkArea')
         tgl = (self.dsIsDrawLine) or (self.dsIsDrawPoint) or (self.dsIsDrawText and self.dsIsDrawNodeNameLabel)
-        with LyAddQuickInactiveCol(colCol, active=tgl) as row:
+        with QuickInactiveColumn(colCol, active=tgl) as row:
             row.prop(self, 'dsIsColoredNodes')
         ##
         if p_col := draw_panel_column(colMain, "Behavior"):
@@ -312,7 +312,7 @@ class VoronoiAddonPrefs(bpy.types.AddonPreferences):
                 spl = p_col.split(factor=0.4, align=True)
                 spl.label(text="")
                 spl.label(text=txt_onlyFontFormat, icon='ERROR')
-            LyAddThinSep(p_col, 0.5)
+            add_thin_sep(p_col, 0.5)
             draw_hand_split_prop(p_col, self, 'dsLineWidth')
             draw_hand_split_prop(p_col, self, 'dsPointScale')
             draw_hand_split_prop(p_col, self, 'dsFontSize')
@@ -323,7 +323,7 @@ class VoronoiAddonPrefs(bpy.types.AddonPreferences):
             draw_hand_split_prop(p_col, self, 'dsPointOffsetX')
             draw_hand_split_prop(p_col, self, 'dsFrameOffset')
             draw_hand_split_prop(p_col, self, 'dsDistFromCursor')
-            LyAddThinSep(p_col, 0.25)  # 间隔的空白会累加, 所以额外加个间隔来对齐.
+            add_thin_sep(p_col, 0.25)  # 间隔的空白会累加, 所以额外加个间隔来对齐.
             draw_hand_split_prop(p_col, self, 'dsIsAllowTextShadow')
             if self.dsIsAllowTextShadow:
                 colShadow = p_col.column(align=True)
@@ -335,9 +335,9 @@ class VoronoiAddonPrefs(bpy.types.AddonPreferences):
         ##
         colDev = colMain.column(align=True)
         if (self.dsIncludeDev) or (self.dsIsFieldDebug) or (self.dsIsTestDrawing):
-            with LyAddQuickInactiveCol(colDev, active=self.dsIsFieldDebug) as row:
+            with QuickInactiveColumn(colDev, active=self.dsIsFieldDebug) as row:
                 row.prop(self, 'dsIsFieldDebug')
-            with LyAddQuickInactiveCol(colDev, active=self.dsIsTestDrawing) as row:
+            with QuickInactiveColumn(colDev, active=self.dsIsTestDrawing) as row:
                 row.prop(self, 'dsIsTestDrawing')
 
     def draw_tab_keymaps(self, layout: UILayout):
@@ -381,7 +381,7 @@ class VoronoiAddonPrefs(bpy.types.AddonPreferences):
                 scoAll += 1  # 热键现在变得非常非常多, 知道它们的数量会很不错.
         if node_kms.is_user_modified:
             rowRestore = rowLabelMain.row(align=True)
-            # with LyAddQuickInactiveCol(rowRestore, align=False, active=True) as row:
+            # with QuickInactiveColumn(rowRestore, align=False, active=True) as row:
             #     row.prop(self, 'vaInfoRestore', text="", icon='INFO')
             rowRestore.context_pointer_set('keymap', node_kms)
             # rowRestore.operator('preferences.keymap_restore', text="Restore", icon="ERROR")
@@ -464,10 +464,10 @@ class VoronoiAddonPrefs(bpy.types.AddonPreferences):
             row = colMain.row(align=True)
             row.alignment = 'LEFT'
             row.operator(VoronoiOpAddonTabs.bl_idname, text=txt_copySettAsPyScript, icon='COPYDOWN').opt = 'GetPySett'  # SCRIPT  COPYDOWN
-            with LyAddQuickInactiveCol(colMain, active=self.dsIncludeDev) as row:
+            with QuickInactiveColumn(colMain, active=self.dsIncludeDev) as row:
                 row.prop(self, 'dsIncludeDev')
             ##
-            LyAddThinSep(colMain, 0.15)
+            add_thin_sep(colMain, 0.15)
             rowSettings = colMain.box().row(align=True)
             row = rowSettings.row(align=True)
             row.ui_units_x = 20
@@ -481,7 +481,7 @@ class VoronoiAddonPrefs(bpy.types.AddonPreferences):
             ##
             colLangDebug = colMain.column(align=True)
             if (self.dsIncludeDev) or (self.vaLangDebDiscl):
-                with LyAddQuickInactiveCol(colLangDebug, active=self.vaLangDebDiscl) as row:
+                with QuickInactiveColumn(colLangDebug, active=self.vaLangDebDiscl) as row:
                     row.prop(self, 'vaLangDebDiscl')
             if self.vaLangDebDiscl:
                 row = colLangDebug.row(align=True)
@@ -493,12 +493,12 @@ class VoronoiAddonPrefs(bpy.types.AddonPreferences):
                     del dict_copy['trans']
                     row.label(text=repr(dict_copy), translate=False)
                 else:
-                    with LyAddQuickInactiveCol(row) as row:
+                    with QuickInactiveColumn(row) as row:
                         row.label(text="{}", translate=False)
                 colLangDebug.row().prop(self, 'vaLangDebEnum', expand=True)
 
                 def LyAddAlertNested(layout: UILayout, text):
-                    with LyAddQuickInactiveCol(layout) as row:
+                    with QuickInactiveColumn(layout) as row:
                         row.label(text=text, translate=False)
                     row = layout.row(align=True)
                     row.label(icon='BLANK1')
@@ -506,7 +506,7 @@ class VoronoiAddonPrefs(bpy.types.AddonPreferences):
 
                 def LyAddTran(layout: UILayout, label, text, *, dot="."):
                     rowRoot = layout.row(align=True)
-                    with LyAddQuickInactiveCol(rowRoot) as row:
+                    with QuickInactiveColumn(rowRoot) as row:
                         row.alignment = 'LEFT'
                         row.label(text=label + ": ", translate=False)
                     row = rowRoot.row(align=True)
@@ -520,7 +520,7 @@ class VoronoiAddonPrefs(bpy.types.AddonPreferences):
 
                 def LyAddTranDataForProp(layout: UILayout, pr, dot="."):
                     colRoot = layout.column(align=True)
-                    with LyAddQuickInactiveCol(colRoot) as row:
+                    with QuickInactiveColumn(colRoot) as row:
                         row.label(text=pr.identifier, translate=False)
                     row = colRoot.row(align=True)
                     row.label(icon='BLANK1')
@@ -540,7 +540,7 @@ class VoronoiAddonPrefs(bpy.types.AddonPreferences):
                         col.label(text="Restore")
                         col.label(text="Add New")
                         col.label(text="Edge pan")
-                        with LyAddQuickInactiveCol(col, att='column') as col0:
+                        with QuickInactiveColumn(col, att='column') as col0:
                             col0.label(text="Zoom factor")
                             col0.label(text="Speed")
                         col.label(text="Pie")

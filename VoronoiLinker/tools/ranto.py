@@ -1,7 +1,7 @@
 import bpy
 from bpy.app.translations import pgettext_iface as _iface
 from ..base_tool import SingleNodeTool
-from ..utils.ui import display_message, LyAddLeftProp
+from ..utils.ui import display_message, add_left_prop
 
 # 现在 RANTO 已经集成到 VL 中了. 连我自己都感到意外.
 # 参见原版: https://github.com/ugorek000/RANTO
@@ -99,5 +99,5 @@ class NODE_OT_voronoi_ranto(SingleNodeTool): #完成了.
         #self.ndMaxAccRoot = None
     @staticmethod
     def draw_pref_settings(col, prefs):
-        LyAddLeftProp(col, prefs,'vrtIsLiveRanto')
-        LyAddLeftProp(col, prefs,'vrtIsFixIslands')
+        add_left_prop(col, prefs,'vrtIsLiveRanto')
+        add_left_prop(col, prefs,'vrtIsFixIslands')
