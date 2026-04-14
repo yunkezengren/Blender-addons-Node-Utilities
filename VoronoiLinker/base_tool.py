@@ -6,12 +6,12 @@ from time import perf_counter
 
 from .Structure import RectBase, View2D
 from .common_class import TryAndPass
-from .common_func import is_builtin_tree_idname, user_node_keymap
 from .common_class import Target
 from .globals import set_utilTypeSkFields
+from .utils.ui import user_node_keymap
 from .preference import pref, VoronoiAddonPrefs
 from .utils.drawing import draw_debug_info, draw_node_template, draw_sockets_template, Drawer
-from .utils.node import nearest_nodes_tar, nearest_sockets_tar, RestoreCollapsedNodes, SaveCollapsedNodes
+from .utils.node import nearest_nodes_tar, nearest_sockets_tar, RestoreCollapsedNodes, SaveCollapsedNodes, is_builtin_tree_idname
 from .utils.solder import solder_sk_links, solder_theme_cols
 
 def get_operator_keymap_item(self: type["BaseOperator"], event: Event):

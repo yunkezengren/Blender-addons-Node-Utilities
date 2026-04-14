@@ -5,10 +5,9 @@ from mathutils import Vector as Vec
 from bpy.types import NodeTree, NodeSocket, NodeSocketVirtual
 from ..base_tool import unhide_node_reassign, draw_node_template, draw_sockets_template, PairSocketTool
 from ..node_items import NodeItemsUtils
-from ..common_func import sk_label_or_name
 from ..utils.color import get_sk_color_safe
 from ..utils.drawing import draw_socket_area
-from ..utils.node import DoLinkHh, FindAnySk, MinFromTars, opt_tar_socket
+from ..utils.node import sk_label_or_name, DoLinkHh, FindAnySk, MinFromTars, opt_tar_socket
 from ..utils.ui import draw_hand_split_prop
 
 # yapf: disable

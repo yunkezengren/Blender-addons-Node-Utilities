@@ -3,10 +3,9 @@ import bpy
 from mathutils import Vector as Vec2
 from ..base_tool import unhide_node_reassign, PairSocketTool
 from ..common_class import VlnstData
-from ..common_func import sk_label_or_name
 from ..globals import sk_type_idname_map
 from ..utils.drawing import draw_socket_point, draw_sockets_template
-from ..utils.node import MinFromTars, opt_tar_socket, sk_type_to_idname
+from ..utils.node import sk_label_or_name, sk_type_to_idname, MinFromTars, opt_tar_socket
 from ..utils.ui import LyAddNiceColorProp, draw_hand_split_prop
 
 # 突然发现, 我以前对"懒人延续"工具的想法被封装在了这个工具里. 真是出乎意料.

@@ -1,13 +1,12 @@
 import bpy
 from mathutils import Vector as Vec2
-from ..base_tool import unhide_node_reassign, SingleSocketTool, is_builtin_tree_idname
+from ..base_tool import unhide_node_reassign, SingleSocketTool
 from ..Structure import BNode
 from ..common_class import VptData
-from ..common_func import sk_type_to_idname
 from ..globals import Cursor_X_Offset, is_bl4_plus, voronoiAnchorCnName, voronoiAnchorDtName, voronoiPreviewResultNdName, voronoiSkPreviewName
 from ..utils.color import get_sk_color_safe, power_color
 from ..utils.drawing import draw_socket_text, draw_socket_area, draw_sockets_template
-from ..utils.node import GenTarsFromPuts, SelectAndActiveNdOnly, VlrtRememberLastSockets
+from ..utils.node import sk_type_to_idname, is_builtin_tree_idname, GenTarsFromPuts, SelectAndActiveNdOnly, VlrtRememberLastSockets
 from ..utils.solder import solder_sk_links, SoldThemeCols
 from ..utils.ui import draw_hand_split_prop
 

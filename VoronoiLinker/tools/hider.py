@@ -2,9 +2,8 @@ from enum import Enum
 
 import bpy
 from ..base_tool import unhide_node_reassign, AnyTargetTool
-from ..common_func import sk_label_or_name
 from ..common_class import Target
-from ..utils.node import MinFromTars
+from ..utils.node import MinFromTars, sk_label_or_name
 from ..utils.ui import draw_hand_split_prop, LyAddLeftProp
 
 def HideFromNode(prefs, ndTarget, lastResult, isCanDo=False): # 最初是我个人的实用工具, 在 VL 之前就创建了.

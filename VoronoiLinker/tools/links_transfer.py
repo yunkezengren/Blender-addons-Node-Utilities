@@ -1,7 +1,6 @@
 import bpy
 from ..base_tool import draw_node_template, draw_sockets_template, PairNodeTool
-from ..common_func import sk_label_or_name
-from ..utils.node import GenTarFromNd, is_socket_visible
+from ..utils.node import sk_label_or_name, GenTarFromNd, is_socket_visible
 from ..utils.solder import solder_sk_links
 B = bpy.types
 

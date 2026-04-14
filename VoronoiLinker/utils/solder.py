@@ -2,7 +2,7 @@ import bpy
 from mathutils import Vector as Vec
 from bpy.types import Node, NodeSocket, NodeTree, NodeLink, ThemeNodeEditor
 from ..Structure import BNode
-from ..common_func import get_first_upper_letters
+from ..utils.ui import get_first_upper_letters
 from ..globals import sk_type_color_map
 from .color import set_alpha, power_color
 Vec4 = Vec

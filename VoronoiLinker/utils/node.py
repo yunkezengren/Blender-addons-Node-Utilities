@@ -4,10 +4,28 @@ from bpy.app.translations import pgettext_iface as _iface
 from bpy.types import Node, NodeSocket, NodeTree
 from ..Structure import BNodeSocket
 from ..common_class import VqmtData
-from ..node_items import NodeItemsUtils
 from ..common_class import Target
-from ..common_func import add_item_for_index_switch, is_builtin_tree_idname, sk_label_or_name, sk_type_to_idname
-from ..globals import dict_vqmtDefaultDefault, dict_vqmtDefaultValueOperation, dict_vqmtEditorNodes, is_bl4_plus, set_classicSocketsBlid, set_utilEquestrianPortalBlids, set_utilTypeSkFields
+from ..globals import (dict_vqmtDefaultDefault, dict_vqmtDefaultValueOperation, dict_vqmtEditorNodes, is_bl4_plus, set_classicSocketsBlid,
+                       set_utilEquestrianPortalBlids, set_utilTypeSkFields, sk_type_idname_map)
+
+def sk_label_or_name(sk: NodeSocket):
+    return sk.label if sk.label else sk.name
+
+def sk_type_to_idname(sk: NodeSocket):
+    idname = sk_type_idname_map.get(sk.type, "")
+    return idname if idname else "NodeSocket" + sk.type.capitalize()
+
+def is_builtin_tree_idname(blid: str):
+    set_quartetClassicTreeBlids = {'ShaderNodeTree', 'GeometryNodeTree', 'CompositorNodeTree', 'TextureNodeTree'}
+    return blid in set_quartetClassicTreeBlids
+
+def add_item_for_index_switch(node: Node):
+    nodes = node.id_data.nodes
+    old_active = nodes.active
+    nodes.active = node
+    bpy.ops.node.index_switch_item_add()
+    nodes.active = old_active
+    return node.inputs[-2]
 
 def sk_loc_遗留(sk: NodeSocket):
     return Vec2(BNodeSocket.GetFields(sk).runtime.contents.location[:]) if (sk.enabled) and (not sk.hide) else Vec2((0, 0))
@@ -192,6 +210,7 @@ def MinFromTars(tar1: Target, tar2: Target):
     return None
 
 def FindAnySk(nd: Node, tar_sks_in, tar_sks_out): # Todo0NA: 需要泛化!, 用 lambda. 并且外部循环遍历列表, 而不是两个循环.
+    from ..node_items import NodeItemsUtils  # 延迟导入避免循环导入
     tar_sk_out, tar_sk_in = None, None
     for tar in tar_sks_out:
         if (tar.idname!='NodeSocketVirtual')and(NodeItemsUtils.IsSimRepCorrectSk(nd, tar.tar)): # todo1v6: 这个函数到处都和 !=NodeSocketVirtual 一起使用, 需要重做拓扑.
@@ -207,6 +226,7 @@ def FindAnySk(nd: Node, tar_sks_in, tar_sks_out): # Todo0NA: 需要泛化!, 用 
 # P.s. "HH" -- 意思是 "High Level", 但我打错字母了 D:
 
 def DoLinkHh(sko: NodeSocket, ski: NodeSocket, *, isReroutesToAnyType=True, isCanBetweenField=True, isCanFieldToShader=True):
+    from ..node_items import NodeItemsUtils  # 延迟导入避免循环导入
     # 多么意外的视觉巧合, 与 "sk0" 和 "sk1" 的序列号.
     # 既然我们现在是高级别的, 就得处理特殊情况:
     if not(sko and ski): # 它们必须存在.

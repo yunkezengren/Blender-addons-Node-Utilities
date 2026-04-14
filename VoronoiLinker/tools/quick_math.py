@@ -1,13 +1,12 @@
 import bpy
 from ..base_tool import unhide_node_reassign, draw_sockets_template, TripleSocketTool
-from ..common_class import VqmtData
-from ..common_func import display_message, set_pie_data
+from ..common_class import VqmtData, set_pie_data
 from ..preference import pref
 from ..globals import Cursor_X_Offset, float_int_color
 from ..utils.color import get_sk_color_safe, power_color
 from ..utils.node import DoQuickMath, opt_tar_socket
 from ..utils.solder import sk_type_color_map
-from ..utils.ui import draw_hand_split_prop, draw_panel_column
+from ..utils.ui import display_message, draw_hand_split_prop, draw_panel_column
 BP = bpy.props
 
 set_vqmtSkTypeFields = {'VALUE', 'RGBA', 'VECTOR', 'INT', 'BOOLEAN', 'ROTATION'}

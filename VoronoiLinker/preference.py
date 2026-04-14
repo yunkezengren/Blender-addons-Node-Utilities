@@ -7,9 +7,8 @@ from bpy.props import BoolProperty, EnumProperty, FloatProperty, FloatVectorProp
 from bpy.types import KeyMapItem, UILayout
 
 from .common_class import VlnstUpdateLastExecError
-from .common_func import get_first_upper_letters, format_tool_label, user_node_keymap
 from .globals import dict_vlHhTranslations, dict_vmtMixerNodesDefs, dict_vqmtQuickMathMain
-from .utils.ui import draw_hand_split_prop, draw_panel_column, LyAddQuickInactiveCol, LyAddThinSep
+from .utils.ui import draw_hand_split_prop, draw_panel_column, LyAddQuickInactiveCol, LyAddThinSep, get_first_upper_letters, format_tool_label, user_node_keymap
 
 old_info = {
     'description': "Various utilities for nodes connecting, based on distance field.",

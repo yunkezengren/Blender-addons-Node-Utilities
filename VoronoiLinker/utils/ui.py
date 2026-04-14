@@ -1,5 +1,27 @@
+import bpy
 from bpy.app.translations import pgettext_iface as _iface
-from bpy.types import UILayout
+from bpy.types import KeyMap, Operator, Panel, UILayout
+
+def user_node_keymap() -> KeyMap:
+    return bpy.context.window_manager.keyconfigs.user.keymaps['Node Editor']
+
+def get_first_upper_letters(txt: str):
+    txtUppers = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    list_result = []
+    for ch1, ch2 in zip(" " + txt, txt):
+        if (ch1 not in txtUppers) and (ch2 in txtUppers):
+            list_result.append(ch2)
+    return "".join(list_result)
+
+def display_message(title: str, text: str, icon='NONE'):
+
+    def popup_message(self: Panel, _context):
+        self.layout.label(text=text, icon=icon, translate=False)
+
+    bpy.context.window_manager.popup_menu(popup_message, title=title, icon='NONE')
+
+def format_tool_label(cls: type[Operator]):
+    return _iface(cls.bl_label) + _iface(" tool settings")
 
 class LyAddQuickInactiveCol():
     def __init__(self, layout: UILayout, att='row', align=True, active=True):

@@ -1,8 +1,8 @@
 import bpy
 from bpy.app.translations import pgettext_iface as _iface
 from ..base_tool import unhide_node_reassign, TripleSocketTool
-from ..common_class import VmtData
-from ..common_func import display_message, set_pie_data
+from ..common_class import VmtData, set_pie_data
+from ..utils.ui import display_message
 from ..globals import Cursor_X_Offset
 from ..utils.color import get_sk_color_safe, power_color
 from ..utils.drawing import draw_sockets_template

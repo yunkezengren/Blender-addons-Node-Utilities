@@ -1,4 +1,4 @@
-from bpy.types import Node, NodeSocket
+from bpy.types import Node, NodeSocket, UILayout
 from mathutils import Vector as Vec2
 from collections.abc import Sequence
 
@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     # 将 VoronoiAddonPrefs 的导入移至 TYPE_CHECKING 块中，并将函数签名改为字符串类型注解，避免循环导入。
     from .preference import VoronoiAddonPrefs
+    from .base_tool import BaseTool
 
 float2 = Sequence[float]
 float4 = Sequence[float]
@@ -89,3 +90,18 @@ def VlnstUpdateLastExecError(self, _context):
     else:
         VlnstData.lastLastExecError = ""
     VlnstData.isUpdateWorking = False
+
+def set_pie_data(self: "BaseTool", toolData: PieRootData, prefs: "VoronoiAddonPrefs", col: UILayout):
+
+    def get_pie_pref(name):
+        return getattr(prefs, self.vlTripleName.lower() + name)
+
+    toolData.isSpeedPie = get_pie_pref("PieType") == 'SPEED'
+    toolData.pieScale = get_pie_pref("PieScale")
+    toolData.pieDisplaySocketTypeInfo = get_pie_pref("PieSocketDisplayType")
+    toolData.pieDisplaySocketColor = get_pie_pref("PieDisplaySocketColor")
+    toolData.pieAlignment = get_pie_pref("PieAlignment")
+    toolData.uiScale = self.uiScale
+    toolData.prefs = prefs
+    prefs.vaDecorColSkBack = col
+    prefs.vaDecorColSk = col
