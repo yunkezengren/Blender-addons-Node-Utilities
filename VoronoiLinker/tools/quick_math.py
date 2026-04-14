@@ -1,12 +1,12 @@
 import bpy
 from ..base_tool import unhide_node_reassign, draw_sockets_template, TripleSocketTool
 from ..common_class import VqmtData
-from ..common_func import DisplayMessage, SetPieData
+from ..common_func import display_message, set_pie_data
 from ..preference import pref
 from ..globals import Cursor_X_Offset, float_int_color
 from ..utils.color import get_sk_color_safe, power_color
 from ..utils.node import DoQuickMath, opt_tar_socket
-from ..utils.solder import dict_skTypeHandSolderingColor
+from ..utils.solder import sk_type_color_map
 from ..utils.ui import draw_hand_split_prop, draw_panel_column
 BP = bpy.props
 
@@ -103,7 +103,7 @@ class NODE_OT_voronoi_quick_math(TripleSocketTool):
                 unhide_node_reassign(nd, self, cond=self.target_sk2, flag=False)
             break
     def VqmSetPieData(self, prefs, col):
-        SetPieData(self, VqmtData, prefs, col)
+        set_pie_data(self, VqmtData, prefs, col)
         VqmtData.isHideOptions = self.isHideOptions
         VqmtData.isPlaceImmediately = self.isPlaceImmediately
         VqmtData.depth = 0
@@ -188,13 +188,13 @@ class NODE_OT_voronoi_quick_math(TripleSocketTool):
                     can = self.justPieCall in {1, 4}
             if not can:
                 txt_vqmtThereIsNothing = "There is nothing"  # ! 草
-                DisplayMessage(self.bl_label, txt_vqmtThereIsNothing)
+                display_message(self.bl_label, txt_vqmtThereIsNothing)
                 return {'CANCELLED'}
             VqmtData.sk0 = None #为了完整性和 GetSkColor 而清空.
             VqmtData.sk1 = None
             VqmtData.sk2 = None
             VqmtData.qmSkType = ('VALUE','VECTOR','BOOLEAN','RGBA', 'INT')[self.justPieCall-1]
-            self.VqmSetPieData(prefs, dict_skTypeHandSolderingColor[VqmtData.qmSkType])
+            self.VqmSetPieData(prefs, sk_type_color_map[VqmtData.qmSkType])
             VqmtData.isJustPie = True
             bpy.ops.node.quick_math_sub('INVOKE_DEFAULT')
             return {'FINISHED'}
@@ -202,21 +202,19 @@ class NODE_OT_voronoi_quick_math(TripleSocketTool):
     @staticmethod
     def draw_pref_settings(col, prefs):
         draw_hand_split_prop(col, prefs,'vqmtIncludeThirdSk')
-        tgl = prefs.vqmtPieType=='CONTROL'
-        draw_hand_split_prop(col, prefs,'vqmtIncludeQuickPresets',   active=tgl)
-        draw_hand_split_prop(col, prefs,'vqmtIncludeExistingValues', active=tgl)
-        draw_hand_split_prop(col, prefs,'vqmtDisplayIcons',          active=tgl)
+        active = prefs.vqmtPieType == 'CONTROL'
+        draw_hand_split_prop(col, prefs,'vqmtIncludeQuickPresets',   active=active)
+        draw_hand_split_prop(col, prefs,'vqmtIncludeExistingValues', active=active)
+        draw_hand_split_prop(col, prefs,'vqmtDisplayIcons',          active=active)
         draw_hand_split_prop(col, prefs,'vqmtRepickKey', link_btn=True)
     @staticmethod
     def draw_pref_appearance(col, prefs):
-        if p_col := draw_panel_column(col, "Quick Math Pie"):
-            draw_hand_split_prop(p_col, prefs,'vqmtPieType')
-            colProps = p_col.column(align=True)
-            draw_hand_split_prop(colProps, prefs,'vqmtPieScale')
-            # 预设(隐藏了) 比如 +-*/ 的 缩放,暂时用不到
-            # draw_hand_split_prop(colProps, prefs,'vqmtPieScaleExtra')
-            draw_hand_split_prop(colProps, prefs,'vqmtPieAlignment')
-            draw_hand_split_prop(colProps, prefs,'vqmtPieSocketDisplayType')
-            draw_hand_split_prop(colProps, prefs,'vqmtPieDisplaySocketColor')
-            colProps.active = getattr(prefs,'vqmtPieType')=='CONTROL'
-
+        if body_col := draw_panel_column(col, "Quick Math Pie"):
+            draw_hand_split_prop(body_col, prefs,'vqmtPieType')
+            col_group = body_col.column()
+            draw_hand_split_prop(col_group, prefs,'vqmtPieScale')
+            # draw_hand_split_prop(col_group, prefs,'vqmtPieScaleExtra')  # 预设(隐藏了) 比如 +-*/ 的 缩放,暂时用不到
+            draw_hand_split_prop(col_group, prefs,'vqmtPieAlignment')
+            draw_hand_split_prop(col_group, prefs,'vqmtPieSocketDisplayType')
+            draw_hand_split_prop(col_group, prefs,'vqmtPieDisplaySocketColor')
+            col_group.active = prefs.vqmtPieType == 'CONTROL'

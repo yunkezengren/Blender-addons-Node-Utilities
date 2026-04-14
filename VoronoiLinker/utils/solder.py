@@ -1,11 +1,15 @@
 import bpy
 from mathutils import Vector as Vec
-from bpy.types import Node, NodeSocket, NodeTree, Operator, ThemeNodeEditor
+from bpy.types import Node, NodeSocket, NodeTree, ThemeNodeEditor
 from ..Structure import BNode
-from ..common_func import GetFirstUpperLetters
-from ..globals import dict_skTypeHandSolderingColor
+from ..common_func import get_first_upper_letters
+from ..globals import sk_type_color_map
 from .color import set_alpha, power_color
 Vec4 = Vec
+
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:  # 避免循环导入
+    from ..base_tool import BaseTool
 
 dict_solderedSkLinksFinal = {}
 def sk_get_soldered_links_final(self: NodeSocket): # .vl_sold_links_final
@@ -16,23 +20,23 @@ def sk_get_soldered_is_final_linked_count(self: NodeSocket): # .vl_sold_is_final
     return dict_solderedSkIsFinalLinkedCount.get(self, 0)
 
 def solder_sk_links(tree: NodeTree):
-    def Update(dict_data, lk):
+    def update(dict_data, lk):
         dict_data.setdefault(lk.from_socket, []).append(lk)
         dict_data.setdefault(lk.to_socket, []).append(lk)
     #dict_solderedSkLinksRaw.clear()
     dict_solderedSkLinksFinal.clear()
     dict_solderedSkIsFinalLinkedCount.clear()
     for lk in tree.links:
-        #Update(dict_solderedSkLinksRaw, lk)
+        # update(dict_solderedSkLinksRaw, lk)
         if (lk.is_valid)and not(lk.is_muted or lk.is_hidden):
-            Update(dict_solderedSkLinksFinal, lk)
+            update(dict_solderedSkLinksFinal, lk)
             dict_solderedSkIsFinalLinkedCount.setdefault(lk.from_socket, 0)
             dict_solderedSkIsFinalLinkedCount[lk.from_socket] += 1
             dict_solderedSkIsFinalLinkedCount.setdefault(lk.to_socket, 0)
             dict_solderedSkIsFinalLinkedCount[lk.to_socket] += 1
 
-for key, value in dict_skTypeHandSolderingColor.items():
-    dict_skTypeHandSolderingColor[key] = power_color(value, power=2.2)
+for key, value in sk_type_color_map.items():
+    sk_type_color_map[key] = power_color(value, power=2.2)
 
 class SoldThemeCols:
     dict_mapNcAtt = {0: 'input_node',        1:  'output_node',  3: 'color_node',
@@ -41,26 +45,31 @@ class SoldThemeCols:
                      12:'pattern_node',      13: 'texture_node', 32:'script_node',
                      33:'group_socket_node', 40: 'shader_node',  41:'geometry_node',
                      42:'attribute_node',    100:'layout_node'}
-def solder_theme_cols(themeNe: ThemeNodeEditor):
-    def GetNiceColNone(col4):
-        return Vec4(col4)
-        # return Vec4(power_color(col4, power=1/1.75))   # 小王 这个更像影响全体 这里使得Ctrl Shift E / Ctrl E / Alt E 等显示太浅
-    def MixThCol(col1, col2, fac=0.4): # \source\blender\editors\space_node\node_draw.cc : node_draw_basis() : "Header"
-        return col1*(1-fac)+col2*fac
-    SoldThemeCols.node_backdrop4 = Vec4(themeNe.node_backdrop)
-    SoldThemeCols.node_backdrop4pw = GetNiceColNone(SoldThemeCols.node_backdrop4) # 对于Ctrl-F: 它被使用了, 参见下面的 `+"4pw"`.
+    node_backdrop4 : Vec4
+    node_backdrop4pw : Vec4
 
-    for pr in themeNe.bl_rna.properties:
-        dnf = pr.identifier
-        if dnf.endswith("_node"):
+def solder_theme_cols(theme_editor: ThemeNodeEditor):
+
+    def get_nice_color(col4: Vec4):
+        # return Vec4(power_color(col4, power=1/1.75))   # 小王 这个更像影响全体 这里使得Ctrl Shift E / Ctrl E / Alt E 等显示太浅
+        return Vec4(col4)
+
+    def mix_theme_color(col1: Vec4, col2: Vec4, fac=0.4):  # \source\blender\editors\space_node\node_draw.cc : node_draw_basis() : "Header"
+        return col1 * (1-fac) + col2*fac
+
+    SoldThemeCols.node_backdrop4 = Vec4(theme_editor.node_backdrop)
+    SoldThemeCols.node_backdrop4pw = Vec4(SoldThemeCols.node_backdrop4)  # 对于Ctrl-F: 它被使用了, 参见下面的 `+"4pw"`.
+
+    for prop in theme_editor.bl_rna.properties:
+        identity = prop.identifier
+        if identity.endswith("_node"):
             # 和背景混合使得偏亮
-            # col4 = MixThCol(SoldThemeCols.node_backdrop4, Vec4(set_alpha(getattr(themeNe, dnf))))
-            col4 = Vec4(set_alpha(getattr(themeNe, dnf)))   # 小王 解决 Ctrl Shift E / Ctrl E / Alt E 等显示太浅
-            # 5.0.2里这样写的
-            # col4 = MixThCol(SoldThemeCols.node_backdrop4, Vec4(set_alpha(getattr(themeNe, dnf))))
-            setattr(SoldThemeCols, dnf+"4", col4)
-            setattr(SoldThemeCols, dnf+"4pw", GetNiceColNone(col4))
-            setattr(SoldThemeCols, dnf+"3", Vec(col4[:3])) # 用于 vptRvEeIsSavePreviewResults.
+            # col4 = mix_theme_color(SoldThemeCols.node_backdrop4, Vec4(set_alpha(getattr(theme_editor, identity))))
+            col4 = Vec4(set_alpha(getattr(theme_editor, identity)))
+            # col4 = mix_theme_color(SoldThemeCols.node_backdrop4, Vec4(set_alpha(getattr(theme_editor, identity))))
+            setattr(SoldThemeCols, identity + "4", col4)
+            setattr(SoldThemeCols, identity + "4pw", col4)
+            setattr(SoldThemeCols, identity + "3", Vec(col4[:3]))  # 用于 vptRvEeIsSavePreviewResults.
 
 def node_tag_color(node: Node):
     if bpy.app.version >= (5, 0, 0):
@@ -81,10 +90,10 @@ def node_tag_color(node: Node):
         else:
             return getattr(SoldThemeCols, SoldThemeCols.dict_mapNcAtt.get(BNode.GetFields(node).typeinfo.contents.nclass, 'node_backdrop')+"4pw")
 
-def assign_tool_class_names(class_list: list[Operator]):
+def assign_tool_class_names(class_list: list[type["BaseTool"]]):
     """为工具类分配名称属性，用于偏好设置中的折叠面板"""
     for cls in class_list:
-        cls.vlTripleName = GetFirstUpperLetters(cls.bl_label)+"T" # 最初创建是"因为好玩", 但现在需要了; 参见 SetPieData().
+        cls.vlTripleName = get_first_upper_letters(cls.bl_label)+"T" # 最初创建是"因为好玩", 但现在需要了; 参见 set_pie_data().
         cls.disclBoxPropName = cls.vlTripleName[:-1].lower()+"BoxDiscl"
         cls.disclBoxPropNameInfo = cls.disclBoxPropName+"Info"
 

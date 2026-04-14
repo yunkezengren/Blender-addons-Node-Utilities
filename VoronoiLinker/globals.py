@@ -95,7 +95,7 @@ inline_socket_node_list = [ # 自动隐藏接口优化-inline
                             'GeometryNodeCaptureAttribute',
                             ]
 
-dict_skTypeHandSolderingColor = { # 用于 VQMT.
+sk_type_color_map = { # 用于 VQMT.
     'BOOLEAN':    (0.800000011920929,   0.6499999761581421,  0.8399999737739563,  1.0),
     'COLLECTION': (0.9599999785423279,  0.9599999785423279,  0.9599999785423279,  1.0),
     'RGBA':       (0.7799999713897705,  0.7799999713897705,  0.1599999964237213,  1.0),

@@ -1,7 +1,7 @@
 import bpy
 from bpy.app.translations import pgettext_iface as _iface
 from ..base_tool import SingleNodeTool
-from ..common_func import DisplayMessage
+from ..common_func import display_message
 from ..utils.ui import LyAddLeftProp
 
 # 现在 RANTO 已经集成到 VL 中了. 连我自己都感到意外.
@@ -94,7 +94,7 @@ class NODE_OT_voronoi_ranto(SingleNodeTool): #完成了.
         #    self.ndMaxAccRoot = None
         #    self.lastNdProc = None
         self.DoRANTO(ndTar, tree, prefs.vrtIsFixIslands)
-        DisplayMessage("RANTO", _iface("This tool is empty")+" ¯\_(ツ)_/¯")
+        display_message("RANTO", _iface("This tool is empty")+" ¯\_(ツ)_/¯")
     def initialize(self, event, prefs, tree):
         self.lastNdProc = None
         #self.ndMaxAccRoot = None

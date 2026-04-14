@@ -2,7 +2,7 @@ import bpy
 from bpy.app.translations import pgettext_iface as _iface
 from ..base_tool import unhide_node_reassign, TripleSocketTool
 from ..common_class import VmtData
-from ..common_func import DisplayMessage, SetPieData
+from ..common_func import display_message, set_pie_data
 from ..globals import Cursor_X_Offset
 from ..utils.color import get_sk_color_safe, power_color
 from ..utils.drawing import draw_sockets_template
@@ -93,7 +93,7 @@ class NODE_OT_voronoi_mixer(TripleSocketTool):
         if socket1 and socket1.type == "MATRIX":
             VmtData.skType = "MATRIX"
             _sk = VmtData.sk1
-        SetPieData(self, VmtData, prefs, power_color(get_sk_color_safe(_sk), power=2.2))
+        set_pie_data(self, VmtData, prefs, power_color(get_sk_color_safe(_sk), power=2.2))
         if not self.in_builtin_tree: #由于 use_for_custom_tree, 这是个无用的检查.
             return {'CANCELLED'} #如果操作地点不在经典编辑器中, 就直接退出. 因为经典编辑器对所有人都一样, 而插件编辑器有无数种.
 
@@ -107,17 +107,17 @@ class NODE_OT_voronoi_mixer(TripleSocketTool):
         else: #否则接口类型未定义 (例如几何节点中的着色器).
             # ! 草
             txt_vmtNoMixingOptions = "No mixing options"
-            DisplayMessage(self.bl_label, txt_vmtNoMixingOptions, icon='RADIOBUT_OFF')
+            display_message(self.bl_label, txt_vmtNoMixingOptions, icon='RADIOBUT_OFF')
     @staticmethod
     def draw_pref_settings(col, prefs):
         draw_hand_split_prop(col, prefs,'vmtReroutesCanInAnyType')
     @staticmethod
     def draw_pref_appearance(col, prefs):
-        if p_col := draw_panel_column(col, "Mix Pie"):
-            draw_hand_split_prop(p_col, prefs, 'vmtPieType')
-            colProps = p_col.column(align=True)
-            draw_hand_split_prop(colProps, prefs, 'vmtPieScale')
-            draw_hand_split_prop(colProps, prefs, 'vmtPieAlignment')
-            draw_hand_split_prop(colProps, prefs, 'vmtPieSocketDisplayType')
-            draw_hand_split_prop(colProps, prefs, 'vmtPieDisplaySocketColor')
-            colProps.active = getattr(prefs, 'vmtPieType') == 'CONTROL'
+        if body_col := draw_panel_column(col, "Mix Pie"):
+            draw_hand_split_prop(body_col, prefs, 'vmtPieType')
+            col_group = body_col.column(align=True)
+            draw_hand_split_prop(col_group, prefs, 'vmtPieScale')
+            draw_hand_split_prop(col_group, prefs, 'vmtPieAlignment')
+            draw_hand_split_prop(col_group, prefs, 'vmtPieSocketDisplayType')
+            draw_hand_split_prop(col_group, prefs, 'vmtPieDisplaySocketColor')
+            col_group.active = getattr(prefs, 'vmtPieType') == 'CONTROL'

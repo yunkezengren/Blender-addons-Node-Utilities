@@ -55,6 +55,9 @@ class BaseTool(BaseOperator, VlToolMixin):  #0
     use_for_none_tree = False
     can_draw_settings = True
     can_draw_appearance = False
+    vlTripleName: str
+    disclBoxPropName: str
+    disclBoxPropNameInfo: str
     # 点击节点编辑器总是不可避免的, 那里有节点, 所以对于所有工具
     isPassThrough: BoolProperty(name="Pass through node selecting",
                                 default=False,

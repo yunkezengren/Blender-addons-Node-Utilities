@@ -1,13 +1,20 @@
 import bpy
-from bpy.types import KeyMap, Node, NodeSocket, Operator, Panel
+from bpy.types import KeyMap, Node, NodeSocket, Operator, Panel, UILayout
 from bpy.app.translations import pgettext_iface as _iface
 
 from .globals import sk_type_idname_map
+from .common_class import PieRootData
+
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    # 将 VoronoiAddonPrefs 的导入移至 TYPE_CHECKING 块中，并将函数签名改为字符串类型注解，避免循环导入。
+    from .preference import VoronoiAddonPrefs
+    from .base_tool import BaseTool
 
 def user_node_keymap() -> KeyMap:
     return bpy.context.window_manager.keyconfigs.user.keymaps['Node Editor']
 
-def GetFirstUpperLetters(txt: str):
+def get_first_upper_letters(txt: str):
     txtUppers = "ABCDEFGHIJKLMNOPQRSTUVWXYZ" #"".join([chr(cyc) for cyc in range(65, 91)])
     list_result = []
     for ch1, ch2 in zip(" "+txt, txt):
@@ -15,12 +22,12 @@ def GetFirstUpperLetters(txt: str):
             list_result.append(ch2)
     return "".join(list_result)
 
-def DisplayMessage(title: str, text: str, icon='NONE'):
-    def PopupMessage(self: Panel, _context):
+def display_message(title: str, text: str, icon='NONE'):
+    def popup_message(self: Panel, _context):
         self.layout.label(text=text, icon=icon, translate=False)
-    bpy.context.window_manager.popup_menu(PopupMessage, title=title, icon='NONE')
- 
-def format_tool_set(cls: type[Operator]):
+    bpy.context.window_manager.popup_menu(popup_message, title=title, icon='NONE')
+
+def format_tool_label(cls: type[Operator]):
     return _iface(cls.bl_label) + _iface(" tool settings")
 
 # ======================放在这避免循环导入
@@ -44,19 +51,18 @@ def add_item_for_index_switch(node: Node):
     nodes.active = old_active
     return node.inputs[-2]
 
-# ========================================
+def set_pie_data(self: "BaseTool", toolData: PieRootData, prefs: "VoronoiAddonPrefs", col: UILayout):
 
-def SetPieData(self: Operator, toolData, prefs, col):
-# def SetPieData(self: Operator, toolData: "VmtData", prefs, col):
-    def GetPiePref(name):
-        return getattr(prefs, self.vlTripleName.lower()+name)
-    toolData.isSpeedPie = GetPiePref("PieType")=='SPEED'
+    def get_pie_pref(name):
+        return getattr(prefs, self.vlTripleName.lower() + name)
+
+    toolData.isSpeedPie = get_pie_pref("PieType") == 'SPEED'
     # todo1v6: 已经有 toolData.prefs 了, 所以可以干掉这个; 并且把这一切都做得更优雅些. 还有 SolderClsToolNames() 里的注释.
-    toolData.pieScale = GetPiePref("PieScale") 
-    toolData.pieDisplaySocketTypeInfo = GetPiePref("PieSocketDisplayType")
-    toolData.pieDisplaySocketColor = GetPiePref("PieDisplaySocketColor")
-    toolData.pieAlignment = GetPiePref("PieAlignment")
+    toolData.pieScale = get_pie_pref("PieScale")
+    toolData.pieDisplaySocketTypeInfo = get_pie_pref("PieSocketDisplayType")
+    toolData.pieDisplaySocketColor = get_pie_pref("PieDisplaySocketColor")
+    toolData.pieAlignment = get_pie_pref("PieAlignment")
     toolData.uiScale = self.uiScale
     toolData.prefs = prefs
-    prefs.vaDecorColSkBack = col # 这句在 vaDecorColSk 之前很重要; 参见 VaUpdateDecorColSk().
+    prefs.vaDecorColSkBack = col  # 这句在 vaDecorColSk 之前很重要; 参见 VaUpdateDecorColSk().
     prefs.vaDecorColSk = col

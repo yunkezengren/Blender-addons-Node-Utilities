@@ -2,6 +2,11 @@ from bpy.types import Node, NodeSocket
 from mathutils import Vector as Vec2
 from collections.abc import Sequence
 
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    # 将 VoronoiAddonPrefs 的导入移至 TYPE_CHECKING 块中，并将函数签名改为字符串类型注解，避免循环导入。
+    from .preference import VoronoiAddonPrefs
+
 float2 = Sequence[float]
 float4 = Sequence[float]
 
@@ -30,12 +35,13 @@ class VptData:
     reprSkAnchor = ""
 
 class PieRootData:
-    isSpeedPie = False
-    pieScale = 0
-    pieDisplaySocketTypeInfo = 0
-    pieDisplaySocketColor = 0
-    pieAlignment = 0
-    uiScale = 1.0
+    isSpeedPie: bool = False
+    pieScale: int = 0
+    pieDisplaySocketTypeInfo: int = 0
+    pieDisplaySocketColor: int = 0
+    pieAlignment: int = 0
+    uiScale: int = 1.0
+    prefs: "VoronoiAddonPrefs"
 
 class VmtData(PieRootData):
     sk0: NodeSocket | None = None

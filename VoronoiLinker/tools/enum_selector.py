@@ -296,8 +296,8 @@ class NODE_OT_voronoi_enum_selector(SingleNodeTool):
         draw_hand_split_prop(col, prefs,'vestIsToggleNodesOnDrag')
     @staticmethod
     def draw_pref_appearance(col, prefs): # 注意: 这是 @staticmethod.
-        if p_col := draw_panel_column(col, "Enum Select Box"):
-            draw_hand_split_prop(p_col, prefs,'vestBoxScale')
-            draw_hand_split_prop(p_col, prefs,'vestDisplayLabels', bool_label_left=True)
-            draw_hand_split_prop(p_col, prefs,'vestDarkStyle', bool_label_left=True)
+        if body_col := draw_panel_column(col, "Enum Select Box"):
+            draw_hand_split_prop(body_col, prefs,'vestBoxScale')
+            draw_hand_split_prop(body_col, prefs,'vestDisplayLabels', bool_label_left=True)
+            draw_hand_split_prop(body_col, prefs,'vestDarkStyle', bool_label_left=True)
 

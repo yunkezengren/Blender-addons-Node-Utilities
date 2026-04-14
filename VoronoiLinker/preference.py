@@ -7,7 +7,7 @@ from bpy.props import BoolProperty, EnumProperty, FloatProperty, FloatVectorProp
 from bpy.types import KeyMapItem, UILayout
 
 from .common_class import VlnstUpdateLastExecError
-from .common_func import GetFirstUpperLetters, format_tool_set, user_node_keymap
+from .common_func import get_first_upper_letters, format_tool_label, user_node_keymap
 from .globals import dict_vlHhTranslations, dict_vmtMixerNodesDefs, dict_vqmtQuickMathMain
 from .utils.ui import draw_hand_split_prop, draw_panel_column, LyAddQuickInactiveCol, LyAddThinSep
 
@@ -235,7 +235,7 @@ class VoronoiAddonPrefs(bpy.types.AddonPreferences):
         from . import vt_classes
         for cls in vt_classes:
             if cls.can_draw_settings:
-                if body_col := draw_panel_column(col, format_tool_set(cls)):
+                if body_col := draw_panel_column(col, format_tool_label(cls)):
                     cls.draw_pref_settings(body_col, self)
 
     def draw_tab_appearance(self, layout: UILayout):
@@ -795,7 +795,7 @@ def update_lang_deb_enum_items(vt_classes):
     global list_langDebEnumItems
     list_langDebEnumItems.clear()
     for li in ["Free", "Special", "AddonPrefs"] + [cls.bl_label for cls in vt_classes]:
-        list_langDebEnumItems.append((li.upper(), GetFirstUpperLetters(li), ""))
+        list_langDebEnumItems.append((li.upper(), get_first_upper_letters(li), ""))
     # 更新 VoronoiAddonPrefs 中的 vaLangDebEnum 属性
     VoronoiAddonPrefs.vaLangDebEnum = EnumProperty(name="LangDebEnum", default='FREE', items=list_langDebEnumItems)
 
