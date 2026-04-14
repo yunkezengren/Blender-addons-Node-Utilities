@@ -1,6 +1,6 @@
 import bpy
 from mathutils import Vector as Vec
-from bpy.types import Node, NodeSocket, NodeTree, ThemeNodeEditor
+from bpy.types import Node, NodeSocket, NodeTree, NodeLink, ThemeNodeEditor
 from ..Structure import BNode
 from ..common_func import get_first_upper_letters
 from ..globals import sk_type_color_map
@@ -11,40 +11,41 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:  # 避免循环导入
     from ..base_tool import BaseTool
 
-dict_solderedSkLinksFinal = {}
-def sk_get_soldered_links_final(self: NodeSocket): # .vl_sold_links_final
-    return dict_solderedSkLinksFinal.get(self, [])
+_dict_sold_links_final: dict[NodeSocket, list[NodeLink]] = {}
+_dict_sold_link_count: dict[NodeSocket, int] = {}
 
-dict_solderedSkIsFinalLinkedCount = {}
-def sk_get_soldered_is_final_linked_count(self: NodeSocket): # .vl_sold_is_final_linked_cou
-    return dict_solderedSkIsFinalLinkedCount.get(self, 0)
+def _get_sold_links_final(self: NodeSocket) -> list:
+    return _dict_sold_links_final.get(self, [])
+
+def _get_sold_link_count(self: NodeSocket) -> int:
+    return _dict_sold_link_count.get(self, 0)
 
 def solder_sk_links(tree: NodeTree):
-    def update(dict_data, lk):
-        dict_data.setdefault(lk.from_socket, []).append(lk)
-        dict_data.setdefault(lk.to_socket, []).append(lk)
-    #dict_solderedSkLinksRaw.clear()
-    dict_solderedSkLinksFinal.clear()
-    dict_solderedSkIsFinalLinkedCount.clear()
-    for lk in tree.links:
-        # update(dict_solderedSkLinksRaw, lk)
-        if (lk.is_valid)and not(lk.is_muted or lk.is_hidden):
-            update(dict_solderedSkLinksFinal, lk)
-            dict_solderedSkIsFinalLinkedCount.setdefault(lk.from_socket, 0)
-            dict_solderedSkIsFinalLinkedCount[lk.from_socket] += 1
-            dict_solderedSkIsFinalLinkedCount.setdefault(lk.to_socket, 0)
-            dict_solderedSkIsFinalLinkedCount[lk.to_socket] += 1
+    def update_link_dict(link_dict: dict[NodeSocket, list[NodeLink]], link: NodeLink):
+        link_dict.setdefault(link.from_socket, []).append(link)
+        link_dict.setdefault(link.to_socket, []).append(link)
+
+    _dict_sold_links_final.clear()
+    _dict_sold_link_count.clear()
+
+    for link in tree.links:
+        if link.is_valid and not (link.is_muted or link.is_hidden):
+            update_link_dict(_dict_sold_links_final, link)
+            _dict_sold_link_count.setdefault(link.from_socket, 0)
+            _dict_sold_link_count[link.from_socket] += 1
+            _dict_sold_link_count.setdefault(link.to_socket, 0)
+            _dict_sold_link_count[link.to_socket] += 1
 
 for key, value in sk_type_color_map.items():
     sk_type_color_map[key] = power_color(value, power=2.2)
 
 class SoldThemeCols:
-    dict_mapNcAtt = {0: 'input_node',        1:  'output_node',  3: 'color_node',
-                     4: 'vector_node',       5:  'filter_node',  6: 'group_node',
-                     8: 'converter_node',    9:  'matte_node',   10:'distor_node',
-                     12:'pattern_node',      13: 'texture_node', 32:'script_node',
-                     33:'group_socket_node', 40: 'shader_node',  41:'geometry_node',
-                     42:'attribute_node',    100:'layout_node'}
+    node_class_map = {0: 'input_node',        1:  'output_node',  3: 'color_node',
+                      4: 'vector_node',       5:  'filter_node',  6: 'group_node',
+                      8: 'converter_node',    9:  'matte_node',   10:'distor_node',
+                      12:'pattern_node',      13: 'texture_node', 32:'script_node',
+                      33:'group_socket_node', 40: 'shader_node',  41:'geometry_node',
+                      42:'attribute_node',    100:'layout_node'}
     node_backdrop4 : Vec4
     node_backdrop4pw : Vec4
 
@@ -88,7 +89,7 @@ def node_tag_color(node: Node):
                 case 'VECTOR': return SoldThemeCols.vector_node4pw
                 case _:        return SoldThemeCols.converter_node4pw
         else:
-            return getattr(SoldThemeCols, SoldThemeCols.dict_mapNcAtt.get(BNode.GetFields(node).typeinfo.contents.nclass, 'node_backdrop')+"4pw")
+            return getattr(SoldThemeCols, SoldThemeCols.node_class_map.get(BNode.GetFields(node).typeinfo.contents.nclass, 'node_backdrop')+"4pw")
 
 def assign_tool_class_names(class_list: list[type["BaseTool"]]):
     """为工具类分配名称属性，用于偏好设置中的折叠面板"""
@@ -100,15 +101,12 @@ def assign_tool_class_names(class_list: list[type["BaseTool"]]):
 def register_socket_properties():
     """为 NodeSocket 注册扩展属性，用于缓存链接信息"""
     txtDoc = "Property from and only for VoronoiLinker addon."
-    #NodeSocket.vl_sold_links_raw = property(sk_get_soldered_links_raw)
-    NodeSocket.vl_sold_links_final = property(sk_get_soldered_links_final)
-    NodeSocket.vl_sold_is_final_linked_cou = property(sk_get_soldered_is_final_linked_count)
-    #NodeSocket.vl_sold_links_raw.__doc__ = txtDoc
+    NodeSocket.vl_sold_links_final = property(_get_sold_links_final)
+    NodeSocket.vl_sold_is_final_linked_cou = property(_get_sold_link_count)
     NodeSocket.vl_sold_links_final.__doc__ = txtDoc
     NodeSocket.vl_sold_is_final_linked_cou.__doc__ = txtDoc
 
 def unregister_socket_properties():
     """注销 NodeSocket 扩展属性"""
-    #del NodeSocket.vl_sold_links_raw
     del NodeSocket.vl_sold_links_final
     del NodeSocket.vl_sold_is_final_linked_cou
