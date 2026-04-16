@@ -13,31 +13,11 @@ class NODE_OT_voronoi_call_node_pie(AnyTargetTool):
         self.template_draw_any(drawer, self.target_any, cond=False, tool_name="Node Pie Menu")
 
     def find_targets_tool(self, _is_first_active, prefs, tree):
-        self.target_any: Target = None
-        tar_nodes = self.get_nearest_nodes()  # ->list[Target] <class Target> 这里 .tar 是 Node
-        node_count = 5 if len(tar_nodes) >= 5 else len(tar_nodes)
-        node_count = min(5, len(tar_nodes))
-        tar_sockets: list[Target] = []
-        # 优化了最近接口的获取
-        for fotago in tar_nodes[:node_count]:
-            nd = fotago.tar
-            if (not self.isTriggerOnCollapsedNodes) and (nd.hide):
-                continue
-            # 这的最近节点的输入输出接口，有时候最近的是输出节口，但是没有离最近的节点的输入接口更近，所以把最近的几个节点接口列表合并
-            tar_sks_in, tar_sks_out = self.get_nearest_sockets(nd)  # ->([], [])  <class Target> 这里 .tar 是 Socket
-            tar_sockets.extend(tar_sks_in)
-            tar_sockets.extend(tar_sks_out)
-        tar_sockets.sort(key=lambda soc: soc.distance)
-        near_tar_sk = None
-        for tar_sk in tar_sockets:
-            if tar_sk.idname != "NodeSocketVirtual":
-                near_tar_sk = tar_sk
-                break
-        self.target_any = near_tar_sk
-        if near_tar_sk:
-            unhide_node_reassign(
-                near_tar_sk.tar.node, self,
-                cond=self.target_any)  #Для режима сокетов тоже нужно перерисовывать, ибо нод у прицепившегося сокета может быть свёрнут.
+        tar_sockets = self.nearest_target_sockets()
+        nearest_tar_sk = next((sk for sk in tar_sockets if sk.tar.type != "CUSTOM"), None)
+        self.target_any = nearest_tar_sk
+        if nearest_tar_sk:
+            unhide_node_reassign(nearest_tar_sk.tar.node, self, cond=self.target_any)
 
     def run(self, event, prefs, tree):
         path = repr(self.target_any.tar)  # 有效解决几何和材质节点 节点数据路径不太一样的问题

@@ -80,6 +80,36 @@ class BaseTool(BaseOperator, VlToolMixin):  #0
         self.cursorLoc.x += cur_x_off  #     唤起位置偏移
         return nearest_sockets_tar(nd, self.cursorLoc, self.uiScale)
 
+    def nearest_target_sockets(self, only_input=False, only_output=False, combin_in_out=True, cur_x_off=0):
+        """ 优化最近接口的获取 """
+        tar_nodes = self.get_nearest_nodes(cur_x_off=cur_x_off)
+        find_count = min(5, len(tar_nodes))
+        tar_sockets: list[Target] = []
+        tar_sks_in: list[Target] = []
+        tar_sks_out: list[Target] = []
+        for fotago in tar_nodes[:find_count]:
+            nd = fotago.tar
+            if hasattr(self, "isTriggerOnCollapsedNodes") and (not self.isTriggerOnCollapsedNodes) and nd.hide: continue
+            _tar_sks_in, _tar_sks_out = self.get_nearest_sockets(nd, cur_x_off=cur_x_off)
+            if not only_output:
+                if combin_in_out:
+                    tar_sockets.extend(_tar_sks_in)
+                else:
+                    tar_sks_in.extend(_tar_sks_in)
+            if not only_input:
+                if combin_in_out:
+                    tar_sockets.extend(_tar_sks_out)
+                else:
+                    tar_sks_out.extend(_tar_sks_out)
+        
+        if combin_in_out:
+            tar_sockets.sort(key=lambda sk: sk.distance)
+            return tar_sockets
+        else:
+            tar_sks_in.sort(key=lambda sk: sk.distance)
+            tar_sks_out.sort(key=lambda sk: sk.distance)
+            return tar_sks_in, tar_sks_out
+
     def find_targets_base(self, flag: bool):
         if self.tree:
             try:

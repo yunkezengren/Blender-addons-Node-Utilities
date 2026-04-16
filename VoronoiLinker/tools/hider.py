@@ -126,29 +126,26 @@ class NODE_OT_voronoi_hider(AnyTargetTool):
         self.template_draw_any(drawer, self.target_any, cond=self.toolMode==eMode.HIDE_NODE.value, tool_name=mode)
     def find_targets_tool(self, _is_first_active, prefs, tree):
         self.target_any = None
-        for tar_nd in self.get_nearest_nodes(cur_x_off=0):
-            nd = tar_nd.tar
-            if (not self.isTriggerOnCollapsedNodes)and(nd.hide):
-                continue
-            if nd.type=='REROUTE': # 对于这个工具, reroute 会被跳过, 原因很明显.
-                continue
-            self.target_any = tar_nd
-            match eMode(self.toolMode):
-                case eMode.HIDE_SOCKET|eMode.HIDE_VALUE:
-                    # 对于套接字模式, 折叠处理和所有其他一样.
-                    tar_sks_in, tar_sks_out = self.get_nearest_sockets(nd, cur_x_off=0)
-                    def not_linked_tars(tar_sks: list[Target]): #Findanysk.
-                        for tar in tar_sks:
-                            if not tar.tar.vl_sold_is_final_linked_cou:
-                                return tar
-                    tar_sk_in = not_linked_tars(tar_sks_in)
-                    tar_sk_out = not_linked_tars(tar_sks_out)
-                    if self.toolMode==eMode.HIDE_SOCKET.value:
-                        self.target_any = MinFromTars(tar_sk_out, tar_sk_in)
+
+        match eMode(self.toolMode):
+            case eMode.HIDE_SOCKET | eMode.HIDE_VALUE:
+                    if self.toolMode == eMode.HIDE_SOCKET.value:
+                        tar_sockets = self.nearest_target_sockets()
                     else:
-                        self.target_any = tar_sk_in
-                    unhide_node_reassign(nd, self, cond=self.target_any) # 对于套接字模式也需要重绘, 因为连接的套接字节点可能是折叠的.
-                case eMode.HIDE_NODE:
+                        tar_sockets = self.nearest_target_sockets(only_input=True)
+                    self.target_any = next((sk for sk in tar_sockets if (not sk.tar.links) and sk.tar.node.type != "REROUTE"), None)
+                    if self.target_any:
+                        unhide_node_reassign(self.target_any.tar.node, self, cond=self.target_any) # 对于套接字模式也需要重绘, 因为连接的套接字节点可能是折叠的.
+            
+            case eMode.HIDE_NODE:
+                for tar_nd in self.get_nearest_nodes(cur_x_off=0):
+                    nd = tar_nd.tar
+                    if (not self.isTriggerOnCollapsedNodes)and(nd.hide):
+                        continue
+                    if nd.type=='REROUTE': # 对于这个工具, reroute 会被跳过, 原因很明显.
+                        continue
+                    self.target_any = tar_nd
+
                     # 对于节点模式, 展开光标下的所有节点或不展开, 没有区别.
                     if prefs.vhtIsToggleNodesOnDrag:
                         if self.firstResult is None:
@@ -164,7 +161,7 @@ class NODE_OT_voronoi_hider(AnyTargetTool):
                         # 参见 wiki, 为什么 isReDrawAfterChange 选项被删除了.
                         #Todo0v6SF 唯一可能的解决方案是, 在绘制一帧后_再_改变节点.
                         #^ 也就是说, 附加到新节点一帧, 然后立即处理它, 同时寻找新节点并向其绘制 (如 wiki 中的示例).
-            break
+                    break
     def run(self, event, prefs, tree):
         match eMode(self.toolMode):
             case eMode.HIDE_NODE:

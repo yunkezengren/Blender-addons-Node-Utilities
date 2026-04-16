@@ -23,26 +23,24 @@ class NODE_OT_voronoi_mixer(TripleSocketTool):
         draw_sockets_template(drawer, self.target_sk0, self.target_sk1, self.target_sk2, tool_name="Quick Mix")
     def find_targets_tool(self, is_first_active, prefs, tree):
         if is_first_active:
-            self.target_sk0 = None #需要清空, 因为下面有两个 continue.
+            self.target_sk0 = None # 需要清空, 因为下面有两个 continue.
         if not self.canPickThird:
             self.target_sk1 = None
         soldReroutesCanInAnyType = prefs.vmtReroutesCanInAnyType
-        for tar_nd in self.get_nearest_nodes(cur_x_off=Cursor_X_Offset):
-            nd = tar_nd.tar
-            unhide_node_reassign(nd, self, cond=is_first_active, flag=True)
-            tar_sks_out = self.get_nearest_sockets(nd, cur_x_off=Cursor_X_Offset)[1]
-            if not tar_sks_out:
-                continue
-            #节点过滤器没有必要.
-            #这个工具会触发第一个遇到的任何输出 (现在除了虚拟接口).
+        tar_sockets = self.nearest_target_sockets(only_output=True)
+        # todo 逻辑有点混乱 tar_sockets 双重循环了
+        for tar_sks_out in tar_sockets:
+            # 节点过滤器没有必要.这个工具会触发第一个遇到的任何输出 (现在除了虚拟接口).
+            nd = tar_sks_out.tar.node
             if is_first_active:
-                self.target_sk0 = tar_sks_out[0] if tar_sks_out else None
+                self.target_sk0 = tar_sks_out
+            unhide_node_reassign(nd, self, cond=is_first_active, flag=True)
             #对于第二个, 根据条件:
             skOut0 = opt_tar_socket(self.target_sk0)
             # todo 做一些接口类型判断,比如 一个是 geometry 剩下的也要是
             if skOut0:
                 if not self.canPickThird:
-                    for tar in tar_sks_out:
+                    for tar in tar_sockets:
                         skOut1 = tar.tar
                         if skOut0 == skOut1:
                             break

@@ -37,9 +37,11 @@ class NODE_OT_voronoi_quick_math(TripleSocketTool):
         isNotCanPickThird = not self.canPickThird if prefs.vqmtIncludeThirdSk else True
         if isNotCanPickThird:
             self.target_sk1 = None
-        for tar_nd in self.get_nearest_nodes(cur_x_off=Cursor_X_Offset):
-            nd = tar_nd.tar
-            tar_sks_in, tar_sks_out = self.get_nearest_sockets(nd, cur_x_off=Cursor_X_Offset)
+        tar_sockets = self.nearest_target_sockets(only_output=True)
+        # todo 逻辑有点混乱 tar_sockets 双重循环了
+        for tar_sk in tar_sockets:
+            nd = tar_sk.tar.node
+            tar_sks_in, tar_sks_out = self.nearest_target_sockets(only_output=True, combin_in_out=False)
             if not tar_sks_out:
                 continue
             #这个工具只触发字段输出.
