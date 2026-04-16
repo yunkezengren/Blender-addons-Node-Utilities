@@ -7,7 +7,7 @@ from time import perf_counter
 from .Structure import RectBase, View2D
 from .common_class import TryAndPass
 from .common_class import Target
-from .globals import set_utilTypeSkFields
+from .globals import sk_type_support_field
 from .utils.ui import user_node_keymap
 from .preference import pref, VoronoiAddonPrefs
 from .utils.drawing import draw_debug_info, draw_node_template, draw_sockets_template, Drawer
@@ -203,7 +203,7 @@ class PairSocketTool(SingleSocketTool):  #2
 
     def check_between_sk_fields(self, sk1: NodeSocket, sk2: NodeSocket):
         # 注意: 考虑到此函数的目的和名称, sk1 和 sk2 无论如何都应该是来自字段, 且仅来自字段.
-        return (sk1.type in set_utilTypeSkFields) and ((self.isCanBetweenFields) and (sk2.type in set_utilTypeSkFields) or
+        return (sk1.type in sk_type_support_field) and ((self.isCanBetweenFields) and (sk2.type in sk_type_support_field) or
                                                        (sk1.type == sk2.type))
 
     def initialize_pre(self, event: Event):

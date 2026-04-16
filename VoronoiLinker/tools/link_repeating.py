@@ -2,7 +2,7 @@ from enum import Enum
 
 import bpy
 from ..base_tool import unhide_node_reassign, AnyTargetTool
-from ..globals import Cursor_X_Offset, set_utilTypeSkFields
+from ..globals import Cursor_X_Offset, sk_type_support_field
 from ..utils.node import CompareSkLabelName, DoLinkHh, VlrtData, VlrtRememberLastSockets
 from ..utils.solder import solder_sk_links
 
@@ -28,7 +28,7 @@ class NODE_OT_voronoi_link_repeating(AnyTargetTool):  # 分离成单独的工具
         self.template_draw_any(drawer, self.target_any, cond=self.toolMode==eMode.NODE.value)
     def find_targets_tool(self, _is_first_active, prefs, tree):
         def IsSkBetweenFields(sk1, sk2):
-            return (sk1.type in set_utilTypeSkFields)and( (sk2.type in set_utilTypeSkFields)or(sk1.type==sk2.type) )
+            return (sk1.type in sk_type_support_field)and( (sk2.type in sk_type_support_field)or(sk1.type==sk2.type) )
         skLastOut = self.skLastOut
         skLastIn = self.skLastIn
         if not skLastOut:

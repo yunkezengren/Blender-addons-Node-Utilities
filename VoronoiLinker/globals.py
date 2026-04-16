@@ -48,7 +48,9 @@ sk_type_idname_map = {
 
 sk_types_no_convert = ['MENU', 'STRING', 'GEOMETRY', 'OBJECT', 'COLLECTION', 'MATERIAL', 'TEXTURE', 'IMAGE', 'BUNDLE', 'CLOSURE','FONT','SOUND','MASK','SCENE']
 
-base_types = ['VALUE', 'RGBA', 'VECTOR', 'INT_VECTOR', 'INT', 'BOOLEAN', "SHADER"]
+base_fields = ['BOOLEAN', 'VALUE', 'INT', 'VECTOR', 'INT_VECTOR', 'RGBA']
+base_types = base_fields + ["SHADER"]
+sk_support_math = base_fields + ["ROTATION"]
 
 implicit_convert_map = {
         "BOOLEAN" : base_types,
@@ -61,7 +63,7 @@ implicit_convert_map = {
         "ROTATION" : ["MATRIX", "VECTOR"],
 }
 
-set_utilTypeSkFields = {'VALUE', 'RGBA', 'VECTOR', 'INT', 'BOOLEAN', 'ROTATION', 'STRING', 'MATRIX'}       # Alt D 等多个操作 支持的接口
+sk_type_support_field = set(base_fields) | {'ROTATION', 'MATRIX', 'STRING'}       # Alt D 等多个操作 支持的接口
 
 set_classicSocketsBlid = {
     'NodeSocketShader',

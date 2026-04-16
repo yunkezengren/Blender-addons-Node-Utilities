@@ -2,14 +2,13 @@ import bpy
 from ..base_tool import unhide_node_reassign, draw_sockets_template, TripleSocketTool
 from ..common_class import VqmtData, set_pie_data
 from ..preference import pref
-from ..globals import Cursor_X_Offset, float_int_color
+from ..globals import Cursor_X_Offset, float_int_color, sk_support_math
 from ..utils.color import get_sk_color_safe, power_color
 from ..utils.node import DoQuickMath, opt_tar_socket
 from ..utils.solder import sk_type_color_map
 from ..utils.ui import display_message, draw_hand_split_prop, draw_panel_column
 BP = bpy.props
 
-set_vqmtSkTypeFields = {'VALUE', 'RGBA', 'VECTOR', 'INT', 'BOOLEAN', 'ROTATION'}
 fitVqmtRloDescr = "Bypassing the pie call, activates the last used operation for the selected socket type.\n"+\
                   "Searches for sockets only from an available previous operations that were performed for the socket type.\n"+\
                   "Just a pie call, and the fast fast math is not remembered as the last operations"
@@ -49,18 +48,18 @@ class NODE_OT_voronoi_quick_math(TripleSocketTool):
                 for tar in tar_sks_out:
                     if not self.isRepeatLastOperation:
                         if not self.isQuickQuickMath:
-                            if tar.tar.type in set_vqmtSkTypeFields:
+                            if tar.tar.type in sk_support_math:
                                 self.target_sk0 = tar
                                 isSucessOut = True
                                 break
                         else: #对于 isQuickQuickMath, 只附加到明确指定操作的套接字类型.
                             match tar.tar.type:
                             # case 'VALUE'|'INT':         isSucessOut = self.quickOprFloat
-                                case 'VALUE':         isSucessOut = self.quickOprFloat
+                                case 'VALUE': isSucessOut = self.quickOprFloat
                                 # case 'INT':           isSucessOut = self.quickOprInt
-                                case 'VECTOR' | "ROTATION": isSucessOut = self.quickOprVector
-                                case 'BOOLEAN':             isSucessOut = self.quickOprBool
-                                case 'RGBA':                isSucessOut = self.quickOprColor
+                                case 'VECTOR' | "INT_VECTOR"| "ROTATION": isSucessOut = self.quickOprVector
+                                case 'BOOLEAN': isSucessOut = self.quickOprBool
+                                case 'RGBA': isSucessOut = self.quickOprColor
                             if isSucessOut:
                                 self.target_sk0 = tar
                                 break
@@ -93,7 +92,7 @@ class NODE_OT_voronoi_quick_math(TripleSocketTool):
                 skOut1 = opt_tar_socket(self.target_sk1)
                 for tar in tar_sks_in:
                     skIn = tar.tar
-                    if skIn.type in set_vqmtSkTypeFields:
+                    if skIn.type in sk_support_math:
                         tgl0 = (not skOut0)or(skOut0.node!=skIn.node)
                         tgl1 = (not skOut1)or(skOut1.node!=skIn.node)
                         if (tgl0)and(tgl1):
@@ -147,7 +146,7 @@ class NODE_OT_voronoi_quick_math(TripleSocketTool):
                     # VqmtData.qmSkType = 'VALUE'   # 整数接口浮点饼
                     # self.int_default_float = True
                     VqmtData.qmSkType = 'INT'
-            case 'ROTATION': VqmtData.qmSkType = 'VECTOR'
+            case  "INT_VECTOR" | 'ROTATION': VqmtData.qmSkType = 'VECTOR'
             # case 'MATRIX':   VqmtData.qmSkType = 'MATRIX'
             #case 'ROTATION': return {'FINISHED'} #但奇怪的是, 为什么与 RGBA 的链接被标记为不正确, 明明都是 Arr4... 那颜色为什么需要 alpha?
         match tree.bl_idname:

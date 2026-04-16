@@ -30,8 +30,8 @@ class NODE_OT_voronoi_quick_dimensions(TripleSocketTool):
                 continue
             if is_first_active:
                 for tar in tar_sks_out:
-                    # set_utilTypeSkFields 小王-Alt D 支持的接口
-                    # if (tar.tar.type in set_utilTypeSkFields)or(tar.tar.type=='GEOMETRY'):
+                    # sk_type_support_field 小王-Alt D 支持的接口
+                    # if (tar.tar.type in sk_type_support_field)or(tar.tar.type=='GEOMETRY'):
                     if get_dimension_node(tree, tar.tar.type):
                         self.target_sk0 = tar
                         break

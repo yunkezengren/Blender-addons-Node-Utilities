@@ -6,7 +6,7 @@ from ..Structure import BNodeSocket
 from ..common_class import VqmtData
 from ..common_class import Target
 from ..globals import (dict_vqmtDefaultDefault, dict_vqmtDefaultValueOperation, dict_vqmtEditorNodes, is_bl4_plus, set_classicSocketsBlid,
-                       set_utilEquestrianPortalBlids, set_utilTypeSkFields, sk_type_idname_map)
+                       set_utilEquestrianPortalBlids, sk_type_support_field, sk_type_idname_map)
 
 def sk_label_or_name(sk: NodeSocket):
     if isinstance(sk.node, bpy.types.NodeReroute):
@@ -250,14 +250,14 @@ def DoLinkHh(sko: NodeSocket, ski: NodeSocket, *, isReroutesToAnyType=True, isCa
             return # 在丢失的树中, 链接可以手动创建, 但通过 API不行; 所以退出.
         if sko.node==ski.node: # 对于同一个节点, 显然是无意义的, 尽管可能. 对接口更重要.
             return
-        isSkoField = sko.type in set_utilTypeSkFields
+        isSkoField = sko.type in sk_type_support_field
         isSkoNdReroute = sko.node.type=='REROUTE'
         isSkiNdReroute = ski.node.type=='REROUTE'
         isSkoVirtual = (sko.bl_idname=='NodeSocketVirtual')and(not isSkoNdReroute) # 虚拟只对接口有效, 需要排除"冒名顶替的 reroute".
         isSkiVirtual = (ski.bl_idname=='NodeSocketVirtual')and(not isSkiNdReroute) # 注意: 虚拟和插件套接字的 sk.type=='CUSTOM'.
         # 如果可以
         if not( (isReroutesToAnyType)and( (isSkoNdReroute)or(isSkiNdReroute) ) ): # 至少一个是 reroute.
-            if not( (sko.bl_idname==ski.bl_idname)or( (isCanBetweenField)and(isSkoField)and(ski.type in set_utilTypeSkFields) ) ): # blid 相同或在字段之间.
+            if not( (sko.bl_idname==ski.bl_idname)or( (isCanBetweenField)and(isSkoField)and(ski.type in sk_type_support_field) ) ): # blid 相同或在字段之间.
                 if not( (isCanFieldToShader)and(isSkoField)and(ski.type=='SHADER') ): # 字段到 shader.
                     if not(isSkoVirtual or isSkiVirtual): # 它们中有一个是虚拟的 (用于接口).
                         if (not is_builtin_tree_idname(tree.bl_idname))or( IsClassicSk(sko)==IsClassicSk(ski) ): # 经典树中的插件套接字; 参见 VLT.
