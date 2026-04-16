@@ -9,6 +9,9 @@ from ..globals import (dict_vqmtDefaultDefault, dict_vqmtDefaultValueOperation, 
                        set_utilEquestrianPortalBlids, set_utilTypeSkFields, sk_type_idname_map)
 
 def sk_label_or_name(sk: NodeSocket):
+    if isinstance(sk.node, bpy.types.NodeReroute):
+        # todo 如果是自动继承的label 还需要向前寻找
+        return sk.node.label if sk.node.label else sk.name
     return sk.label if sk.label else sk.name
 
 def sk_type_to_idname(sk: NodeSocket):

@@ -88,13 +88,11 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
 
     def find_targets_copy_paste(self, prefs):
         self.target_skMain = None
-        if (self.toolMode
-                == eMode.PASTE.value) and (not self.clipboard):  # 预料之中; 还有 #https://projects.blender.org/blender/blender/issues/113860
+        if (self.toolMode == eMode.PASTE.value) and (not self.clipboard):
+            # 预料之中; 还有 #https://projects.blender.org/blender/blender/issues/113860
             return  #Todo0VV 遍历版本并指出哪些会崩溃.
         for tar_nd in self.get_nearest_nodes(cur_x_off=0):
             nd = tar_nd.tar
-            if nd.type == 'REROUTE':
-                continue
             if (not prefs.vitPasteToAnySocket) and (self.toolMode == eMode.PASTE.value) and (nd.type not in NodeItemsUtils.support_types):
                 break  # 光标必须靠近骑士 (或组节点) (对于非 vitPasteToAnySocket). 还有 `continue` 不会有高级取消.
             tar_sks_in, tar_sks_out = self.get_nearest_sockets(nd, cur_x_off=0)
@@ -107,8 +105,6 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
         self.target_skMain = None
         for tar_nd in self.get_nearest_nodes(cur_x_off=0):
             nd = tar_nd.tar
-            if nd.type == 'REROUTE':
-                continue
             if nd.type not in NodeItemsUtils.support_types:
                 break  # 光标必须靠近骑士 (或组节点); 但也可以通过选择同一个套接字来取消, 所以不确定.
             if (self.target_skRosw) and (self.target_skRosw.tar.node != nd):
@@ -130,8 +126,6 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
     def find_targets_new_create(self, is_first_active):
         for tar_nd in self.get_nearest_nodes(includePoorNodes=True, cur_x_off=0):
             nd = tar_nd.tar
-            if nd.type=='REROUTE':
-                continue
             tar_sks_in, tar_sks_out = self.get_nearest_sockets(nd, cur_x_off=0)
             match eMode(self.toolMode):
                 case eMode.NEW:
