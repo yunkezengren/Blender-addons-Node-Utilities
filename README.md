@@ -2,7 +2,7 @@
 - [中文简介](#中文简介)
 - [English Description](#english-description)
 
-# 中文简介
+# 简介
 
 ## VoronoiLinker
 
@@ -12,7 +12,10 @@
 > `Ctrl+Click`这个快捷键要搭配我修改的`node pie`插件(还没有上传github)才能用  
 
 **支持添加远程存储库,在Blender偏好设置里下载更新.**  
-**URL:** `https://yunkezengren.github.io/extension_remote_repo/api/v1/extensions/index.json`
+**URL:** 
+```
+https://yunkezengren.github.io/extension_remote_repo/api/v1/extensions/index.json
+```
 |1.添加远程存储库|2.复制粘贴URL|
 |--|--|
 | ![alt text](image/1.添加远程存储库.jpg) | ![alt text](image/2.设置.jpg) |
@@ -40,7 +43,10 @@
 > The `Ctrl+Click` shortcut requires my modified `node pie` plugin (not yet uploaded to GitHub) to work.
 
 **Support for adding remote repositories, download and update in Blender preferences.**  
-**URL:** `https://yunkezengren.github.io/extension_remote_repo/api/v1/extensions/index.json`
+**URL:** 
+```
+https://yunkezengren.github.io/extension_remote_repo/api/v1/extensions/index.json
+```
 |1.Add Remote Repository|2.Copy and Paste URL|
 |--|--|
 | ![alt text](image/1.添加远程存储库-英语.jpg) | ![alt text](image/2.设置-英语.jpg) |
