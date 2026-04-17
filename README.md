@@ -20,6 +20,8 @@ https://yunkezengren.github.io/extension_remote_repo/api/v1/extensions/index.jso
 |--|--|
 | ![alt text](image/1.添加远程存储库.jpg) | ![alt text](image/2.设置.jpg) |
 
+如果更新失败可能是网络问题,多试几次,或者使用VPN,或者[手动下载更新](https://github.com/yunkezengren/Blender-addons-Node-Utilities/releases)
+
 ## Blender Extensions
 
 > [!NOTE]
