@@ -132,7 +132,7 @@ class NODE_MT_align(Menu):
 
     @classmethod
     def poll(cls, context):
-        if not context.space_data.type == 'NODE_EDITOR':
+        if context.space_data.type != 'NODE_EDITOR':
             return False
         return bool(context.selected_nodes)
 
