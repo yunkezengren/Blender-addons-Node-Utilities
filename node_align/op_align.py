@@ -74,7 +74,7 @@ class BaseAlignOp(Operator):
 
     @classmethod
     def poll(cls, context):
-        if not context.space_data.type == 'NODE_EDITOR':
+        if context.space_data.type != 'NODE_EDITOR':
             return False
         i = sum(node.bl_idname != "NodeFrame" for node in context.selected_nodes)
         return context.space_data.edit_tree and i > 1
@@ -423,7 +423,7 @@ class NODE_OT_align_link(Operator):
 
     @classmethod
     def poll(cls, context):
-        if not context.space_data.type == 'NODE_EDITOR':
+        if context.space_data.type != 'NODE_EDITOR':
             return False
         i = sum(node.bl_idname != "NodeFrame" for node in context.selected_nodes)
         return context.space_data.edit_tree and i >= 2
