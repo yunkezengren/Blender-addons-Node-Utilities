@@ -5,7 +5,7 @@ from ..base_tool import unhide_node_reassign, PairSocketTool
 from ..common_class import VlnstData
 from ..globals import sk_type_idname_map
 from ..utils.drawing import draw_socket_point, draw_sockets_template
-from ..utils.node import sk_label_or_name, sk_type_to_idname, MinFromTars, opt_tar_socket
+from ..utils.node import socket_label, sk_type_to_idname, pick_near_target, opt_tar_socket
 from ..utils.ui import add_nice_color_prop, draw_hand_split_prop
 
 # 突然发现, 我以前对"懒人延续"工具的想法被封装在了这个工具里. 真是出乎意料.
@@ -122,7 +122,7 @@ def LzNodeDoubleCheck(zk, a, b):
 def LzTypeDoubleCheck(zk, a, b): 
     return LzCompare(zk.firstSkBlid, sk_type_to_idname(a) if a else "") and LzCompare(zk.secondSkBlid, sk_type_to_idname(b) if b else "") # 不是'type', 而是blid's; 用于插件节点树.
 def LzNameDoubleCheck(zk, a, b): 
-    return LzCompare(zk.firstSkName, sk_label_or_name(a) if a else "")  and LzCompare(zk.secondSkName, sk_label_or_name(b) if b else "")
+    return LzCompare(zk.firstSkName, socket_label(a) if a else "")  and LzCompare(zk.secondSkName, socket_label(b) if b else "")
 def LzGendDoubleCheck(zk, a, b): 
     return LzCompare(zk.firstSkGend, a.is_output if a else "")          and LzCompare(zk.secondSkGend, b.is_output if b else "")
 def LzLazyStencil(prefs, tree, skFirst, skSecond):
@@ -179,7 +179,7 @@ class NODE_OT_voronoi_lazy_node_stencils(PairSocketTool):  # 第一个应外部�
             for tar in tar_sks_in:
                 tar_sk_in = tar
                 break
-            return MinFromTars(tar_sk_out, tar_sk_in)
+            return pick_near_target(tar_sk_out, tar_sk_in)
         self.target_sk1 = None
         # 由于其目的, 这个工具保证会获取第一个遇到的套接字.
         for tar_nd in self.get_nearest_nodes(cur_x_off=0):

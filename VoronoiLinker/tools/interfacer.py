@@ -7,7 +7,7 @@ from ..base_tool import unhide_node_reassign, draw_node_template, draw_sockets_t
 from ..node_items import NodeItemsUtils
 from ..utils.color import get_sk_color_safe
 from ..utils.drawing import draw_socket_area
-from ..utils.node import sk_label_or_name, DoLinkHh, FindAnySk, MinFromTars, opt_tar_socket
+from ..utils.node import socket_label, DoLinkHh, FindAnySk, pick_near_target, opt_tar_socket
 from ..utils.ui import draw_hand_split_prop
 
 # yapf: disable
@@ -157,7 +157,7 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
                             if (tar.idname != 'NodeSocketVirtual') and (NodeItemsUtils.IsSimRepCorrectSk(nd, tar.tar)):
                                 tar_sk_out = tar
                                 break
-                        self.target_skMain = MinFromTars(tar_sk_out, tar_sk_in)
+                        self.target_skMain = pick_near_target(tar_sk_out, tar_sk_in)
                     self.target_ndTar = None
                     skMain = opt_tar_socket(self.target_skMain)
                     if not skMain: continue
@@ -196,7 +196,7 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
         links = tree.links
         match eMode(self.toolMode):
             case eMode.COPY:
-                self.clipboard = sk_label_or_name(self.target_skMain.tar)
+                self.clipboard = socket_label(self.target_skMain.tar)
             case eMode.PASTE:
                 #tovo1v6 添加一个按键, 按下后会“取消”--不进行粘贴; 因为此模式保证会粘附 (参见选项) 到任何套接字, 需要某种方式来“退后一步”.
                 skMain = self.target_skMain.tar
@@ -229,7 +229,7 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
                             break
                 if can:  #tovo0v6 还有面板.
                     item_name = skfNew.name
-                    tarNearest = None  # MinFromTars(tar_sks_in[0] if tar_sks_in else None, tar_sks_out[0] if tar_sks_out else None)
+                    tarNearest = None  # pick_near_target(tar_sks_in[0] if tar_sks_in else None, tar_sks_out[0] if tar_sks_out else None)
                     min = 16777216.0
                     tar_sks_in, tar_sks_out = self.get_nearest_sockets(_tar_nd)
                     for tar in tar_sks_in if skMain.is_output else tar_sks_out:

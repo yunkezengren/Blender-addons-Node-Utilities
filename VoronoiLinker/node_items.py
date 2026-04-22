@@ -113,8 +113,8 @@ class NodeItemsUtils():
                 raise Exception(f"`Socket for node side not found: {skfTar}`")
 
     def NewSkfFromSk(self, from_sk: NodeSocket, isFlipSide=False):
-        from .utils.node import sk_label_or_name, sk_type_to_idname, add_item_for_index_switch, is_builtin_tree_idname  # 延迟导入避免循环导入
-        sk_name = sk_label_or_name(from_sk)
+        from .utils.node import socket_label, sk_type_to_idname, add_item_for_index_switch, is_builtin_tree_idname  # 延迟导入避免循环导入
+        sk_name = socket_label(from_sk)
         sk_type = from_sk.type
         match self.type:
             case 'SIM' | 'REP' | 'BAKE' | 'CAPTURE':

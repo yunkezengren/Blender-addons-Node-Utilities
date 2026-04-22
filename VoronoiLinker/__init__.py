@@ -114,7 +114,7 @@ operator_keymaps: dict[type[Operator], list[str | tuple[str, dict[str, Any]]]] =
     NODE_OT_voronoi_hider: [
         ("S##_E", {'toolMode': HiderMode.HIDE_SOCKET.value}),
         ("#CA_E", {'toolMode': HiderMode.HIDE_VALUE.value}),
-        ("SC#_E", {'toolMode': HiderMode.HIDE_NODE.value}),
+        ("SC#_E", {'toolMode': HiderMode.HIDE_AUTO.value}),
     ],
     NODE_OT_voronoi_link_repeating: [
         ("###_V", {'toolMode': LinkRepeatingMode.SOCKET.value}),

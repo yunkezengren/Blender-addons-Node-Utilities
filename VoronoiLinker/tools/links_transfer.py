@@ -1,6 +1,6 @@
 import bpy
 from ..base_tool import draw_node_template, draw_sockets_template, PairNodeTool
-from ..utils.node import sk_label_or_name, GenTarFromNd, is_socket_visible
+from ..utils.node import socket_label, GenTarFromNd, is_socket_visible
 from ..utils.solder import solder_sk_links
 B = bpy.types
 
@@ -62,7 +62,7 @@ class NODE_OT_voronoi_links_transfer(PairNodeTool):
                 for sk in from_sks:
                     for link in sk.vl_sold_links_final:
                         if not link.is_muted:
-                            skTar = to_sks.get(sk_label_or_name(sk))
+                            skTar = to_sks.get(socket_label(sk))
                             if skTar:
                                 transfer_link(skTar, link)
         else:

@@ -8,7 +8,7 @@ from ..common_class import Target
 from ..globals import (dict_vqmtDefaultDefault, dict_vqmtDefaultValueOperation, dict_vqmtEditorNodes, is_bl4_plus, set_classicSocketsBlid,
                        set_utilEquestrianPortalBlids, sk_type_support_field, sk_type_idname_map)
 
-def sk_label_or_name(sk: NodeSocket):
+def socket_label(sk: NodeSocket):
     if isinstance(sk.node, bpy.types.NodeReroute):
         # todo 如果是自动继承的label 还需要向前寻找
         return sk.node.label if sk.node.label else sk.name
@@ -139,7 +139,7 @@ def GenTarsFromPuts(nd: Node, isSide, samplePos, uiScale): # 为 vptRvEeSksHighl
                 elif not( (nd.type in ('BSDF_PRINCIPLED','SUBSURFACE_SCATTERING'))and(not is_bl4_plus) )or( not(sk.name in ("Subsurface Radius","Radius"))):
                     hei = 3
             height_box = (pos.y-11-hei*20,  pos.y+11+max(sk.vl_sold_is_final_linked_cou-2,0)*5*(not isSide))
-            txt = _iface(sk_label_or_name(sk)) if sk.bl_idname!='NodeSocketVirtual' else _iface("Virtual" if not sk.name else sk_label_or_name(sk))
+            txt = _iface(socket_label(sk)) if sk.bl_idname!='NodeSocketVirtual' else _iface("Virtual" if not sk.name else socket_label(sk))
             results.append(Target(sk, distance=(samplePos-pos).length, pos=pos, side= 1 if sk.is_output else -1 , bottom_top=height_box, text=txt))
     return results
 
@@ -190,11 +190,11 @@ def IsClassicSk(sk: NodeSocket):
     else:
         return sk_type_to_idname(sk) in set_classicSocketsBlid
 
-def CompareSkLabelName(sk1: NodeSocket, sk2: NodeSocket, ignore_upper_lower=False):
-    if ignore_upper_lower:
-        return sk_label_or_name(sk1).upper()==sk_label_or_name(sk2).upper()
+def compare_sk_label(sk1: NodeSocket, sk2: NodeSocket, ignore_case=False):
+    if ignore_case:
+        return socket_label(sk1).upper() == socket_label(sk2).upper()
     else:
-        return sk_label_or_name(sk1)==sk_label_or_name(sk2)
+        return socket_label(sk1) == socket_label(sk2)
 
 def SelectAndActiveNdOnly(ndTar: Node):
     for nd in ndTar.id_data.nodes:
@@ -202,15 +202,10 @@ def SelectAndActiveNdOnly(ndTar: Node):
     ndTar.id_data.nodes.active = ndTar
     ndTar.select = True
 
-def MinFromTars(tar1: Target, tar2: Target):
-    if (tar1)or(tar2): # 如果至少有一个存在.
-        if not tar2: # 如果其中一个不存在,
-            return tar1
-        elif not tar1: # 那么另一个就是唯一的选择.
-            return tar2
-        else: # 否则选择最近的那个.
-            return tar1 if tar1.distance<tar2.distance else tar2
-    return None
+def pick_near_target(tar1: Target, tar2: Target):
+    if tar1 and tar2:
+        return tar1 if tar1.distance < tar2.distance else tar2
+    return tar1 or tar2
 
 def FindAnySk(nd: Node, tar_sks_in, tar_sks_out): # Todo0NA: 需要泛化!, 用 lambda. 并且外部循环遍历列表, 而不是两个循环.
     from ..node_items import NodeItemsUtils  # 延迟导入避免循环导入
@@ -223,7 +218,7 @@ def FindAnySk(nd: Node, tar_sks_in, tar_sks_out): # Todo0NA: 需要泛化!, 用 
         if (tar.idname!='NodeSocketVirtual')and(NodeItemsUtils.IsSimRepCorrectSk(nd, tar.tar)):
             tar_sk_in = tar
             break
-    return MinFromTars(tar_sk_out, tar_sk_in)
+    return pick_near_target(tar_sk_out, tar_sk_in)
 
 # 注意: DoLinkHh 现在有太多其他依赖项, 想要把它单独抽离出来会更困难.
 # P.s. "HH" -- 意思是 "High Level", 但我打错字母了 D:
@@ -316,16 +311,16 @@ def DoLinkHh(sko: NodeSocket, ski: NodeSocket, *, isReroutesToAnyType=True, isCa
                     skf = items_tool.NewSkfFromSk(skTar)
                     skNew = items_tool.get_socket(skf, is_out=skf.in_out!='OUTPUT') # * 痛苦的声音 *
                 case 2|3:       # [-2]  -1是扩展接口,-2是新添加的接口
-                    _skf = (ndEq.state_items if typeEq==2 else ndEq.repeat_items).new({'VALUE':'FLOAT'}.get(skTar.type,skTar.type), sk_label_or_name(skTar))
+                    _skf = (ndEq.state_items if typeEq==2 else ndEq.repeat_items).new({'VALUE':'FLOAT'}.get(skTar.type,skTar.type), socket_label(skTar))
                     if True: # SimRep 的重新选择是微不足道的; 因为它们没有面板, 所有新套接字都出现在底部.
                         skNew = ski.node.inputs[-2] if isSkiVirtual else sko.node.outputs[-2]
                     else:
                         skNew = NodeItemsUtils(ski if isSkiVirtual else sko).get_socket(_skf, is_out=isSkoVirtual)
                 case 4:       # 新建接口-菜单切换
-                    _skf = ndEq.enum_items.new(sk_label_or_name(skTar))
+                    _skf = ndEq.enum_items.new(socket_label(skTar))
                     skNew = ski.node.inputs[-2] if isSkiVirtual else sko.node.outputs[-2]
                 case 5|6:       # 新建接口-捕捉属性 烘焙
-                    _skf = (ndEq.bake_items if typeEq==5 else ndEq.capture_items).new({'VALUE':'FLOAT'}.get(skTar.type,skTar.type), sk_label_or_name(skTar))
+                    _skf = (ndEq.bake_items if typeEq==5 else ndEq.capture_items).new({'VALUE':'FLOAT'}.get(skTar.type,skTar.type), socket_label(skTar))
                     skNew = ski.node.inputs[-2] if isSkiVirtual else sko.node.outputs[-2]
                 case 7:         # 新建接口-编号切换
                     skNew = add_item_for_index_switch(ski.node)

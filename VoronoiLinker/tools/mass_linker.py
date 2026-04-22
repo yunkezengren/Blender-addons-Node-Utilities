@@ -2,7 +2,7 @@ import bpy
 from ..base_tool import unhide_node_reassign, BaseTool
 from ..globals import Cursor_X_Offset
 from ..utils.drawing import draw_socket_point, draw_sockets_template
-from ..utils.node import CompareSkLabelName, VlrtRememberLastSockets
+from ..utils.node import compare_sk_label, VlrtRememberLastSockets
 from ..utils.ui import draw_hand_split_prop
 
 #"批量链接器" -- 就像链接器一样, 只是一次性处理多个 (显而易见).
@@ -35,7 +35,7 @@ class NODE_OT_voronoi_mass_linker(BaseTool):  # "猫狗合体", 既不是节点,
             for taro in tar_sks_out:
                 for tari in tar_sks_in:
                     #因为是"批量"的 -- 标准必须自动化, 并对所有情况都统一.
-                    if CompareSkLabelName(taro.tar, tari.tar, self.prefs.vmltIgnoreCase): #只与名称相同的接口连接.
+                    if compare_sk_label(taro.tar, tari.tar, self.prefs.vmltIgnoreCase): #只与名称相同的接口连接.
                         tgl = False
                         if self.isIgnoreExistingLinks: #如果是不分青红皂白地连接, 就排除已经存在的"期望"连接. 这是为了美观.
                             for lk in tari.tar.vl_sold_links_final:

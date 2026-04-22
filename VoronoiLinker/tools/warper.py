@@ -1,6 +1,6 @@
 import bpy
 from ..base_tool import unhide_node_reassign, SingleSocketTool
-from ..utils.node import MinFromTars
+from ..utils.node import pick_near_target
 from ..utils.ui import draw_hand_split_prop
 
 def GetSetOfKeysFromEvent(event, isSide=False):
@@ -33,7 +33,7 @@ class NODE_OT_voronoi_warper(SingleSocketTool):
                 if (tar.tar.vl_sold_is_final_linked_cou)and(tar.idname!='NodeSocketVirtual'):
                     tar_sk_in = tar
                     break
-            return MinFromTars(tar_sk_out, tar_sk_in)
+            return pick_near_target(tar_sk_out, tar_sk_in)
         self.target_sk = None
         for tar_nd in self.get_nearest_nodes(cur_x_off=0):
             nd = tar_nd.tar

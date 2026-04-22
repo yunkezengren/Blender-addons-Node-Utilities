@@ -3,7 +3,7 @@ from enum import Enum
 import bpy
 from ..base_tool import unhide_node_reassign, AnyTargetTool
 from ..globals import Cursor_X_Offset, sk_type_support_field
-from ..utils.node import CompareSkLabelName, DoLinkHh, VlrtData, VlrtRememberLastSockets
+from ..utils.node import compare_sk_label, DoLinkHh, VlrtData, VlrtRememberLastSockets
 from ..utils.solder import solder_sk_links
 
 class LinkRepeatingMode(Enum):
@@ -58,7 +58,7 @@ class NODE_OT_voronoi_link_repeating(AnyTargetTool):  # 分离成单独的工具
                     if nd.inputs:
                         self.target_any = tar_nd
                     for sk in nd.inputs:
-                        if CompareSkLabelName(sk, skLastIn):
+                        if compare_sk_label(sk, skLastIn):
                             if (sk.enabled)and(not sk.hide):
                                 tree.links.new(skLastOut, sk) # 注意: 不是高级的; 为什么节点重复需要接口?.
             break
