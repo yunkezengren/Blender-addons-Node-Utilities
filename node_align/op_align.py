@@ -74,8 +74,9 @@ class BasePoll(Operator):
 
     @classmethod
     def poll(cls, context):
-        selected_count = sum(node.bl_idname != "NodeFrame" for node in context.selected_nodes)
-        return context.area.type == "NODE_EDITOR" and context.space_data.edit_tree and selected_count > 1
+        if context.area.type == "NODE_EDITOR" and context.space_data.edit_tree:
+            return sum(node.bl_idname != "NodeFrame" for node in context.selected_nodes) > 1
+        return False
 
 class BaseAlignOp(BasePoll):
 
