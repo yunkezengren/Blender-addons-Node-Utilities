@@ -1,0 +1,19 @@
+schema_version = "1.0.0"
+id = "node_editor_zoom"
+version = "1.0.0"
+name = "Node Editor Zoom"
+tagline = "实验性修改节点编辑器的最小/最大/当前缩放显示与最大缩放限制"
+maintainer = "Blender Foundation"
+type = "add-on"
+tags = ["Node"]
+blender_version_min = "5.2.0"
+license = ["SPDX:GPL-2.0-or-later"]
+website = "https://projects.blender.org/blender/blender"
+[build]
+paths_exclude_pattern = [
+  "__pycache__/",
+  ".*",
+  "*.zip",
+  "*.log",
+  "*.md",
+]
