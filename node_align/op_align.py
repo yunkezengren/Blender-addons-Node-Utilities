@@ -69,13 +69,15 @@ def restore_parent_frame(nodes: Nodes, nodes_parent: dict[str, Node], frame_node
     for node in frame_nodes:
         node.select = True
 
-class BaseAlignOp(Operator):
+class BasePoll(Operator):
     bl_options = {"REGISTER", "UNDO"}
 
     @classmethod
     def poll(cls, context):
-        i = sum(node.bl_idname != "NodeFrame" for node in context.selected_nodes)
-        return context.space_data.edit_tree and i > 1
+        selected_count = sum(node.bl_idname != "NodeFrame" for node in context.selected_nodes)
+        return context.area.type == "NODE_EDITOR" and context.space_data.edit_tree and selected_count > 1
+
+class BaseAlignOp(BasePoll):
 
     def align_nodes(self, nodes: Nodes):
         raise NotImplementedError("Subclasses must implement this method")
@@ -407,22 +409,16 @@ def sk_loc(socket: NodeSocket):
 def linked_valid(sk: NodeSocket):
     return sk.enabled and sk.is_linked and not sk.hide
 
-class NODE_OT_align_link(Operator):
+class NODE_OT_align_link(BasePoll):
     bl_idname = "node.align_link"
     bl_label = tr("对齐-拉直连线")
     bl_description = tr("选中节点,以活动节点为中心,拉直输入输出接口之间的连线")
-    bl_options = {"REGISTER", "UNDO"}
 
     # 在类级别声明实例属性的 "蓝图"
     timer: bpy.types.Timer
     aligned_nodes: list[Node]  # 从已对齐的节点出发找没对齐的
     index: int
     iter_index: int
-
-    @classmethod
-    def poll(cls, context):
-        i = sum(node.bl_idname != "NodeFrame" for node in context.selected_nodes)
-        return context.space_data.edit_tree and i >= 2
 
     def invoke(self, context, event):
         # --- 初始化 ---

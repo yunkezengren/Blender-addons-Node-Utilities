@@ -469,7 +469,7 @@ class AL_OT_add_node_from_list(Operator):
     bl_options = {"REGISTER", "UNDO"}
     bl_description   : StringProperty(default="快捷键Shift 2 ", options={"HIDDEN"})    # 乐,记不清什么时候的了
     attr_name        : StringProperty(description='', default="", subtype='NONE')
-    attr_type        : StringProperty(description='', default="", subtype='NONE')
+    attr_type        : StringProperty(description='', default="FLOAT", subtype='NONE')
     domain           : StringProperty(default="", description='该属性所在域,例：面 | 实例', options={"HIDDEN"})
     domain_str       : StringProperty(default="", description='该属性所在域,例：面 | 实例', options={"HIDDEN"})
     shader_node_type : StringProperty(description='', default="", subtype='NONE')
