@@ -1146,8 +1146,8 @@ _translations_dict: dict[tuple[context_s, str], dict[locale_s, str]] = {
         "zh_HANS": "交换接口",
         "ru_RU": "Поменять сокеты",
     },
-    ("*", "Move Before Socket"): {
-        "zh_HANS": "移到接口上",
+    ("*", "Move Socket"): {
+        "zh_HANS": "移到接口",
     },
     ("*", "Insert to Add Socket"): {
         "zh_HANS": "插入添加接口",

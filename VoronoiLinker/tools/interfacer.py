@@ -2,11 +2,12 @@ from enum import Enum
 
 import bpy
 from mathutils import Vector as Vec
-from bpy.types import NodeTree, NodeSocket, NodeSocketVirtual
+from bpy.types import Node, NodeTree, NodeSocket, NodeSocketVirtual
 from ..base_tool import unhide_node_reassign, draw_node_template, draw_sockets_template, PairSocketTool
+from ..common_class import Target
 from ..node_items import NodeItemsUtils
 from ..utils.color import get_sk_color_safe
-from ..utils.drawing import draw_socket_area
+from ..utils.drawing import Drawer, draw_socket_area
 from ..utils.node import socket_label, DoLinkHh, FindAnySk, pick_near_target, opt_tar_socket
 from ..utils.ui import draw_hand_split_prop
 
@@ -42,12 +43,27 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
     toolMode: bpy.props.EnumProperty(name="Mode", default=eMode.NEW.value, items=ModeItems)
 
     def callback_draw_tool(self, drawer):
+
+        def draw_insert_preview(drawer: Drawer,
+                                tarNdTar: Target | None,
+                                source_sk: NodeSocket | None,
+                                target_is_output: bool,
+                                skip_sk: NodeSocket | None = None):
+            if (not tarNdTar) or (not source_sk):
+                return
+            tarNearest = self.find_nearest_insert_tar(tarNdTar.tar, tarNdTar.pos, target_is_output, skip_sk=skip_sk)
+            if not tarNearest:
+                return
+            y = tarNdTar.pos.y
+            height_box = Vec((y - 7, y + 7))
+            draw_socket_area(drawer, tarNearest.tar, height_box, Vec(get_sk_color_safe(source_sk)))
+
         mode_map = {
             eMode.NEW:    "Connect Extend Socket",
             eMode.CREATE: "Insert to Add Socket",
             eMode.COPY:   "Copy Socket Name",
             eMode.PASTE:  "Paste Socket Name",
-            eMode.FLIP:   "Move Before Socket",
+            eMode.FLIP:   "Move Socket",
             eMode.SWAP:   "Swap Sockets",
             eMode.TYPE:   "Change Socket Type",
         }
@@ -59,30 +75,12 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
                 tarMain = self.target_skMain
                 if tarMain:
                     draw_sockets_template(drawer, tarMain, side_mark_offset=-2, tool_name=mode)
-                tarNdTar = self.target_ndTar
-                if tarNdTar:
-                    tar_sks_in, tar_sks_out = self.get_nearest_sockets(tarNdTar.tar, cur_x_off=0)
-                    if not tar_sks_in: return
-
-                    y = tarNdTar.pos.y
-                    height_box = Vec((y - 7, y + 7))
-                    draw_socket_area(drawer, tar_sks_in[0].tar, height_box, Vec(get_sk_color_safe(tarMain.tar)))
+                    draw_insert_preview(drawer, self.target_ndTar, tarMain.tar, not tarMain.tar.is_output)
             case eMode.FLIP:
-                # todo 接口1移到接口2上  FLIP模式，在两个接口绘制名后加上 接口1 接口2
-                # tarMain = self.target_skMain
-                # if tarMain:
-                # draw_sockets_template(drawer, tarMain, is_flip_side=True, tool_name="")
-
-                draw_sockets_template(drawer, self.target_skMain, self.target_skRosw, tool_name=mode)
-                tarNdTar = self.target_ndTar
-                if tarNdTar:
-                    # draw_node_template(drawer, tarNdTar, tool_name="Interfacer")
-                    tar_sks_in, tar_sks_out = self.get_nearest_sockets(tarNdTar.tar, cur_x_off=0)
-                    near_group_in = tar_sks_in[0]
-
-                    y = tarNdTar.pos.y
-                    height_box = Vec((y-20, y+20 ))
-                    draw_socket_area(drawer, near_group_in.tar, height_box, Vec(get_sk_color_safe(tarMain.tar)))
+                draw_sockets_template(drawer, self.target_skRosw, tool_name=mode)
+                skRosw = opt_tar_socket(self.target_skRosw)
+                if skRosw:
+                    draw_insert_preview(drawer, self.target_ndTar, skRosw, skRosw.is_output, skip_sk=skRosw)
             case _:
                 draw_sockets_template(drawer, self.target_skMain, self.target_skRosw, tool_name=mode)
 
@@ -101,8 +99,55 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
                 unhide_node_reassign(nd, self, cond=self.target_skMain.tar.node == nd, flag=True)
             break
 
+    @staticmethod
+    def is_insert_target_valid(nd: Node, tar: Target, skip_sk: NodeSocket | None = None) -> bool:
+        return (tar.idname != 'NodeSocketVirtual') and (tar.tar != skip_sk) and NodeItemsUtils.IsSimRepCorrectSk(nd, tar.tar)
+
+    def find_nearest_insert_tar(self, nd: Node, pos: Vec, is_output: bool, skip_sk: NodeSocket | None = None) -> Target | None:
+        tarNearest = None
+        min_len = float("inf")
+        tar_sks_in, tar_sks_out = self.get_nearest_sockets(nd)
+        for tar in tar_sks_out if is_output else tar_sks_in:
+            if self.is_insert_target_valid(nd, tar, skip_sk=skip_sk):
+                length = (pos - tar.pos).length
+                if min_len > length:
+                    min_len = length
+                    tarNearest = tar
+        return tarNearest
+
+    def move_item_to_insert(self, items_tool: NodeItemsUtils, skfFrom, skfTo, tarNearest: Target, tarNdTar: Target) -> None:
+        items_tool.MoveBySkfs(skfFrom, skfTo, isSwap=False)
+        if (tarNdTar.pos.y < tarNearest.pos.y):  # 'True' -- 在组中往下, 而不是世界朝向.
+            if items_tool.has_extend_socket:
+                items_tool.MoveBySkfs(items_tool.get_item(tarNearest.tar), skfTo, isSwap=True)  # 小心 skfTo.
+            else:
+                items_tool.MoveBySkfs(skfFrom, skfTo, isSwap=True)
+
+    def move_existing_item_to_insert(self, items_tool: NodeItemsUtils, skfFrom, skfTo, tarNearest: Target, tarNdTar: Target) -> None:
+        if not items_tool.has_extend_socket:
+            self.move_item_to_insert(items_tool, skfFrom, skfTo, tarNearest, tarNdTar)
+            return
+
+        inxFrom = -1
+        inxTo = -1
+        for cyc, skf in enumerate(items_tool.skfa):
+            if skf == skfFrom:
+                inxFrom = cyc
+            if skf == skfTo:
+                inxTo = cyc
+        if (inxFrom == -1) or (inxTo == -1):
+            raise Exception(f"Index not found from `{skfFrom}` or `{skfTo}`")
+
+        is_insert_after = tarNdTar.pos.y < tarNearest.pos.y
+        target_index = inxTo - (inxFrom < inxTo)
+        final_index = target_index + is_insert_after
+        if final_index != inxFrom:
+            items_tool.skfa.move(inxFrom, final_index)
+
     def find_targets_swap_flip(self, is_first_active):
         self.target_skMain = None
+        if self.toolMode == eMode.FLIP.value:
+            self.target_ndTar = None
         for tar_nd in self.get_nearest_nodes(cur_x_off=0):
             nd = tar_nd.tar
             if nd.type not in NodeItemsUtils.support_types:
@@ -116,10 +161,12 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
             skRosw = opt_tar_socket(self.target_skRosw)
             if skRosw:
                 for tar in tar_sks_out if skRosw.is_output else tar_sks_in:
-                    if (tar.idname != 'NodeSocketVirtual') and (NodeItemsUtils.IsSimRepCorrectSk(nd, tar.tar)):
+                    if self.is_insert_target_valid(nd, tar, skip_sk=skRosw if self.toolMode == eMode.FLIP.value else None):
                         self.target_skMain = tar
                         break
-                if (self.target_skMain) and (self.target_skMain.tar == skRosw):
+                if self.toolMode == eMode.FLIP.value:
+                    self.target_ndTar = tar_nd if self.target_skMain else None
+                elif (self.target_skMain) and (self.target_skMain.tar == skRosw):
                     self.target_skMain = None
             break
 
@@ -184,6 +231,8 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
             case eMode.COPY | eMode.PASTE:
                 return not not self.target_skMain
             case eMode.SWAP | eMode.FLIP:
+                if self.toolMode == eMode.FLIP.value:
+                    return self.target_skRosw and self.target_skMain and self.target_ndTar
                 return self.target_skRosw and self.target_skMain
             case eMode.NEW:
                 for sk, hide in self.hide_extend_sks.items():
@@ -204,12 +253,21 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
                     skMain.name = self.clipboard
                 else:
                     NodeItemsUtils(skMain).get_item(skMain).name = self.clipboard
-            case eMode.SWAP | eMode.FLIP:
+            case eMode.SWAP:
                 skMain = self.target_skMain.tar
                 items_tool = NodeItemsUtils(skMain)
                 skfFrom = items_tool.get_item(self.target_skRosw.tar)
                 skfTo = items_tool.get_item(skMain)
-                items_tool.MoveBySkfs(skfFrom, skfTo, isSwap=self.toolMode == eMode.SWAP.value)
+                items_tool.MoveBySkfs(skfFrom, skfTo, isSwap=True)
+            case eMode.FLIP:
+                tarNdTar = self.target_ndTar
+                skRosw = self.target_skRosw.tar
+                items_tool = NodeItemsUtils(skRosw)
+                tarNearest = self.find_nearest_insert_tar(tarNdTar.tar, tarNdTar.pos, skRosw.is_output, skip_sk=skRosw)
+                if not tarNearest: return
+                skfFrom = items_tool.get_item(skRosw)
+                skfTo = items_tool.get_item(tarNearest.tar)
+                self.move_existing_item_to_insert(items_tool, skfFrom, skfTo, tarNearest, tarNdTar)
             case eMode.NEW:
                 DoLinkHh(self.target_skRosw.tar, self.target_skMain.tar)
             case eMode.CREATE:
@@ -219,34 +277,14 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
                 skMain = self.target_skMain.tar
                 skfNew = items_tool.NewSkfFromSk(skMain, isFlipSide=_tar_nd.type not in {'GROUP_INPUT', 'GROUP_OUTPUT'})
                 if not skfNew: return
-                can = True
-                # if not items_tool.has_extend_socket:
                 is_group = _tar_nd.type in ['GROUP', 'GROUP_INPUT', 'GROUP_OUTPUT']
-                if is_group:
-                    for skf in items_tool.skfa:
-                        if skf.item_type == 'PANEL':  # 该死的头疼. 你们自己搞定吧, 我已经懒得搞了.
-                            can = False  #|4|.
-                            break
-                if can:  #tovo0v6 还有面板.
-                    item_name = skfNew.name
-                    tarNearest = None  # pick_near_target(tar_sks_in[0] if tar_sks_in else None, tar_sks_out[0] if tar_sks_out else None)
-                    min = 16777216.0
-                    tar_sks_in, tar_sks_out = self.get_nearest_sockets(_tar_nd)
-                    for tar in tar_sks_in if skMain.is_output else tar_sks_out:
-                        if (tar.idname != 'NodeSocketVirtual') and (NodeItemsUtils.IsSimRepCorrectSk(_tar_nd, tar.tar)):
-                            length = (tarNdTar.pos - tar.pos).length
-                            if min > length:
-                                min = length
-                                tarNearest = tar
-                    if tarNearest and (not items_tool.is_index_switch):
+                item_name = skfNew.name
+                tarNearest = self.find_nearest_insert_tar(_tar_nd, tarNdTar.pos, not skMain.is_output)
+                if tarNearest:
+                    if not items_tool.is_index_switch:
                         skfTo = items_tool.get_item(tarNearest.tar)
-                        items_tool.MoveBySkfs(skfNew, skfTo, isSwap=False)
-                        if (tarNdTar.pos.y < tarNearest.pos.y):  # 'True' -- 在组中往下, 而不是世界朝向.
-                            if items_tool.has_extend_socket:
-                                items_tool.MoveBySkfs(items_tool.get_item(tarNearest.tar), skfTo, isSwap=None)  # 小心 skfTo.
-                            else:
-                                items_tool.MoveBySkfs(skfNew, skfTo, isSwap=None)  # 天才!
-                    if tarNearest and items_tool.is_index_switch:
+                        self.move_item_to_insert(items_tool, skfNew, skfTo, tarNearest, tarNdTar)
+                    elif items_tool.is_index_switch:
                         tar_input = tarNearest.tar  # 要插入的位置的接口
                         inputs = tar_input.node.inputs
                         if tar_input.name == "Index":

@@ -59,7 +59,7 @@ class NODE_OT_voronoi_mixer(TripleSocketTool):
                         break
                 else:
                     skOut1 = opt_tar_socket(self.target_sk1)
-                    for tar in tar_sks_out:
+                    for tar in tar_sockets:
                         self.target_sk2 = tar
                         if (tar.tar == skOut0) or (tar.tar == skOut1):
                             self.target_sk2 = None

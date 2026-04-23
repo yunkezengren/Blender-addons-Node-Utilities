@@ -41,8 +41,10 @@ class NodeItemsUtils():
         if (from_sk.bl_idname == 'NodeSocketVirtual') and (node.type in node_has_items):
             return False
         match node.type:  # 小王-让一些接口不被判定
-            case 'SIMULATION_INPUT' | 'REPEAT_INPUT':
+            case 'SIMULATION_INPUT':
                 return from_sk != node.outputs[0]
+            case 'REPEAT_INPUT':
+                return from_sk != node.inputs[0]
             case 'SIMULATION_OUTPUT' | 'REPEAT_INPUT':
                 return from_sk != node.inputs[0]
             case 'MENU_SWITCH':
@@ -64,18 +66,6 @@ class NodeItemsUtils():
             raise Exception(f"Equestrian node is not equal `{from_sk.path_from_id()}`")
         match self.type:
             case 'SIM' | 'REP':
-                match self.type:  # 检查套接字是否是 SimRep 的“内置”套接字。
-                    case 'SIM':
-                        if self.node.type == 'SIMULATION_INPUT':
-                            if from_sk == self.node.outputs[0]:
-                                raise Exception("Socket \"Delta Time\" does not have interface.")
-                        else:
-                            if from_sk == self.node.inputs[0]:
-                                raise Exception("Socket \"Skip\" does not have interface.")
-                    case 'REP':
-                        if self.node.type == 'REPEAT_INPUT':
-                            if from_sk == self.node.inputs[0]:
-                                raise Exception("Socket \"Iterations\" does not have interface.")
                 for skf in self.skfa:
                     if skf.name == from_sk.name:
                         return skf
@@ -187,63 +177,22 @@ class NodeItemsUtils():
                     raise Exception(f"Index not found from `{skfFrom}`")
                 if inxTo == -1:
                     raise Exception(f"Index not found from `{skfTo}`")
+                # self.skfa.move(inxFrom, inxTo + (inxFrom < inxTo) )
                 self.skfa.move(inxFrom, inxTo)
                 if isSwap:
                     self.skfa.move(inxTo + (1 - (inxTo > inxFrom) * 2), inxFrom)
             case 'CLASSIC' | 'GROUP':
-                # # 不知道干什么用的,会导致节点组连到组输入报错
-                # if not self.IsContainsSkf(skfFrom): raise Exception(f"Equestrian tree is not equal for `{skfFrom}`")
-                # if not self.IsContainsSkf(skfTo): raise Exception(f"Equestrian tree is not equal for `{skfTo}`")
-                # 我不知道有什么方法可以“正常地”实现这一点，而无需重新连接面板。尽管我觉得这是唯一的方法。
-                list_panels = [[None, None, None, None, ()]]
-                skfa: B.bpy_prop_collection[B.NodeTreeInterfaceItem] = self.skfa
-                # 记住面板：
-                scos = {False: 0, True: 0}
-                for skf in skfa:
-                    if skf.item_type == 'PANEL':
-                        list_panels[-1][4] = (scos[False], scos[True])
-                        list_panels.append([None, skf.name, skf.description, skf.default_closed, (0, 0)])
-                        scos = {False: 0, True: 0}
-                    else:
-                        scos[skf.in_out == 'OUTPUT'] += 1
-                list_panels[-1][4] = (scos[False], scos[True])
-                # 删除面板：
-                skft: B.NodeTreeInterface = skfa.data
-                tgl = True
-                while tgl:
-                    tgl = False
-                    for skf in skfa:
-                        if skf.item_type == 'PANEL':
-                            skft.remove(skf)
-                            tgl = True
-                            break
-                # 进行移动：
-                inxFrom = skfFrom.index
-                inxTo = skfTo.index
-                isDir = inxTo > inxFrom
-                skft.move(skfa[inxFrom], inxTo + isDir)
+                items_tree: B.bpy_prop_collection[B.NodeTreeInterfaceItem] = self.skfa
+                interface: B.NodeTreeInterface = items_tree.data
+                from_item: B.NodeTreeInterfaceItem = skfFrom
+                to_item: B.NodeTreeInterfaceItem = skfTo
+                from_parent = from_item.parent
+                from_pos = from_item.position
+                to_parent = to_item.parent
+                to_pos = to_item.position
+                interface.move_to_parent(from_item, to_parent, to_pos)
                 if isSwap:
-                    skft.move(skfa[inxTo + (1 - isDir*2)], inxFrom + (not isDir))
-                # 恢复面板：
-                for li in list_panels[1:]:
-                    li[0] = skft.new_panel(li[1], description=li[2], default_closed=li[3])
-                scoSkf = 0
-                scoPanel = len(list_panels) - 1
-                tgl = False
-                for skf in reversed(skfa):  # 从尾部开始，否则会多次遍历已移动到面板的项目。
-                    if skf.item_type == 'SOCKET':
-                        if (skf.in_out == 'OUTPUT') and (not tgl):
-                            tgl = True
-                            scoSkf = 0
-                            scoPanel = len(list_panels) - 1
-                        if scoSkf == list_panels[scoPanel][4][tgl]:
-                            scoPanel -= 1
-                            while (scoPanel > 0) and (not list_panels[scoPanel][4][tgl]):  # 面板可能包含零个其侧的套接字。
-                                scoPanel -= 1
-                            scoSkf = 0
-                        if scoPanel > 0:
-                            skft.move_to_parent(skf, list_panels[scoPanel][0], 0)  # 因为 'reversed(skfa)'，位置问题得以解决，这里只需 '0'；令人惊叹的方便巧合。
-                        scoSkf += 1
+                    interface.move_to_parent(to_item, from_parent, from_pos)
 
     def __init__(self, sk_or_nd: NodeSocket | Node):
         is_socket = hasattr(sk_or_nd, 'link_limit')
