@@ -36,9 +36,12 @@ def sk_loc_遗留(sk: NodeSocket):
 def sk_loc(socket: NodeSocket):
     """这是运行时数据,界面刷新时才更新"""
     try:
+        import platform
         from ctypes import c_float, c_void_p
-        runtime_offset = 520        # DNA_node_types.h    - bNodeSocket        - runtime
-        location_offset = 24        # BKE_node_runtime.hh - bNodeSocketRuntime - location
+        runtime_offset = 520  # DNA_node_types.h    - bNodeSocket        - runtime
+        location_offset = 16  # BKE_node_runtime.hh - bNodeSocketRuntime - location
+        if platform.system() == 'Windows':
+            location_offset += 8
         if bpy.app.version >= (5, 1, 0):
             runtime_offset = 456
         if bpy.app.version >= (5, 2, 0):

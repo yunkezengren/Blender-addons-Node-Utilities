@@ -485,7 +485,7 @@ class AL_OT_add_node_from_list(Operator):
             key_des = tr("● 默认:  添加命名属性节点 \n● Shift: 添加存储属性节点 \n")
         if ui_type == 'ShaderNodeTree' and props.shader_node_type != "ShaderNodeAttribute":
             key_des = tr("● 默认:  添加属性节点 \n● Shift: 添加UV贴图或颜色属性节点 \n")
-        return key_des + props.bl_description
+        return key_des + props.bl_description if props else "" 
 
     @classmethod
     def poll(cls, context):

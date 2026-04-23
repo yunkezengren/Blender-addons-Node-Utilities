@@ -1,6 +1,6 @@
 import ctypes
 import bpy
-from .globals import isWin, is_bl4_plus, is_bl5_plus
+from .globals import is_win, is_bl4_plus, is_bl5_plus
 
 class StructBase(ctypes.Structure):
     _subclasses = []
@@ -28,7 +28,7 @@ class StructBase(ctypes.Structure):
         return cls.from_address(tar.as_pointer())
 
 class BNodeSocketRuntimeHandle(StructBase): # \source\blender\makesdna\DNA_node_types.h
-    if isWin:
+    if is_win:
         _pad0             : ctypes.c_char*8
     declaration           : ctypes.c_void_p
     changed_flag          : ctypes.c_uint32

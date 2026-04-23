@@ -9,7 +9,7 @@ dict_vlHhTranslations = {}      # 再多个文件配合使用
 Color_Bar_Width = 0.015     # 小王 饼菜单颜色条宽度
 Cursor_X_Offset = -50       # 小王 这样更舒服,在输入或输出接口方面加强
 
-isWin = platform.system() == 'Windows'
+is_win = platform.system() == 'Windows'
 #isLinux = platform.system()=='Linux'
 
 voronoiAnchorCnName = 'Voronoi_Anchor'           # 不支持翻译, 就这样一起吧.
