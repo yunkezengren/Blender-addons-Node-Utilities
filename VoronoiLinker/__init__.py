@@ -126,7 +126,7 @@ operator_keymaps: dict[type[Operator], list[str | tuple[str, dict[str, Any]]]] =
         ("S#A_C", {'toolMode': InterfacerMode.COPY.value}),
         ("S#A_V", {'toolMode': InterfacerMode.PASTE.value}),
         ("S#A_X", {'toolMode': InterfacerMode.SWAP.value}),
-        ("S#A_Z", {'toolMode': InterfacerMode.FLIP.value}),
+        ("S#A_Z", {'toolMode': InterfacerMode.MOVE.value}),
         # ("S#A_Q", {'toolMode':InterfacerMode.DELETE.value}),
         # ("S#A_E", {'toolMode':InterfacerMode.TYPE.value}),
     ],

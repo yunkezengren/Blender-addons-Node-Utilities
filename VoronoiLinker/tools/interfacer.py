@@ -8,7 +8,7 @@ from ..common_class import Target
 from ..node_items import NodeItemsUtils
 from ..utils.color import get_sk_color_safe
 from ..utils.drawing import Drawer, draw_socket_area
-from ..utils.node import socket_label, DoLinkHh, FindAnySk, pick_near_target, opt_tar_socket
+from ..utils.node import socket_label, link_new_pro, FindAnySk, pick_near_target, opt_tar_socket
 from ..utils.ui import draw_hand_split_prop
 
 # yapf: disable
@@ -16,7 +16,7 @@ class InterfacerMode(Enum):
     COPY   = 'COPY'
     PASTE  = 'PASTE'
     SWAP   = 'SWAP'
-    FLIP   = 'FLIP'
+    MOVE   = 'MOVE'
     NEW    = 'NEW'
     CREATE = 'CREATE'
     TYPE   = 'TYPE'
@@ -26,7 +26,7 @@ ModeItems = (
     (eMode.COPY.value,   "Copy",   "Copy a socket name to clipboard"),
     (eMode.PASTE.value,  "Paste",  "Paste the contents of clipboard into an interface name"),
     (eMode.SWAP.value,   "Swap",   "Swap a two interfaces"),
-    (eMode.FLIP.value,   "Flip",   "Move the interface to a new location, shifting everyone else"),
+    (eMode.MOVE.value,   "Move",   "Move the interface to a new location, shifting everyone else"),
     (eMode.NEW.value,    "New",    "Create an interface using virtual sockets"),
     (eMode.CREATE.value, "Create", "Create an interface from a selected socket, and paste it into a specified location"),
     # (eMode.DELETE.value, "Delete", "Delete one socket"),
@@ -63,7 +63,7 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
             eMode.CREATE: "Insert to Add Socket",
             eMode.COPY:   "Copy Socket Name",
             eMode.PASTE:  "Paste Socket Name",
-            eMode.FLIP:   "Move Socket",
+            eMode.MOVE:   "Move Socket",
             eMode.SWAP:   "Swap Sockets",
             eMode.TYPE:   "Change Socket Type",
         }
@@ -76,7 +76,7 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
                 if tarMain:
                     draw_sockets_template(drawer, tarMain, side_mark_offset=-2, tool_name=mode)
                     draw_insert_preview(drawer, self.target_ndTar, tarMain.tar, not tarMain.tar.is_output)
-            case eMode.FLIP:
+            case eMode.MOVE:
                 draw_sockets_template(drawer, self.target_skRosw, tool_name=mode)
                 skRosw = opt_tar_socket(self.target_skRosw)
                 if skRosw:
@@ -144,9 +144,9 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
         if final_index != inxFrom:
             items_tool.skfa.move(inxFrom, final_index)
 
-    def find_targets_swap_flip(self, is_first_active):
+    def find_targets_swap_move(self, is_first_active):
         self.target_skMain = None
-        if self.toolMode == eMode.FLIP.value:
+        if self.toolMode == eMode.MOVE.value:
             self.target_ndTar = None
         for tar_nd in self.get_nearest_nodes(cur_x_off=0):
             nd = tar_nd.tar
@@ -161,10 +161,10 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
             skRosw = opt_tar_socket(self.target_skRosw)
             if skRosw:
                 for tar in tar_sks_out if skRosw.is_output else tar_sks_in:
-                    if self.is_insert_target_valid(nd, tar, skip_sk=skRosw if self.toolMode == eMode.FLIP.value else None):
+                    if self.is_insert_target_valid(nd, tar, skip_sk=skRosw if self.toolMode == eMode.MOVE.value else None):
                         self.target_skMain = tar
                         break
-                if self.toolMode == eMode.FLIP.value:
+                if self.toolMode == eMode.MOVE.value:
                     self.target_ndTar = tar_nd if self.target_skMain else None
                 elif (self.target_skMain) and (self.target_skMain.tar == skRosw):
                     self.target_skMain = None
@@ -221,8 +221,8 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
         match eMode(self.toolMode):
             case eMode.COPY | eMode.PASTE:
                 self.find_targets_copy_paste(prefs)
-            case eMode.SWAP | eMode.FLIP:
-                self.find_targets_swap_flip(is_first_active)
+            case eMode.SWAP | eMode.MOVE:
+                self.find_targets_swap_move(is_first_active)
             case eMode.NEW | eMode.CREATE:
                 self.find_targets_new_create(is_first_active)
 
@@ -230,8 +230,8 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
         match eMode(self.toolMode):
             case eMode.COPY | eMode.PASTE:
                 return not not self.target_skMain
-            case eMode.SWAP | eMode.FLIP:
-                if self.toolMode == eMode.FLIP.value:
+            case eMode.SWAP | eMode.MOVE:
+                if self.toolMode == eMode.MOVE.value:
                     return self.target_skRosw and self.target_skMain and self.target_ndTar
                 return self.target_skRosw and self.target_skMain
             case eMode.NEW:
@@ -259,7 +259,7 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
                 skfFrom = items_tool.get_item(self.target_skRosw.tar)
                 skfTo = items_tool.get_item(skMain)
                 items_tool.MoveBySkfs(skfFrom, skfTo, isSwap=True)
-            case eMode.FLIP:
+            case eMode.MOVE:
                 tarNdTar = self.target_ndTar
                 skRosw = self.target_skRosw.tar
                 items_tool = NodeItemsUtils(skRosw)
@@ -269,17 +269,17 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
                 skfTo = items_tool.get_item(tarNearest.tar)
                 self.move_existing_item_to_insert(items_tool, skfFrom, skfTo, tarNearest, tarNdTar)
             case eMode.NEW:
-                DoLinkHh(self.target_skRosw.tar, self.target_skMain.tar)
+                link_new_pro(self.target_skRosw.tar, self.target_skMain.tar)
             case eMode.CREATE:
                 tarNdTar = self.target_ndTar
                 _tar_nd = tarNdTar.tar
                 items_tool = NodeItemsUtils(_tar_nd)
                 skMain = self.target_skMain.tar
+                tarNearest = self.find_nearest_insert_tar(_tar_nd, tarNdTar.pos, not skMain.is_output)
                 skfNew = items_tool.NewSkfFromSk(skMain, isFlipSide=_tar_nd.type not in {'GROUP_INPUT', 'GROUP_OUTPUT'})
                 if not skfNew: return
                 is_group = _tar_nd.type in ['GROUP', 'GROUP_INPUT', 'GROUP_OUTPUT']
                 item_name = skfNew.name
-                tarNearest = self.find_nearest_insert_tar(_tar_nd, tarNdTar.pos, not skMain.is_output)
                 if tarNearest:
                     if not items_tool.is_index_switch:
                         skfTo = items_tool.get_item(tarNearest.tar)
@@ -325,7 +325,7 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
                 bpy.ops.wm.redraw_timer(type='DRAW', iterations=0)
             case eMode.CREATE:
                 self.target_ndTar = None  # 天啊.
-            case eMode.FLIP:
+            case eMode.MOVE:
                 self.target_ndTar = None
         NODE_OT_voronoi_interfacer.clipboard = property(lambda _: bpy.context.window_manager.clipboard,
                                                         lambda _, v: setattr(bpy.context.window_manager, 'clipboard', v))

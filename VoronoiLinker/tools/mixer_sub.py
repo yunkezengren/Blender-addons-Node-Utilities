@@ -5,7 +5,7 @@ from ..base_tool import BaseOperator
 from ..common_class import VmtData
 from ..globals import Color_Bar_Width, SEPARATE, dict_vmtMixerNodesDefs, mixer_default, mixer_tree_sk_nodes, node_support_all_gn_sk
 from ..utils.color import get_sk_color
-from ..utils.node import DoLinkHh, remember_add_link
+from ..utils.node import link_new_pro, remember_add_link
 
 def DoMix(tree: NodeTree, isShift: bool, isAlt: bool, type: str):
     bpy.ops.node.add_node('INVOKE_DEFAULT', type=type, use_transform=not VmtData.isPlaceImmediately)
@@ -64,7 +64,7 @@ def DoMix(tree: NodeTree, isShift: bool, isAlt: bool, type: str):
             is_multi_in = a_node.inputs[Mix_item[0]].is_multi_input
             if (VmtData.sk1)and(is_multi_in): # `0` 在这里主要是因为 dict_vmtMixerNodesDefs 中的“多输入节点”都是零.
                 remember_add_link( VmtData.sk1, soc_in)
-            DoLinkHh( VmtData.sk0, a_node.inputs[Mix_item[0^isShift]^swap_link] ) # 注意: 这不是 remember_add_link(), 以便多输入的第二个视觉上是 VlrtData 中的最后一个.
+            link_new_pro( VmtData.sk0, a_node.inputs[Mix_item[0^isShift]^swap_link] ) # 注意: 这不是 remember_add_link(), 以便多输入的第二个视觉上是 VlrtData 中的最后一个.
             if (VmtData.sk1)and(not is_multi_in):
                 remember_add_link( VmtData.sk1, soc_in)
     a_node.show_options = not VmtData.isHideOptions
