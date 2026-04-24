@@ -8,7 +8,7 @@ from ..Structure import View2D
 from ..common_class import Target, float2, float4, Vec2 
 from ..preference import VoronoiAddonPrefs
 from .color import clamp_color, get_color_brightness, get_sk_color, get_sk_color_safe, set_alpha, power_color
-from .node import node_abs_loc
+from .node import node_abs_loc, node_show_name
 from .solder import node_tag_color
 
 Vec4 = Vec2
@@ -298,18 +298,10 @@ def draw_node_template(drawer: Drawer, target_node: Target | None, side: int = 1
         if drawer.dsIsDrawPoint:
             draw_socket_point(drawer, target_node.pos, color_point, color_point)
         if (drawer.dsIsDrawText) and (drawer.dsIsDrawNodeNameLabel):
-            text = node_target.label if node_target.label else node_target.bl_rna.name
-            if node_target.type == "GROUP":
-                text = node_target.node_tree.name  # 优化-绘制节点组名字
-            else:
-                text = node_target.label
-
+            text = node_show_name(node_target)
             draw_world_text(drawer, drawer.cursorLoc, (drawer.dsDistFromCursor * side, -0.5), text, color_text, color_text)
             draw_world_text(drawer, drawer.cursorLoc, (drawer.dsDistFromCursor * side, 1), _iface(tool_name), color_text, color_text)
-            # # 额外绘制
-            # print(f"{text = }")
-            # print(f"{(drawer.dsDistFromCursor*side, -0.5) = }")
-            # draw_world_text(drawer, drawer.cursorLoc, (0, 1), tool_name, text_color=color_text, bg_color=color_text)
+
     elif drawer.dsIsDrawPoint:
         color = white  # 唯一剩下的未定义颜色. 'dsCursorColor' 在这里按设计不适合 (整个插件都是为了套接字, 对吧?).
         draw_socket_point(drawer, drawer.cursorLoc, Vec4(color), color)

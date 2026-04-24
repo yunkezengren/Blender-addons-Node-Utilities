@@ -22,9 +22,9 @@ class Target():
         self.text = text               # 显示文本: 预缓存的翻译后文本(如接口名称)
 
 class VestData:
-    list_enumProps = []                      # 节点的下拉菜单/选项用于焊接，并在调用前检查是否存在。
-    list_menu_socket: list[NodeSocket] = []  # 节点的菜单输入接口
-    domain_item_list = []
+    enum_props = []                      # 节点的下拉菜单/选项用于焊接，并在调用前检查是否存在。
+    menu_sockets: list[NodeSocket] = []  # 节点的菜单输入接口
+    domain_items = []
     list_length: int = 0
     nd = None
     boxScale = 1.0 # 如果忘记设置，至少盒子不会坍缩为零。

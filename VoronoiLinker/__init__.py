@@ -102,9 +102,9 @@ operator_keymaps: dict[type[Operator], list[str | tuple[str, dict[str, Any]]]] =
         ("SC#_ACCENT_GRAVE", {'isDeleteNonCanonAnchors': 2}),  # ACCENT_GRAVE 是 `
     ],
     NODE_OT_voronoi_enum_selector: [
-        ("#C#_R", {'isPieChoice': False, 'isSelectNode': 1}),
-        ("#C#_E", {'isInstantActivation': False}),
         ("##A_E", {'isToggleOptions': True}),
+        ("#C#_E", {'isInstantActivation': False}),
+        ("#C#_R", {'isPieChoice': True, 'isSelectNode': 1}),
     ],
     NODE_OT_voronoi_swapper: [
         ("S##_S", {'toolMode': SwapperMode.SWAP.value}),

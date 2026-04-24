@@ -3,8 +3,9 @@ from bpy.types import EnumProperty, UILayout, Node, Menu
 from ..base_tool import BaseOperator, SingleNodeTool
 from ..common_class import VestData
 from ..utils.drawing import draw_node_template
-from ..utils.node import node_enum_props, node_visible_menu_inputs, SelectAndActiveNdOnly
+from ..utils.node import node_show_name, node_enum_props, node_visible_menu_inputs, SelectAndActiveNdOnly
 from ..utils.ui import draw_hand_split_prop, draw_panel_column, draw_hand_split_prop
+bp = bpy.props
 
 domain_en = [
     'POINT',
@@ -35,73 +36,60 @@ mesh_domain_ch = ['顶点', '边', '面', '拐角']
 get_domain_cn = {k: v for k, v in zip(domain_en, domain_ch)}
 get_mesh_domain_cn = {k: v for k, v in zip(mesh_domain_en, mesh_domain_ch)}
 
-def draw_enum_property_selectors(parent_layout: UILayout, domain_layout=None):
+def draw_enum_property_selectors(layout: UILayout):
     assert VestData.list_length
-    main_col = parent_layout.row()  # 显示节点选项优化-每个下拉列表，各占一列
-    domain_col = domain_layout.column() if domain_layout else None
     node = VestData.nd
-    # 数学节点有高级的分类用于 .prop(), 但我不知道如何通过简单枚举手动显示它们. 反正有 VQMT.
-    # 我没有忽略它们, 让它们按原样处理. 用它们选择矢量数学运算甚至非常方便 (普通数学运算放不下).
-    # 域总是第一个. 例如, StoreNamedAttribute 和 FieldAtIndex 有相同的枚举, 但顺序不同; 有趣为什么.
+    main_col = layout.row()
 
-    sorted_enum_props = sorted(VestData.list_enumProp, key=lambda a: a.identifier != 'domain')
-    all_items = sorted_enum_props + VestData.list_menu_socket
+    enum_props = sorted(VestData.enum_props, key=lambda prop: prop.identifier != 'domain')  # 让 域 排在第一个
+    all_items = enum_props + VestData.menu_sockets
 
-    last_target_col = None
     for index, item in enumerate(all_items):
         menu_name = item.name
         if isinstance(item, EnumProperty):
-            prop_name = item.identifier
             data = node
-            is_domain_prop = (prop_name == 'domain')
+            prop_name = item.identifier
         else:
-            prop_name = "default_value"
             data = item
-            is_domain_prop = False
+            prop_name = "default_value"
 
-        if index and (last_target_col != domain_col):
-            prop_col.separator()
-            
-        target_col = (domain_col if (domain_layout and is_domain_prop) else main_col)
-        prop_col = target_col.column(align=True)  # 下拉列表的名称占一行，和选项列对齐
-        
+        prop_col = main_col.column(align=True)  # 下拉列表的名称占一行，和选项列对齐
+        prop_col.scale_y = VestData.boxScale
+
+        if VestData.isPieChoice:
+            prop_col.ui_units_x = 5
         if VestData.isDisplayLabels:
             label_row = prop_col.row(align=True)
             label_row.alignment = 'CENTER'
             label_row.label(text=menu_name)
-            #label_row.active = not VestData.isPieChoice # 对于饼菜单, 边框是透明的, 文本可能会与背景中明亮的节点融合. 所以关闭了.
             label_row.active = not (VestData.isDarkStyle and VestData.isPieChoice)  # 但对于深色饼菜单, 还是显示深色文本.
         elif index:
             prop_col.separator()
-            
-        menu_col = prop_col.column(align=True)  # 每个下拉列表，每个选项绘制一行
-        menu_col.scale_y = VestData.boxScale
-        
-        if VestData.isDarkStyle:
-            menu_col.prop_tabs_enum(data, prop_name)
-        else:
-            menu_col.prop(data, prop_name, expand=True)
-            
-        last_target_col = target_col
 
-    # 在我最初的想法中, 我错误地称这个工具为“Prop Selector”. 需要想办法区分节点的通用属性和在选项中绘制的属性.
-    # 幸运的是, 每个节点没有不同的枚举...
+        # 每个下拉列表，每个选项绘制一行
+        if VestData.isDarkStyle:
+            prop_col.prop_tabs_enum(data, prop_name)
+        else:
+            prop_col.prop(data, prop_name, expand=True)
+            if VestData.isPieChoice and isinstance(data, bpy.types.NodeSocketMenu):
+                # todo: 解决这里为什么不显示 menu_sockets
+                prop_col.label(text="有需求再修")
 
 class NODE_OT_enum_selector_box(BaseOperator):
     bl_idname = 'node.enum_selector_box'
     bl_label = "Enum Selector"
-    rename_node:   bpy.props.BoolProperty(default=True, description="Rename nodes when hiding options, currently only support Chinese")
-    def execute(self, context): # 用于下面的 draw(), 否则不显示.
+    rename_node: bp.BoolProperty(default=True, description="Rename nodes when hiding options, currently only support Chinese")
+
+    def execute(self, context):  # 用于下面的 draw(), 否则不显示.
         pass
+
     def draw(self, _context):
-        VestData.list_menu_socket = node_visible_menu_inputs(VestData.nd)
         draw_enum_property_selectors(self.layout)
+
     def invoke(self, context, event):
-        # 显示节点选项优化-box宽度*列数
-        VestData.list_length = len(VestData.list_enumProp + VestData.list_menu_socket)
         width = 90 * VestData.boxScale * VestData.list_length
-        return context.window_manager.invoke_popup(self, width=int(width))    # 必须要 int
-        # return context.window_manager.invoke_popup(self, width=int(128*VestData.boxScale))
+        return context.window_manager.invoke_popup(self, width=int(width))  # 必须要 int
+
     def cancel(self, context):
         run_rename_node(self.rename_node, VestData.nd)
 
@@ -110,15 +98,10 @@ class NODE_MT_enum_selector_pie(Menu):
     bl_label = "Enum Selector"
     def draw(self, _context):
         pie = self.layout.menu_pie()
-        def GetCol(where: UILayout, tgl=True):
-            col = (where.box() if tgl else where).column()
-            col.ui_units_x = 7*((VestData.boxScale-1)/2+1)            # 只对饼菜单显示选项有用
-            # col.ui_units_x = 7*((VestData.boxScale-1)/2+1) * len(VestData.list_enumProp)
-            return col
-        colDom = GetCol(pie, any(True for li in VestData.list_enumProp if li.identifier=='domain'))
-        colAll = GetCol(pie, any(True for li in VestData.list_enumProp if li.identifier!='domain'))
-        VestData.list_menu_socket = []
-        draw_enum_property_selectors(colAll, colDom)
+        pie.row()
+        draw_enum_property_selectors(pie.box().column())
+        pie.row()
+        pie.row().box().label(text=node_show_name(VestData.nd))
 
 def rename_node_based_option(node: Node):
     """ 节点根据选项重命名 """
@@ -178,11 +161,11 @@ class NODE_OT_voronoi_enum_selector(SingleNodeTool):
     bl_description = "Tool for convenient lazy switching of enumeration properties.\nEliminates the need for mouse aiming, clicking, and then aiming and clicking again."
     use_for_custom_tree = True
     can_draw_appearance = True
-    isInstantActivation: bpy.props.BoolProperty(name="Instant activation",  default=True,  description="Skip drawing to a node and activation when release, and activate immediately when pressed")
-    isPieChoice:         bpy.props.BoolProperty(name="Pie choice",          default=False, description="Allows to select an enum by releasing the key")
-    isToggleOptions:     bpy.props.BoolProperty(name="Toggle node options", default=False)
-    isSelectNode:        bpy.props.IntProperty(name="Select target node",  default=1, min=0, max=3, description="0 – Do not select.\n1 – Select.\n2 – And center.\n3 – And zooming")
-    rename_node:         bpy.props.BoolProperty(name="Rename Node Only Chinese", default=True, description="Rename nodes when toggling options, currently only support Chinese")
+    isInstantActivation: bp.BoolProperty(name="Instant activation",  default=True, description="Skip drawing to a node and activation when release, and activate immediately when pressed")
+    isPieChoice:         bp.BoolProperty(name="Pie choice",          default=False, description="Allows to select an enum by releasing the key")
+    isToggleOptions:     bp.BoolProperty(name="Toggle node options", default=False)
+    isSelectNode:        bp.IntProperty(name="Select target node",   default=1, min=0, max=3, description="0 – Do not select.\n1 – Select.\n2 – And center.\n3 – And zooming")
+    rename_node:         bp.BoolProperty(name="Rename Node Only Chinese", default=True, description="Rename nodes when toggling options, currently only support Chinese")
     def callback_draw_tool(self, drawer):              # 工具提示
         if self.isToggleOptions:
             mode = "Hide Options"
@@ -191,7 +174,6 @@ class NODE_OT_voronoi_enum_selector(SingleNodeTool):
         else:
             mode = "Toggle Options"
         draw_node_template(drawer, self.target_nd, tool_name=mode)
-        # self.template_draw_any(drawer, self.target_any, cond=self.toolMode=='NODE', tool_name=name)
     def ToggleOptionsFromNode(self, nd, lastResult, isCanDo=False): # 工作原理复制自 VHT HideFromNode().
         if lastResult:
             success = nd.show_options
@@ -217,7 +199,7 @@ class NODE_OT_voronoi_enum_selector(SingleNodeTool):
                         self.firstResult = self.ToggleOptionsFromNode(node, True)
                     self.ToggleOptionsFromNode(node, self.firstResult, True)
                 break
-            elif node_enum_props(node) or node_visible_menu_inputs(node): # 为什么不忽略没有枚举属性的节点呢?.
+            elif node_enum_props(node) or node_visible_menu_inputs(node):
                 self.target_nd = tar_nd
                 break
     def DoActivation(self, prefs, tree):
@@ -231,16 +213,17 @@ class NODE_OT_voronoi_enum_selector(SingleNodeTool):
             elif pos[1]>rect[3]:
                 return False
             return True
-        VestData.list_enumProp = node_enum_props(self.target_nd.tar)
-        VestData.list_menu_socket = node_visible_menu_inputs(self.target_nd.tar)
+        VestData.enum_props = node_enum_props(self.target_nd.tar)
+        VestData.menu_sockets = node_visible_menu_inputs(self.target_nd.tar)
+        VestData.list_length = len(VestData.enum_props) + len(VestData.menu_sockets)
         # 如果什么都没有, 盒子调用还是会处理, 就像它存在一样, 导致不移动光标就无法再次调用工具.
-        if VestData.list_enumProp or VestData.list_menu_socket: # 所以如果为空, 什么也不做. 还有 draw_enum_property_selectors() 中的 assert.
+        if VestData.list_length:
             ndTar = self.target_nd.tar
             VestData.nd = ndTar
             VestData.boxScale = prefs.vestBoxScale
             if ndTar.bl_idname == "ShaderNodeMath":
                 VestData.boxScale = 0.9
-            # VestData.boxScale = prefs.vestBoxScale * len(VestData.list_enumProp)  # 这个整体缩放，不是x方向缩放
+            # VestData.boxScale = prefs.vestBoxScale * len(VestData.enum_props)  # 这个整体缩放，不是x方向缩放
             VestData.isDarkStyle = prefs.vestDarkStyle
             VestData.isDisplayLabels = prefs.vestDisplayLabels
             VestData.isPieChoice = self.isPieChoice
@@ -300,4 +283,3 @@ class NODE_OT_voronoi_enum_selector(SingleNodeTool):
             draw_hand_split_prop(body_col, prefs,'vestBoxScale')
             draw_hand_split_prop(body_col, prefs,'vestDisplayLabels', bool_label_left=True)
             draw_hand_split_prop(body_col, prefs,'vestDarkStyle', bool_label_left=True)
-

@@ -14,6 +14,10 @@ def socket_label(sk: NodeSocket):
         return sk.node.label if sk.node.label else sk.name
     return sk.label if sk.label else sk.name
 
+def node_show_name(node: Node):
+    if node.type == "GROUP" and node.node_tree: return node.node_tree.name
+    return node.label or node.bl_rna.name  # 因为 node.name 可以修改
+
 def sk_type_to_idname(sk: NodeSocket):
     idname = sk_type_idname_map.get(sk.type, "")
     return idname if idname else "NodeSocket" + sk.type.capitalize()
@@ -163,19 +167,20 @@ def nearest_sockets_tar(nd: Node, samplePos, uiScale): # 返回"最近的插槽"
     tar_sks_out.sort(key=lambda tar: tar.distance)
     return tar_sks_in, tar_sks_out
 
-def node_enum_props(node: Node) -> list[bpy.types.EnumProperty]:   # 小王-判断节点是否有下拉列表
-    enum_l = []
-    for prop in node.bl_rna.properties:
-        if (prop.type == 'ENUM') and (prop.identifier != "warning_propagation") and (not prop.identifier.startswith("note_")) and (not (prop.is_readonly or prop.is_registered)):
-            enum_l.append(prop)
-    return enum_l
-
+# 弃用?
 def node_domain_item_list(node: Node):
     enum_list = []
     for prop in node.bl_rna.properties:
         if prop.type == 'ENUM' and prop.identifier == "domain":
             enum_list = [item for item in prop.enum_items]
     return enum_list
+
+def node_enum_props(node: Node) -> list[bpy.types.EnumProperty]:   # 小王-判断节点是否有下拉列表
+    enum_l = []
+    for prop in node.bl_rna.properties:
+        if (prop.type == 'ENUM') and (prop.identifier != "warning_propagation") and (not prop.identifier.startswith("note_")) and (not (prop.is_readonly or prop.is_registered)):
+            enum_l.append(prop)
+    return enum_l
 
 def node_visible_menu_inputs(node: Node) -> list[NodeSocket]:
     return [socket for socket in node.inputs if (socket.type == 'MENU' and socket.is_icon_visible)]
