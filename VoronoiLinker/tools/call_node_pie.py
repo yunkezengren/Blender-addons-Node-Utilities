@@ -1,6 +1,15 @@
 import bpy
 from ..base_tool import unhide_node_reassign, AnyTargetTool
-from ..common_class import Target
+from bpy.app.translations import pgettext_iface as _iface
+
+def show_node_pie_install_popup():
+
+    def draw_popup(self, _context):
+        col = self.layout.column(align=True)
+        release_url = "https://github.com/yunkezengren/Blender-addons-Node-Utilities/releases/tag/voronoi_linker-5.7.3"
+        col.operator('wm.url_open', text="Open release page", icon='URL').url = release_url
+
+    bpy.context.window_manager.popup_menu(draw_popup, title=_iface("Need install the modified Node Pie addon."), icon='INFO')
 
 class NODE_OT_voronoi_call_node_pie(AnyTargetTool):
     """ Voronoi 联动 Node Pie """
@@ -21,7 +30,10 @@ class NODE_OT_voronoi_call_node_pie(AnyTargetTool):
 
     def run(self, event, prefs, tree):
         path = repr(self.target_any.tar)  # 有效解决几何和材质节点 节点数据路径不太一样的问题
-        bpy.ops.node_pie.call_node_pie("INVOKE_DEFAULT", reset_args=False, voronoi_call=True, socket_path=path)
+        try:
+            bpy.ops.node_pie.call_node_pie("INVOKE_DEFAULT", reset_args=False, voronoi_call=True, socket_path=path)
+        except AttributeError:
+            show_node_pie_install_popup()
 
     def initialize(self, event, prefs, tree):
         self.firstResult = None  # 从第一个节点获取操作“折叠”或“展开”，然后将其传输到所有其他节点。

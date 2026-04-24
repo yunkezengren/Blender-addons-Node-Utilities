@@ -76,6 +76,12 @@ _translations_dict: dict[tuple[context_s, str], dict[locale_s, str]] = {
         "zh_HANS": "创建",
         "ru_RU": "Создать",
     },
+    ("Operator", "Open release page"): {
+        "zh_HANS": "打开发布页面",
+    },
+    ("*", "Need install the modified Node Pie addon."): {
+        "zh_HANS": "需要安装我修改的 Node Pie 插件。",
+    },
 
     # Tool labels
     ("*", "Voronoi Linker"): {
