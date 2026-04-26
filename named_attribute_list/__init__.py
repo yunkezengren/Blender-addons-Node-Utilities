@@ -1,6 +1,6 @@
 import bpy, os, time
 import bpy.utils.previews
-from bpy.types import (Operator, Menu, Panel, AddonPreferences, Context, Object, NodeTree, Node, UILayout)
+from bpy.types import (Operator, Menu, Panel, AddonPreferences, Context, Object, NodeTree, Node, Nodes, UILayout)
 from bpy.props import StringProperty, EnumProperty, BoolProperty
 from pprint import pprint
 from typing import Union
@@ -605,9 +605,8 @@ class ATTRLIST_PT_NPanel(Panel):
     bl_region_type = 'UI'
     bl_context = ''
     bl_category = 'Node'
-    bl_order = 3
+    bl_order = 5
     bl_options = {'DEFAULT_CLOSED'}
-    bl_ui_units_x=0
 
     @classmethod
     def poll(cls, context):
@@ -628,9 +627,10 @@ class ATTRLIST_PT_NPanel(Panel):
         if ui_type == 'ShaderNodeTree':
             info = tr("活动物体属性")
             icon='MATERIAL_DATA'
-        split = layout.split(factor=0.9)
-        split.label(text=info, icon=icon)
-        split.prop(prefs, 'show_set_panel', toggle=True, text='', icon="PREFERENCES")
+        top_row = layout.row()
+        top_row.label(text=info, icon=icon)
+        top_row.operator("preferences.addon_show", icon='PREFERENCES').module = __package__
+        top_row.prop(prefs, 'show_set_panel', toggle=True, text='', icon="TOOL_SETTINGS")
 
         if prefs.show_set_panel:
             arrow_show = "TRIA_DOWN" if prefs.add_settings else "TRIA_RIGHT"
@@ -704,10 +704,15 @@ class ATTRLIST_PT_NPanel(Panel):
                 split7.label(text=tr('使用加速键'))
                 split7.prop(prefs, 'use_accelerator_key', toggle=True, text=tr('使用加速键'))
 
-        box3 = layout.box()
 
-        attrs = get_attrs()
-        draw_attr_menu(box3, context, attrs, is_panel=True)
+        if prefs.hide_unused_attr and hasattr(layout, "panel"):
+            box3 = layout.box()
+            panel, body = box3.panel("未使用", default_closed=True)
+            panel.label(text=tr('未使用'))
+            if body:
+                draw_attr_menu(body, context, get_attrs(get_hided=True))
+
+        draw_attr_menu(layout.box(), context, get_attrs(), is_panel=True)
 
         # box4 = layout.box()
         # box4.operator('node.test', text="测试", icon="PIVOT_CURSOR")
@@ -732,20 +737,6 @@ def proper_scroll_view():
         for i in range(40):
             bpy.ops.view2d.zoom_in()
 
-area = None
-counter = None
-# 该函数用于在间隔一段时间后运行ops
-def timer_view_selected():
-    global counter, area
-    counter += 1
-    if counter == 2:
-        # 在正确的上下文中运行ops
-        region = [region for region in area.regions if region.type == "WINDOW"][0]
-        with bpy.context.temp_override(area=area, region=region):
-            bpy.ops.node.view_selected()
-        return None         # 返回 None 以结束计时器
-    return 0.05
-
 class NODE_OT_View_Stored_Attribute_Node(Operator):
     bl_idname = "node.view_stored_attribute_node"
     bl_label = tr("跳转到已命名属性节点位置")
@@ -757,10 +748,11 @@ class NODE_OT_View_Stored_Attribute_Node(Operator):
     # total :   IntProperty(description='total', default=0)
     # current : IntProperty(description='current', default=0)
 
-    @classmethod
-    def description(cls, context, props):
-        if props:
-            return props.bl_description
+    # @classmethod
+    # def description(cls, context, props):
+    #     # 以后可能在这显示自定义提示
+    #     if hasattr(props, "bl_description"):
+    #         return props.bl_description
 
     @classmethod
     def poll(cls, context):
@@ -770,12 +762,6 @@ class NODE_OT_View_Stored_Attribute_Node(Operator):
         if self.node_name == "无":
             return {'FINISHED'}
         exit_group_to_root()
-        proper_scroll_view()
-        # self.parent_path          # 顶层节点树无父级/Geometry Nodes/测试组
-        # self.group_node_name      # 当前group是顶层节点树/Group.001/Group.002
-        # print(path_list)
-        # print(name_list)
-        # print(self.node_name)
 
         path_list = self.parent_path.split("/")[1:]
         name_list = self.group_node_name.split("/")[1:]
@@ -787,17 +773,14 @@ class NODE_OT_View_Stored_Attribute_Node(Operator):
             bpy.ops.node.group_edit(exit=False)
 
         bpy.ops.node.select_all(action='DESELECT')
-        nodes = context.space_data.edit_tree.nodes
+        nodes: Nodes = context.space_data.edit_tree.nodes
         tar_node = nodes[self.node_name]
         tar_node.select = True
         nodes.active = tar_node
-        # bpy.ops.node.view_selected()
-        # 储存上下文信息并启动计时器
-        global counter, area
-        area = context.area
-        counter = 0
-        bpy.app.timers.register(timer_view_selected)
-
+        region = [region for region in context.area.regions if region.type == "WINDOW"][0]
+        with bpy.context.temp_override(area=context.area, region=region):
+            proper_scroll_view()
+            bpy.ops.node.view_selected()
         return {'FINISHED'}
 
 # todo 复用代码 AL_OT_add_node_from_list
