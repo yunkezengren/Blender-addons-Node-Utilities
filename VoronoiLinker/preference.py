@@ -7,8 +7,7 @@ from bpy.props import BoolProperty, EnumProperty, FloatProperty, FloatVectorProp
 from bpy.types import KeyMapItem, UILayout
 
 from .common_class import VlnstUpdateLastExecError
-from .globals import dict_vlHhTranslations, dict_vmtMixerNodesDefs, dict_vqmtQuickMathMain
-from .utils.ui import draw_hand_split_prop, draw_panel_column, QuickInactiveColumn, add_thin_sep, get_first_upper_letters, format_tool_label, user_node_keymap
+from .utils.ui import draw_hand_split_prop, draw_panel_column, QuickInactiveColumn, add_thin_sep, format_tool_label, user_node_keymap
 
 old_info = {
     'description': "Various utilities for nodes connecting, based on distance field.",
@@ -16,7 +15,6 @@ old_info = {
     'tracker_url': "https://github.com/neliut/VoronoiLinker/issues"
 }
 
-list_langDebEnumItems = []
 fitVltPiDescr = "High-level ignoring of \"annoying\" sockets during first search. (Currently, only the \"Alpha\" socket of the image nodes)"
 hide_bool_socket_items = [
     ('ALWAYS', "Always", "Always"),
@@ -156,8 +154,6 @@ class VoronoiAddonPrefs(bpy.types.AddonPreferences):
     vlnstLastExecError       : StringProperty(name="Last exec error", default="", update=VlnstUpdateLastExecError)
     vdtDummy                 : StringProperty(name="Dummy", default="Dummy")
     # ------
-    vaLangDebDiscl       : BoolProperty(name="Language bruteforce debug", default=False)
-    vaLangDebEnum        : EnumProperty(name="LangDebEnum", default='FREE', items=list_langDebEnumItems)
     dsIsFieldDebug       : BoolProperty(name="Field debug", default=False)
     dsIsTestDrawing      : BoolProperty(name="Testing draw", default=False, update=VaUpdateTestDraw)
     dsIncludeDev         : BoolProperty(name="IncludeDev", default=False)
@@ -466,134 +462,7 @@ class VoronoiAddonPrefs(bpy.types.AddonPreferences):
             row.operator(VoronoiOpAddonTabs.bl_idname, text=txt_copySettAsPyScript, icon='COPYDOWN').opt = 'GetPySett'  # SCRIPT  COPYDOWN
             with QuickInactiveColumn(colMain, active=self.dsIncludeDev) as row:
                 row.prop(self, 'dsIncludeDev')
-            ##
-            add_thin_sep(colMain, 0.15)
-            rowSettings = colMain.box().row(align=True)
-            row = rowSettings.row(align=True)
-            row.ui_units_x = 20
-            view = bpy.context.preferences.view
-            row.prop(view, 'language', text="")
-            row = rowSettings.row(align=True)
-            langCode = bpy.app.translations.locale
-            row.label(text=f"   '{langCode}'   ", translate=False)
-            row.prop(view, 'use_translate_interface', text="Interface")
-            row.prop(view, 'use_translate_tooltips', text="Tooltips")
-            ##
-            colLangDebug = colMain.column(align=True)
-            if (self.dsIncludeDev) or (self.vaLangDebDiscl):
-                with QuickInactiveColumn(colLangDebug, active=self.vaLangDebDiscl) as row:
-                    row.prop(self, 'vaLangDebDiscl')
-            if self.vaLangDebDiscl:
-                row = colLangDebug.row(align=True)
-                row.alignment = 'LEFT'
-                row.label(text=f"[{langCode}]", translate=False)
-                row.label(text="–", translate=False)
-                if langCode in dict_vlHhTranslations:
-                    dict_copy = dict_vlHhTranslations[langCode].copy()
-                    del dict_copy['trans']
-                    row.label(text=repr(dict_copy), translate=False)
-                else:
-                    with QuickInactiveColumn(row) as row:
-                        row.label(text="{}", translate=False)
-                colLangDebug.row().prop(self, 'vaLangDebEnum', expand=True)
 
-                def LyAddAlertNested(layout: UILayout, text):
-                    with QuickInactiveColumn(layout) as row:
-                        row.label(text=text, translate=False)
-                    row = layout.row(align=True)
-                    row.label(icon='BLANK1')
-                    return row.column(align=True)
-
-                def LyAddTran(layout: UILayout, label, text, *, dot="."):
-                    rowRoot = layout.row(align=True)
-                    with QuickInactiveColumn(rowRoot) as row:
-                        row.alignment = 'LEFT'
-                        row.label(text=label + ": ", translate=False)
-                    row = rowRoot.row(align=True)
-                    col = row.column(align=True)
-                    text = _iface(text)
-                    if text:
-                        list_split = text.split("\n")
-                        hig = len(list_split) - 1
-                        for cyc, li in enumerate(list_split):
-                            col.label(text=li + (dot if cyc == hig else ""), translate=False)
-
-                def LyAddTranDataForProp(layout: UILayout, pr, dot="."):
-                    colRoot = layout.column(align=True)
-                    with QuickInactiveColumn(colRoot) as row:
-                        row.label(text=pr.identifier, translate=False)
-                    row = colRoot.row(align=True)
-                    row.label(icon='BLANK1')
-                    col2 = row.column(align=True)
-                    LyAddTran(col2, "Name", pr.name, dot="")
-                    if pr.description:
-                        LyAddTran(col2, "Description", pr.description, dot=dot)
-                    if type(pr) == bpy.types.EnumProperty:
-                        for en in pr.enum_items:
-                            LyAddTranDataForProp(col2, en, dot="")
-                match self.vaLangDebEnum:
-                    case 'FREE':
-                        txt = _iface("Free")
-                        col = LyAddAlertNested(colLangDebug, f"{txt}")
-                        col.label(text="Virtual")
-                        col.label(text="Colored")
-                        col.label(text="Restore")
-                        col.label(text="Add New")
-                        col.label(text="Edge pan")
-                        with QuickInactiveColumn(col, att='column') as col0:
-                            col0.label(text="Zoom factor")
-                            col0.label(text="Speed")
-                        col.label(text="Pie")
-                        col.label(text="Box ")
-                        col.label(text="Special")
-                        col.label(text="Colors")
-                        col.label(text="Customization")
-                        col.label(text="Advanced")
-                        col.label(text=txt_FloatQuickMath)
-                        col.label(text=txt_VectorQuickMath)
-                        col.label(text=txt_BooleanQuickMath)
-                        col.label(text=txt_ColorQuickMode)
-                        col.label(text=txt_vmtNoMixingOptions)
-                        col.label(text=txt_vqmtThereIsNothing)
-                        col.label(text=old_info['description'])
-                        col.label(text=txt_onlyFontFormat)
-                        col.label(text=txt_copySettAsPyScript)
-                        col.label(text=txt_checkForUpdatesYourself)
-                    case 'SPECIAL':
-                        txt = _iface("Special")
-                        col0 = LyAddAlertNested(colLangDebug, f"[{txt}]")
-                        col1 = LyAddAlertNested(col0, "VMT")
-                        for dv in dict_vmtMixerNodesDefs.values():
-                            col1.label(text=dv[2])
-                        col1 = LyAddAlertNested(col0, "VQMT")
-                        for di in dict_vqmtQuickMathMain.items():
-                            col2 = LyAddAlertNested(col1, di[0])
-                            for ti in di[1]:
-                                if ti[0]:
-                                    col2.label(text=ti[0])
-                    case 'ADDONPREFS':
-                        from . import vt_classes
-                        col = LyAddAlertNested(colLangDebug, "[AddonPrefs]")
-                        set_toolBoxDisctPropNames = set([cls.disclBoxPropName for cls in vt_classes]) | set(
-                            [cls.disclBoxPropNameInfo for cls in vt_classes])
-                        set_toolBoxDisctPropNames.update({'vaLangDebEnum'})
-                        for pr in self.bl_rna.properties[2:]:
-                            if pr.identifier not in set_toolBoxDisctPropNames:
-                                LyAddTranDataForProp(col, pr)
-                    case _:
-                        from . import vt_classes
-                        dict_toolBlabToCls = {cls.bl_label.upper(): cls for cls in vt_classes}
-                        set_alreadyDone = set()  # 考虑到 vaLangDebEnum 的分离, 这已经没用了.
-                        col0 = colLangDebug.column(align=True)
-                        cls = dict_toolBlabToCls[self.vaLangDebEnum]
-                        col1 = LyAddAlertNested(col0, cls.bl_label)
-                        rna = eval(f"bpy.ops.{cls.bl_idname}.get_rna_type()"
-                                   )  # 通过 getattr 不知道为什么 `getattr(bpy.ops, cls.bl_idname).get_rna_type()` 不起作用.
-                        for pr in rna.properties[1:]:  # 跳过 rna_type.
-                            rowLabel = col1.row(align=True)
-                            if pr.identifier not in set_alreadyDone:
-                                LyAddTranDataForProp(rowLabel, pr)
-                                set_alreadyDone.add(pr.identifier)
 
     def draw(self, context):
 
@@ -788,15 +657,6 @@ def add_dynamic_properties(vt_classes):
     for cls in vt_classes:
         setattr(VoronoiAddonPrefs, cls.disclBoxPropName, BoolProperty(name="", default=False))
         setattr(VoronoiAddonPrefs, cls.disclBoxPropNameInfo, BoolProperty(name="", default=False))
-
-def update_lang_deb_enum_items(vt_classes):
-    """更新语言调试枚举项列表"""
-    global list_langDebEnumItems
-    list_langDebEnumItems.clear()
-    for li in ["Free", "Special", "AddonPrefs"] + [cls.bl_label for cls in vt_classes]:
-        list_langDebEnumItems.append((li.upper(), get_first_upper_letters(li), ""))
-    # 更新 VoronoiAddonPrefs 中的 vaLangDebEnum 属性
-    VoronoiAddonPrefs.vaLangDebEnum = EnumProperty(name="LangDebEnum", default='FREE', items=list_langDebEnumItems)
 
 def pref() -> VoronoiAddonPrefs:
     return bpy.context.preferences.addons[__package__].preferences # type: ignore

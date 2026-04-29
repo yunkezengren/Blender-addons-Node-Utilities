@@ -24,7 +24,7 @@ from .tools.swapper import SwapperMode, NODE_OT_voronoi_swapper
 from .tools.warper import NODE_OT_voronoi_warper
 from .utils.translations import translations_dict
 from .utils.solder import register_socket_properties, assign_tool_class_names, unregister_socket_properties
-from .preference import VoronoiAddonPrefs, VoronoiOpAddonTabs, pref, add_dynamic_properties, update_lang_deb_enum_items
+from .preference import VoronoiAddonPrefs, VoronoiOpAddonTabs, pref, add_dynamic_properties
 from .base_tool import BaseTool
 
 try:
@@ -206,8 +206,6 @@ keymap_categorys['可能有用'] = {
 # keymap_categorys['无效'].add(NODE_OT_voronoi_ranto.bl_idname)
 
 assign_tool_class_names(vt_classes)
-# 更新语言调试枚举项并添加动态属性
-update_lang_deb_enum_items(vt_classes)
 add_dynamic_properties(vt_classes)
 
 _classes = [
@@ -236,7 +234,6 @@ def register():
 
     prefs = pref()
     prefs.vlnstLastExecError = ""
-    prefs.vaLangDebDiscl = False
     for cls in vt_classes:
         setattr(prefs, cls.disclBoxPropNameInfo, False)
     prefs.dsIsTestDrawing = False
