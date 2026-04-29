@@ -1,7 +1,7 @@
 import bpy
 from ..base_tool import unhide_node_reassign, SingleSocketTool
 from ..utils.node import pick_near_target
-from ..utils.ui import draw_hand_split_prop
+from ..utils.ui import split_prop
 
 def GetSetOfKeysFromEvent(event, isSide=False):
     set_keys = {event.type}
@@ -84,4 +84,4 @@ class NODE_OT_voronoi_warper(SingleSocketTool):
                 self.dict_saveRestoreRerouteSelecting[nd] = nd.select
     @staticmethod
     def draw_pref_settings(col, prefs):
-        draw_hand_split_prop(col, prefs,'vwtSelectTargetKey', link_btn=True)
+        split_prop(col, prefs,'vwtSelectTargetKey', link_btn=True)

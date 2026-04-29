@@ -7,7 +7,7 @@ from ..globals import Cursor_X_Offset
 from ..utils.color import get_sk_color_safe, power_color
 from ..utils.drawing import draw_sockets_template
 from ..utils.node import opt_tar_socket
-from ..utils.ui import draw_hand_split_prop, draw_panel_column, draw_hand_split_prop
+from ..utils.ui import split_prop, draw_panel_column, split_prop
 from .mixer_sub import DoMix, mixer_default, mixer_tree_sk_nodes, NODE_MT_mixer_pie
 
 class NODE_OT_voronoi_mixer(TripleSocketTool):
@@ -108,14 +108,14 @@ class NODE_OT_voronoi_mixer(TripleSocketTool):
             display_message(self.bl_label, txt_vmtNoMixingOptions, icon='RADIOBUT_OFF')
     @staticmethod
     def draw_pref_settings(col, prefs):
-        draw_hand_split_prop(col, prefs,'vmtReroutesCanInAnyType')
+        split_prop(col, prefs,'vmtReroutesCanInAnyType')
     @staticmethod
     def draw_pref_appearance(col, prefs):
         if body_col := draw_panel_column(col, "Mix Pie"):
-            draw_hand_split_prop(body_col, prefs, 'vmtPieType')
+            split_prop(body_col, prefs, 'vmtPieType')
             col_group = body_col.column(align=True)
-            draw_hand_split_prop(col_group, prefs, 'vmtPieScale')
-            draw_hand_split_prop(col_group, prefs, 'vmtPieAlignment')
-            draw_hand_split_prop(col_group, prefs, 'vmtPieSocketDisplayType')
-            draw_hand_split_prop(col_group, prefs, 'vmtPieDisplaySocketColor')
+            split_prop(col_group, prefs, 'vmtPieScale')
+            split_prop(col_group, prefs, 'vmtPieAlignment')
+            split_prop(col_group, prefs, 'vmtPieSocketDisplayType')
+            split_prop(col_group, prefs, 'vmtPieDisplaySocketColor')
             col_group.active = getattr(prefs, 'vmtPieType') == 'CONTROL'

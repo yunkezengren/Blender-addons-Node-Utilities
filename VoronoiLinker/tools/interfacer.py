@@ -9,7 +9,7 @@ from ..node_items import NodeItemsUtils
 from ..utils.color import get_sk_color_safe
 from ..utils.drawing import Drawer, draw_socket_area
 from ..utils.node import socket_label, link_new_pro, FindAnySk, pick_near_target, opt_tar_socket
-from ..utils.ui import draw_hand_split_prop
+from ..utils.ui import split_prop
 
 # yapf: disable
 class InterfacerMode(Enum):
@@ -332,4 +332,4 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
 
     @staticmethod
     def draw_pref_settings(col, prefs):
-        draw_hand_split_prop(col, prefs, 'vitPasteToAnySocket')
+        split_prop(col, prefs, 'vitPasteToAnySocket')

@@ -47,7 +47,7 @@ def add_none_box(layout: UILayout):
     box.label()
     box.scale_y = 0.5
 
-def draw_hand_split_prop(layout: UILayout, who, att, *, text=None, active=True, returnAsLy=False, bool_label_left=False, link_btn=False):
+def split_prop(layout: UILayout, who, att, *, text=None, active=True, returnAsLy=False, bool_label_left=False, link_btn=False):
     split = layout.row().split(factor=0.4, align=True)
     split.active = active
     row = split.row(align=True)

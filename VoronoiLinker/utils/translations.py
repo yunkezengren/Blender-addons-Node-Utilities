@@ -14,6 +14,10 @@ _translations_dict: dict[tuple[context_s, str], dict[locale_s, str]] = {
         "zh_HANS": "只支持.ttf或.otf格式",
         "ru_RU": "Только .ttf или .otf формат",
     },
+    ("*", "Include Dev"): {
+        "zh_HANS": "显示开发选项",
+        "ru_RU": "Показать опции разработки",
+    },
 
     # Operators
     ("Operator", "Copy addon settings as .py script"): {

@@ -29,8 +29,7 @@ from .base_tool import BaseTool
 
 try:
     from rich import traceback
-    # 在WindTerm里太宽了, 在VSCode终端里拉满
-    # traceback.install(extra_lines=0, width=165, code_width=160, show_locals=False)
+    # traceback.install(extra_lines=0, width=165, code_width=160, show_locals=False)  # 在WindTerm里太宽了, 在VSCode终端里拉满
     traceback.install(extra_lines=0, width=140, show_locals=False)
 
     # from rich.console import Console      # 在别的文件里导入了
@@ -39,36 +38,6 @@ try:
     # from rich import print as rprint      # 用log打印报错太烦了每行都带路径
 except ImportError:
     pass
-
-""" 
-#Todo0VV: 处理 n^3 种组合: space_data.tree_type 和 space_data.edit_tree.bl_idname; 包括经典的, 丢失的和插件的; 绑定和未绑定到编辑器的.
-# ^ 然后检查所有工具在这些组合中的可用性. 之后在现有节点树中检查所有工具与丢失节点的丢失插槽的交互情况.
-# todo1v6: 当工具处于活动状态时, 按下 PrtScr 会在控制台刷屏 `WARN ... pyrna_enum_to_py: ... '171' matches no enum in 'Event'.
-
-dict_timeAvg = {}
-dict_timeOutside = {}
-# with ToTimeNs("aaa"):
-class ToTimeNs():  # 我投降了. 🤷‍ 我不知道为什么在大型节点树上会这么卡. 但从测量结果来看, 卡顿的地方在 VL 插件之外.
-    def __init__(self, name):
-        self.name = name
-        tpcn = perf_counter_ns()
-        dict_timeOutside[name] = tpcn - dict_timeOutside.setdefault(name, 0)
-        dict_timeAvg.setdefault(name, [0, 0])
-        self.tmn = tpcn
-    def __enter__(self):
-        pass
-    def __exit__(self, *_):
-        tpcn = perf_counter_ns()
-        nsExec = tpcn - self.tmn
-        list_avg = dict_timeAvg[self.name]
-        list_avg[0] += 1
-        list_avg[1] += nsExec
-        txt1 = "{:,}".format(nsExec).rjust(13)
-        txt2 = "{:,}".format(dict_timeOutside[self.name]).rjust(13)
-        txt3 = "{:,}".format(int(list_avg[1] / list_avg[0]))
-        txt = " ".join(("", self.name, txt1, "~~~", txt2, "===", txt3))
-        dict_timeOutside[self.name] = tpcn 
-"""
 
 # yapf: disable
 # 每个 Operator 类的 keymap 配置. 格式: "S#A_KEY" 或 ("S#A_KEY", {'prop': value})  S=Shift, C=Ctrl, A=Alt, #=忽略, + =repeat

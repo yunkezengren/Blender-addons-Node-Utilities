@@ -4,7 +4,7 @@ from ..base_tool import BaseOperator, SingleNodeTool
 from ..common_class import VestData
 from ..utils.drawing import draw_node_template
 from ..utils.node import node_show_name, node_enum_props, node_visible_menu_inputs, SelectAndActiveNdOnly
-from ..utils.ui import draw_hand_split_prop, draw_panel_column, draw_hand_split_prop
+from ..utils.ui import split_prop, draw_panel_column, split_prop
 bp = bpy.props
 
 domain_en = [
@@ -276,10 +276,10 @@ class NODE_OT_voronoi_enum_selector(SingleNodeTool):
         self.firstResult = None # 理想情况下也应该在上面, 但不是必须的, 参见 isToggleOptions 的拓扑.
     @staticmethod
     def draw_pref_settings(col, prefs):
-        draw_hand_split_prop(col, prefs,'vestIsToggleNodesOnDrag')
+        split_prop(col, prefs,'vestIsToggleNodesOnDrag')
     @staticmethod
     def draw_pref_appearance(col, prefs): # 注意: 这是 @staticmethod.
         if body_col := draw_panel_column(col, "Enum Select Box"):
-            draw_hand_split_prop(body_col, prefs,'vestBoxScale')
-            draw_hand_split_prop(body_col, prefs,'vestDisplayLabels', bool_label_left=True)
-            draw_hand_split_prop(body_col, prefs,'vestDarkStyle', bool_label_left=True)
+            split_prop(body_col, prefs,'vestBoxScale')
+            split_prop(body_col, prefs,'vestDisplayLabels', bool_label_left=True)
+            split_prop(body_col, prefs,'vestDarkStyle', bool_label_left=True)

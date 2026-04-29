@@ -8,7 +8,7 @@ from ..utils.color import get_sk_color_safe, power_color
 from ..utils.drawing import draw_socket_text, draw_socket_area, draw_sockets_template
 from ..utils.node import sk_type_to_idname, is_builtin_tree_idname, GenTarsFromPuts, SelectAndActiveNdOnly, VlrtRememberLastSockets
 from ..utils.solder import solder_sk_links, SoldThemeCols
-from ..utils.ui import draw_hand_split_prop
+from ..utils.ui import split_prop
 
 viaverSkfMethod = -1 # 用于成功交互方法的切换开关. 本可以按版本分布到映射表中, 但"根据实际情况"尝试有其独特的美学魅力.
 
@@ -522,17 +522,17 @@ class NODE_OT_voronoi_preview(SingleSocketTool):
         self.isAnyAncohorExist = not not (rrAnch or list_distAnchs) #对于几何节点; 如果其中有锚点, 则不仅触发几何接口.
     @staticmethod
     def draw_pref_settings(col, prefs):
-        draw_hand_split_prop(col, prefs,'vptAllowClassicGeoViewer')
-        draw_hand_split_prop(col, prefs,'vptAllowClassicCompositorViewer')
-        draw_hand_split_prop(col, prefs,'vptIsLivePreview')
-        draw_hand_split_prop(col, prefs,'vptRvEeIsColorOnionNodes')
+        split_prop(col, prefs,'vptAllowClassicGeoViewer')
+        split_prop(col, prefs,'vptAllowClassicCompositorViewer')
+        split_prop(col, prefs,'vptIsLivePreview')
+        split_prop(col, prefs,'vptRvEeIsColorOnionNodes')
         if prefs.vptRvEeIsColorOnionNodes:
             split = col.split(factor=0.4)
             split.label()
             row = split.row(align=True)
             row.prop(prefs,'vptOnionColorIn', text="")
             row.prop(prefs,'vptOnionColorOut', text="")
-        draw_hand_split_prop(col, prefs,'vptRvEeSksHighlighting')
+        split_prop(col, prefs,'vptRvEeSksHighlighting')
         if prefs.vptRvEeSksHighlighting:
-            draw_hand_split_prop(col, prefs,'vptHlTextScale')
-        draw_hand_split_prop(col, prefs,'vptRvEeIsSavePreviewResults')
+            split_prop(col, prefs,'vptHlTextScale')
+        split_prop(col, prefs,'vptRvEeIsSavePreviewResults')

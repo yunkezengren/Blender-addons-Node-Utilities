@@ -4,7 +4,7 @@ import bpy
 from ..base_tool import unhide_node_reassign, AnyTargetTool
 from ..common_class import Target
 from ..utils.node import pick_near_target, socket_label
-from ..utils.ui import draw_hand_split_prop
+from ..utils.ui import split_prop
 
 def HideFromNode(prefs, ndTarget, lastResult, isCanDo=False): # 最初是我个人的实用工具, 在 VL 之前就创建了.
     set_equestrianHideVirtual = {'GROUP_INPUT','SIMULATION_INPUT','SIMULATION_OUTPUT','REPEAT_INPUT','REPEAT_OUTPUT'}
@@ -209,8 +209,8 @@ class NODE_OT_voronoi_hider(AnyTargetTool):
         self.firstResult = None # 从第一个节点获取“折叠”或“展开”的动作, 然后将其广播到所有其他遇到的节点.
     @staticmethod
     def draw_pref_settings(col, prefs):
-        draw_hand_split_prop(col, prefs, 'vhtHideBoolSocket')
-        draw_hand_split_prop(col, prefs, 'vhtHideHiddenBoolSocket')
-        draw_hand_split_prop(col, prefs, 'vhtNeverHideGeometry')
-        draw_hand_split_prop(col, prefs, 'vhtIsUnhideVirtual', bool_label_left=True)
-        draw_hand_split_prop(col, prefs, 'vhtIsToggleNodesOnDrag', bool_label_left=True)
+        split_prop(col, prefs, 'vhtHideBoolSocket')
+        split_prop(col, prefs, 'vhtHideHiddenBoolSocket')
+        split_prop(col, prefs, 'vhtNeverHideGeometry')
+        split_prop(col, prefs, 'vhtIsUnhideVirtual', bool_label_left=True)
+        split_prop(col, prefs, 'vhtIsToggleNodesOnDrag', bool_label_left=True)

@@ -6,7 +6,7 @@ from ..globals import Cursor_X_Offset, float_int_color, sk_support_math
 from ..utils.color import get_sk_color_safe, power_color
 from ..utils.node import DoQuickMath, opt_tar_socket
 from ..utils.solder import sk_type_color_map
-from ..utils.ui import display_message, draw_hand_split_prop, draw_panel_column
+from ..utils.ui import display_message, split_prop, draw_panel_column
 BP = bpy.props
 
 fitVqmtRloDescr = "Bypassing the pie call, activates the last used operation for the selected socket type.\n"+\
@@ -201,20 +201,20 @@ class NODE_OT_voronoi_quick_math(TripleSocketTool):
         self.isQuickQuickMath = not not( (self.quickOprFloat)or(self.quickOprVector)or(self.quickOprBool)or(self.quickOprColor) )
     @staticmethod
     def draw_pref_settings(col, prefs):
-        draw_hand_split_prop(col, prefs,'vqmtIncludeThirdSk')
+        split_prop(col, prefs,'vqmtIncludeThirdSk')
         active = prefs.vqmtPieType == 'CONTROL'
-        draw_hand_split_prop(col, prefs,'vqmtIncludeQuickPresets',   active=active)
-        draw_hand_split_prop(col, prefs,'vqmtIncludeExistingValues', active=active)
-        draw_hand_split_prop(col, prefs,'vqmtDisplayIcons',          active=active)
-        draw_hand_split_prop(col, prefs,'vqmtRepickKey', link_btn=True)
+        split_prop(col, prefs,'vqmtIncludeQuickPresets',   active=active)
+        split_prop(col, prefs,'vqmtIncludeExistingValues', active=active)
+        split_prop(col, prefs,'vqmtDisplayIcons',          active=active)
+        split_prop(col, prefs,'vqmtRepickKey', link_btn=True)
     @staticmethod
     def draw_pref_appearance(col, prefs):
         if body_col := draw_panel_column(col, "Quick Math Pie"):
-            draw_hand_split_prop(body_col, prefs,'vqmtPieType')
+            split_prop(body_col, prefs,'vqmtPieType')
             col_group = body_col.column()
-            draw_hand_split_prop(col_group, prefs,'vqmtPieScale')
-            # draw_hand_split_prop(col_group, prefs,'vqmtPieScaleExtra')  # 预设(隐藏了) 比如 +-*/ 的 缩放,暂时用不到
-            draw_hand_split_prop(col_group, prefs,'vqmtPieAlignment')
-            draw_hand_split_prop(col_group, prefs,'vqmtPieSocketDisplayType')
-            draw_hand_split_prop(col_group, prefs,'vqmtPieDisplaySocketColor')
+            split_prop(col_group, prefs,'vqmtPieScale')
+            # split_prop(col_group, prefs,'vqmtPieScaleExtra')  # 预设(隐藏了) 比如 +-*/ 的 缩放,暂时用不到
+            split_prop(col_group, prefs,'vqmtPieAlignment')
+            split_prop(col_group, prefs,'vqmtPieSocketDisplayType')
+            split_prop(col_group, prefs,'vqmtPieDisplaySocketColor')
             col_group.active = prefs.vqmtPieType == 'CONTROL'

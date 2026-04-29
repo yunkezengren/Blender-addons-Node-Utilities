@@ -3,7 +3,7 @@ from bpy.types import NodeTree
 from ..base_tool import unhide_node_reassign, PairSocketTool
 from ..utils.drawing import draw_sockets_template
 from ..utils.node import IsClassicSk, opt_tar_socket, VlrtRememberLastSockets
-from ..utils.ui import draw_hand_split_prop
+from ..utils.ui import split_prop
 from ..globals import sk_types_no_convert, implicit_convert_map
 
 def is_unlink_route(node):
@@ -159,9 +159,9 @@ class NODE_OT_voronoi_linker(PairSocketTool):  # 神圣中的神圣. 它存在�
             tree.nodes.active = None
     @staticmethod
     def draw_pref_settings(col, prefs):
-        draw_hand_split_prop(col, prefs,'vltRepickKey', link_btn=True)
-        draw_hand_split_prop(col, prefs,'vltReroutesCanInAnyType')
-        draw_hand_split_prop(col, prefs,'vltDeselectAllNodes')
-        draw_hand_split_prop(col, prefs,'vltPriorityIgnoring')
-        draw_hand_split_prop(col, prefs,'vltSelectingInvolved')
+        split_prop(col, prefs,'vltRepickKey', link_btn=True)
+        split_prop(col, prefs,'vltReroutesCanInAnyType')
+        split_prop(col, prefs,'vltDeselectAllNodes')
+        split_prop(col, prefs,'vltPriorityIgnoring')
+        split_prop(col, prefs,'vltSelectingInvolved')
 
