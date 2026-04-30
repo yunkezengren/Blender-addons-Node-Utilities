@@ -1,6 +1,6 @@
 import bpy
 from ..base_tool import unhide_node_reassign, draw_sockets_template, SingleSocketTool
-from ..utils.node import pick_near_target, VlrtRememberLastSockets
+from ..utils.node import pick_near_target, vlrt_remember_last_sockets
 from ..utils.ui import add_nice_color_prop
 
 class NODE_OT_voronoi_dummy(SingleSocketTool):   # 快速便捷地添加新工具的模板
@@ -29,7 +29,7 @@ class NODE_OT_voronoi_dummy(SingleSocketTool):   # 快速便捷地添加新工�
         sk = self.target_sk.tar
         sk.name = sk.name if (sk.name)and(sk.name[0]=="\"") else f'"{sk.name}"'
         sk.node.label = "Hi i am vdt. See source code"
-        VlrtRememberLastSockets(sk if sk.is_output else None, None)
+        vlrt_remember_last_sockets(sk if sk.is_output else None, None)
     def initialize(self, event, prefs, tree):
         self.target_sk = None
     @staticmethod

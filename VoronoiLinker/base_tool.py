@@ -14,8 +14,13 @@ from .globals import sk_type_support_field
 from .utils.ui import user_node_keymap
 from .preference import pref, VoronoiAddonPrefs
 from .utils.drawing import draw_debug_info, draw_node_template, draw_sockets_template, Drawer
-from .utils.node import nearest_nodes_tar, nearest_sockets_tar, RestoreCollapsedNodes, SaveCollapsedNodes, is_builtin_tree
+from .utils.node import nearest_nodes_tar, nearest_sockets_tar, restore_collapsed_nodes, save_collapsed_nodes, is_builtin_tree
 from .utils.solder import solder_sk_links, solder_theme_cols
+
+OP_PASS_THROUGH = {'PASS_THROUGH'}
+OP_CANCELLED = {'CANCELLED'}
+OP_FINISHED = {'FINISHED'}
+OP_RUNNING_MODAL = {'RUNNING_MODAL'}
 
 def get_operator_keymap_item(self: type["BaseOperator"], event: Event):
     # Todo00: 有没有更正确的设计或方法?
@@ -146,22 +151,22 @@ class ModelBaseTool(BaseOperator, ProtocolTool):  #0
         tree_type = node_editor.tree_type
         self.in_builtin_tree = is_builtin_tree(tree_type)
         if not (self.use_for_custom_tree or self.in_builtin_tree):
-            return {'PASS_THROUGH'}  #'CANCELLED'?.
+            return OP_PASS_THROUGH  #'CANCELLED'?.
         if (not self.use_for_undefine_tree) and (tree_type == 'NodeTreeUndefined'): # type: ignore
-            return {'CANCELLED'}  # 为了不绘制而离开.
+            return OP_CANCELLED  # 为了不绘制而离开.
         if not (self.use_for_none_tree or tree):
-            return {'FINISHED'}
+            return OP_FINISHED
 
         # 对所有工具相同的跳过选择处理
         if self.isPassThrough and tree and ('FINISHED' in bpy.ops.node.select('INVOKE_DEFAULT')):  # 检查树是第二位的, 为了美学优化.
             # 如果调用工具的热键与取消选择的热键相同, 那么上面一行选择的节点在交接后会重新取消选择 (但仍然是活动的).
             # 因此, 对于这种情况, 需要取消选择, 以便再次切换回已选择的节点.
             tree.nodes.active.select = False  # 但没有条件, 对所有情况都适用. 因为 ^ 否则将永远是选择而不切换; 我没有想法如何处理这种情况.
-            return {'PASS_THROUGH'}
+            return OP_PASS_THROUGH
 
         self.kmi = get_operator_keymap_item(self, event)
         if not self.kmi:
-            return {'CANCELLED'}  # 如果总体上出了问题, 或者操作符是通过布局按钮调用的.
+            return OP_CANCELLED  # 如果总体上出了问题, 或者操作符是通过布局按钮调用的.
         # 如果在 keymap 调用操作符时未指定其属性, 它们会从上次调用中读取; 所以需要将它们设置回默认值.
         # 尽早这样做是有意义的; 对 VQMT 和 VEST 有效.
         for prop in self.rna_type.properties:
@@ -189,12 +194,12 @@ class ModelBaseTool(BaseOperator, ProtocolTool):  #0
         self.handle = SpaceNodeEditor.draw_handler_add(self.callback_draw_base, (self.drawer, context), 'WINDOW', 'POST_PIXEL')
         if tree:  # 注意: 参见本地拓扑结构, 工具本身可以, 但每个工具都明确地对缺失的树禁用了.
             solder_sk_links(self.tree)
-            SaveCollapsedNodes(tree.nodes)
+            save_collapsed_nodes(tree.nodes)
             self.find_targets_base(True)  # 原来只需要在 modal_handler_add() 之前移动它. #https://projects.blender.org/blender/blender/issues/113479
 
         context.area.tag_redraw()  # 需要在激活时绘制找到的; 本地顺序不重要.
         context.window_manager.modal_handler_add(self)
-        return {'RUNNING_MODAL'}
+        return OP_RUNNING_MODAL
 
     def modal(self, context, event):
         context.area.tag_redraw()
@@ -202,25 +207,25 @@ class ModelBaseTool(BaseOperator, ProtocolTool):  #0
             self.b_view2d.cur.Zooming(self.cursor_loc, 1.0 - num*0.15)
         self.handle_modal(event, self.prefs)
         if not self.modal_handle_mouse(event, self.prefs):
-            return {'RUNNING_MODAL'}
+            return OP_RUNNING_MODAL
         #* 工具的结束从这里开始 *
         EdgePan.is_working = False
         if event.type == 'ESC':  # 这正是 Escape 键应该做的.
-            return {'CANCELLED'}
+            return OP_CANCELLED
         with TryAndPass():  # 它可能已经被删除了, 参见第二个这样的情况.
             SpaceNodeEditor.draw_handler_remove(self.handle, 'WINDOW')
         tree = self.tree
         if not tree:
-            return {'FINISHED'}
-        RestoreCollapsedNodes(tree.nodes)
+            return OP_FINISHED
+        restore_collapsed_nodes(tree.nodes)
         if (tree) and (tree.bl_idname == 'NodeTreeUndefined'):  # 如果来自某个插件的节点树消失了, 那么剩下的就是 NodeUndefined 和 NodeSocketUndefined.
-            return {'CANCELLED'}  # 通过 API 无法创建到 SocketUndefined 的链接, 在这个树里也没什么可做的; 所以退出.
+            return OP_CANCELLED  # 通过 API 无法创建到 SocketUndefined 的链接, 在这个树里也没什么可做的; 所以退出.
         ##
         if not self.can_run():
-            return {'CANCELLED'}
+            return OP_CANCELLED
         if result := self.run(event, self.prefs, tree):
             return result
-        return {'FINISHED'}
+        return OP_FINISHED
 
     def modal_handle_mouse(self, event: Event, prefs: VoronoiAddonPrefs):
         match event.type:

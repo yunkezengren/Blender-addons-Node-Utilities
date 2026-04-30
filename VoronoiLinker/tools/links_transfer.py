@@ -1,6 +1,6 @@
 import bpy
 from ..base_tool import draw_node_template, draw_sockets_template, PairNodeTool
-from ..utils.node import socket_label, GenTarFromNd, is_socket_visible
+from ..utils.node import socket_label, gen_tar_from_nd, is_socket_visible
 from ..utils.solder import solder_sk_links
 B = bpy.types
 
@@ -40,7 +40,7 @@ class NODE_OT_voronoi_links_transfer(PairNodeTool):
             # 与粘住不同, 粘住时可以清楚地知道“这个是第一个”; 这对于这个工具尤其重要, 因为哪个节点被首先选择很重要.
             if prefs.dsIsSlideOnNodes: # 虽然不急, 但还是留着吧.
                 if self.target_nd0:
-                    self.target_nd0.pos = GenTarFromNd(self.target_nd0.tar, self.cursor_loc, self.ui_scale).pos
+                    self.target_nd0.pos = gen_tar_from_nd(self.target_nd0.tar, self.cursor_loc, self.ui_scale).pos
             break
     def run(self, event, prefs, tree):
         from_node = self.target_nd0.tar

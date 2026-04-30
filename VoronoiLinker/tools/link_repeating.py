@@ -3,7 +3,7 @@ from enum import Enum
 import bpy
 from ..base_tool import unhide_node_reassign, AnyTargetTool
 from ..globals import Cursor_X_Offset, sk_type_support_field
-from ..utils.node import compare_sk_label, link_new_pro, VlrtData, VlrtRememberLastSockets
+from ..utils.node import compare_sk_label, link_new_pro, VlrtData, vlrt_remember_last_sockets
 from ..utils.solder import solder_sk_links
 
 class LinkRepeatingMode(Enum):
@@ -66,10 +66,10 @@ class NODE_OT_voronoi_link_repeating(AnyTargetTool):  # 分离成单独的工具
         if self.toolMode==eMode.SOCKET.value:
             # 这里不需要检查套接字树是否相同, find_targets() 中已经检查过了.
             # 同样不需要检查 skLastOut 是否存在, 参见其在 find_targets() 中的拓扑.
-            # 注意: VlrtRememberLastSockets() 中有 `.id_data` 的相同性检查.
+            # 注意: vlrt_remember_last_sockets() 中有 `.id_data` 的相同性检查.
             # 注意: 不需要检查树是否存在, 因为如果连接的套接字在这里存在, 那它就肯定在某个地方.
             link_new_pro(self.skLastOut, self.target_any.tar)
-            VlrtRememberLastSockets(self.skLastOut, self.target_any.tar) # 因为. 而且.. “自递归”?.
+            vlrt_remember_last_sockets(self.skLastOut, self.target_any.tar) # 因为. 而且.. “自递归”?.
     def initialize(self, event, prefs, tree):
         for txt in "Out", "In":
             txtAttSkLast = 'skLast'+txt

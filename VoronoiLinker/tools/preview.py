@@ -6,7 +6,7 @@ from ..common_class import VptData
 from ..globals import Cursor_X_Offset, is_bl4_plus, voronoiAnchorCnName, voronoiAnchorDtName, voronoiPreviewResultNdName, voronoiSkPreviewName
 from ..utils.color import get_sk_color_safe, power_color
 from ..utils.drawing import draw_socket_text, draw_socket_area, draw_sockets_template
-from ..utils.node import sk_type_to_idname, is_builtin_tree, GenTarsFromPuts, SelectAndActiveNdOnly, VlrtRememberLastSockets
+from ..utils.node import sk_type_to_idname, is_builtin_tree, gen_tars_from_puts, select_and_active_nd_only, vlrt_remember_last_sockets
 from ..utils.solder import solder_sk_links, SoldThemeCols
 from ..utils.ui import split_prop
 
@@ -142,7 +142,7 @@ def VptPreviewFromSk(self, prefs, skTar):
         return
     list_way = DoPreviewCore(skTar, self.list_distanceAnchors, self.cursor_loc)
     if self.isSelectingPreviewedNode:
-        SelectAndActiveNdOnly(skTar.node) # 不仅要只选择它, 还要让它成为活动节点, 这很重要.
+        select_and_active_nd_only(skTar.node) # 不仅要只选择它, 还要让它成为活动节点, 这很重要.
     if not self.in_builtin_tree:
         return
     # 我天才般地想到在预览后删除接口; 这得益于在上下文路径中不删除它们. 现在可以更自由地使用它们了.
@@ -379,7 +379,7 @@ class NODE_OT_voronoi_preview(SingleSocketTool):
                         sk = lk.to_socket if isSide else lk.from_socket
                         nd = sk.node
                         if (nd.type!='REROUTE')and(not nd.hide):
-                            tar_sks = GenTarsFromPuts(nd, not isSide, soldCursorLoc, drawer.ui_scale)
+                            tar_sks = gen_tars_from_puts(nd, not isSide, soldCursorLoc, drawer.ui_scale)
                             for tar in tar_sks:
                                 if tar.tar==sk:
                                     #不支持遍历转接点. 因为懒, 而且懒得为此重写代码.
@@ -482,10 +482,10 @@ class NODE_OT_voronoi_preview(SingleSocketTool):
     def run(self, event, prefs, tree):
         solder_sk_links(tree) #否则会崩溃.
         VptPreviewFromSk(self, prefs, self.target_sk.tar)
-        VlrtRememberLastSockets(self.target_sk.tar, None)
+        vlrt_remember_last_sockets(self.target_sk.tar, None)
         if prefs.vptRvEeIsColorOnionNodes:
             for nd in tree.nodes:
-                dv = self.dict_saveRestoreNodeColors.get(nd, None) #与 RestoreCollapsedNodes 中完全相同.
+                dv = self.dict_saveRestoreNodeColors.get(nd, None) #与 restore_collapsed_nodes 中完全相同.
                 if dv:
                     nd.use_custom_color = dv[0]
                     self.OmgNodeColor(nd, dv[1])

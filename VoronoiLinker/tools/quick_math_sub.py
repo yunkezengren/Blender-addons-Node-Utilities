@@ -5,7 +5,7 @@ from ..common_class import VqmtData
 from ..preference import pref
 from ..globals import Color_Bar_Width, dict_vqmtQuickMathMain, dict_vqmtQuickPresets, float_int_color, floatIntColorInverse
 from ..utils.color import get_sk_color, power_color
-from ..utils.node import DoQuickMath
+from ..utils.node import do_quick_math
 
 class NODE_OT_quick_math_sub(BaseOperator):
     bl_idname = 'node.quick_math_sub'
@@ -64,7 +64,7 @@ class NODE_OT_quick_math_sub(BaseOperator):
                 VqmtData.isFirstDone = True
                 #只需要也显然只在这里进行记忆。在Tool中只有qqm和rlo。为方便起见，并且遵循rlo的逻辑，qqm不进行记忆。
                 VqmtData.dict_lastOperation[VqmtData.qmTrueSkType] = self.operation
-                return DoQuickMath(event, tree, self.operation)
+                return do_quick_math(event, tree, self.operation)
         VqmtData.depth += 1
         bpy.ops.wm.call_menu_pie(name=NODE_MT_quick_math_pie.bl_idname)
         return {'RUNNING_MODAL'}

@@ -8,7 +8,7 @@ from ..common_class import Target
 from ..node_items import NodeItemsUtils
 from ..utils.color import get_sk_color_safe
 from ..utils.drawing import Drawer, draw_socket_area
-from ..utils.node import socket_label, link_new_pro, FindAnySk, pick_near_target, opt_tar_socket
+from ..utils.node import socket_label, link_new_pro, find_any_sk, pick_near_target, opt_tar_socket
 from ..utils.ui import split_prop
 
 # yapf: disable
@@ -94,7 +94,7 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
             if (not prefs.vitPasteToAnySocket) and (self.toolMode == eMode.PASTE.value) and (nd.type not in NodeItemsUtils.support_types):
                 break  # 光标必须靠近骑士 (或组节点) (对于非 vitPasteToAnySocket). 还有 `continue` 不会有高级取消.
             tar_sks_in, tar_sks_out = self.get_nearest_sockets(nd, cur_x_off=0)
-            self.target_skMain = FindAnySk(nd, tar_sks_in, tar_sks_out)
+            self.target_skMain = find_any_sk(nd, tar_sks_in, tar_sks_out)
             if self.target_skMain:
                 unhide_node_reassign(nd, self, cond=self.target_skMain.tar.node == nd, flag=True)
             break
@@ -156,7 +156,7 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
                 continue
             tar_sks_in, tar_sks_out = self.get_nearest_sockets(nd, cur_x_off=0)
             if is_first_active:
-                self.target_skRosw = FindAnySk(nd, tar_sks_in, tar_sks_out)
+                self.target_skRosw = find_any_sk(nd, tar_sks_in, tar_sks_out)
             unhide_node_reassign(nd, self, cond=self.target_skRosw, flag=True)
             skRosw = opt_tar_socket(self.target_skRosw)
             if skRosw:

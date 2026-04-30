@@ -3,7 +3,7 @@ from bpy.types import EnumProperty, UILayout, Node, Menu
 from ..base_tool import BaseOperator, SingleNodeTool
 from ..common_class import VestData
 from ..utils.drawing import draw_node_template
-from ..utils.node import node_show_name, node_enum_props, node_visible_menu_inputs, SelectAndActiveNdOnly
+from ..utils.node import node_show_name, node_enum_props, node_visible_menu_inputs, select_and_active_nd_only
 from ..utils.ui import split_prop, draw_panel_column, split_prop
 bp = bpy.props
 
@@ -228,7 +228,7 @@ class NODE_OT_voronoi_enum_selector(SingleNodeTool):
             VestData.isDisplayLabels = prefs.vestDisplayLabels
             VestData.isPieChoice = self.isPieChoice
             if self.isSelectNode:
-                SelectAndActiveNdOnly(VestData.nd)
+                select_and_active_nd_only(VestData.nd)
                 if self.isSelectNode>1:
                     # 判断节点是否在屏幕外; 只有这样才居中:
                     region = self.region
