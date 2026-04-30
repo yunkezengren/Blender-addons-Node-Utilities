@@ -5,7 +5,7 @@ from mathutils import Vector as Vec
 from bpy.types import Node, NodeTree, NodeSocket, NodeSocketVirtual
 from ..base_tool import unhide_node_reassign, draw_node_template, draw_sockets_template, PairSocketTool
 from ..common_class import Target
-from ..node_items import NodeItemsUtils
+from ..node_items import eType, NodeItemsUtils
 from ..utils.color import get_sk_color_safe
 from ..utils.drawing import Drawer, draw_socket_area
 from ..utils.node import socket_label, link_new_pro, find_any_sk, pick_near_target, opt_tar_socket
@@ -303,7 +303,7 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
                 if items_tool.has_extend_socket:
                     links.new(skMain, items_tool.get_socket(items_tool.items.get(item_name), is_out=not skMain.is_output))
                 if is_group:
-                    links.new(skMain, items_tool.get_socket(new_item, is_out=(new_item.in_out == 'OUTPUT') ^ (items_tool.type != 'GROUP')))
+                    links.new(skMain, items_tool.get_socket(new_item, is_out=(new_item.in_out == 'OUTPUT') ^ (items_tool.type != eType.GROUP)))
 
     def initialize(self, event, prefs, tree):
         self.target_skMain = None

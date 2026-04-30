@@ -7,7 +7,7 @@ from typing import ClassVar, Any
 
 bt = bpy.types
 
-from .Structure import RectBase, bView2D
+from .Structure import RectBase, BView2D
 from .common_class import TryAndPass
 from .common_class import Target
 from .globals import sk_type_support_field
@@ -84,7 +84,7 @@ class ModelBaseTool(BaseOperator, ProtocolTool):  #0
     cursor_loc: Vec2
     drawer: Drawer
     region: Region
-    b_view2d: bView2D
+    b_view2d: BView2D
     handle: Any
 
     def get_nearest_nodes(self, includePoorNodes=False, cur_x_off: float = 0):
@@ -180,7 +180,7 @@ class ModelBaseTool(BaseOperator, ProtocolTool):  #0
         self.drawer = Drawer(context, self.cursor_loc, self.ui_scale, self.prefs)
         solder_theme_cols(context.preferences.themes[0].node_editor)  # 和 font_id 一样; 虽然在大多数情况下主题在整个会话期间不会改变.
         self.region = context.region
-        self.b_view2d = bView2D.GetFields(context.region.view2d)
+        self.b_view2d = BView2D.GetFields(context.region.view2d)
         if self.prefs.vIsOverwriteZoomLimits:
             self.b_view2d.minzoom = self.prefs.vOwZoomMin
             self.b_view2d.maxzoom = self.prefs.vOwZoomMax
@@ -204,7 +204,7 @@ class ModelBaseTool(BaseOperator, ProtocolTool):  #0
     def modal(self, context, event):
         context.area.tag_redraw()
         if num := (event.type == 'WHEELUPMOUSE') - (event.type == 'WHEELDOWNMOUSE'):
-            self.b_view2d.cur.Zooming(self.cursor_loc, 1.0 - num*0.15)
+            self.b_view2d.cur.zoom(self.cursor_loc, 1.0 - num*0.15)
         self.handle_modal(event, self.prefs)
         if not self.modal_handle_mouse(event, self.prefs):
             return OP_RUNNING_MODAL
@@ -366,11 +366,11 @@ def edge_pan_timer():
     field2 = field2 - EdgePan.center + Vec2((10, 10))  # 稍微减小光标紧贴屏幕边缘的边界.
     field2 = Vec2((max(field2.x, 0), max(field2.y, 0)))
     ##
-    xi, yi, xa, ya = EdgePan.view_cur.GetRaw()
+    xi, yi, xa, ya = EdgePan.view_cur.get_raw()
     speedZoomSize = Vec2((xa - xi, ya - yi)) / 2.5 * delta  # 没有 delta 时是 125.
     field1 = field1.normalized() * speedZoomSize * ((zoomWorld-1) / 1.5 + 1) * EdgePan.speed * EdgePan.ui_scale
     if (field2.x != 0) or (field2.y != 0):
-        EdgePan.view_cur.TranslateScaleFac((field1.x, field1.y), fac=EdgePan.zoom_fac)
+        EdgePan.view_cur.translate_scale_fac((field1.x, field1.y), fac=EdgePan.zoom_fac)
     EdgePan.delta = perf_counter()  # 在下一次进入前 "发送到未知处".
     EdgePan.area.tag_redraw()
     return 0.0 if EdgePan.is_working else None

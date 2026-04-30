@@ -131,16 +131,17 @@ class BNode(StructBase):     # 用于VRT.
 # 致第一个实现这个功能的人: "干得漂亮, 兄弟! 👍 现在你可以连接到折叠节点的插槽了. 希望你幸福得合不拢腿." 😂
 
 class RectBase(StructBase):
-    def GetRaw(self):
+
+    def get_raw(self):
         return self.xmin, self.ymin, self.xmax, self.ymax
 
-    def TranslateRaw(self, xy):
+    def translate_raw(self, xy):
         self.xmin += xy[0]
         self.xmax += xy[0]
         self.ymin += xy[1]
         self.ymax += xy[1]
 
-    def TranslateScaleFac(self, xy, fac=0.5):
+    def translate_scale_fac(self, xy, fac=0.5):
         if xy[0] > 0:
             self.xmin += xy[0]*fac
             self.xmax += xy[0]
@@ -155,7 +156,7 @@ class RectBase(StructBase):
             self.ymin += xy[1]
             self.ymax += xy[1]*fac
 
-    def Zooming(self, center=None, fac=1.0):
+    def zoom(self, center=None, fac=1.0):
         if center:
             centerX = center[0]
             centerY = center[1]
@@ -179,7 +180,7 @@ class Rcti(RectBase):
     ymin : ctypes.c_int
     ymax : ctypes.c_int
 
-class bView2D(StructBase):    # \source\blender\makesdna\DNA_view2d_types.h
+class BView2D(StructBase):    # \source\blender\makesdna\DNA_view2d_types.h
     tot       : Rctf
     cur       : Rctf
     vert      : Rcti

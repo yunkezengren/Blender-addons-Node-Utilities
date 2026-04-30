@@ -1,4 +1,5 @@
 import bpy
+from enum import Enum, auto
 from bpy.types import Node, NodeSocket, NodeTree
 from typing import Any
 B = bpy.types
@@ -9,6 +10,18 @@ node_has_items = {
     'SIMULATION_INPUT', 'SIMULATION_OUTPUT', 'REPEAT_INPUT', 'REPEAT_OUTPUT', 'MENU_SWITCH', 'BAKE', 'CAPTURE_ATTRIBUTE',
     'INDEX_SWITCH'
 }
+
+class eType(Enum):
+    # `auto()` 会自动为每个枚举成员分配一个唯一值; 这里我们只关心“成员身份”, 不关心具体数值. 枚举成员不强制全大写, 但全大写是常见约定, 看起来更像一组固定常量.
+    CLASSIC = auto()
+    SIM = auto()
+    REP = auto()
+    MENU = auto()
+    INDEX = auto()
+    BAKE = auto()
+    CAPTURE = auto()
+    GROUP = auto()
+    FOREACH_OUT = auto()
 
 # Equestrian 的意思是"骑手"或"马术的",取其驾驭、控制的寓意.似乎是专门用来操作管理有 item 的节点, 比如:
 # 这些节点都有一个共同点: 它们内部有自己的items, 可以动态地添加、删除、移动它们上面的插槽 (socket).
@@ -22,8 +35,8 @@ class NodeItemsUtils:
         "FOREACH_GEOMETRY_ELEMENT_OUTPUT",
     }
     only_inputs = {'GROUP_OUTPUT', 'INDEX_SWITCH'}
-    has_extend_socket = property(lambda self: self.type in ('SIM', 'REP', 'MENU', 'CAPTURE', 'BAKE'))
-    is_index_switch = property(lambda self: self.type == 'INDEX')  # 编号切换单独判断
+    has_extend_socket = property(lambda self: self.type in {eType.SIM, eType.REP, eType.MENU, eType.CAPTURE, eType.BAKE})
+    is_index_switch = property(lambda self: self.type == eType.INDEX)  # 编号切换单独判断
 
     @staticmethod
     def is_socket_definitely(ess: Any): # 未使用
@@ -66,16 +79,16 @@ class NodeItemsUtils:
         if from_sk.node != self.node:
             raise Exception(f"Equestrian node is not equal `{from_sk.path_from_id()}`")
         match self.type:
-            case 'SIM' | 'REP':
+            case eType.SIM | eType.REP:
                 for item in self.items:
                     if item.name == from_sk.name:
                         return item
                 raise Exception(f"Interface not found from `{from_sk.path_from_id()}`")  # 如果套接字在节点上直接重命名，而不是通过接口。
-            case 'CLASSIC' | 'GROUP':
+            case eType.CLASSIC | eType.GROUP:
                 for item in self.items:
                     if (item.item_type == 'SOCKET') and (item.identifier == from_sk.identifier):
                         return item
-            case 'MENU' | 'BAKE' | 'CAPTURE' | 'FOREACH_OUT':
+            case eType.MENU | eType.BAKE | eType.CAPTURE | eType.FOREACH_OUT:
                 for item in self.items:
                     if item.name == from_sk.name:
                         return item
@@ -85,16 +98,15 @@ class NodeItemsUtils:
         # 不知道干什么用的,会导致节点组连到组输入报错
         # if not self.contains_item(item): raise Exception(f"Equestrian items does not contain `{item}`")
         match self.type:
-        # 小王-插入接口会用到
-            case 'SIM' | 'REP' | 'CAPTURE' | 'BAKE' | 'MENU':
+            case eType.SIM | eType.REP | eType.CAPTURE | eType.BAKE | eType.MENU:
                 for sk in (self.node.outputs if is_out else self.node.inputs):
                     if sk.name == item.name:
                         return sk
-            case 'INDEX':
+            case eType.INDEX:
                 for sk in self.node.inputs:
                     if sk.name == item.name:
                         return sk
-            case 'CLASSIC' | 'GROUP':
+            case eType.CLASSIC | eType.GROUP:
                 if item.item_type == 'PANEL':
                     raise Exception(f"`Panel cannot be used for search: {item}`")
                 for sk in (self.node.outputs if is_out else self.node.inputs):
@@ -107,7 +119,7 @@ class NodeItemsUtils:
         sk_name = socket_label(from_sk)
         sk_type = from_sk.type
         match self.type:
-            case 'SIM' | 'REP' | 'BAKE' | 'CAPTURE':
+            case eType.SIM | eType.REP | eType.BAKE | eType.CAPTURE:
                 if sk_type == 'VALUE':
                     sk_type = 'FLOAT'
                 geometry_items: B.NodeGeometrySimulationOutputItems | B.NodeGeometryRepeatOutputItems | B.NodeGeometryBakeItems | B.NodeGeometryCaptureAttributeItems = self.items
@@ -116,14 +128,14 @@ class NodeItemsUtils:
                     return geometry_items.new(sk_type, sk_name)
                 except:
                     pass
-            case 'MENU':
+            case eType.MENU:
                 menu_items: B.NodeMenuSwitchItems = self.items
                 return menu_items.new(sk_name)
-            case 'INDEX':
+            case eType.INDEX:
                 if from_sk.is_output:
                     return add_item_for_index_switch(self.node)
                 return
-            case 'CLASSIC' | 'GROUP':
+            case eType.CLASSIC | eType.GROUP:
                 # self.items 是 tree.interface.items_tree  是 bpy_prop_collection[NodeTreeInterfaceItem]
                 data: B.NodeTreeInterface = self.items.data
                 interface_sk = data.new_socket(sk_name,
@@ -164,7 +176,7 @@ class NodeItemsUtils:
 
     def move_items(self, from_item: Any, to_item: Any, *, is_swap: bool = False):  # 本可以自行处理“按 item 移动”的复杂性，但这已经是调用方的责任了。
         match self.type:
-            case 'SIM' | 'REP' | 'MENU' | 'BAKE' | 'CAPTURE':  # 小王-支持交换接口
+            case eType.SIM | eType.REP | eType.MENU | eType.BAKE | eType.CAPTURE:
                 inx_from = -1
                 inx_to = -1
                 # 参见 get_socket() 中对 item 存在的检查。
@@ -181,7 +193,7 @@ class NodeItemsUtils:
                 self.items.move(inx_from, inx_to)
                 if is_swap:
                     self.items.move(inx_to + (1 - (inx_to > inx_from) * 2), inx_from)
-            case 'CLASSIC' | 'GROUP':
+            case eType.CLASSIC | eType.GROUP:
                 items_tree: B.bpy_prop_collection[B.NodeTreeInterfaceItem] = self.items
                 interface: B.NodeTreeInterface = items_tree.data
                 from_item: B.NodeTreeInterfaceItem
@@ -204,39 +216,38 @@ class NodeItemsUtils:
         tar_node = getattr(tar_node, 'paired_output', tar_node)
 
         if isinstance(tar_node, (B.NodeGroupInput, B.NodeGroupOutput)):
-            self.type = 'CLASSIC'
+            self.type = eType.CLASSIC
             self.items = self.tree.interface.items_tree  # bpy_prop_collection[NodeTreeInterfaceItem]
         elif isinstance(tar_node, B.GeometryNodeSimulationOutput):
-            self.type = 'SIM'
+            self.type = eType.SIM
             self.items = tar_node.state_items
-        elif isinstance(tar_node, B.GeometryNodeRepeatOutput):
-            self.type = 'REP'
+        elif hasattr(B, "GeometryNodeRepeatOutput") and isinstance(tar_node, B.GeometryNodeRepeatOutput):
+            self.type = eType.REP
             self.items = tar_node.repeat_items
-        # 小王-更改接口名称
-        elif isinstance(tar_node, B.GeometryNodeMenuSwitch):
-            self.type = 'MENU'
+        elif hasattr(B, "GeometryNodeMenuSwitch") and isinstance(tar_node, B.GeometryNodeMenuSwitch):
+            self.type = eType.MENU
             self.items = tar_node.enum_items
-        elif isinstance(tar_node, B.GeometryNodeIndexSwitch):
-            self.type = 'INDEX'
+        elif hasattr(B, "GeometryNodeIndexSwitch") and isinstance(tar_node, B.GeometryNodeIndexSwitch):
+            self.type = eType.INDEX
             self.items = tar_node
-        elif isinstance(tar_node, B.GeometryNodeBake):
-            self.type = 'BAKE'
+        elif hasattr(B, "GeometryNodeBake") and isinstance(tar_node, B.GeometryNodeBake):
+            self.type = eType.BAKE
             self.items = tar_node.bake_items
-        elif isinstance(tar_node, B.GeometryNodeCaptureAttribute):
-            self.type = 'CAPTURE'
+        elif hasattr(B, "GeometryNodeCaptureAttribute") and isinstance(tar_node, B.GeometryNodeCaptureAttribute):
+            self.type = eType.CAPTURE
             self.items = tar_node.capture_items
-        # elif isinstance(tar_node, B.GeometryNodeForeachGeometryElementInput):
+        # elif hasattr(B, "GeometryNodeForeachGeometryElementInput") and isinstance(tar_node, B.GeometryNodeForeachGeometryElementInput):
         #     # for each zone 的重命名有点麻烦,不过这个目前优先级低
-        #     self.type = 'FOREACH_IN'
+        #     self.type = eType.FOREACH_IN
         #     self.items = tar_node.input_items
-        elif isinstance(tar_node, B.GeometryNodeForeachGeometryElementOutput):
-            self.type = 'FOREACH_OUT'
+        elif hasattr(B, "GeometryNodeForeachGeometryElementOutput") and isinstance(tar_node, B.GeometryNodeForeachGeometryElementOutput):
+            self.type = eType.FOREACH_OUT
             # self.items = tar_node.main_items
             self.items = tar_node.generation_items
         elif tar_node.type == "GROUP":
             # GeometryNodeGroup 不是 NodeGroup 的 子类
             tar_node: B.NodeGroup
-            self.type = 'GROUP'
+            self.type = eType.GROUP
             if not tar_node.node_tree:
                 raise Exception(f"Tree for nodegroup `{tar_node.path_from_id()}` not found, from `{sk_or_nd.path_from_id()}`")
             self.items = tar_node.node_tree.interface.items_tree

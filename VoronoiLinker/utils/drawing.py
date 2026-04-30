@@ -4,7 +4,7 @@ from typing import Iterable
 import bpy, blf, gpu, gpu_extras
 from bpy.app.translations import pgettext_iface as _iface
 from bpy.types import Context, NodeSocket
-from ..Structure import bView2D
+from ..Structure import BView2D
 from ..common_class import Target, float2, float4, Vec2 
 from ..preference import VoronoiAddonPrefs
 from .color import clamp_color, get_color_brightness, get_sk_color, get_sk_color_safe, set_alpha, power_color
@@ -438,7 +438,7 @@ class TestDraw:
             prefs.dsIsTestDrawing = True
             return  # 不知道是否必须退出.
         drawer = Drawer(context, context.space_data.cursor_location, context.preferences.system.dpi / 72, prefs)
-        cls.b_view2d = bView2D.GetFields(context.region.view2d)
+        cls.b_view2d = BView2D.GetFields(context.region.view2d)
         drawer.world_zoom = cls.b_view2d.get_zoom()
         ##
         for cyc in range(4):
