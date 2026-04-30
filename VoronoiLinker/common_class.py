@@ -41,7 +41,7 @@ class PieRootData:
     pieDisplaySocketTypeInfo: int = 0
     pieDisplaySocketColor: int = 0
     pieAlignment: int = 0
-    uiScale: int = 1.0
+    ui_scale: int = 1.0
     prefs: "VoronoiAddonPrefs"
 
 class VmtData(PieRootData):
@@ -101,7 +101,7 @@ def set_pie_data(self: "ModelBaseTool", toolData: PieRootData, prefs: "VoronoiAd
     toolData.pieDisplaySocketTypeInfo = get_pie_pref("PieSocketDisplayType")
     toolData.pieDisplaySocketColor = get_pie_pref("PieDisplaySocketColor")
     toolData.pieAlignment = get_pie_pref("PieAlignment")
-    toolData.uiScale = self.uiScale
+    toolData.ui_scale = self.ui_scale
     toolData.prefs = prefs
     prefs.vaDecorColSkBack = col
     prefs.vaDecorColSk = col

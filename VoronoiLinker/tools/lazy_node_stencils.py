@@ -151,11 +151,11 @@ def LzLazyStencil(prefs, tree, skFirst, skSecond):
                                             VlnstData.lastLastExecError = str(ex)
                                             prefs.vlnstLastExecError = VlnstData.lastLastExecError
                                     return result
-def VlnstLazyTemplate(prefs, tree, skFirst, skSecond, cursorLoc):
+def VlnstLazyTemplate(prefs, tree, skFirst, skSecond, cursor_loc):
     list_nodes = LzLazyStencil(prefs, tree, skFirst, skSecond)
     if list_nodes:
         bpy.ops.node.select_all(action='DESELECT')
-        firstOffset = cursorLoc-list_nodes[0].location
+        firstOffset = cursor_loc-list_nodes[0].location
         for nd in list_nodes:
             nd.select = True
             nd.location += firstOffset
@@ -169,7 +169,7 @@ class NODE_OT_voronoi_lazy_node_stencils(PairSocketTool):  # 第一个应外部�
         # 注意: 对于不同的性别, 文本侧与套接字性别的对应关系不明显. 大概要接受了.
         draw_sockets_template(drawer, self.target_sk0, self.target_sk1, tool_name="Lazy Node Stencils")
         if ( (not not self.target_sk0)^(not not self.target_sk1) )and(drawer.dsIsDrawPoint):
-            draw_socket_point(drawer, drawer.cursorLoc, color1=drawer.dsCursorColor, color2=drawer.dsCursorColor) # 为了美观.
+            draw_socket_point(drawer, drawer.cursor_loc, color1=drawer.dsCursorColor, color2=drawer.dsCursorColor) # 为了美观.
     def find_targets(self, is_first_active, prefs, tree):
         def FindAnySk():
             tar_sk_out, tar_sk_in = None, None
@@ -199,7 +199,7 @@ class NODE_OT_voronoi_lazy_node_stencils(PairSocketTool):  # 第一个应外部�
     def can_run(self):
         return not not self.target_sk0
     def run(self, event, prefs, tree):
-        VlnstLazyTemplate(prefs, tree, opt_tar_socket(self.target_sk0), opt_tar_socket(self.target_sk1), self.cursorLoc)
+        VlnstLazyTemplate(prefs, tree, opt_tar_socket(self.target_sk0), opt_tar_socket(self.target_sk1), self.cursor_loc)
     @staticmethod
     def draw_pref_settings(col, prefs):
         split_prop(col, prefs,'vlnstNonColorName')

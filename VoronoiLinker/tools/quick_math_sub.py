@@ -88,8 +88,8 @@ class NODE_MT_quick_math_pie(Menu):
             ly = where.row(align=VqmtData.pieAlignment==0)
             soldPdsc = VqmtData.pieDisplaySocketColor# if not VqmtData.isJustPie else 0
             if soldPdsc:
-                # ly = ly.split(factor=( abs( (soldPdsc>0)-.01*abs(soldPdsc)/(1+(soldPdsc>0)) ) )/VqmtData.uiScale, align=True)
-                ly = ly.split(factor=Color_Bar_Width * VqmtData.uiScale, align=True)  # 小王 饼菜单颜色条宽度
+                # ly = ly.split(factor=( abs( (soldPdsc>0)-.01*abs(soldPdsc)/(1+(soldPdsc>0)) ) )/VqmtData.ui_scale, align=True)
+                ly = ly.split(factor=Color_Bar_Width * VqmtData.ui_scale, align=True)  # 小王 饼菜单颜色条宽度
             if soldPdsc<0:
                 ly.prop(VqmtData.prefs,'vaDecorColSk', text="")
             add_op(ly, text=txt, icon=ico if soldCanIcons else 'NONE')

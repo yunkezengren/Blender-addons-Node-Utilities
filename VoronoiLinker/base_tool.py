@@ -1,18 +1,20 @@
 import bpy
-from bpy.types import Area, Context, Event, KeyMapItem, Node, NodeTree, NodeSocket, Operator, Region, SpaceNodeEditor, UILayout, View2D as View2d
+from bpy.types import Area, Context, Event, KeyMapItem, Node, NodeTree, NodeSocket, Operator, Region, SpaceNodeEditor, UILayout, View2D
 from bpy.props import BoolProperty
 from mathutils import Vector as Vec2
 from time import perf_counter
 from typing import ClassVar, Any
 
-from .Structure import RectBase, View2D
+bt = bpy.types
+
+from .Structure import RectBase, bView2D
 from .common_class import TryAndPass
 from .common_class import Target
 from .globals import sk_type_support_field
 from .utils.ui import user_node_keymap
 from .preference import pref, VoronoiAddonPrefs
 from .utils.drawing import draw_debug_info, draw_node_template, draw_sockets_template, Drawer
-from .utils.node import nearest_nodes_tar, nearest_sockets_tar, RestoreCollapsedNodes, SaveCollapsedNodes, is_builtin_tree_idname
+from .utils.node import nearest_nodes_tar, nearest_sockets_tar, RestoreCollapsedNodes, SaveCollapsedNodes, is_builtin_tree
 from .utils.solder import solder_sk_links, solder_theme_cols
 
 def get_operator_keymap_item(self: type["BaseOperator"], event: Event):
@@ -73,20 +75,20 @@ class ModelBaseTool(BaseOperator, ProtocolTool):  #0
     in_builtin_tree: bool
     kmi: KeyMapItem
     prefs: VoronoiAddonPrefs
-    uiScale: float
-    cursorLoc: Vec2
+    ui_scale: float
+    cursor_loc: Vec2
     drawer: Drawer
     region: Region
-    ctView2d: View2D
+    b_view2d: bView2D
     handle: Any
 
     def get_nearest_nodes(self, includePoorNodes=False, cur_x_off: float = 0):
-        self.cursorLoc.x += cur_x_off  # 唤起位置偏移
-        return nearest_nodes_tar(self.tree.nodes[:], self.cursorLoc, self.uiScale, includePoorNodes)
+        self.cursor_loc.x += cur_x_off  # 唤起位置偏移
+        return nearest_nodes_tar(self.tree.nodes[:], self.cursor_loc, self.ui_scale, includePoorNodes)
 
     def get_nearest_sockets(self, nd: Node, cur_x_off: float = 0):
-        self.cursorLoc.x += cur_x_off  #     唤起位置偏移
-        return nearest_sockets_tar(nd, self.cursorLoc, self.uiScale)
+        self.cursor_loc.x += cur_x_off  #     唤起位置偏移
+        return nearest_sockets_tar(nd, self.cursor_loc, self.ui_scale)
 
     def nearest_target_sockets(self, only_input=False, only_output=False, combin_in_out=True, cur_x_off=0):
         """ 优化最近接口的获取 """
@@ -119,9 +121,9 @@ class ModelBaseTool(BaseOperator, ProtocolTool):  #0
             return tar_sks_in, tar_sks_out
 
     def callback_draw_base(self, drawer: Drawer, context: Context):
-        if drawer.whereActivated != context.space_data:  # 需要只在活动的编辑器中绘制, 而不是在所有打开相同树的编辑器中绘制.
+        if drawer.active_space != context.space_data:  # 需要只在活动的编辑器中绘制, 而不是在所有打开相同树的编辑器中绘制.
             return
-        drawer.worldZoom = self.ctView2d.GetZoom()  # 每次都从 EdgePan 和鼠标滚轮获取. 以前可以一次性焊接.
+        drawer.world_zoom = self.b_view2d.get_zoom()  # 每次都从 EdgePan 和鼠标滚轮获取. 以前可以一次性焊接.
         if self.prefs.dsIsFieldDebug:
             draw_debug_info(self, drawer)
         if self.tree:  # 现在对于没有树的情况可以不显示任何迹象; 由于拓扑结构的头疼问题以及在插件树中传递热键时工具的跳过问题而关闭 (?).
@@ -132,64 +134,64 @@ class ModelBaseTool(BaseOperator, ProtocolTool):  #0
             try:
                 self.find_targets(flag, self.prefs, self.tree)
             except:
-                EdgePan.isWorking = False  # 现在只对 VLT 有效. 也许应该做个 ~self.ErrorToolProc, 并在 VLT 中 "退后一步".
+                EdgePan.is_working = False  # 现在只对 VLT 有效. 也许应该做个 ~self.ErrorToolProc, 并在 VLT 中 "退后一步".
                 SpaceNodeEditor.draw_handler_remove(self.handle, 'WINDOW')
                 raise
 
     def invoke(self, context, event):
-        tree = context.space_data.edit_tree
+        node_editor : SpaceNodeEditor = context.space_data
+        tree = node_editor.edit_tree
         self.tree = tree
-        editorBlid = context.space_data.tree_type  # 无需 `self.`?.
-        self.in_builtin_tree = is_builtin_tree_idname(editorBlid)
+
+        tree_type = node_editor.tree_type
+        self.in_builtin_tree = is_builtin_tree(tree_type)
         if not (self.use_for_custom_tree or self.in_builtin_tree):
             return {'PASS_THROUGH'}  #'CANCELLED'?.
-        if (not self.use_for_undefine_tree) and (editorBlid == 'NodeTreeUndefined'):
+        if (not self.use_for_undefine_tree) and (tree_type == 'NodeTreeUndefined'): # type: ignore
             return {'CANCELLED'}  # 为了不绘制而离开.
         if not (self.use_for_none_tree or tree):
             return {'FINISHED'}
+
         # 对所有工具相同的跳过选择处理
-        if (self.isPassThrough) and (tree) and ('FINISHED' in bpy.ops.node.select('INVOKE_DEFAULT')):  # 检查树是第二位的, 为了美学优化.
+        if self.isPassThrough and tree and ('FINISHED' in bpy.ops.node.select('INVOKE_DEFAULT')):  # 检查树是第二位的, 为了美学优化.
             # 如果调用工具的热键与取消选择的热键相同, 那么上面一行选择的节点在交接后会重新取消选择 (但仍然是活动的).
             # 因此, 对于这种情况, 需要取消选择, 以便再次切换回已选择的节点.
             tree.nodes.active.select = False  # 但没有条件, 对所有情况都适用. 因为 ^ 否则将永远是选择而不切换; 我没有想法如何处理这种情况.
             return {'PASS_THROUGH'}
-        ##
+
         self.kmi = get_operator_keymap_item(self, event)
         if not self.kmi:
             return {'CANCELLED'}  # 如果总体上出了问题, 或者操作符是通过布局按钮调用的.
         # 如果在 keymap 调用操作符时未指定其属性, 它们会从上次调用中读取; 所以需要将它们设置回默认值.
         # 尽早这样做是有意义的; 对 VQMT 和 VEST 有效.
-        for li in self.rna_type.properties:
-            if li.identifier != 'rna_type':
-                # 注意: 判断是否在 kmi 中设置 -- `kmi.properties[li.identifier]` 的存在.
-                setattr(self, li.identifier, getattr(self.kmi.properties, li.identifier))  # 为了这个我不得不反向工程 Blender 并进行调试. 原来是这么简单..
-        ##
-        self.prefs = pref()  # "原来是这么简单".
-        self.uiScale = context.preferences.system.dpi / 72
-        self.cursorLoc: Vec2 = context.space_data.cursor_location  # 这是 class Vector, 通过引用复制; 所以可以在这里设置(绑定)一次, 就不用担心了.
-        self.drawer = Drawer(context, self.cursorLoc, self.uiScale, self.prefs)
-        solder_theme_cols(context.preferences.themes[0].node_editor)  # 和 fontId 一样; 虽然在大多数情况下主题在整个会话期间不会改变.
+        for prop in self.rna_type.properties:
+            if prop.identifier != 'rna_type':
+                # 注意: 判断是否在 kmi 中设置 -- `kmi.properties[prop.identifier]` 的存在.
+                setattr(self, prop.identifier, getattr(self.kmi.properties, prop.identifier))  # 为了这个我不得不反向工程 Blender 并进行调试. 原来是这么简单..
+
+        self.prefs = pref()
+        self.ui_scale = context.preferences.system.dpi / 72
+        self.cursor_loc = node_editor.cursor_location  # 这是 class Vector, 通过引用复制; 所以可以在这里设置(绑定)一次, 就不用担心了.
+        self.drawer = Drawer(context, self.cursor_loc, self.ui_scale, self.prefs)
+        solder_theme_cols(context.preferences.themes[0].node_editor)  # 和 font_id 一样; 虽然在大多数情况下主题在整个会话期间不会改变.
         self.region = context.region
-        self.ctView2d = View2D.GetFields(context.region.view2d)
+        self.b_view2d = bView2D.GetFields(context.region.view2d)
         if self.prefs.vIsOverwriteZoomLimits:
-            self.ctView2d.minzoom = self.prefs.vOwZoomMin
-            self.ctView2d.maxzoom = self.prefs.vOwZoomMax
-        ##
+            self.b_view2d.minzoom = self.prefs.vOwZoomMin
+            self.b_view2d.maxzoom = self.prefs.vOwZoomMax
+
         if result := self.initialize_pre(event):  # 对于 'Pre' 返回某些内容不太重要.
             return result
         if result := self.initialize(event, self.prefs, tree):  # 注意: 参见拓扑结构: 不返回任何东西等同于返回 `{'RUNNING_MODAL'}`.
             return result
         edge_pan_init(self, context.area)
-        ##
-        self.handle = SpaceNodeEditor.draw_handler_add(self.callback_draw_base, (
-            self.drawer,
-            context,
-        ), 'WINDOW', 'POST_PIXEL')
+
+        self.handle = SpaceNodeEditor.draw_handler_add(self.callback_draw_base, (self.drawer, context), 'WINDOW', 'POST_PIXEL')
         if tree:  # 注意: 参见本地拓扑结构, 工具本身可以, 但每个工具都明确地对缺失的树禁用了.
             solder_sk_links(self.tree)
             SaveCollapsedNodes(tree.nodes)
             self.find_targets_base(True)  # 原来只需要在 modal_handler_add() 之前移动它. #https://projects.blender.org/blender/blender/issues/113479
-        ##
+
         context.area.tag_redraw()  # 需要在激活时绘制找到的; 本地顺序不重要.
         context.window_manager.modal_handler_add(self)
         return {'RUNNING_MODAL'}
@@ -197,12 +199,12 @@ class ModelBaseTool(BaseOperator, ProtocolTool):  #0
     def modal(self, context, event):
         context.area.tag_redraw()
         if num := (event.type == 'WHEELUPMOUSE') - (event.type == 'WHEELDOWNMOUSE'):
-            self.ctView2d.cur.Zooming(self.cursorLoc, 1.0 - num*0.15)
+            self.b_view2d.cur.Zooming(self.cursor_loc, 1.0 - num*0.15)
         self.handle_modal(event, self.prefs)
         if not self.modal_handle_mouse(event, self.prefs):
             return {'RUNNING_MODAL'}
         #* 工具的结束从这里开始 *
-        EdgePan.isWorking = False
+        EdgePan.is_working = False
         if event.type == 'ESC':  # 这正是 Escape 键应该做的.
             return {'CANCELLED'}
         with TryAndPass():  # 它可能已经被删除了, 参见第二个这样的情况.
@@ -245,9 +247,7 @@ class PairSocketTool(SingleSocketTool):  #2
     target_sk0: Target | None
     target_sk1: Target | None
 
-    isCanBetweenFields: BoolProperty(name="Can between fields",
-                                     default=True,
-                                     description="Tool can connecting between different field types")
+    isCanBetweenFields: BoolProperty(name="Can between fields", default=True, description="Tool can connecting between different field types")
 
     def callback_draw(self, drawer: Drawer):
         draw_sockets_template(drawer, self.target_sk0, self.target_sk1)
@@ -326,33 +326,33 @@ def unhide_node_reassign(nd: Node, self: ModelBaseTool, *, cond: bool, flag=None
 
 class EdgePan:
     area: Area = None  # 本应是 'context', 但它总是 None.
-    ctCur: RectBase = None
+    view_cur: RectBase = None
     # 快速凑合的:
-    isWorking = False
-    view2d: View2d = None
-    cursorPos: Vec2 = Vec2((0, 0))
-    uiScale = 1.0
+    is_working = False
+    view2d: View2D = None
+    cursor_loc: Vec2 = Vec2((0, 0))
+    ui_scale = 1.0
     center: Vec2 = Vec2((0, 0))
     delta = 0.0  # 哦, 这些增量.
-    zoomFac = 0.5
+    zoom_fac = 0.5
     speed = 1.0
 
 def edge_pan_init(self: ModelBaseTool, area: Area):
     EdgePan.area = area
-    EdgePan.ctCur = self.ctView2d.cur
-    EdgePan.isWorking = True
-    EdgePan.cursorPos = self.cursorLoc
-    EdgePan.uiScale = self.uiScale
+    EdgePan.view_cur = self.b_view2d.cur
+    EdgePan.is_working = True
+    EdgePan.cursor_loc = self.cursor_loc
+    EdgePan.ui_scale = self.ui_scale
     EdgePan.view2d = self.region.view2d
     EdgePan.center = Vec2((self.region.width / 2, self.region.height / 2))
     EdgePan.delta = perf_counter()  #..还有 "轻微边界".
-    EdgePan.zoomFac = 1.0 - self.prefs.vEdgePanFac
+    EdgePan.zoom_fac = 1.0 - self.prefs.vEdgePanFac
     EdgePan.speed = self.prefs.vEdgePanSpeed
     bpy.app.timers.register(edge_pan_timer, first_interval=0.0)
 
 def edge_pan_timer():
     delta = perf_counter() - EdgePan.delta
-    vec = EdgePan.cursorPos * EdgePan.uiScale
+    vec = EdgePan.cursor_loc * EdgePan.ui_scale
     field0 = Vec2(EdgePan.view2d.view_to_region(vec.x, vec.y, clip=False))
     zoomWorld = (EdgePan.view2d.view_to_region(vec.x + 1000, vec.y, clip=False)[0] - field0.x) / 1000
     # 再来点光线步进:
@@ -361,11 +361,11 @@ def edge_pan_timer():
     field2 = field2 - EdgePan.center + Vec2((10, 10))  # 稍微减小光标紧贴屏幕边缘的边界.
     field2 = Vec2((max(field2.x, 0), max(field2.y, 0)))
     ##
-    xi, yi, xa, ya = EdgePan.ctCur.GetRaw()
+    xi, yi, xa, ya = EdgePan.view_cur.GetRaw()
     speedZoomSize = Vec2((xa - xi, ya - yi)) / 2.5 * delta  # 没有 delta 时是 125.
-    field1 = field1.normalized() * speedZoomSize * ((zoomWorld-1) / 1.5 + 1) * EdgePan.speed * EdgePan.uiScale
+    field1 = field1.normalized() * speedZoomSize * ((zoomWorld-1) / 1.5 + 1) * EdgePan.speed * EdgePan.ui_scale
     if (field2.x != 0) or (field2.y != 0):
-        EdgePan.ctCur.TranslateScaleFac((field1.x, field1.y), fac=EdgePan.zoomFac)
+        EdgePan.view_cur.TranslateScaleFac((field1.x, field1.y), fac=EdgePan.zoom_fac)
     EdgePan.delta = perf_counter()  # 在下一次进入前 "发送到未知处".
     EdgePan.area.tag_redraw()
-    return 0.0 if EdgePan.isWorking else None
+    return 0.0 if EdgePan.is_working else None

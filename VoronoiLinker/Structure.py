@@ -179,7 +179,7 @@ class Rcti(RectBase):
     ymin : ctypes.c_int
     ymax : ctypes.c_int
 
-class View2D(StructBase):    # \source\blender\makesdna\DNA_view2d_types.h
+class bView2D(StructBase):    # \source\blender\makesdna\DNA_view2d_types.h
     tot       : Rctf
     cur       : Rctf
     vert      : Rcti
@@ -194,7 +194,7 @@ class View2D(StructBase):    # \source\blender\makesdna\DNA_view2d_types.h
     keeptot   : ctypes.c_short
     keepzoom  : ctypes.c_short
 
-    def GetZoom(self):
+    def get_zoom(self):
         return (self.mask.xmax - self.mask.xmin) / (self.cur.xmax - self.cur.xmin)  # 多亏了 keepzoom==3, 我们可以只从一个轴读取数据. ✅
 
 StructBase._init_structs()

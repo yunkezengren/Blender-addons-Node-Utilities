@@ -6,7 +6,7 @@ from ..common_class import VptData
 from ..globals import Cursor_X_Offset, is_bl4_plus, voronoiAnchorCnName, voronoiAnchorDtName, voronoiPreviewResultNdName, voronoiSkPreviewName
 from ..utils.color import get_sk_color_safe, power_color
 from ..utils.drawing import draw_socket_text, draw_socket_area, draw_sockets_template
-from ..utils.node import sk_type_to_idname, is_builtin_tree_idname, GenTarsFromPuts, SelectAndActiveNdOnly, VlrtRememberLastSockets
+from ..utils.node import sk_type_to_idname, is_builtin_tree, GenTarsFromPuts, SelectAndActiveNdOnly, VlrtRememberLastSockets
 from ..utils.solder import solder_sk_links, SoldThemeCols
 from ..utils.ui import split_prop
 
@@ -140,7 +140,7 @@ def VptGetRootSk(tree, ndRoot, skTar):
 def VptPreviewFromSk(self, prefs, skTar):
     if not(skTar and skTar.is_output):
         return
-    list_way = DoPreviewCore(skTar, self.list_distanceAnchors, self.cursorLoc)
+    list_way = DoPreviewCore(skTar, self.list_distanceAnchors, self.cursor_loc)
     if self.isSelectingPreviewedNode:
         SelectAndActiveNdOnly(skTar.node) # 不仅要只选择它, 还要让它成为活动节点, 这很重要.
     if not self.in_builtin_tree:
@@ -220,7 +220,7 @@ def VptPreviewFromSk(self, prefs, skTar):
 vptFeatureUsingExistingPath = True
 # 注意: 不考虑模拟和重复区域的接口, 处理它们需要搜索树中的每个节点, 会导致 BigO 警告.
 # Todo1PR: 需要全部重新梳理; 但首先要做所有可能的深度, 锚点, 几何查看器, 节点缺失, "已有路径"等组合的测试 (还有插件节点树), 以及本地的 BigO.
-def DoPreviewCore(skTar, list_distAnchs, cursorLoc):
+def DoPreviewCore(skTar, list_distAnchs, cursor_loc):
     def NewLostNode(type, ndTar=None):
         ndNew = tree.nodes.new(type)
         if ndTar:
@@ -251,7 +251,7 @@ def DoPreviewCore(skTar, list_distAnchs, cursorLoc):
             case 'SHADER':   return "NodeSocketShader"
             case 'RGBA':     return "NodeSocketColor"
     ##
-    isInClassicTrees = is_builtin_tree_idname(skTar.id_data.bl_idname)
+    isInClassicTrees = is_builtin_tree(skTar.id_data.bl_idname)
     for cyc in reversed(range(higWay+1)):
         curWay = list_way[cyc]
         tree = curWay.tree
@@ -339,7 +339,7 @@ def DoPreviewCore(skTar, list_distAnchs, cursorLoc):
         if (cyc==higWay)and(not ndAnchor)and(list_distAnchs): # 最近的从光标处搜索; 非目标深度从哪里获取光标?.
             min = 32768
             for nd in list_distAnchs:
-                length = (nd.location-cursorLoc).length
+                length = (nd.location-cursor_loc).length
                 if min>length:
                     min = length
                     ndAnchor = nd
@@ -370,7 +370,7 @@ class NODE_OT_voronoi_preview(SingleSocketTool):
         if (self.prefs.vptRvEeSksHighlighting)and(self.target_sk): #帮助逆向工程 -- 高亮连接点, 并同时显示这些接口的名称.
             solder_sk_links(self.tree) #否则在 `tar.tar==sk:` 上会崩溃.
             #确定标签的缩放比例:
-            soldCursorLoc = drawer.cursorLoc
+            soldCursorLoc = drawer.cursor_loc
             #绘制:
             ndTar = self.target_sk.tar.node
             for isSide in (False, True):
@@ -379,13 +379,13 @@ class NODE_OT_voronoi_preview(SingleSocketTool):
                         sk = lk.to_socket if isSide else lk.from_socket
                         nd = sk.node
                         if (nd.type!='REROUTE')and(not nd.hide):
-                            tar_sks = GenTarsFromPuts(nd, not isSide, soldCursorLoc, drawer.uiScale)
+                            tar_sks = GenTarsFromPuts(nd, not isSide, soldCursorLoc, drawer.ui_scale)
                             for tar in tar_sks:
                                 if tar.tar==sk:
                                     #不支持遍历转接点. 因为懒, 而且懒得为此重写代码.
                                     if drawer.dsIsDrawSkArea:
                                         draw_socket_area(drawer, tar.tar, tar.bottom_top, get_sk_color_safe(tar.tar))
-                                    draw_socket_text(drawer, tar.pos, (1-isSide*2, -0.5), tar, font_size_override=min(24*drawer.worldZoom*self.prefs.vptHlTextScale, 25))
+                                    draw_socket_text(drawer, tar.pos, (1-isSide*2, -0.5), tar, font_size_override=min(24*drawer.world_zoom*self.prefs.vptHlTextScale, 25))
                                     break
                         nd.hide = False #在绘制时写入. 至少不像 VMLT 中那么严重.
                         #todo0SF: 使用 bpy.ops.wm.redraw_timer 会导致死锁. 所以这里还有另一个“跳帧”.

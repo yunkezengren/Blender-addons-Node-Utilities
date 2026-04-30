@@ -12,7 +12,6 @@ class NODE_OT_voronoi_links_transfer(PairNodeTool):
     can_draw_settings = False
     isByIndexes: bpy.props.BoolProperty(name="Transfer by indexes", default=False)
     def callback_draw(self, drawer):
-        # VLT 模式
         if not self.target_nd0:
             draw_sockets_template(drawer, None, tool_name="Links Transfer")
         elif (self.target_nd0)and(not self.target_nd1):
@@ -41,7 +40,7 @@ class NODE_OT_voronoi_links_transfer(PairNodeTool):
             # 与粘住不同, 粘住时可以清楚地知道“这个是第一个”; 这对于这个工具尤其重要, 因为哪个节点被首先选择很重要.
             if prefs.dsIsSlideOnNodes: # 虽然不急, 但还是留着吧.
                 if self.target_nd0:
-                    self.target_nd0.pos = GenTarFromNd(self.target_nd0.tar, self.cursorLoc, self.uiScale).pos
+                    self.target_nd0.pos = GenTarFromNd(self.target_nd0.tar, self.cursor_loc, self.ui_scale).pos
             break
     def run(self, event, prefs, tree):
         from_node = self.target_nd0.tar

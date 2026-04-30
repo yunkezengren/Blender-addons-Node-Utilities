@@ -91,7 +91,7 @@ class NODE_MT_mixer_pie(Menu):
             ly = where.row(align=_align)
             soldPdsc = VmtData.pieDisplaySocketColor
             if soldPdsc:
-                ly = ly.split(factor=Color_Bar_Width * VmtData.uiScale, align=True)      # 饼菜单颜色条宽度
+                ly = ly.split(factor=Color_Bar_Width * VmtData.ui_scale, align=True)      # 饼菜单颜色条宽度
             if soldPdsc<0:
                 ly.prop(VmtData.prefs,'vaDecorColSk', text="")
             LyVmAddOp(ly, txt)

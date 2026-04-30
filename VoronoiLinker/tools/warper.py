@@ -39,7 +39,7 @@ class NODE_OT_voronoi_warper(SingleSocketTool):
             nd = tar_nd.tar
             tar_sks_in, tar_sks_out = self.get_nearest_sockets(nd, cur_x_off=0)
             if nd.type=='REROUTE': #todo0NA 以及这个要加入到通用的通用部分中.
-                self.target_sk = tar_sks_in[0] if self.cursorLoc.x<nd.location.x else tar_sks_out[0]
+                self.target_sk = tar_sks_in[0] if self.cursor_loc.x<nd.location.x else tar_sks_out[0]
             else:
                 self.target_sk = FindAnySk()
             if self.target_sk:

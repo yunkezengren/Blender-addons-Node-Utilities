@@ -48,7 +48,7 @@ class NODE_OT_voronoi_mass_linker(ModelBaseTool):  # "猫狗合体", 既不是�
                         if tgl:
                             self.list_equalTarSks.append( (taro, tari) )
             if not self.list_equalTarSks:
-                draw_socket_point(drawer, drawer.cursorLoc, color1=drawer.dsCursorColor, color2=drawer.dsCursorColor) #否则一切都会消失.
+                draw_socket_point(drawer, drawer.cursor_loc, color1=drawer.dsCursorColor, color2=drawer.dsCursorColor) #否则一切都会消失.
             for li in self.list_equalTarSks:
                 #因为是按名称搜索, 所以这里会绘制并可能在下面同时从两个 (或更多) 接口连接到同一个接口. 就像同名"冲突"一样.
                 draw_sockets_template(drawer, li[0], li[1], is_draw_text=False, is_classic_flow=True, tool_name="MassLinker") #*[ti for li in self.list_equalTarSks for ti in li]
