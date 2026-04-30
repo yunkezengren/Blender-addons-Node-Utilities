@@ -101,7 +101,7 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
 
     @staticmethod
     def is_insert_target_valid(nd: Node, tar: Target, skip_sk: NodeSocket | None = None) -> bool:
-        return (tar.idname != 'NodeSocketVirtual') and (tar.tar != skip_sk) and NodeItemsUtils.IsSimRepCorrectSk(nd, tar.tar)
+        return (tar.idname != 'NodeSocketVirtual') and (tar.tar != skip_sk) and NodeItemsUtils.is_item_socket_allowed(nd, tar.tar)
 
     def find_nearest_insert_tar(self, nd: Node, pos: Vec, is_output: bool, skip_sk: NodeSocket | None = None) -> Target | None:
         tarNearest = None
@@ -115,34 +115,34 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
                     tarNearest = tar
         return tarNearest
 
-    def move_item_to_insert(self, items_tool: NodeItemsUtils, skfFrom, skfTo, tarNearest: Target, tarNdTar: Target) -> None:
-        items_tool.MoveBySkfs(skfFrom, skfTo, isSwap=False)
+    def move_item_to_insert(self, items_tool: NodeItemsUtils, from_item, to_item, tarNearest: Target, tarNdTar: Target) -> None:
+        items_tool.move_items(from_item, to_item, is_swap=False)
         if (tarNdTar.pos.y < tarNearest.pos.y):  # 'True' -- 在组中往下, 而不是世界朝向.
             if items_tool.has_extend_socket:
-                items_tool.MoveBySkfs(items_tool.get_item(tarNearest.tar), skfTo, isSwap=True)  # 小心 skfTo.
+                items_tool.move_items(items_tool.get_item(tarNearest.tar), to_item, is_swap=True)  # 小心 to_item.
             else:
-                items_tool.MoveBySkfs(skfFrom, skfTo, isSwap=True)
+                items_tool.move_items(from_item, to_item, is_swap=True)
 
-    def move_existing_item_to_insert(self, items_tool: NodeItemsUtils, skfFrom, skfTo, tarNearest: Target, tarNdTar: Target) -> None:
+    def move_existing_item_to_insert(self, items_tool: NodeItemsUtils, from_item, to_item, tarNearest: Target, tarNdTar: Target) -> None:
         if not items_tool.has_extend_socket:
-            self.move_item_to_insert(items_tool, skfFrom, skfTo, tarNearest, tarNdTar)
+            self.move_item_to_insert(items_tool, from_item, to_item, tarNearest, tarNdTar)
             return
 
         inxFrom = -1
         inxTo = -1
-        for cyc, skf in enumerate(items_tool.skfa):
-            if skf == skfFrom:
+        for cyc, item in enumerate(items_tool.items):
+            if item == from_item:
                 inxFrom = cyc
-            if skf == skfTo:
+            if item == to_item:
                 inxTo = cyc
         if (inxFrom == -1) or (inxTo == -1):
-            raise Exception(f"Index not found from `{skfFrom}` or `{skfTo}`")
+            raise Exception(f"Index not found from `{from_item}` or `{to_item}`")
 
         is_insert_after = tarNdTar.pos.y < tarNearest.pos.y
         target_index = inxTo - (inxFrom < inxTo)
         final_index = target_index + is_insert_after
         if final_index != inxFrom:
-            items_tool.skfa.move(inxFrom, final_index)
+            items_tool.items.move(inxFrom, final_index)
 
     def find_targets_swap_move(self, is_first_active):
         self.target_skMain = None
@@ -197,11 +197,11 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
                     if is_first_active:
                         tar_sk_out, tar_sk_in = None, None
                         for tar in tar_sks_in:
-                            if (tar.idname != 'NodeSocketVirtual') and (NodeItemsUtils.IsSimRepCorrectSk(nd, tar.tar)):
+                            if (tar.idname != 'NodeSocketVirtual') and (NodeItemsUtils.is_item_socket_allowed(nd, tar.tar)):
                                 tar_sk_in = tar
                                 break
                         for tar in tar_sks_out:
-                            if (tar.idname != 'NodeSocketVirtual') and (NodeItemsUtils.IsSimRepCorrectSk(nd, tar.tar)):
+                            if (tar.idname != 'NodeSocketVirtual') and (NodeItemsUtils.is_item_socket_allowed(nd, tar.tar)):
                                 tar_sk_out = tar
                                 break
                         self.target_skMain = pick_near_target(tar_sk_out, tar_sk_in)
@@ -256,18 +256,18 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
             case eMode.SWAP:
                 skMain = self.target_skMain.tar
                 items_tool = NodeItemsUtils(skMain)
-                skfFrom = items_tool.get_item(self.target_skRosw.tar)
-                skfTo = items_tool.get_item(skMain)
-                items_tool.MoveBySkfs(skfFrom, skfTo, isSwap=True)
+                from_item = items_tool.get_item(self.target_skRosw.tar)
+                to_item = items_tool.get_item(skMain)
+                items_tool.move_items(from_item, to_item, is_swap=True)
             case eMode.MOVE:
                 tarNdTar = self.target_ndTar
                 skRosw = self.target_skRosw.tar
                 items_tool = NodeItemsUtils(skRosw)
                 tarNearest = self.find_nearest_insert_tar(tarNdTar.tar, tarNdTar.pos, skRosw.is_output, skip_sk=skRosw)
                 if not tarNearest: return
-                skfFrom = items_tool.get_item(skRosw)
-                skfTo = items_tool.get_item(tarNearest.tar)
-                self.move_existing_item_to_insert(items_tool, skfFrom, skfTo, tarNearest, tarNdTar)
+                from_item = items_tool.get_item(skRosw)
+                to_item = items_tool.get_item(tarNearest.tar)
+                self.move_existing_item_to_insert(items_tool, from_item, to_item, tarNearest, tarNdTar)
             case eMode.NEW:
                 link_new_pro(self.target_skRosw.tar, self.target_skMain.tar)
             case eMode.CREATE:
@@ -276,14 +276,14 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
                 items_tool = NodeItemsUtils(_tar_nd)
                 skMain = self.target_skMain.tar
                 tarNearest = self.find_nearest_insert_tar(_tar_nd, tarNdTar.pos, not skMain.is_output)
-                skfNew = items_tool.NewSkfFromSk(skMain, isFlipSide=_tar_nd.type not in {'GROUP_INPUT', 'GROUP_OUTPUT'})
-                if not skfNew: return
+                new_item = items_tool.new_item_from_socket(skMain, is_flip_side=_tar_nd.type not in {'GROUP_INPUT', 'GROUP_OUTPUT'})
+                if not new_item: return
                 is_group = _tar_nd.type in ['GROUP', 'GROUP_INPUT', 'GROUP_OUTPUT']
-                item_name = skfNew.name
+                item_name = new_item.name
                 if tarNearest:
                     if not items_tool.is_index_switch:
-                        skfTo = items_tool.get_item(tarNearest.tar)
-                        self.move_item_to_insert(items_tool, skfNew, skfTo, tarNearest, tarNdTar)
+                        to_item = items_tool.get_item(tarNearest.tar)
+                        self.move_item_to_insert(items_tool, new_item, to_item, tarNearest, tarNdTar)
                     elif items_tool.is_index_switch:
                         tar_input = tarNearest.tar  # 要插入的位置的接口
                         inputs = tar_input.node.inputs
@@ -292,7 +292,7 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
                         else:
                             is_ = tarNdTar.pos.y < tarNearest.pos.y  # 例: 插入1/2之间,离2近时正确,离1近时插到1上了(这时判断为True,插入1/2之间)
                             tar_index = int(tar_input.name) + 1 + is_  # 接口名 + 1才是在输入接口列表里的序号,因为编号切换第一个接口是编号
-                        max_index = int(skfNew.name) + 1  # 最后一个即新建接口的序号
+                        max_index = int(new_item.name) + 1  # 最后一个即新建接口的序号
                         for i in range(max_index, tar_index - 1, -1):
                             link = inputs[i - 1].links
                             if link:
@@ -301,9 +301,9 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
                         links.new(skMain, inputs[i])
 
                 if items_tool.has_extend_socket:
-                    links.new(skMain, items_tool.get_socket(items_tool.skfa.get(item_name), is_out=not skMain.is_output))
+                    links.new(skMain, items_tool.get_socket(items_tool.items.get(item_name), is_out=not skMain.is_output))
                 if is_group:
-                    links.new(skMain, items_tool.get_socket(skfNew, is_out=(skfNew.in_out == 'OUTPUT') ^ (items_tool.type != 'GROUP')))
+                    links.new(skMain, items_tool.get_socket(new_item, is_out=(new_item.in_out == 'OUTPUT') ^ (items_tool.type != 'GROUP')))
 
     def initialize(self, event, prefs, tree):
         self.target_skMain = None
