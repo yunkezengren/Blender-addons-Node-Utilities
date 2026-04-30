@@ -1,6 +1,7 @@
 import bpy
-from typing import Any
 from bpy.types import Operator
+from typing import NamedTuple
+from .base_tool import BaseTool
 from .tools.call_node_pie import NODE_OT_voronoi_call_node_pie
 from .tools.enum_selector import NODE_OT_enum_selector_box, NODE_MT_enum_selector_pie, NODE_OT_voronoi_enum_selector
 from .tools.hider import HiderMode, NODE_OT_voronoi_hider
@@ -25,7 +26,6 @@ from .tools.warper import NODE_OT_voronoi_warper
 from .utils.translations import translations_dict
 from .utils.solder import register_socket_properties, assign_tool_class_names, unregister_socket_properties
 from .preference import VoronoiAddonPrefs, VoronoiOpAddonTabs, pref, add_dynamic_properties
-from .base_tool import BaseTool
 
 try:
     from rich import traceback
@@ -39,9 +39,18 @@ try:
 except ImportError:
     pass
 
+class KeymapItemDef(NamedTuple):
+    idname: str
+    key: str
+    shift: bool
+    ctrl: bool
+    alt: bool
+    repeat: bool
+    props: dict[str, object]
+
 # yapf: disable
 # 每个 Operator 类的 keymap 配置. 格式: "S#A_KEY" 或 ("S#A_KEY", {'prop': value})  S=Shift, C=Ctrl, A=Alt, #=忽略, + =repeat
-operator_keymaps: dict[type[Operator], list[str | tuple[str, dict[str, Any]]]] = {
+operator_keymaps: dict[type[Operator], list[str | tuple[str, dict[str, object]]]] = {
     NODE_OT_voronoi_linker: ["##A_RIGHTMOUSE"],
     NODE_OT_voronoi_preview: ["SC#_LEFTMOUSE"],
     NODE_OT_voronoi_mixer: ["S#A_LEFTMOUSE"],
@@ -124,7 +133,7 @@ operator_keymaps: dict[type[Operator], list[str | tuple[str, dict[str, Any]]]] =
 }
 
 vt_classes: list[type[BaseTool]] = []  # 只存放 Voronoi Tool 工具
-keymap_item_defs: list[tuple[str, str, bool, bool, bool, bool, dict[str, Any]]] = []
+keymap_item_defs: list[KeymapItemDef] = []
 
 num_to_word: dict[str, str] = {"1": 'ONE', "2": 'TWO', "3": 'THREE', "4": 'FOUR', "5": 'FIVE', "6": 'SIX', "7": 'SEVEN', "8": 'EIGHT', "9": 'NINE', "0": 'ZERO'}
 for operator_cls, keymaps in operator_keymaps.items():
@@ -135,7 +144,7 @@ for operator_cls, keymaps in operator_keymaps.items():
         else:
             keymap_str, props = km
         mods, key = keymap_str[:4], keymap_str[4:]
-        keymap_item_defs.append((
+        keymap_item_defs.append(KeymapItemDef(
             operator_cls.bl_idname,
             num_to_word.get(key, key),
             "S" in mods,
@@ -146,32 +155,44 @@ for operator_cls, keymaps in operator_keymaps.items():
         ))
 # yapf: enable
 
-keymap_categorys = {'最有用': set(), '很有用': set(), '可能有用': set(), '无效': set(), 'quick_math': set(), 'custom': set()}
-keymap_categorys['最有用'] = {
-    NODE_OT_voronoi_linker.bl_idname,
-    NODE_OT_voronoi_preview.bl_idname,
-    NODE_OT_voronoi_mixer.bl_idname,
-    NODE_OT_voronoi_quick_math.bl_idname,
-    NODE_OT_voronoi_hider.bl_idname,
-    NODE_OT_voronoi_call_node_pie.bl_idname,
-    NODE_OT_voronoi_quick_constant.bl_idname,
-}
-keymap_categorys['很有用'] = {
-    NODE_OT_voronoi_mass_linker.bl_idname,
-    NODE_OT_voronoi_interfacer.bl_idname,
-    NODE_OT_voronoi_quick_dimensions.bl_idname,
-    NODE_OT_voronoi_links_transfer.bl_idname,
-    NODE_OT_voronoi_enum_selector.bl_idname,
-    NODE_OT_voronoi_swapper.bl_idname,
-}
-keymap_categorys['可能有用'] = {
-    NODE_OT_voronoi_link_repeating.bl_idname,
-    NODE_OT_voronoi_reset_node.bl_idname,
-    NODE_OT_voronoi_lazy_node_stencils.bl_idname,
-    NODE_OT_voronoi_preview_anchor.bl_idname,
-    NODE_OT_voronoi_warper.bl_idname,
-}
-# keymap_categorys['无效'].add(NODE_OT_voronoi_ranto.bl_idname)
+class KeymapGroups(NamedTuple):
+    most_useful: set[str]
+    quite_useful: set[str]
+    maybe_useful: set[str]
+    invalid: set[str]
+    quick_math: set[str]
+    custom: set[str]
+
+keymap_groups = KeymapGroups(
+    most_useful={
+        NODE_OT_voronoi_linker.bl_idname,
+        NODE_OT_voronoi_preview.bl_idname,
+        NODE_OT_voronoi_mixer.bl_idname,
+        NODE_OT_voronoi_quick_math.bl_idname,
+        NODE_OT_voronoi_hider.bl_idname,
+        NODE_OT_voronoi_call_node_pie.bl_idname,
+        NODE_OT_voronoi_quick_constant.bl_idname,
+    },
+    quite_useful={
+        NODE_OT_voronoi_mass_linker.bl_idname,
+        NODE_OT_voronoi_interfacer.bl_idname,
+        NODE_OT_voronoi_quick_dimensions.bl_idname,
+        NODE_OT_voronoi_links_transfer.bl_idname,
+        NODE_OT_voronoi_enum_selector.bl_idname,
+        NODE_OT_voronoi_swapper.bl_idname,
+    },
+    maybe_useful={
+        NODE_OT_voronoi_link_repeating.bl_idname,
+        NODE_OT_voronoi_reset_node.bl_idname,
+        NODE_OT_voronoi_lazy_node_stencils.bl_idname,
+        NODE_OT_voronoi_preview_anchor.bl_idname,
+        NODE_OT_voronoi_warper.bl_idname,
+    },
+    invalid=set(),
+    quick_math=set(),
+    custom=set(),
+)
+# keymap_groups.invalid.add(NODE_OT_voronoi_ranto.bl_idname)
 
 assign_tool_class_names(vt_classes)
 add_dynamic_properties(vt_classes)

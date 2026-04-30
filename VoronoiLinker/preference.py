@@ -29,7 +29,7 @@ def update_decor_color_socket(self, _context):
     self.vaDecorColSk = self.vaDecorColSkBack
     is_updating_decor_color = False
 
-class KeymapItemCategory:
+class KeymapItemGroup:
     """快捷键项分类 - 用于组织和过滤keymap items"""
     prop_name: str
     matched_items: set
@@ -44,14 +44,14 @@ class KeymapItemCategory:
         self.count = 0
         self.filter_func = None
 
-class KeymapItemCategoryContainer:
+class KeymapItemGroups:
     """快捷键项分类容器 - 管理多个KeymapItemCategory实例"""
-    useful_1: KeymapItemCategory
-    useful_2: KeymapItemCategory
-    useful_3: KeymapItemCategory
-    useful_4: KeymapItemCategory
-    quick_math: KeymapItemCategory
-    custom: KeymapItemCategory
+    most_useful: KeymapItemGroup
+    quite_useful: KeymapItemGroup
+    maybe_useful: KeymapItemGroup
+    invalid: KeymapItemGroup
+    quick_math: KeymapItemGroup
+    custom: KeymapItemGroup
 
 class VoronoiOpAddonTabs(Operator):
     bl_idname = 'node.voronoi_addon_tabs'
@@ -324,27 +324,27 @@ class VoronoiAddonPrefs(AddonPreferences):
         col_list = col_main.column(align=True)
         node_kms = user_node_keymap()
         ##
-        from . import keymap_categorys
-        kmi_categories = KeymapItemCategoryContainer()
-        kmi_categories.quick_math = KeymapItemCategory('vaKmiQqmDiscl', set(), keymap_categorys["quick_math"])
-        kmi_categories.custom = KeymapItemCategory('vaKmiCustomDiscl', set())
-        kmi_categories.useful_1 = KeymapItemCategory('vaKmiMainstreamDiscl', set(), keymap_categorys["最有用"])
-        kmi_categories.useful_2 = KeymapItemCategory('vaKmiOtjersDiscl', set(), keymap_categorys["很有用"])
-        kmi_categories.useful_3 = KeymapItemCategory('vaKmiSpecialDiscl', set(), keymap_categorys["可能有用"])
-        kmi_categories.useful_4 = KeymapItemCategory('vaKmiInvalidDiscl', set(), keymap_categorys["无效"])
-        kmi_categories.useful_1.filter_func = lambda kmi: kmi.idname in kmi_categories.useful_1.idnames
-        kmi_categories.useful_2.filter_func = lambda kmi: kmi.idname in kmi_categories.useful_2.idnames
-        kmi_categories.useful_3.filter_func = lambda kmi: kmi.idname in kmi_categories.useful_3.idnames
-        kmi_categories.useful_4.filter_func = lambda kmi: True
-        kmi_categories.quick_math.filter_func = lambda kmi: any(
+        from . import keymap_groups
+        kmi_groups = KeymapItemGroups()
+        kmi_groups.quick_math = KeymapItemGroup('vaKmiQqmDiscl', set(), keymap_groups.quick_math)
+        kmi_groups.custom = KeymapItemGroup('vaKmiCustomDiscl', set())
+        kmi_groups.most_useful = KeymapItemGroup('vaKmiMainstreamDiscl', set(), keymap_groups.most_useful)
+        kmi_groups.quite_useful = KeymapItemGroup('vaKmiOtjersDiscl', set(), keymap_groups.quite_useful)
+        kmi_groups.maybe_useful = KeymapItemGroup('vaKmiSpecialDiscl', set(), keymap_groups.maybe_useful)
+        kmi_groups.invalid = KeymapItemGroup('vaKmiInvalidDiscl', set(), keymap_groups.invalid)
+        kmi_groups.most_useful.filter_func = lambda kmi: kmi.idname in kmi_groups.most_useful.idnames
+        kmi_groups.quite_useful.filter_func = lambda kmi: kmi.idname in kmi_groups.quite_useful.idnames
+        kmi_groups.maybe_useful.filter_func = lambda kmi: kmi.idname in kmi_groups.maybe_useful.idnames
+        kmi_groups.invalid.filter_func = lambda kmi: True
+        kmi_groups.quick_math.filter_func = lambda kmi: any(
             True for txt in {'quickOprFloat', 'quickOprVector', 'quickOprBool', 'quickOprColor', 'justPieCall', 'isRepeatLastOperation'}
             if getattr(kmi.properties, txt, None))
-        kmi_categories.custom.filter_func = lambda kmi: kmi.id < 0  # 负id用于自定义
+        kmi_groups.custom.filter_func = lambda kmi: kmi.id < 0  # 负id用于自定义
 
         shortcut_count = 0
         for li in node_kms.keymap_items:
             if li.idname.startswith("node.voronoi_"):
-                for dv in kmi_categories.__dict__.values():
+                for dv in kmi_groups.__dict__.values():
                     if dv.filter_func(li):
                         dv.matched_items.add(li)
                         dv.count += 1
@@ -360,7 +360,7 @@ class VoronoiAddonPrefs(AddonPreferences):
         row_add_new.separator()
         row_add_new.operator(VoronoiOpAddonTabs.bl_idname, text="Add New", icon='ADD').opt = 'add_new_kmi'
 
-        def draw_keymap_category(layout: UILayout, category: KeymapItemCategory):
+        def draw_km_group(layout: UILayout, category: KeymapItemGroup):
             if not category.matched_items:
                 return
             txt = self.bl_rna.properties[category.prop_name].name
@@ -371,12 +371,12 @@ class VoronoiAddonPrefs(AddonPreferences):
                     body.context_pointer_set('keymap', node_kms)
                     rna_keymap_ui.draw_kmi([], bpy.context.window_manager.keyconfigs.user, node_kms, li, body, 0)
 
-        draw_keymap_category(col_list, kmi_categories.custom)
-        draw_keymap_category(col_list, kmi_categories.useful_1)
-        draw_keymap_category(col_list, kmi_categories.useful_2)
-        draw_keymap_category(col_list, kmi_categories.useful_3)
-        draw_keymap_category(col_list, kmi_categories.useful_4)
-        draw_keymap_category(col_list, kmi_categories.quick_math)
+        draw_km_group(col_list, kmi_groups.custom)
+        draw_km_group(col_list, kmi_groups.most_useful)
+        draw_km_group(col_list, kmi_groups.quite_useful)
+        draw_km_group(col_list, kmi_groups.maybe_useful)
+        draw_km_group(col_list, kmi_groups.invalid)
+        draw_km_group(col_list, kmi_groups.quick_math)
         row_label_post.label(text=f"({shortcut_count})", translate=False)
 
     def draw_tab_info(self, layout: UILayout):
