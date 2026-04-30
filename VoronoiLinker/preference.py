@@ -6,7 +6,7 @@ from bpy.props import BoolProperty, EnumProperty, FloatProperty, FloatVectorProp
 from bpy.types import KeyMapItem, UILayout, Operator, AddonPreferences
 
 from .common_class import VlnstUpdateLastExecError
-from .utils.ui import split_prop, draw_panel_column, QuickInactiveColumn, add_thin_sep, format_tool_label, user_node_keymap
+from .utils.ui import split_prop, draw_panel_column, ColumnSetActive, add_thin_sep, format_tool_label, user_node_keymap
 
 HIDE_BOOL_SOCKET_ITEMS = [
     ('ALWAYS', "Always", "Always"),
@@ -50,7 +50,7 @@ class KeymapItemCategoryContainer:
     useful_2: KeymapItemCategory
     useful_3: KeymapItemCategory
     useful_4: KeymapItemCategory
-    qqm: KeymapItemCategory
+    quick_math: KeymapItemCategory
     custom: KeymapItemCategory
 
 class VoronoiOpAddonTabs(Operator):
@@ -243,7 +243,7 @@ class VoronoiAddonPrefs(AddonPreferences):
         is_draw_col = split_draw_color.column(align=True, heading='Draw')
         for is_draw in is_draw_settings:
             is_draw_col.prop(self, is_draw)
-        with QuickInactiveColumn(is_draw_col, active=self.dsIsDrawText) as row:
+        with ColumnSetActive(is_draw_col, active=self.dsIsDrawText) as row:
             row.prop(self, 'dsIsDrawNodeNameLabel', text="Node label")
         is_colored_col = split_draw_color.column(align=True, heading='Colored')
         for is_draw in is_draw_settings:
@@ -252,7 +252,7 @@ class VoronoiAddonPrefs(AddonPreferences):
             row.active = getattr(self, is_draw)
 
         is_nodes_toggle_active = (self.dsIsDrawLine) or (self.dsIsDrawPoint) or (self.dsIsDrawText and self.dsIsDrawNodeNameLabel)
-        with QuickInactiveColumn(is_colored_col, active=is_nodes_toggle_active) as row:
+        with ColumnSetActive(is_colored_col, active=is_nodes_toggle_active) as row:
             row.prop(self, 'dsIsColoredNodes')
         ##
         if panel_col := draw_panel_column(col_main, "Behavior"):
@@ -307,9 +307,9 @@ class VoronoiAddonPrefs(AddonPreferences):
         ##
         col_dev = col_main.column(align=True)
         if (self.dsIncludeDev) or (self.dsIsFieldDebug) or (self.dsIsTestDrawing):
-            with QuickInactiveColumn(col_dev, active=self.dsIsFieldDebug) as row:
+            with ColumnSetActive(col_dev, active=self.dsIsFieldDebug) as row:
                 row.prop(self, 'dsIsFieldDebug')
-            with QuickInactiveColumn(col_dev, active=self.dsIsTestDrawing) as row:
+            with ColumnSetActive(col_dev, active=self.dsIsTestDrawing) as row:
                 row.prop(self, 'dsIsTestDrawing')
 
     def draw_tab_keymaps(self, layout: UILayout):
@@ -326,7 +326,7 @@ class VoronoiAddonPrefs(AddonPreferences):
         ##
         from . import keymap_categorys
         kmi_categories = KeymapItemCategoryContainer()
-        kmi_categories.qqm = KeymapItemCategory('vaKmiQqmDiscl', set(), keymap_categorys["qqm"])
+        kmi_categories.quick_math = KeymapItemCategory('vaKmiQqmDiscl', set(), keymap_categorys["quick_math"])
         kmi_categories.custom = KeymapItemCategory('vaKmiCustomDiscl', set())
         kmi_categories.useful_1 = KeymapItemCategory('vaKmiMainstreamDiscl', set(), keymap_categorys["最有用"])
         kmi_categories.useful_2 = KeymapItemCategory('vaKmiOtjersDiscl', set(), keymap_categorys["很有用"])
@@ -336,7 +336,7 @@ class VoronoiAddonPrefs(AddonPreferences):
         kmi_categories.useful_2.filter_func = lambda kmi: kmi.idname in kmi_categories.useful_2.idnames
         kmi_categories.useful_3.filter_func = lambda kmi: kmi.idname in kmi_categories.useful_3.idnames
         kmi_categories.useful_4.filter_func = lambda kmi: True
-        kmi_categories.qqm.filter_func = lambda kmi: any(
+        kmi_categories.quick_math.filter_func = lambda kmi: any(
             True for txt in {'quickOprFloat', 'quickOprVector', 'quickOprBool', 'quickOprColor', 'justPieCall', 'isRepeatLastOperation'}
             if getattr(kmi.properties, txt, None))
         kmi_categories.custom.filter_func = lambda kmi: kmi.id < 0  # 负id用于自定义
@@ -376,7 +376,7 @@ class VoronoiAddonPrefs(AddonPreferences):
         draw_keymap_category(col_list, kmi_categories.useful_2)
         draw_keymap_category(col_list, kmi_categories.useful_3)
         draw_keymap_category(col_list, kmi_categories.useful_4)
-        draw_keymap_category(col_list, kmi_categories.qqm)
+        draw_keymap_category(col_list, kmi_categories.quick_math)
         row_label_post.label(text=f"({shortcut_count})", translate=False)
 
     def draw_tab_info(self, layout: UILayout):

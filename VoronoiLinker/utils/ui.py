@@ -23,7 +23,7 @@ def display_message(title: str, text: str, icon='NONE'):
 def format_tool_label(cls: type[Operator]):
     return _iface(cls.bl_label) + _iface(" tool settings")
 
-class QuickInactiveColumn():
+class ColumnSetActive():
 
     def __init__(self, layout: UILayout, att='row', align=True, active=True):
         self.layout: UILayout = getattr(layout, att)(align=align)
@@ -63,7 +63,7 @@ def split_prop(layout: UILayout, who, att, *, text=None, active=True, returnAsLy
             split.prop(who, att, text=txt if not_bool or bool_label_left else None)
             if link_btn:
                 # 原作者: 我还是没搞懂你们的 prop event 怎么用, 太吓人了. 需要外部帮助.
-                with QuickInactiveColumn(split) as row:
+                with ColumnSetActive(split) as row:
                     row.operator(
                         'wm.url_open', text="", icon='URL'
                     ).url = "https://docs.blender.org/api/current/bpy_types_enum_items/event_type_items.html#:~:text=" + getattr(who, att)

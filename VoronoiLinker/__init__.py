@@ -123,8 +123,7 @@ operator_keymaps: dict[type[Operator], list[str | tuple[str, dict[str, Any]]]] =
     # ],
 }
 
-all_classes: list[type[Operator]] = []  # 所有需要注册的类 (包括工具、偏好、饼菜单等)
-vt_classes: list[type[BaseTool]] = []  # 只存放 V*T (Voronoi Tool) 工具
+vt_classes: list[type[BaseTool]] = []  # 只存放 Voronoi Tool 工具
 keymap_item_defs: list[tuple[str, str, bool, bool, bool, bool, dict[str, Any]]] = []
 
 num_to_word: dict[str, str] = {"1": 'ONE', "2": 'TWO', "3": 'THREE', "4": 'FOUR', "5": 'FIVE', "6": 'SIX', "7": 'SEVEN', "8": 'EIGHT', "9": 'NINE', "0": 'ZERO'}
@@ -147,7 +146,7 @@ for operator_cls, keymaps in operator_keymaps.items():
         ))
 # yapf: enable
 
-keymap_categorys = {'最有用': set(), '很有用': set(), '可能有用': set(), '无效': set(), 'qqm': set(), 'custom': set()}
+keymap_categorys = {'最有用': set(), '很有用': set(), '可能有用': set(), '无效': set(), 'quick_math': set(), 'custom': set()}
 keymap_categorys['最有用'] = {
     NODE_OT_voronoi_linker.bl_idname,
     NODE_OT_voronoi_preview.bl_idname,
@@ -210,7 +209,6 @@ def register():
     km = bpy.context.window_manager.keyconfigs.addon.keymaps.new(name="Node Editor", space_type='NODE_EDITOR')
     for idname, key, shift, ctrl, alt, repeat, props in keymap_item_defs:
         kmi = km.keymap_items.new(idname=idname, type=key, value='PRESS', shift=shift, ctrl=ctrl, alt=alt, repeat=repeat)
-        kmi.active = idname != 'node.voronoi_dummy'
         if props:
             for key, value in props.items():
                 setattr(kmi.properties, key, value)
