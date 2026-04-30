@@ -251,7 +251,7 @@ class VoronoiAddonPrefs(AddonPreferences):
             row.prop(self, is_draw.replace("Draw", "Colored"))
             row.active = getattr(self, is_draw)
 
-        is_nodes_toggle_active = (self.dsIsDrawLine) or (self.dsIsDrawPoint) or (self.dsIsDrawText and self.dsIsDrawNodeNameLabel)
+        is_nodes_toggle_active = self.dsIsDrawLine or self.dsIsDrawPoint or (self.dsIsDrawText and self.dsIsDrawNodeNameLabel)
         with ColumnSetActive(is_colored_col, active=is_nodes_toggle_active) as row:
             row.prop(self, 'dsIsColoredNodes')
         ##
@@ -262,18 +262,17 @@ class VoronoiAddonPrefs(AddonPreferences):
         ##
         if panel_col := draw_panel_column(col_main, "Color"):
             split_prop(panel_col, self, 'dsSocketAreaAlpha', active=self.dsIsDrawSkArea)
-            should_show_uniform_color = ((self.dsIsDrawText and not self.dsIsColoredText) or (self.dsIsDrawMarker and not self.dsIsColoredMarker)
-                   or (self.dsIsDrawPoint and not self.dsIsColoredPoint) or (self.dsIsDrawLine and not self.dsIsColoredLine)
-                   or (self.dsIsDrawSkArea and not self.dsIsColoredSkArea))
-            if should_show_uniform_color:
+            show_uniform_color = ((self.dsIsDrawText and not self.dsIsColoredText) or (self.dsIsDrawMarker and not self.dsIsColoredMarker)
+                                  or (self.dsIsDrawPoint and not self.dsIsColoredPoint) or (self.dsIsDrawLine and not self.dsIsColoredLine)
+                                  or (self.dsIsDrawSkArea and not self.dsIsColoredSkArea))
+            if show_uniform_color:
                 split_prop(panel_col, self, 'dsUniformColor')
-            should_show_uniform_node_color = ((self.dsIsDrawText and self.dsIsColoredText) or (self.dsIsDrawPoint and self.dsIsColoredPoint)
-                   or (self.dsIsDrawLine and self.dsIsColoredLine))
-            if should_show_uniform_node_color and (not self.dsIsColoredNodes):
+            show_uniform_node_color = ((self.dsIsDrawText and self.dsIsColoredText) or (self.dsIsDrawPoint and self.dsIsColoredPoint)
+                                       or (self.dsIsDrawLine and self.dsIsColoredLine))
+            if show_uniform_node_color and not self.dsIsColoredNodes:
                 split_prop(panel_col, self, 'dsUniformNodeColor')
-            # split_prop(panel_col, self,'dsUniformNodeColor', active=True)
             is_point_cursor_color_active = self.dsIsDrawPoint and self.dsIsColoredPoint
-            is_line_cursor_color_active = (self.dsIsDrawLine and self.dsIsColoredLine) and bool(self.dsCursorColorAvailability)
+            is_line_cursor_color_active = self.dsIsDrawLine and self.dsIsColoredLine and self.dsCursorColorAvailability
             split_prop(panel_col, self, 'dsCursorColor', active=is_point_cursor_color_active or is_line_cursor_color_active)
             split_prop(panel_col, self, 'dsCursorColorAvailability', active=self.dsIsDrawLine and self.dsIsColoredLine)
         ##
@@ -306,7 +305,7 @@ class VoronoiAddonPrefs(AddonPreferences):
                 row.row().prop(self, 'dsShadowOffset', text="Y  ", translate=False, index=1, icon_only=True)
         ##
         col_dev = col_main.column(align=True)
-        if (self.dsIncludeDev) or (self.dsIsFieldDebug) or (self.dsIsTestDrawing):
+        if self.dsIncludeDev or self.dsIsFieldDebug or self.dsIsTestDrawing:
             with ColumnSetActive(col_dev, active=self.dsIsFieldDebug) as row:
                 row.prop(self, 'dsIsFieldDebug')
             with ColumnSetActive(col_dev, active=self.dsIsTestDrawing) as row:
