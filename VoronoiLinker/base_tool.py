@@ -33,9 +33,9 @@ class BaseOperator(Operator):
         return context.area.type == 'NODE_EDITOR'  # 不知道为什么需要这个, 但还是留着吧.
 
 # 定义了一组 抽象方法/占位方法 ，供子类实现。这实际上是 Mixin 模式 或 接口/协议类 。
-class VlToolMixin: #-1
+class ProtocolTool: #-1
     use_for_custom_tree = None
-    use_for_undef_tree = None
+    use_for_undefine_tree = None
     use_for_none_tree = None
     can_draw_settings = None
     can_draw_appearance = None
@@ -50,8 +50,8 @@ class VlToolMixin: #-1
     @staticmethod
     def draw_pref_appearance(col: UILayout, prefs: VoronoiAddonPrefs): pass
 
-class BaseTool(BaseOperator, VlToolMixin):  #0
-    use_for_undef_tree = False
+class ModelBaseTool(BaseOperator, ProtocolTool):  #0
+    use_for_undefine_tree = False
     use_for_none_tree = False
     can_draw_settings = True
     can_draw_appearance = False
@@ -128,7 +128,7 @@ class BaseTool(BaseOperator, VlToolMixin):  #0
                     return True
         return False
 
-    def modal(self, context: Context, event: Event):
+    def modal(self, context, event):
         context.area.tag_redraw()
         if num := (event.type == 'WHEELUPMOUSE') - (event.type == 'WHEELDOWNMOUSE'):
             self.ctView2d.cur.Zooming(self.cursorLoc, 1.0 - num*0.15)
@@ -154,14 +154,14 @@ class BaseTool(BaseOperator, VlToolMixin):  #0
             return result
         return {'FINISHED'}
 
-    def invoke(self, context: Context, event: Event):
+    def invoke(self, context, event):
         tree = context.space_data.edit_tree
         self.tree = tree
         editorBlid = context.space_data.tree_type  # 无需 `self.`?.
         self.in_builtin_tree = is_builtin_tree_idname(editorBlid)
         if not (self.use_for_custom_tree or self.in_builtin_tree):
             return {'PASS_THROUGH'}  #'CANCELLED'?.
-        if (not self.use_for_undef_tree) and (editorBlid == 'NodeTreeUndefined'):
+        if (not self.use_for_undefine_tree) and (editorBlid == 'NodeTreeUndefined'):
             return {'CANCELLED'}  # 为了不绘制而离开.
         if not (self.use_for_none_tree or tree):
             return {'FINISHED'}
@@ -212,7 +212,7 @@ class BaseTool(BaseOperator, VlToolMixin):  #0
         context.window_manager.modal_handler_add(self)
         return {'RUNNING_MODAL'}
 
-class SingleSocketTool(BaseTool):  #1
+class SingleSocketTool(ModelBaseTool):  #1
 
     def callback_draw_tool(self, drawer: Drawer):
         draw_sockets_template(drawer, self.target_sk)
@@ -252,7 +252,7 @@ class TripleSocketTool(PairSocketTool):  #3
         self.canPickThird = False
         self.isStartWithModf = (event.shift) or (event.ctrl) or (event.alt)
 
-class SingleNodeTool(BaseTool):  #1
+class SingleNodeTool(ModelBaseTool):  #1
 
     def callback_draw_tool(self, drawer: Drawer):
         draw_node_template(drawer, self.target_nd)
@@ -287,7 +287,7 @@ class AnyTargetTool(SingleSocketTool, SingleNodeTool):  #2
     def initialize_pre(self, event: Event):
         self.target_any = None
 
-def unhide_node_reassign(nd: Node, self: BaseTool, *, cond: bool, flag=None):  # 我是多么鄙视折叠起来的节点啊.
+def unhide_node_reassign(nd: Node, self: ModelBaseTool, *, cond: bool, flag=None):  # 我是多么鄙视折叠起来的节点啊.
     if nd.hide and cond:
         nd.hide = False
         # 注意: 在 find_targets_tool 的拓扑结构中要小心无限循环.
@@ -309,7 +309,7 @@ class EdgePan:
     zoomFac = 0.5
     speed = 1.0
 
-def edge_pan_init(self: BaseTool, area: Area):
+def edge_pan_init(self: ModelBaseTool, area: Area):
     EdgePan.area = area
     EdgePan.ctCur = self.ctView2d.cur
     EdgePan.isWorking = True

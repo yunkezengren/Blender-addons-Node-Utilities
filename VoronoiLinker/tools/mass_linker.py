@@ -1,5 +1,5 @@
 import bpy
-from ..base_tool import unhide_node_reassign, BaseTool
+from ..base_tool import unhide_node_reassign, ModelBaseTool
 from ..globals import Cursor_X_Offset
 from ..utils.drawing import draw_socket_point, draw_sockets_template
 from ..utils.node import compare_sk_label, VlrtRememberLastSockets
@@ -7,7 +7,7 @@ from ..utils.ui import split_prop
 
 #"批量链接器" -- 就像链接器一样, 只是一次性处理多个 (显而易见).
 #请查看 github 上的 wiki, 看看批量链接器的5个使用示例. 如果你发现这个工具还有其他不寻常的用法, 请告诉我.
-class NODE_OT_voronoi_mass_linker(BaseTool):  # "猫狗合体", 既不是节点, 也不是接口.
+class NODE_OT_voronoi_mass_linker(ModelBaseTool):  # "猫狗合体", 既不是节点, 也不是接口.
     bl_idname = 'node.voronoi_mass_linker'
     bl_label = "Voronoi MassLinker"  # 唯一一个没有空格的. 因为它太像猫狗了))00)0
     bl_description = "\"Puppy cat-dog\", neither nodes nor sockets. Created for rare point special accelerations.\nVLT on max. Due to its working principle, divine in its own way."

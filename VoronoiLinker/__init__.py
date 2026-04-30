@@ -1,7 +1,7 @@
 import bpy
 from bpy.types import Operator
 from typing import NamedTuple
-from .base_tool import BaseTool
+from .base_tool import ModelBaseTool
 from .tools.call_node_pie import NODE_OT_voronoi_call_node_pie
 from .tools.enum_selector import NODE_OT_enum_selector_box, NODE_MT_enum_selector_pie, NODE_OT_voronoi_enum_selector
 from .tools.hider import HiderMode, NODE_OT_voronoi_hider
@@ -132,7 +132,7 @@ operator_keymaps: dict[type[Operator], list[str | tuple[str, dict[str, object]]]
     # ],
 }
 
-vt_classes: list[type[BaseTool]] = []  # 只存放 Voronoi Tool 工具
+vt_classes: list[type[ModelBaseTool]] = []  # 只存放 Voronoi Tool 工具
 keymap_item_defs: list[KeymapItemDef] = []
 
 num_to_word: dict[str, str] = {"1": 'ONE', "2": 'TWO', "3": 'THREE', "4": 'FOUR', "5": 'FIVE', "6": 'SIX', "7": 'SEVEN', "8": 'EIGHT', "9": 'NINE', "0": 'ZERO'}

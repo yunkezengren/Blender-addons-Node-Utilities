@@ -9,7 +9,7 @@ Vec4 = Vec
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:  # 避免循环导入
-    from ..base_tool import BaseTool
+    from ..base_tool import ModelBaseTool
 
 _dict_sold_links_final: dict[NodeSocket, list[NodeLink]] = {}
 _dict_sold_link_count: dict[NodeSocket, int] = {}
@@ -91,7 +91,7 @@ def node_tag_color(node: Node):
         else:
             return getattr(SoldThemeCols, SoldThemeCols.node_class_map.get(BNode.GetFields(node).typeinfo.contents.nclass, 'node_backdrop')+"4pw")
 
-def assign_tool_class_names(class_list: list[type["BaseTool"]]):
+def assign_tool_class_names(class_list: list[type["ModelBaseTool"]]):
     """为工具类分配名称属性，用于偏好设置中的折叠面板"""
     for cls in class_list:
         cls.vlTripleName = get_first_upper_letters(cls.bl_label)+"T" # 最初创建是"因为好玩", 但现在需要了; 参见 set_pie_data().

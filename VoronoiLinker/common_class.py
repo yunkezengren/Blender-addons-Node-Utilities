@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     # 将 VoronoiAddonPrefs 的导入移至 TYPE_CHECKING 块中，并将函数签名改为字符串类型注解，避免循环导入。
     from .preference import VoronoiAddonPrefs
-    from .base_tool import BaseTool
+    from .base_tool import ModelBaseTool
 
 float2 = Sequence[float]
 float4 = Sequence[float]
@@ -91,7 +91,7 @@ def VlnstUpdateLastExecError(self, _context):
         VlnstData.lastLastExecError = ""
     VlnstData.isUpdateWorking = False
 
-def set_pie_data(self: "BaseTool", toolData: PieRootData, prefs: "VoronoiAddonPrefs", col: UILayout):
+def set_pie_data(self: "ModelBaseTool", toolData: PieRootData, prefs: "VoronoiAddonPrefs", col: UILayout):
 
     def get_pie_pref(name):
         return getattr(prefs, self.vlTripleName.lower() + name)
