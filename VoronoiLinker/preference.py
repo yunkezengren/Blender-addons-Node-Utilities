@@ -31,13 +31,15 @@ def update_decor_color_socket(self, _context):
 
 class KeymapItemGroup:
     """快捷键项分类 - 用于组织和过滤keymap items"""
+    group_key: str
     prop_name: str
     matched_items: set
     idnames: set
     count: int
     filter_func: Callable[[KeyMapItem], bool] | None
 
-    def __init__(self, prop_name='', matched_items=set(), idnames=set()):
+    def __init__(self, group_key='', prop_name='', matched_items=set(), idnames=set()):
+        self.group_key = group_key
         self.prop_name = prop_name
         self.matched_items = matched_items
         self.idnames = idnames
@@ -53,6 +55,37 @@ class KeymapItemGroups:
     quick_math: KeymapItemGroup
     custom: KeymapItemGroup
 
+def build_keymap_item_groups() -> KeymapItemGroups:
+    from . import keymap_groups
+    kmi_groups = KeymapItemGroups()
+    kmi_groups.quick_math = KeymapItemGroup('quick_math', 'vaKmiQqmDiscl', set(), keymap_groups.quick_math)
+    kmi_groups.custom = KeymapItemGroup('custom', 'vaKmiCustomDiscl', set(), keymap_groups.custom)
+    kmi_groups.most_useful = KeymapItemGroup('most_useful', 'vaKmiMainstreamDiscl', set(), keymap_groups.most_useful)
+    kmi_groups.quite_useful = KeymapItemGroup('quite_useful', 'vaKmiOtjersDiscl', set(), keymap_groups.quite_useful)
+    kmi_groups.maybe_useful = KeymapItemGroup('maybe_useful', 'vaKmiSpecialDiscl', set(), keymap_groups.maybe_useful)
+    kmi_groups.invalid = KeymapItemGroup('invalid', 'vaKmiInvalidDiscl', set(), keymap_groups.invalid)
+    kmi_groups.most_useful.filter_func = lambda kmi: kmi.idname in kmi_groups.most_useful.idnames
+    kmi_groups.quite_useful.filter_func = lambda kmi: kmi.idname in kmi_groups.quite_useful.idnames
+    kmi_groups.maybe_useful.filter_func = lambda kmi: kmi.idname in kmi_groups.maybe_useful.idnames
+    kmi_groups.invalid.filter_func = lambda kmi: True
+    kmi_groups.quick_math.filter_func = lambda kmi: any(
+        True for txt in {'quickOprFloat', 'quickOprVector', 'quickOprBool', 'quickOprColor', 'justPieCall', 'isRepeatLastOperation'}
+        if getattr(kmi.properties, txt, None))
+    kmi_groups.custom.filter_func = lambda kmi: kmi.id < 0  # 负id用于自定义
+    return kmi_groups
+
+
+def populate_keymap_item_groups(node_kms) -> KeymapItemGroups:
+    kmi_groups = build_keymap_item_groups()
+    for li in node_kms.keymap_items:
+        if li.idname.startswith("node.voronoi_"):
+            for dv in kmi_groups.__dict__.values():
+                if dv.filter_func(li):
+                    dv.matched_items.add(li)
+                    dv.count += 1
+                    break
+    return kmi_groups
+
 class VoronoiOpAddonTabs(Operator):
     bl_idname = 'node.voronoi_addon_tabs'
     bl_label = "VL Addon Tabs"
@@ -66,6 +99,14 @@ class VoronoiOpAddonTabs(Operator):
                 context.window_manager.clipboard = addon_settings(prefs)
             case 'add_new_kmi':
                 user_node_keymap().keymap_items.new("node.voronoi_", 'D', 'PRESS').show_expanded = True
+            case opt if opt.startswith("toggle_kmi_group:"):
+                group_key = opt.split(":", 1)[1]
+                kmi_groups = populate_keymap_item_groups(user_node_keymap())
+                category = getattr(kmi_groups, group_key, None)
+                if category and category.matched_items:
+                    should_activate = not any(kmi.active for kmi in category.matched_items)
+                    for kmi in category.matched_items:
+                        kmi.active = should_activate
             case _:
                 prefs.vaUiTabs = self.opt
         return {'FINISHED'}
@@ -318,57 +359,42 @@ class VoronoiAddonPrefs(AddonPreferences):
         row_label = row_label_main.row(align=True)
         row_label.alignment = 'CENTER'
         row_label.label(icon='DOT')
-        row_label.label(text="Node Editor")
-        row_label_post = row_label_main.row(align=True)
         col_list = col_main.column(align=True)
         node_kms = user_node_keymap()
         ##
-        from . import keymap_groups
-        kmi_groups = KeymapItemGroups()
-        kmi_groups.quick_math = KeymapItemGroup('vaKmiQqmDiscl', set(), keymap_groups.quick_math)
-        kmi_groups.custom = KeymapItemGroup('vaKmiCustomDiscl', set())
-        kmi_groups.most_useful = KeymapItemGroup('vaKmiMainstreamDiscl', set(), keymap_groups.most_useful)
-        kmi_groups.quite_useful = KeymapItemGroup('vaKmiOtjersDiscl', set(), keymap_groups.quite_useful)
-        kmi_groups.maybe_useful = KeymapItemGroup('vaKmiSpecialDiscl', set(), keymap_groups.maybe_useful)
-        kmi_groups.invalid = KeymapItemGroup('vaKmiInvalidDiscl', set(), keymap_groups.invalid)
-        kmi_groups.most_useful.filter_func = lambda kmi: kmi.idname in kmi_groups.most_useful.idnames
-        kmi_groups.quite_useful.filter_func = lambda kmi: kmi.idname in kmi_groups.quite_useful.idnames
-        kmi_groups.maybe_useful.filter_func = lambda kmi: kmi.idname in kmi_groups.maybe_useful.idnames
-        kmi_groups.invalid.filter_func = lambda kmi: True
-        kmi_groups.quick_math.filter_func = lambda kmi: any(
-            True for txt in {'quickOprFloat', 'quickOprVector', 'quickOprBool', 'quickOprColor', 'justPieCall', 'isRepeatLastOperation'}
-            if getattr(kmi.properties, txt, None))
-        kmi_groups.custom.filter_func = lambda kmi: kmi.id < 0  # 负id用于自定义
+        voronoi_kmis = [li for li in node_kms.keymap_items if li.idname.startswith("node.voronoi_")]
+        shortcut_count = len(voronoi_kmis)
+        active_shortcut_count = sum(int(kmi.active) for kmi in voronoi_kmis)
+        kmi_groups = populate_keymap_item_groups(node_kms)
+        row_label.label(text=f"{_iface('Node Editor')}  ({active_shortcut_count}/{shortcut_count})")
 
-        shortcut_count = 0
-        for li in node_kms.keymap_items:
-            if li.idname.startswith("node.voronoi_"):
-                for dv in kmi_groups.__dict__.values():
-                    if dv.filter_func(li):
-                        dv.matched_items.add(li)
-                        dv.count += 1
-                        break
-                shortcut_count += 1
         if node_kms.is_user_modified:
             row_restore = row_label_main.row(align=True)
             row_restore.context_pointer_set('keymap', node_kms)
-        else:
-            row_label_main.label()
+
+        row_label_main.label()
         row_add_new = row_label_main.row(align=True)
-        row_add_new.ui_units_x = 12
         row_add_new.separator()
+        row_add_new.ui_units_x = 10
         row_add_new.operator(VoronoiOpAddonTabs.bl_idname, text="Add New", icon='ADD').opt = 'add_new_kmi'
 
         def draw_km_group(layout: UILayout, category: KeymapItemGroup):
             if not category.matched_items:
                 return
-            txt = self.bl_rna.properties[category.prop_name].name
+            group_name = self.bl_rna.properties[category.prop_name].name
             panel, body = layout.panel(idname=category.prop_name, default_closed=True)
-            panel.label(text=_iface(txt) + f" ({category.count})")
+            row = panel.row(align=True)
+            active_count = sum(kmi.active for kmi in category.matched_items)
+            icon= 'CHECKBOX_HLT' if active_count else 'CHECKBOX_DEHLT'
+            row.operator(VoronoiOpAddonTabs.bl_idname, text="", icon=icon, emboss=False).opt = f"toggle_kmi_group:{category.group_key}"
+            row.label(text=f"{_iface(group_name)}  ({active_count}/{category.count})")
             if body:
+                split_body = body.split(factor=0.02, align=False)
+                split_body.label(text="")
+                body_col = split_body.column(align=True)
                 for li in sorted(category.matched_items, key=lambda a: a.id):
-                    body.context_pointer_set('keymap', node_kms)
-                    rna_keymap_ui.draw_kmi([], bpy.context.window_manager.keyconfigs.user, node_kms, li, body, 0)
+                    body_col.context_pointer_set('keymap', node_kms)
+                    rna_keymap_ui.draw_kmi([], bpy.context.window_manager.keyconfigs.user, node_kms, li, body_col, 0)
 
         draw_km_group(col_list, kmi_groups.custom)
         draw_km_group(col_list, kmi_groups.most_useful)
@@ -376,7 +402,6 @@ class VoronoiAddonPrefs(AddonPreferences):
         draw_km_group(col_list, kmi_groups.maybe_useful)
         draw_km_group(col_list, kmi_groups.invalid)
         draw_km_group(col_list, kmi_groups.quick_math)
-        row_label_post.label(text=f"({shortcut_count})", translate=False)
 
     def draw_tab_info(self, layout: UILayout):
 
