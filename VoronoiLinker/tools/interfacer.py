@@ -42,7 +42,7 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
     can_draw_settings = False
     toolMode: bpy.props.EnumProperty(name="Mode", default=eMode.NEW.value, items=ModeItems)
 
-    def callback_draw_tool(self, drawer):
+    def callback_draw(self, drawer):
 
         def draw_insert_preview(drawer: Drawer,
                                 tarNdTar: Target | None,
@@ -217,7 +217,7 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
                     self.target_ndTar = tar_nd
             break
 
-    def find_targets_tool(self, is_first_active, prefs, tree):
+    def find_targets(self, is_first_active, prefs, tree):
         match eMode(self.toolMode):
             case eMode.COPY | eMode.PASTE:
                 self.find_targets_copy_paste(prefs)

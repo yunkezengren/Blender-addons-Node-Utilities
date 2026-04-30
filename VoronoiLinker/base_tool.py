@@ -39,8 +39,9 @@ class ProtocolTool: #-1
     use_for_none_tree = None
     can_draw_settings = None
     can_draw_appearance = None
-    def callback_draw_tool(self, drawer: Drawer): pass
-    def find_targets_tool(self, is_first_active: bool, prefs: VoronoiAddonPrefs, tree: NodeTree): pass
+
+    def callback_draw(self, drawer: Drawer): pass
+    def find_targets(self, is_first_active: bool, prefs: VoronoiAddonPrefs, tree: NodeTree): pass
     def handle_modal(self, event: Event, prefs: VoronoiAddonPrefs): pass
     def run(self, event: Event, prefs: VoronoiAddonPrefs, tree: NodeTree): pass
     def initialize_pre(self, event: Event): return {}
@@ -62,15 +63,6 @@ class ModelBaseTool(BaseOperator, ProtocolTool):  #0
     isPassThrough: BoolProperty(name="Pass through node selecting",
                                 default=False,
                                 description="Clicking over a node activates selection, not the tool")
-
-    def callback_draw_base(self, drawer: Drawer, context: Context):
-        if drawer.whereActivated != context.space_data:  # 需要只在活动的编辑器中绘制, 而不是在所有打开相同树的编辑器中绘制.
-            return
-        drawer.worldZoom = self.ctView2d.GetZoom()  # 每次都从 EdgePan 和鼠标滚轮获取. 以前可以一次性焊接.
-        if self.prefs.dsIsFieldDebug:
-            draw_debug_info(self, drawer)
-        if self.tree:  # 现在对于没有树的情况可以不显示任何迹象; 由于拓扑结构的头疼问题以及在插件树中传递热键时工具的跳过问题而关闭 (?).
-            self.callback_draw_tool(drawer)
 
     def get_nearest_nodes(self, includePoorNodes=False, cur_x_off: float = 0):
         self.cursorLoc.x += cur_x_off  # 唤起位置偏移
@@ -110,10 +102,19 @@ class ModelBaseTool(BaseOperator, ProtocolTool):  #0
             tar_sks_out.sort(key=lambda sk: sk.distance)
             return tar_sks_in, tar_sks_out
 
+    def callback_draw_base(self, drawer: Drawer, context: Context):
+        if drawer.whereActivated != context.space_data:  # 需要只在活动的编辑器中绘制, 而不是在所有打开相同树的编辑器中绘制.
+            return
+        drawer.worldZoom = self.ctView2d.GetZoom()  # 每次都从 EdgePan 和鼠标滚轮获取. 以前可以一次性焊接.
+        if self.prefs.dsIsFieldDebug:
+            draw_debug_info(self, drawer)
+        if self.tree:  # 现在对于没有树的情况可以不显示任何迹象; 由于拓扑结构的头疼问题以及在插件树中传递热键时工具的跳过问题而关闭 (?).
+            self.callback_draw(drawer)
+
     def find_targets_base(self, flag: bool):
         if self.tree:
             try:
-                self.find_targets_tool(flag, self.prefs, self.tree)
+                self.find_targets(flag, self.prefs, self.tree)
             except:
                 EdgePan.isWorking = False  # 现在只对 VLT 有效. 也许应该做个 ~self.ErrorToolProc, 并在 VLT 中 "退后一步".
                 SpaceNodeEditor.draw_handler_remove(self.handle, 'WINDOW')
@@ -214,7 +215,7 @@ class ModelBaseTool(BaseOperator, ProtocolTool):  #0
 
 class SingleSocketTool(ModelBaseTool):  #1
 
-    def callback_draw_tool(self, drawer: Drawer):
+    def callback_draw(self, drawer: Drawer):
         draw_sockets_template(drawer, self.target_sk)
 
     def can_run(self):
@@ -228,7 +229,7 @@ class PairSocketTool(SingleSocketTool):  #2
                                      default=True,
                                      description="Tool can connecting between different field types")
 
-    def callback_draw_tool(self, drawer: Drawer):
+    def callback_draw(self, drawer: Drawer):
         draw_sockets_template(drawer, self.target_sk0, self.target_sk1)
 
     def check_between_sk_fields(self, sk1: NodeSocket, sk2: NodeSocket):
@@ -254,7 +255,7 @@ class TripleSocketTool(PairSocketTool):  #3
 
 class SingleNodeTool(ModelBaseTool):  #1
 
-    def callback_draw_tool(self, drawer: Drawer):
+    def callback_draw(self, drawer: Drawer):
         draw_node_template(drawer, self.target_nd)
 
     def can_run(self):
@@ -290,7 +291,7 @@ class AnyTargetTool(SingleSocketTool, SingleNodeTool):  #2
 def unhide_node_reassign(nd: Node, self: ModelBaseTool, *, cond: bool, flag=None):  # 我是多么鄙视折叠起来的节点啊.
     if nd.hide and cond:
         nd.hide = False
-        # 注意: 在 find_targets_tool 的拓扑结构中要小心无限循环.
+        # 注意: 在 find_targets 的拓扑结构中要小心无限循环.
         # 警告! type='DRAW_WIN' 会导致某些罕见的带有折叠节点的节点树崩溃! 如果知道如何重现, 最好能报个bug.
         bpy.ops.wm.redraw_timer(type='DRAW', iterations=0)
         # todo0: 如果连续展开了多个节点, 应该只重绘一次; 但没必要. 如果发生了这种情况, 说明这个工具的搜索拓扑很糟糕.

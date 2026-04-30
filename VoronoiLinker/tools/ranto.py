@@ -75,7 +75,7 @@ class NODE_OT_voronoi_ranto(SingleNodeTool): #完成了.
             for nd in rada.dict_ndTopoWorking:
                 nd.select = True
         #ndTar.location = ndTar.location #bpy.ops.wm.redraw_timer(type='DRAW', iterations=0)
-    def find_targets_tool(self, _is_first_active, prefs, tree):
+    def find_targets(self, _is_first_active, prefs, tree):
         self.target_nd = None
         for tar_nd in self.get_nearest_nodes(cur_x_off=0):
             nd = tar_nd.tar

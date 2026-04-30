@@ -24,9 +24,9 @@ class NODE_OT_voronoi_link_repeating(AnyTargetTool):  # 分离成单独的工具
     use_for_custom_tree = True
     can_draw_settings = False
     toolMode: bpy.props.EnumProperty(name="Mode", default=eMode.SOCKET.value, items=ModeItems)
-    def callback_draw_tool(self, drawer):
+    def callback_draw(self, drawer):
         self.template_draw_any(drawer, self.target_any, cond=self.toolMode==eMode.NODE.value)
-    def find_targets_tool(self, _is_first_active, prefs, tree):
+    def find_targets(self, _is_first_active, prefs, tree):
         def IsSkBetweenFields(sk1, sk2):
             return (sk1.type in sk_type_support_field)and( (sk2.type in sk_type_support_field)or(sk1.type==sk2.type) )
         skLastOut = self.skLastOut
@@ -64,8 +64,8 @@ class NODE_OT_voronoi_link_repeating(AnyTargetTool):  # 分离成单独的工具
             break
     def run(self, event, prefs, tree):
         if self.toolMode==eMode.SOCKET.value:
-            # 这里不需要检查套接字树是否相同, find_targets_tool() 中已经检查过了.
-            # 同样不需要检查 skLastOut 是否存在, 参见其在 find_targets_tool() 中的拓扑.
+            # 这里不需要检查套接字树是否相同, find_targets() 中已经检查过了.
+            # 同样不需要检查 skLastOut 是否存在, 参见其在 find_targets() 中的拓扑.
             # 注意: VlrtRememberLastSockets() 中有 `.id_data` 的相同性检查.
             # 注意: 不需要检查树是否存在, 因为如果连接的套接字在这里存在, 那它就肯定在某个地方.
             link_new_pro(self.skLastOut, self.target_any.tar)

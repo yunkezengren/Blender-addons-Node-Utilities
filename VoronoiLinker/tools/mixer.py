@@ -19,9 +19,9 @@ class NODE_OT_voronoi_mixer(TripleSocketTool):
     isCanFromOne:       bpy.props.BoolProperty(name="Can from one socket", default=True) #放在第一位, 以便在 kmi 中与 VQMT 类似.
     isHideOptions:      bpy.props.BoolProperty(name="Hide node options",   default=False)
     isPlaceImmediately: bpy.props.BoolProperty(name="Place immediately",   default=False)
-    def callback_draw_tool(self, drawer):
+    def callback_draw(self, drawer):
         draw_sockets_template(drawer, self.target_sk0, self.target_sk1, self.target_sk2, tool_name="Quick Mix")
-    def find_targets_tool(self, is_first_active, prefs, tree):
+    def find_targets(self, is_first_active, prefs, tree):
         if is_first_active:
             self.target_sk0 = None # 需要清空, 因为下面有两个 continue.
         if not self.canPickThird:

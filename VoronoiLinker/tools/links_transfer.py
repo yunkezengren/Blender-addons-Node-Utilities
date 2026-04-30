@@ -11,7 +11,7 @@ class NODE_OT_voronoi_links_transfer(PairNodeTool):
     use_for_custom_tree = True
     can_draw_settings = False
     isByIndexes: bpy.props.BoolProperty(name="Transfer by indexes", default=False)
-    def callback_draw_tool(self, drawer):
+    def callback_draw(self, drawer):
         # VLT 模式
         if not self.target_nd0:
             draw_sockets_template(drawer, None, tool_name="Links Transfer")
@@ -21,7 +21,7 @@ class NODE_OT_voronoi_links_transfer(PairNodeTool):
         else:
             draw_node_template(drawer, self.target_nd0, side=-1, tool_name="Transfer")
             draw_node_template(drawer, self.target_nd1, side=1, tool_name="Transfer")
-    def find_targets_tool(self, is_first_active, prefs, tree):
+    def find_targets(self, is_first_active, prefs, tree):
         if is_first_active:
             self.target_nd0 = None
         self.target_nd1 = None

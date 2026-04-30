@@ -18,10 +18,10 @@ class NODE_OT_voronoi_call_node_pie(AnyTargetTool):
     can_draw_settings = False
     isTriggerOnCollapsedNodes: bpy.props.BoolProperty(name="Trigger on collapsed nodes", default=True)
 
-    def callback_draw_tool(self, drawer):
+    def callback_draw(self, drawer):
         self.template_draw_any(drawer, self.target_any, cond=False, tool_name="Node Pie Menu")
 
-    def find_targets_tool(self, _is_first_active, prefs, tree):
+    def find_targets(self, _is_first_active, prefs, tree):
         tar_sockets = self.nearest_target_sockets()
         nearest_tar_sk = next((sk for sk in tar_sockets if sk.tar.type != "CUSTOM"), None)
         self.target_any = nearest_tar_sk

@@ -16,9 +16,9 @@ class NODE_OT_voronoi_quick_dimensions(TripleSocketTool):
     use_for_custom_tree = False
     can_draw_settings = False
     isPlaceImmediately: bpy.props.BoolProperty(name="Place immediately", default=False)
-    def callback_draw_tool(self, drawer):
+    def callback_draw(self, drawer):
         draw_sockets_template(drawer, self.target_sk0, self.target_sk1, self.target_sk2, tool_name="Quick Dimensions")
-    def find_targets_tool(self, is_first_active, prefs, tree):
+    def find_targets(self, is_first_active, prefs, tree):
         if is_first_active:
             self.target_sk0 = None
         if not self.canPickThird:

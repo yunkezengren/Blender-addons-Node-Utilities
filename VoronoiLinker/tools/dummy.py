@@ -8,9 +8,9 @@ class NODE_OT_voronoi_dummy(SingleSocketTool):   # 快速便捷地添加新工�
     bl_label = "Voronoi Dummy"
     use_for_custom_tree = True
     isDummy: bpy.props.BoolProperty(name="Dummy", default=False)
-    def callback_draw_tool(self, drawer):
+    def callback_draw(self, drawer):
         draw_sockets_template(drawer, self.target_sk)
-    def find_targets_tool(self, _is_first_active, prefs, tree):
+    def find_targets(self, _is_first_active, prefs, tree):
         self.target_sk = None
         for tar_nd in self.get_nearest_nodes(cur_x_off=0):
             nd = tar_nd.tar

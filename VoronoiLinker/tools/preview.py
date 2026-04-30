@@ -366,7 +366,7 @@ class NODE_OT_voronoi_preview(SingleSocketTool):
     isSelectingPreviewedNode: bpy.props.BoolProperty(name="Select previewed node", default=True)
     isTriggerOnlyOnLink:      bpy.props.BoolProperty(name="Only linked",           default=False, description="Trigger only on linked socket") #最初在 prefs 中.
     isEqualAnchorType:        bpy.props.BoolProperty(name="Equal anchor type",     default=False, description="Trigger only on anchor type sockets")
-    def callback_draw_tool(self, drawer):
+    def callback_draw(self, drawer):
         if (self.prefs.vptRvEeSksHighlighting)and(self.target_sk): #帮助逆向工程 -- 高亮连接点, 并同时显示这些接口的名称.
             solder_sk_links(self.tree) #否则在 `tar.tar==sk:` 上会崩溃.
             #确定标签的缩放比例:
@@ -406,7 +406,7 @@ class NODE_OT_voronoi_preview(SingleSocketTool):
                 nd.color = col
             else:
                 return nd.color.copy()
-    def find_targets_tool(self, _is_first_active, prefs, tree):
+    def find_targets(self, _is_first_active, prefs, tree):
         solder_sk_links(tree) #否则会崩溃.
         isGeoTree = tree.bl_idname=='GeometryNodeTree'
         if False:

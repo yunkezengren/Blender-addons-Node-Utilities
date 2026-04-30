@@ -26,14 +26,14 @@ class NODE_OT_voronoi_swapper(PairSocketTool):
     can_draw_settings = False
     toolMode:     bpy.props.EnumProperty(name="Mode", default=eMode.SWAP.value, items=ModeItems)
     isCanAnyType: bpy.props.BoolProperty(name="Can swap with any socket type", default=False)
-    def callback_draw_tool(self, drawer):      # 我模仿着加的
+    def callback_draw(self, drawer):      # 我模仿着加的
         # 小王-模式名匹配
         match eMode(self.toolMode):
             case eMode.SWAP: mode = "交换连线"
             case eMode.ADD:  mode = "移动并加入连线"
             case eMode.TRAN: mode = "移动并替换连线"
         draw_sockets_template(drawer, self.target_sk0, self.target_sk1, tool_name=mode,)
-    def find_targets_tool(self, is_first_active, prefs, tree):
+    def find_targets(self, is_first_active, prefs, tree):
         if is_first_active:
             self.target_sk0 = None
         self.target_sk1 = None
@@ -85,7 +85,7 @@ class NODE_OT_voronoi_swapper(PairSocketTool):
             case eMode.SWAP:
                 #交换第一个和第二个接口的所有连接:
                 list_memSks = []
-                if skIo0.is_output: #检查 is_output 的一致性是 find_targets_tool() 的任务.
+                if skIo0.is_output: #检查 is_output 的一致性是 find_targets() 的任务.
                     for lk in skIo0.vl_sold_links_final:
                         if lk.to_node!=skIo1.node: # T 1  以防止节点创建指向自身的连接。需要检查所有情况并且不处理此类连接.
                             list_memSks.append(lk.to_socket)

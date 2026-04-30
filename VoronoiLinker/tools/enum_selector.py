@@ -166,7 +166,7 @@ class NODE_OT_voronoi_enum_selector(SingleNodeTool):
     isToggleOptions:     bp.BoolProperty(name="Toggle node options", default=False)
     isSelectNode:        bp.IntProperty(name="Select target node",   default=1, min=0, max=3, description="0 – Do not select.\n1 – Select.\n2 – And center.\n3 – And zooming")
     rename_node:         bp.BoolProperty(name="Rename Node Only Chinese", default=True, description="Rename nodes when toggling options, currently only support Chinese")
-    def callback_draw_tool(self, drawer):              # 工具提示
+    def callback_draw(self, drawer):              # 工具提示
         if self.isToggleOptions:
             mode = "Hide Options"
             if self.firstResult == False:           # 最近节点选项是隐藏的，后续就是显示选项
@@ -185,7 +185,7 @@ class NODE_OT_voronoi_enum_selector(SingleNodeTool):
             success = not nd.show_options
             nd.show_options = True
             return success
-    def find_targets_tool(self, _is_first_active, prefs, tree):
+    def find_targets(self, _is_first_active, prefs, tree):
         self.target_nd = None
         for tar_nd in self.get_nearest_nodes(cur_x_off=0):
             node = tar_nd.tar
