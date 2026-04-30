@@ -1,8 +1,9 @@
 import bpy
-from bpy.types import Area, Context, Event, Node, NodeTree, NodeSocket, Operator, SpaceNodeEditor, UILayout, View2D as View2d
+from bpy.types import Area, Context, Event, KeyMapItem, Node, NodeTree, NodeSocket, Operator, Region, SpaceNodeEditor, UILayout, View2D as View2d
 from bpy.props import BoolProperty
 from mathutils import Vector as Vec2
 from time import perf_counter
+from typing import ClassVar, Any
 
 from .Structure import RectBase, View2D
 from .common_class import TryAndPass
@@ -34,11 +35,12 @@ class BaseOperator(Operator):
 
 # 定义了一组 抽象方法/占位方法 ，供子类实现。这实际上是 Mixin 模式 或 接口/协议类 。
 class ProtocolTool: #-1
-    use_for_custom_tree = None
-    use_for_undefine_tree = None
-    use_for_none_tree = None
-    can_draw_settings = None
-    can_draw_appearance = None
+    # ClassVar[T] 表示这是类属性的类型提示，不是每个实例各自持有的字段。
+    use_for_custom_tree: ClassVar[bool | None] = None
+    use_for_undefine_tree: ClassVar[bool | None] = None
+    use_for_none_tree: ClassVar[bool | None] = None
+    can_draw_settings: ClassVar[bool | None] = None
+    can_draw_appearance: ClassVar[bool | None] = None
 
     def callback_draw(self, drawer: Drawer): pass
     def find_targets(self, is_first_active: bool, prefs: VoronoiAddonPrefs, tree: NodeTree): pass
@@ -52,17 +54,31 @@ class ProtocolTool: #-1
     def draw_pref_appearance(col: UILayout, prefs: VoronoiAddonPrefs): pass
 
 class ModelBaseTool(BaseOperator, ProtocolTool):  #0
-    use_for_undefine_tree = False
-    use_for_none_tree = False
-    can_draw_settings = True
-    can_draw_appearance = False
-    vlTripleName: str
-    disclBoxPropName: str
-    disclBoxPropNameInfo: str
     # 点击节点编辑器总是不可避免的, 那里有节点, 所以对于所有工具
-    isPassThrough: BoolProperty(name="Pass through node selecting",
-                                default=False,
-                                description="Clicking over a node activates selection, not the tool")
+    isPassThrough: BoolProperty(name="Pass through node selecting", default=False, description="Clicking over a node activates selection, not the tool")
+
+    # class config
+    use_for_undefine_tree: ClassVar[bool] = False
+    use_for_none_tree: ClassVar[bool] = False
+    can_draw_settings: ClassVar[bool] = True
+    can_draw_appearance: ClassVar[bool] = False
+
+    # class metadata
+    vlTripleName: ClassVar[str]
+    disclBoxPropName: ClassVar[str]
+    disclBoxPropNameInfo: ClassVar[str]
+
+    # runtime state, assigned in invoke()
+    tree: NodeTree | None
+    in_builtin_tree: bool
+    kmi: KeyMapItem
+    prefs: VoronoiAddonPrefs
+    uiScale: float
+    cursorLoc: Vec2
+    drawer: Drawer
+    region: Region
+    ctView2d: View2D
+    handle: Any
 
     def get_nearest_nodes(self, includePoorNodes=False, cur_x_off: float = 0):
         self.cursorLoc.x += cur_x_off  # 唤起位置偏移
@@ -119,41 +135,6 @@ class ModelBaseTool(BaseOperator, ProtocolTool):  #0
                 EdgePan.isWorking = False  # 现在只对 VLT 有效. 也许应该做个 ~self.ErrorToolProc, 并在 VLT 中 "退后一步".
                 SpaceNodeEditor.draw_handler_remove(self.handle, 'WINDOW')
                 raise
-
-    def modal_handle_mouse(self, event: Event, prefs: VoronoiAddonPrefs):
-        match event.type:
-            case 'MOUSEMOVE':
-                self.find_targets_base(False)
-            case self.kmi.type | 'ESC':
-                if event.value == 'RELEASE':
-                    return True
-        return False
-
-    def modal(self, context, event):
-        context.area.tag_redraw()
-        if num := (event.type == 'WHEELUPMOUSE') - (event.type == 'WHEELDOWNMOUSE'):
-            self.ctView2d.cur.Zooming(self.cursorLoc, 1.0 - num*0.15)
-        self.handle_modal(event, self.prefs)
-        if not self.modal_handle_mouse(event, self.prefs):
-            return {'RUNNING_MODAL'}
-        #* 工具的结束从这里开始 *
-        EdgePan.isWorking = False
-        if event.type == 'ESC':  # 这正是 Escape 键应该做的.
-            return {'CANCELLED'}
-        with TryAndPass():  # 它可能已经被删除了, 参见第二个这样的情况.
-            SpaceNodeEditor.draw_handler_remove(self.handle, 'WINDOW')
-        tree = self.tree
-        if not tree:
-            return {'FINISHED'}
-        RestoreCollapsedNodes(tree.nodes)
-        if (tree) and (tree.bl_idname == 'NodeTreeUndefined'):  # 如果来自某个插件的节点树消失了, 那么剩下的就是 NodeUndefined 和 NodeSocketUndefined.
-            return {'CANCELLED'}  # 通过 API 无法创建到 SocketUndefined 的链接, 在这个树里也没什么可做的; 所以退出.
-        ##
-        if not self.can_run():
-            return {'CANCELLED'}
-        if result := self.run(event, self.prefs, tree):
-            return result
-        return {'FINISHED'}
 
     def invoke(self, context, event):
         tree = context.space_data.edit_tree
@@ -213,7 +194,43 @@ class ModelBaseTool(BaseOperator, ProtocolTool):  #0
         context.window_manager.modal_handler_add(self)
         return {'RUNNING_MODAL'}
 
+    def modal(self, context, event):
+        context.area.tag_redraw()
+        if num := (event.type == 'WHEELUPMOUSE') - (event.type == 'WHEELDOWNMOUSE'):
+            self.ctView2d.cur.Zooming(self.cursorLoc, 1.0 - num*0.15)
+        self.handle_modal(event, self.prefs)
+        if not self.modal_handle_mouse(event, self.prefs):
+            return {'RUNNING_MODAL'}
+        #* 工具的结束从这里开始 *
+        EdgePan.isWorking = False
+        if event.type == 'ESC':  # 这正是 Escape 键应该做的.
+            return {'CANCELLED'}
+        with TryAndPass():  # 它可能已经被删除了, 参见第二个这样的情况.
+            SpaceNodeEditor.draw_handler_remove(self.handle, 'WINDOW')
+        tree = self.tree
+        if not tree:
+            return {'FINISHED'}
+        RestoreCollapsedNodes(tree.nodes)
+        if (tree) and (tree.bl_idname == 'NodeTreeUndefined'):  # 如果来自某个插件的节点树消失了, 那么剩下的就是 NodeUndefined 和 NodeSocketUndefined.
+            return {'CANCELLED'}  # 通过 API 无法创建到 SocketUndefined 的链接, 在这个树里也没什么可做的; 所以退出.
+        ##
+        if not self.can_run():
+            return {'CANCELLED'}
+        if result := self.run(event, self.prefs, tree):
+            return result
+        return {'FINISHED'}
+
+    def modal_handle_mouse(self, event: Event, prefs: VoronoiAddonPrefs):
+        match event.type:
+            case 'MOUSEMOVE':
+                self.find_targets_base(False)
+            case self.kmi.type | 'ESC':
+                if event.value == 'RELEASE':
+                    return True
+        return False
+
 class SingleSocketTool(ModelBaseTool):  #1
+    target_sk: Target | None
 
     def callback_draw(self, drawer: Drawer):
         draw_sockets_template(drawer, self.target_sk)
@@ -225,6 +242,9 @@ class SingleSocketTool(ModelBaseTool):  #1
         self.target_sk = None
 
 class PairSocketTool(SingleSocketTool):  #2
+    target_sk0: Target | None
+    target_sk1: Target | None
+
     isCanBetweenFields: BoolProperty(name="Can between fields",
                                      default=True,
                                      description="Tool can connecting between different field types")
@@ -242,6 +262,9 @@ class PairSocketTool(SingleSocketTool):  #2
         self.target_sk1 = None
 
 class TripleSocketTool(PairSocketTool):  #3
+    target_sk2: Target | None
+    canPickThird: bool
+    isStartWithModf: bool
 
     def handle_modal(self, event: Event, prefs: VoronoiAddonPrefs):
         if (self.isStartWithModf) and (not self.canPickThird):  # 谁会真的通过按下和释放某个修饰键来切换到选择第三个套接字呢?.
@@ -254,6 +277,7 @@ class TripleSocketTool(PairSocketTool):  #3
         self.isStartWithModf = (event.shift) or (event.ctrl) or (event.alt)
 
 class SingleNodeTool(ModelBaseTool):  #1
+    target_nd: Target | None
 
     def callback_draw(self, drawer: Drawer):
         draw_node_template(drawer, self.target_nd)
@@ -265,6 +289,8 @@ class SingleNodeTool(ModelBaseTool):  #1
         self.target_nd = None
 
 class PairNodeTool(SingleSocketTool):  #2
+    target_nd0: Target | None
+    target_nd1: Target | None
 
     def can_run(self):
         return self.target_nd0 and self.target_nd1
@@ -274,6 +300,7 @@ class PairNodeTool(SingleSocketTool):  #2
         self.target_nd1 = None
 
 class AnyTargetTool(SingleSocketTool, SingleNodeTool):  #2
+    target_any: Target | None
 
     @staticmethod
     def template_draw_any(drawer: Drawer, tar: Target, *, cond: bool, tool_name=""):
