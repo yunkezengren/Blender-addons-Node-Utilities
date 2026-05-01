@@ -1,6 +1,7 @@
 import bpy
 from bpy.types import Operator
 from typing import NamedTuple
+from enum import StrEnum
 from .base_tool import ModelBaseTool
 from .tools.call_node_pie import NODE_OT_voronoi_call_node_pie
 from .tools.enum_selector import NODE_OT_enum_selector_box, NODE_MT_enum_selector_pie, NODE_OT_voronoi_enum_selector
@@ -39,6 +40,14 @@ try:
 except ImportError:
     pass
 
+class Group(StrEnum):
+    most_useful = "most_useful"
+    quite_useful = "quite_useful"
+    maybe_useful = "maybe_useful"
+    invalid = "invalid"
+    quick_math = "quick_math"
+    custom = "custom"
+
 class KeymapItemDef(NamedTuple):
     idname: str
     key: str
@@ -47,10 +56,11 @@ class KeymapItemDef(NamedTuple):
     alt: bool
     repeat: bool
     props: dict[str, object]
+    group_tag: Group | None = None
 
 # yapf: disable
 # 每个 Operator 类的 keymap 配置. 格式: "S#A_KEY" 或 ("S#A_KEY", {'prop': value})  S=Shift, C=Ctrl, A=Alt, #=忽略, + =repeat
-operator_keymaps: dict[type[Operator], list[str | tuple[str, dict[str, object]]]] = {
+operator_keymaps: dict[type[Operator], list[str | tuple[str, dict[str, object]] | tuple[str, dict[str, object], Group]]] = {
     NODE_OT_voronoi_linker: ["##A_RIGHTMOUSE"],
     NODE_OT_voronoi_preview: ["SC#_LEFTMOUSE"],
     NODE_OT_voronoi_mixer: ["S#A_LEFTMOUSE"],
@@ -80,7 +90,7 @@ operator_keymaps: dict[type[Operator], list[str | tuple[str, dict[str, object]]]
         ("SC#_ACCENT_GRAVE", {'isDeleteNonCanonAnchors': 2}),  # ACCENT_GRAVE 是 `
     ],
     NODE_OT_voronoi_enum_selector: [
-        ("##A_E", {'isToggleOptions': True}),
+        ("##A_E", {'isToggleOptions': True}, Group.most_useful),
         ("#C#_E", {'isInstantActivation': False}),
         ("#C#_R", {'isPieChoice': True, 'isSelectNode': 1}),
     ],
@@ -100,11 +110,11 @@ operator_keymaps: dict[type[Operator], list[str | tuple[str, dict[str, object]]]
     ],
     NODE_OT_voronoi_interfacer: [
         ("SC#_A", {'toolMode': InterfacerMode.NEW.value}),
-        ("S#A_A", {'toolMode': InterfacerMode.CREATE.value}),
+        ("S#A_A", {'toolMode': InterfacerMode.CREATE.value}, Group.most_useful),
         ("S#A_C", {'toolMode': InterfacerMode.COPY.value}),
         ("S#A_V", {'toolMode': InterfacerMode.PASTE.value}),
         ("S#A_X", {'toolMode': InterfacerMode.SWAP.value}),
-        ("S#A_Z", {'toolMode': InterfacerMode.MOVE.value}),
+        ("S#A_Z", {'toolMode': InterfacerMode.MOVE.value}, Group.most_useful),
         # ("S#A_Q", {'toolMode':InterfacerMode.DELETE.value}),
         # ("S#A_E", {'toolMode':InterfacerMode.TYPE.value}),
     ],
@@ -140,9 +150,12 @@ for operator_cls, keymaps in operator_keymaps.items():
     vt_classes.append(operator_cls)
     for km in keymaps:
         if isinstance(km, str):
-            keymap_str, props = km, {}
-        else:
+            keymap_str, props, group_tag = km, {}, None
+        elif len(km) == 2:
             keymap_str, props = km
+            group_tag = None
+        else:
+            keymap_str, props, group_tag = km
         mods, key = keymap_str[:4], keymap_str[4:]
         keymap_item_defs.append(KeymapItemDef(
             operator_cls.bl_idname,
@@ -152,47 +165,43 @@ for operator_cls, keymaps in operator_keymaps.items():
             "A" in mods,
             "+" in mods,
             props,
+            group_tag,
         ))
+
+def bl_idnames(*classes: type[Operator]) -> tuple[str, ...]:
+    return tuple(cls.bl_idname for cls in classes)
+
+keymap_groups: dict[Group, tuple[str, ...]] = {
+    Group.most_useful: bl_idnames(
+        NODE_OT_voronoi_linker,
+        NODE_OT_voronoi_mixer,
+        NODE_OT_voronoi_quick_math,
+        NODE_OT_voronoi_quick_constant,
+        NODE_OT_voronoi_preview,
+        NODE_OT_voronoi_hider,
+        NODE_OT_voronoi_call_node_pie,
+    ),
+    Group.quite_useful: bl_idnames(
+        NODE_OT_voronoi_mass_linker,
+        NODE_OT_voronoi_interfacer,
+        NODE_OT_voronoi_quick_dimensions,
+        NODE_OT_voronoi_links_transfer,
+        NODE_OT_voronoi_enum_selector,
+        NODE_OT_voronoi_swapper,
+    ),
+    Group.maybe_useful: bl_idnames(
+        NODE_OT_voronoi_link_repeating,
+        NODE_OT_voronoi_reset_node,
+        NODE_OT_voronoi_lazy_node_stencils,
+        NODE_OT_voronoi_preview_anchor,
+        NODE_OT_voronoi_warper,
+    ),
+    Group.quick_math: (),
+    Group.custom: (),
+    Group.invalid: (),
+}
+# keymap_groups[Group.invalid].add(NODE_OT_voronoi_ranto.bl_idname)
 # yapf: enable
-
-class KeymapGroups(NamedTuple):
-    most_useful: set[str]
-    quite_useful: set[str]
-    maybe_useful: set[str]
-    invalid: set[str]
-    quick_math: set[str]
-    custom: set[str]
-
-keymap_groups = KeymapGroups(
-    most_useful={
-        NODE_OT_voronoi_linker.bl_idname,
-        NODE_OT_voronoi_preview.bl_idname,
-        NODE_OT_voronoi_mixer.bl_idname,
-        NODE_OT_voronoi_quick_math.bl_idname,
-        NODE_OT_voronoi_hider.bl_idname,
-        NODE_OT_voronoi_call_node_pie.bl_idname,
-        NODE_OT_voronoi_quick_constant.bl_idname,
-    },
-    quite_useful={
-        NODE_OT_voronoi_mass_linker.bl_idname,
-        NODE_OT_voronoi_interfacer.bl_idname,
-        NODE_OT_voronoi_quick_dimensions.bl_idname,
-        NODE_OT_voronoi_links_transfer.bl_idname,
-        NODE_OT_voronoi_enum_selector.bl_idname,
-        NODE_OT_voronoi_swapper.bl_idname,
-    },
-    maybe_useful={
-        NODE_OT_voronoi_link_repeating.bl_idname,
-        NODE_OT_voronoi_reset_node.bl_idname,
-        NODE_OT_voronoi_lazy_node_stencils.bl_idname,
-        NODE_OT_voronoi_preview_anchor.bl_idname,
-        NODE_OT_voronoi_warper.bl_idname,
-    },
-    invalid=set(),
-    quick_math=set(),
-    custom=set(),
-)
-# keymap_groups.invalid.add(NODE_OT_voronoi_ranto.bl_idname)
 
 assign_tool_class_names(vt_classes)
 add_dynamic_properties(vt_classes)
@@ -226,7 +235,7 @@ def register():
     prefs.draw_prefs.test_drawing = False
 
     km = bpy.context.window_manager.keyconfigs.addon.keymaps.new(name="Node Editor", space_type='NODE_EDITOR')
-    for idname, key, shift, ctrl, alt, repeat, props in keymap_item_defs:
+    for idname, key, shift, ctrl, alt, repeat, props, _tag in keymap_item_defs:
         kmi = km.keymap_items.new(idname=idname, type=key, value='PRESS', shift=shift, ctrl=ctrl, alt=alt, repeat=repeat)
         if props:
             for key, value in props.items():

@@ -1,12 +1,15 @@
 import bpy
 import rna_keymap_ui
-from typing import Callable
+from typing import Callable, TYPE_CHECKING
 from bpy.app.translations import pgettext_iface as _iface
 from bpy.props import BoolProperty, EnumProperty, FloatProperty, FloatVectorProperty, IntProperty, IntVectorProperty, PointerProperty, StringProperty
-from bpy.types import KeyMapItem, UILayout, Operator, AddonPreferences, PropertyGroup
+from bpy.types import KeyMap, KeyMapItem, UILayout, Operator, AddonPreferences, PropertyGroup
 
 from .common_class import VlnstUpdateLastExecError
 from .utils.ui import split_prop, draw_panel_column, add_thin_sep, format_tool_label, user_node_keymap
+
+if TYPE_CHECKING:
+    from . import Group
 
 HIDE_BOOL_SOCKET_ITEMS = [
     ('ALWAYS', "Always", "Always"),
@@ -46,54 +49,58 @@ class KeymapItemGroup:
     group_key: str
     label: str
     matched_items: set
-    idnames: set
+    idnames: tuple[str, ...]
     count: int
     filter: Callable[[KeyMapItem], bool] | None
 
-    def __init__(self, label='', matched_items=set(), idnames=set()):
+    def __init__(self, label='', matched_items=set(), idnames=()):
         self.group_key = "_".join(label.lower().split())
         self.label = label
         self.matched_items = matched_items
         self.idnames = idnames
         self.count = 0
-        self.filter = None
+        self.filter = lambda kmi: kmi.idname in self.idnames
 
-class KeymapItemGroups:
-    """快捷键项分类容器 - 管理多个KeymapItemCategory实例"""
-    most_useful: KeymapItemGroup
-    quite_useful: KeymapItemGroup
-    maybe_useful: KeymapItemGroup
-    invalid: KeymapItemGroup
-    quick_math: KeymapItemGroup
-    custom: KeymapItemGroup
+KeymapItemGroups = dict['Group', KeymapItemGroup]
 
 def build_keymap_item_groups() -> KeymapItemGroups:
-    from . import keymap_groups
-    kmi_groups = KeymapItemGroups()
-    kmi_groups.quick_math =   KeymapItemGroup('Quick Math',   set(), keymap_groups.quick_math)
-    kmi_groups.custom =       KeymapItemGroup('Custom',       set(), keymap_groups.custom)
-    kmi_groups.most_useful =  KeymapItemGroup('Most Useful',  set(), keymap_groups.most_useful)
-    kmi_groups.quite_useful = KeymapItemGroup('Quite Useful', set(), keymap_groups.quite_useful)
-    kmi_groups.maybe_useful = KeymapItemGroup('Maybe Useful', set(), keymap_groups.maybe_useful)
-    kmi_groups.invalid =      KeymapItemGroup('Invalid',      set(), keymap_groups.invalid)
-    kmi_groups.most_useful.filter = lambda kmi: kmi.idname in kmi_groups.most_useful.idnames
-    kmi_groups.quite_useful.filter = lambda kmi: kmi.idname in kmi_groups.quite_useful.idnames
-    kmi_groups.maybe_useful.filter = lambda kmi: kmi.idname in kmi_groups.maybe_useful.idnames
-    kmi_groups.invalid.filter = lambda kmi: True
-    kmi_groups.quick_math.filter = lambda kmi: any(
+    from . import keymap_groups, Group
+    kmi_groups = {tag: KeymapItemGroup(tag.value.replace("_", " ").title(), set(), keymap_groups[tag]) for tag in Group}
+    kmi_groups[Group.invalid].filter = lambda kmi: True
+    kmi_groups[Group.quick_math].filter = lambda kmi: any(
         True for txt in {'quickOprFloat', 'quickOprVector', 'quickOprBool', 'quickOprColor', 'justPieCall', 'isRepeatLastOperation'}
         if getattr(kmi.properties, txt, None))
-    kmi_groups.custom.filter = lambda kmi: kmi.id < 0  # 负id用于自定义
+    kmi_groups[Group.custom].filter = lambda kmi: kmi.id < 0  # 负id用于自定义
     return kmi_groups
 
+def populate_keymap_item_groups(node_km: KeyMap) -> KeymapItemGroups:
+    from . import keymap_item_defs, Group
 
-def populate_keymap_item_groups(node_kms) -> KeymapItemGroups:
+    def find_group_tag(kmi: KeyMapItem) -> Group | None:
+        for item_def in keymap_item_defs:
+            if item_def.group_tag is None:
+                continue
+            if item_def.idname != kmi.idname or item_def.key != kmi.type:
+                continue
+            if item_def.shift != kmi.shift or item_def.ctrl != kmi.ctrl or item_def.alt != kmi.alt or item_def.repeat != kmi.repeat:
+                continue
+            if all(getattr(kmi.properties, key, None) == value for key, value in item_def.props.items()):
+                return item_def.group_tag
+        return None
+
     kmi_groups = build_keymap_item_groups()
-    for li in node_kms.keymap_items:
-        if li.idname.startswith("node.voronoi_"):
-            for dv in kmi_groups.__dict__.values():
-                if dv.filter(li):
-                    dv.matched_items.add(li)
+    for item in node_km.keymap_items:
+        if item.idname.startswith("node.voronoi_"):
+            group_tag = find_group_tag(item)
+            if group_tag:
+                group = kmi_groups.get(group_tag)
+                if group is not None:
+                    group.matched_items.add(item)
+                    group.count += 1
+                    continue
+            for dv in kmi_groups.values():
+                if dv.filter(item):
+                    dv.matched_items.add(item)
                     dv.count += 1
                     break
     return kmi_groups
@@ -385,16 +392,22 @@ class VoronoiAddonPrefs(AddonPreferences):
                 split_body = body.split(factor=0.02, align=False)
                 split_body.label(text="")
                 body_col = split_body.column(align=True)
-                for li in sorted(category.matched_items, key=lambda a: a.id):
+                idname_order = {idname: idx for idx, idname in enumerate(category.idnames)}
+                for li in sorted(category.matched_items, key=lambda a: (idname_order.get(a.idname, len(idname_order)), a.id)):
                     body_col.context_pointer_set('keymap', node_kms)
                     rna_keymap_ui.draw_kmi([], bpy.context.window_manager.keyconfigs.user, node_kms, li, body_col, 0)
 
-        draw_km_group(col_list, kmi_groups.custom)
-        draw_km_group(col_list, kmi_groups.most_useful)
-        draw_km_group(col_list, kmi_groups.quite_useful)
-        draw_km_group(col_list, kmi_groups.maybe_useful)
-        draw_km_group(col_list, kmi_groups.invalid)
-        draw_km_group(col_list, kmi_groups.quick_math)
+        from . import Group
+        key_group_order = (
+            Group.most_useful,
+            Group.quite_useful,
+            Group.maybe_useful,
+            Group.quick_math,
+            Group.custom,
+            Group.invalid,
+        )
+        for group_tag in key_group_order:
+            draw_km_group(col_list, kmi_groups[group_tag])
 
     def draw_tab_info(self, layout: UILayout):
 
