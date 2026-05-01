@@ -4,7 +4,7 @@ from ..base_tool import unhide_node_reassign, TripleSocketTool
 from ..globals import AllQuickDimensions, Cursor_X_Offset
 from ..utils.drawing import draw_sockets_template
 from ..utils.node import node_enum_props, opt_tar_socket, remember_add_link
-from .matrix_convert import Convert_Data, PIE_MT_Convert_Rotation_To, PIE_MT_Separate_Matrix
+from .quick__convert import Convert_Data, Convert, call_convert_pie
 
 def get_dimension_node(tree: NodeTree, sk_type: str):
     return AllQuickDimensions.get(tree.bl_idname, None).get(sk_type, None)
@@ -82,14 +82,14 @@ class NODE_OT_voronoi_quick_dimensions(TripleSocketTool):
                 Convert_Data.sk1 = self.target_sk1.tar
             if self.target_sk2:
                 Convert_Data.sk2 = self.target_sk2.tar
-            bpy.ops.wm.call_menu_pie(name=PIE_MT_Convert_Rotation_To.bl_idname)
+            call_convert_pie(Convert.rotation_to)
         elif sk_out0.type == "MATRIX":        # 小王-Alt D 矩阵接口
             Convert_Data.sk0 = sk_out0
             if self.target_sk1:
                 Convert_Data.sk1 = self.target_sk1.tar
             if self.target_sk2:
                 Convert_Data.sk2 = self.target_sk2.tar
-            bpy.ops.wm.call_menu_pie(name=PIE_MT_Separate_Matrix.bl_idname)
+            call_convert_pie(Convert.separate_matrix)
         else:
             bpy.ops.node.add_node('INVOKE_DEFAULT',
                                   type=Q_Dimensions[sk_out0.type][isOutNdCol if not isOutNdQuat else 2],

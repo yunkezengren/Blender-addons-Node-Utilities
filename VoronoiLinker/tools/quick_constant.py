@@ -4,7 +4,7 @@ from ..base_tool import unhide_node_reassign, TripleSocketTool
 from ..globals import AllQuickConstant, Cursor_X_Offset
 from ..utils.drawing import draw_sockets_template
 from ..utils.node import opt_tar_socket
-from .matrix_convert import Convert_Data, PIE_MT_Combine_Matrix, PIE_MT_Convert_To_Rotation
+from .quick__convert import Convert_Data, Convert, call_convert_pie
 
 B = bpy.types
 
@@ -80,11 +80,11 @@ class NODE_OT_voronoi_quick_constant(TripleSocketTool):
                 Convert_Data.sk2 = self.target_sk2.tar
             if skIn0.type == "ROTATION":
                 if hasattr(skIn0, "default_value"):
-                    bpy.ops.wm.call_menu_pie(name=PIE_MT_Convert_To_Rotation.bl_idname)
+                    call_convert_pie(Convert.to_rotation)
                 # return {'FINISHED'}       # 想松开按键确认
                 # new_node.width = 200   # md这里不行，运行ops后立马运行下面的了？放在Rotation_Convert里的invoke就行了？ (那里放好这里忘删了找了半天错误)
             if skIn0.type == "MATRIX":
-                bpy.ops.wm.call_menu_pie(name=PIE_MT_Combine_Matrix.bl_idname)
+                call_convert_pie(Convert.combine_matrix)
         else:
             node_type = get_const_node(tree, skIn0.type)
             if node_type == "NodeClosureOutput":

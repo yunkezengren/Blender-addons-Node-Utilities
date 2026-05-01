@@ -11,7 +11,7 @@ from .tools.link_repeating import LinkRepeatingMode, NODE_OT_voronoi_link_repeat
 from .tools.linker import NODE_OT_voronoi_linker
 from .tools.links_transfer import NODE_OT_voronoi_links_transfer
 from .tools.mass_linker import NODE_OT_voronoi_mass_linker
-from .tools.matrix_convert import PIE_MT_Combine_Matrix, PIE_MT_Convert_Rotation_To, PIE_MT_Convert_To_Rotation, PIE_MT_Separate_Matrix, NODE_OT_rot_or_mat_convert
+from .tools.quick__convert import NODE_MT_voronoi_convert, NODE_OT_voronoi_convert
 from .tools.mixer import NODE_OT_voronoi_mixer
 from .tools.mixer_sub import NODE_OT_mixer_sub, NODE_MT_mixer_pie
 from .tools.preview import NODE_OT_voronoi_preview
@@ -204,11 +204,8 @@ _classes = [
     NODE_MT_quick_math_pie,
     NODE_OT_enum_selector_box,
     NODE_MT_enum_selector_pie,
-    NODE_OT_rot_or_mat_convert,
-    PIE_MT_Convert_To_Rotation,
-    PIE_MT_Convert_Rotation_To,
-    PIE_MT_Separate_Matrix,
-    PIE_MT_Combine_Matrix,
+    NODE_OT_voronoi_convert,
+    NODE_MT_voronoi_convert,
     VoronoiOpAddonTabs,
     DrawPrefs,
     VoronoiAddonPrefs,
