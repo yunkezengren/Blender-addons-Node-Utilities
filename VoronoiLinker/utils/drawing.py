@@ -20,21 +20,21 @@ class Drawer():
     world_zoom = 0.0
 
     def __init__(self, context: Context, cursor_loc: Vec2, ui_scale: float, prefs: VoronoiAddonPrefs):
+        draw_prefs = prefs.draw_prefs
         self.shader_line = gpu.shader.from_builtin('POLYLINE_SMOOTH_COLOR')
         # POLYLINE_FLAT_COLOR, POLYLINE_SMOOTH_COLOR, POLYLINE_UNIFORM_COLOR, FLAT_COLOR, SMOOTH_COLOR, [UNIFORM_COLOR]
         self.shader_area = gpu.shader.from_builtin('UNIFORM_COLOR')
         #self.shader_line.uniform_float('lineSmooth', True) # 无需, 默认为 True.
-        self.font_id = blf.load(prefs.dsFontFile)  # 持续设置字体是为了在更换主题时字体不消失.
+        self.font_id = blf.load(draw_prefs.font_file)  # 持续设置字体是为了在更换主题时字体不消失.
         ##
         self.active_space = context.space_data
         self.ui_scale = ui_scale
         self.view_to_region = context.region.view2d.view_to_region
         self.cursor_loc = cursor_loc
         ##
-        for prop in prefs.bl_rna.properties:
-            if prop.identifier.startswith("ds"):
-                setattr(self, prop.identifier, getattr(prefs, prop.identifier))
-        match prefs.dsDisplayStyle:
+        for prop in draw_prefs.bl_rna.properties:
+            setattr(self, prop.identifier, getattr(draw_prefs, prop.identifier))
+        match draw_prefs.display_style:
             case 'CLASSIC':
                 self.dsFrameDisplayType = 2
             case 'SIMPLIFIED':
@@ -42,9 +42,9 @@ class Drawer():
             case 'ONLY_TEXT':
                 self.dsFrameDisplayType = 0
         ##
-        self.dsUniformColor = Vec4(power_color(self.dsUniformColor))
-        self.dsUniformNodeColor = Vec4(power_color(self.dsUniformNodeColor))
-        self.dsCursorColor = Vec4(power_color(self.dsCursorColor))
+        self.uniform_color = Vec4(power_color(self.uniform_color))
+        self.uniform_node_color = Vec4(power_color(self.uniform_node_color))
+        self.cursor_color = Vec4(power_color(self.cursor_color))
 
     def draw_line_strip(self, positions: Iterable[float2], colors: Iterable[float4], width: float) -> None:
         gpu.state.blend_set('ALPHA')  # 绘制文本会重置 alpha 标记, 因此每次都设置.
@@ -100,16 +100,16 @@ class Drawer():
         self.draw_circle(pos, radius / 1.5, resolution, color2)
 
 def draw_connection_line(drawer: Drawer, pos1: Vec2, pos2: Vec2, color1: float4, color2: float4) -> None:
-    drawer.draw_line_strip((drawer.ui_to_region(pos1), drawer.ui_to_region(pos2)), (color1, color2), drawer.dsLineWidth)
+    drawer.draw_line_strip((drawer.ui_to_region(pos1), drawer.ui_to_region(pos2)), (color1, color2), drawer.line_width)
 
 def draw_socket_area(drawer: Drawer, socket: NodeSocket, bounds: float2, color: float4) -> None:
     loc = node_abs_loc(socket.node)
     pos1 = drawer.ui_to_region(Vec2((loc.x, bounds[0])))
     pos2 = drawer.ui_to_region(Vec2((loc.x + socket.node.width, bounds[1])))
-    if drawer.dsIsColoredSkArea:
-        color[3] = drawer.dsSocketAreaAlpha  # 注意: 这里总是收到不透明颜色; 所以可以覆盖而不是乘.
+    if drawer.color_socket_area:
+        color[3] = drawer.socket_area_alpha  # 注意: 这里总是收到不透明颜色; 所以可以覆盖而不是乘.
     else:
-        color = drawer.dsUniformColor
+        color = drawer.uniform_color
     drawer.draw_rect(pos1, pos2, color)
 
 def draw_socket_point(drawer: Drawer,
@@ -118,9 +118,9 @@ def draw_socket_point(drawer: Drawer,
                       color2: Vec4 = white,
                       resolution: int = 54,
                       forcibly_color: bool = False) -> None:  #"forcibly_color" 只用于 draw_debug_info.
-    if not (drawer.dsIsColoredPoint or forcibly_color):
-        color1 = color2 = drawer.dsUniformColor
-    drawer.draw_point_highlight(drawer.ui_to_region(pos), ((6 * drawer.dsPointScale * drawer.world_zoom)**2 + 10)**0.5, color1, color2,
+    if not (drawer.color_point or forcibly_color):
+        color1 = color2 = drawer.uniform_color
+    drawer.draw_point_highlight(drawer.ui_to_region(pos), ((6 * drawer.point_scale * drawer.world_zoom)**2 + 10)**0.5, color1, color2,
                                 resolution)
 
 def draw_link_marker(drawer: Drawer, pos: float2, color: float4, style: int) -> None:
@@ -146,9 +146,9 @@ def draw_link_marker(drawer: Drawer, pos: float2, color: float4, style: int) -> 
 def draw_socket_marker(drawer: Drawer, pos: Vec2, offset: float2, color: float4) -> None:
     vec = drawer.ui_to_region(pos)
     dir = 1 if offset[0] > 0 else -1
-    ofsX = dir * ((20 * drawer.dsIsDrawText + drawer.dsDistFromCursor) * 1.5 + drawer.dsFrameOffset) + 4
-    color = color if drawer.dsIsColoredMarker else drawer.dsUniformColor
-    draw_link_marker(drawer, (vec[0] + offset[0] + ofsX, vec[1] + offset[1]), color, drawer.dsMarkerStyle)
+    ofsX = dir * ((20 * drawer.draw_text + drawer.text_distance_from_cursor) * 1.5 + drawer.frame_offset) + 4
+    color = color if drawer.color_marker else drawer.uniform_color
+    draw_link_marker(drawer, (vec[0] + offset[0] + ofsX, vec[1] + offset[1]), color, drawer.marker_style)
 
 def draw_framed_text(drawer: Drawer, pos1: float2, pos2: float2, text: str, size: float, y_offset: float, text_color: float4,
                      frame_color: float4, bg_color: float4) -> float2:
@@ -195,10 +195,10 @@ def draw_framed_text(drawer: Drawer, pos1: float2, pos2: float2, text: str, size
     blf.color(font_id, 0.0, 0.0, 0.0, 0.0)
     blf.draw(font_id, text)
     # 文本本身:
-    if drawer.dsIsAllowTextShadow:
-        color = drawer.dsShadowCol
-        blf.shadow_offset(font_id, drawer.dsShadowOffset[0], drawer.dsShadowOffset[1])
-        blf.shadow(font_id, (0, 3, 5)[drawer.dsShadowBlur], color[0], color[1], color[2], color[3])
+    if drawer.text_shadow:
+        color = drawer.shadow_color
+        blf.shadow_offset(font_id, drawer.shadow_offset[0], drawer.shadow_offset[1])
+        blf.shadow(font_id, (0, 3, 5)[drawer.shadow_blur], color[0], color[1], color[2], color[3])
     else:
         blf.disable(font_id, blf.SHADOW)
     blf.color(font_id, text_color[0], text_color[1], text_color[2], 1.0)
@@ -211,14 +211,14 @@ def draw_world_text(drawer: Drawer,
                     text: str,
                     text_color: float4,
                     bg_color: float4,
-                    font_size_override: float = 0) -> float2:  # font_size_override 仅用于 vptRvEeSksHighlighting.
-    size = drawer.dsFontSize * (not font_size_override) + font_size_override
+                    font_size_override: float = 0) -> float2:  # font_size_override 仅用于 vpt_rv_ee_sks_highlighting.
+    size = drawer.font_size * (not font_size_override) + font_size_override
     blf.size(drawer.font_id, size)
     # 不计算"实际文本"的高度, 因为那样每个框每次的高度都会不同.
     # 需要特殊字符作为"通用情况"来覆盖最大高度. 其他字符用于可能比"█"高的特殊字体.
     dimDb = (blf.dimensions(drawer.font_id, text)[0], blf.dimensions(drawer.font_id, "█GJKLPgjklp!?")[1])
     pos = drawer.ui_to_region(pos)
-    frameOffset = drawer.dsFrameOffset
+    frameOffset = drawer.frame_offset
     ofsGap = 10
     pos = (pos[0] - (dimDb[0] + frameOffset + ofsGap) * (offset[0] < 0) + (frameOffset+1) * (offset[0] > -1), pos[1] + frameOffset)
     # 我已经完全忘了我搞了什么鬼以及它是如何工作的; 但它工作了 -- 这就很好, "能工作就别动":
@@ -227,8 +227,8 @@ def draw_world_text(drawer: Drawer,
     pos2 = (pos[0] + offset[0] + ofsGap + dimDb[0] + frameOffset, pos[1] + placePosY + dimDb[1] + frameOffset)
     ##
     # 这个更像影响全体 这里使得Ctrl Shift E / Ctrl E / Alt E 等显示太浅
-    # return draw_framed_text(drawer, pos1, pos2, text, size=size, y_offset=dimDb[1]*drawer.dsManualAdjustment, text_color=power_color(text_color, power=1/1.975), frame_color=power_color(bg_color, power=1/1.5), bg_color=bg_color)
-    return draw_framed_text(drawer, pos1, pos2, text, size, dimDb[1] * drawer.dsManualAdjustment, text_color, bg_color, bg_color)  # 绘制颜色加深
+    # return draw_framed_text(drawer, pos1, pos2, text, size=size, y_offset=dimDb[1]*drawer.text_y_offset, text_color=power_color(text_color, power=1/1.975), frame_color=power_color(bg_color, power=1/1.5), bg_color=bg_color)
+    return draw_framed_text(drawer, pos1, pos2, text, size, dimDb[1] * drawer.text_y_offset, text_color, bg_color, bg_color)  # 绘制颜色加深
 
 def draw_socket_text(drawer: Drawer,
                      pos: Vec2,
@@ -236,14 +236,14 @@ def draw_socket_text(drawer: Drawer,
                      target: Target,
                      font_size_override: float = 0,
                      tool_color: float4 = (0, 0, 0, 0)) -> float2:
-    # 注意: `pos` 总是为了 drawer.cursor_loc, 但请参见 vptRvEeSksHighlighting.
-    if not drawer.dsIsDrawText:
+    # 注意: `pos` 总是为了 drawer.cursor_loc, 但请参见 vpt_rv_ee_sks_highlighting.
+    if not drawer.draw_text:
         return (1, 0)  #'1' 需要用于保存标记位置的方向信息.
-    if drawer.dsIsColoredText:
+    if drawer.color_text:
         text_color = get_sk_color_safe(target.tar)
         bg_color = clamp_color(get_sk_color(target.tar))
     else:
-        text_color = bg_color = drawer.dsUniformColor
+        text_color = bg_color = drawer.uniform_color
     return draw_world_text(drawer, pos, offset, target.text, text_color, bg_color, font_size_override)
 
 def draw_debug_info(self, drawer: Drawer) -> None:
@@ -280,7 +280,7 @@ def draw_node_template(drawer: Drawer, target_node: Target | None, side: int = 1
     #todo1v6 模板只有一个 tar, 没有分层, 两个调用会从一个绘制点和线到另一个的文本上方.
     if target_node:
         node_target = target_node.tar
-        if drawer.dsIsColoredNodes:  # 嗯.. 现在节点终于有颜色了; 感谢 ctypes.
+        if drawer.color_nodes:  # 嗯.. 现在节点终于有颜色了; 感谢 ctypes.
             color_line = node_tag_color(node_target)
             # color_line[0] += 0.5
             # color_line[1] += 0.5
@@ -288,22 +288,22 @@ def draw_node_template(drawer: Drawer, target_node: Target | None, side: int = 1
             color_point = color_line
             color_text = color_line
         else:
-            color_uncolored = drawer.dsUniformNodeColor
-            color_line = color_uncolored if drawer.dsIsColoredLine else drawer.dsUniformColor
-            color_point = color_uncolored if drawer.dsIsColoredPoint else drawer.dsUniformColor
-            # color_text = color_uncolored if drawer.dsIsColoredText else drawer.dsUniformColor
+            color_uncolored = drawer.uniform_node_color
+            color_line = color_uncolored if drawer.color_line else drawer.uniform_color
+            color_point = color_uncolored if drawer.color_point else drawer.uniform_color
+            # color_text = color_uncolored if drawer.color_text else drawer.uniform_color
             color_text = color_uncolored
-        if drawer.dsIsDrawLine:
+        if drawer.draw_line:
             draw_connection_line(drawer, drawer.cursor_loc, target_node.pos, color_line, color_line)
-        if drawer.dsIsDrawPoint:
+        if drawer.draw_point:
             draw_socket_point(drawer, target_node.pos, color_point, color_point)
-        if (drawer.dsIsDrawText) and (drawer.dsIsDrawNodeNameLabel):
+        if (drawer.draw_text) and (drawer.draw_node_label):
             text = node_show_name(node_target)
-            draw_world_text(drawer, drawer.cursor_loc, (drawer.dsDistFromCursor * side, -0.5), text, color_text, color_text)
-            draw_world_text(drawer, drawer.cursor_loc, (drawer.dsDistFromCursor * side, 1), _iface(tool_name), color_text, color_text)
+            draw_world_text(drawer, drawer.cursor_loc, (drawer.text_distance_from_cursor * side, -0.5), text, color_text, color_text)
+            draw_world_text(drawer, drawer.cursor_loc, (drawer.text_distance_from_cursor * side, 1), _iface(tool_name), color_text, color_text)
 
-    elif drawer.dsIsDrawPoint:
-        color = white  # 唯一剩下的未定义颜色. 'dsCursorColor' 在这里按设计不适合 (整个插件都是为了套接字, 对吧?).
+    elif drawer.draw_point:
+        color = white  # 唯一剩下的未定义颜色. 'cursor_color' 在这里按设计不适合 (整个插件都是为了套接字, 对吧?).
         draw_socket_point(drawer, drawer.cursor_loc, Vec4(color), color)
 
 # 高级套接字绘制模板. 现在名称中有"Sk", 因为节点已完全进入 VL.
@@ -320,47 +320,47 @@ def draw_sockets_template(
 ) -> None:
 
     def get_pos_from_target(target: Target) -> Vec2:
-        return target.pos + Vec2((drawer.dsPointOffsetX * target.side, 0.0))
+        return target.pos + Vec2((drawer.point_offset_x * target.side, 0.0))
 
     target_sockets = [ar for ar in args_targets if ar]
     cursor_loc = drawer.cursor_loc
     # 缺少目标
     if not target_sockets:  # 方便地只为了现在不存在的 DrawDoubleNone() 使用模板, 通过向 args_targets 发送 `None, None`.
-        color = drawer.dsCursorColor if drawer.dsIsColoredPoint else drawer.dsUniformColor
+        color = drawer.cursor_color if drawer.color_point else drawer.uniform_color
         is_pair = len(args_targets) == 2
-        vec = Vec2((drawer.dsPointOffsetX * 0.75, 0)) if (is_pair) and (is_classic_flow) else Vec2((0.0, 0.0))
-        if (is_pair) and (drawer.dsIsDrawLine) and (drawer.dsIsAlwaysLine):
+        vec = Vec2((drawer.point_offset_x * 0.75, 0)) if (is_pair) and (is_classic_flow) else Vec2((0.0, 0.0))
+        if (is_pair) and (drawer.draw_line) and (drawer.always_draw_line):
             draw_connection_line(drawer, cursor_loc - vec, cursor_loc + vec, color, color)
-        if drawer.dsIsDrawPoint:
+        if drawer.draw_point:
             draw_socket_point(drawer, cursor_loc - vec, color, color)
             if (is_pair) and (is_classic_flow):
                 draw_socket_point(drawer, cursor_loc + vec, color, color)
         return
     # 经典流程线
-    if (is_classic_flow) and (drawer.dsIsDrawLine) and (len(target_sockets) == 2):
+    if (is_classic_flow) and (drawer.draw_line) and (len(target_sockets) == 2):
         target1 = target_sockets[0]
         target2 = target_sockets[1]
         if target1.side * target2.side < 0:  # 对于 VMLT, 为了不为它的两个套接字绘制, 它们在同一侧.
-            if drawer.dsIsColoredLine:
+            if drawer.color_line:
                 color1 = get_sk_color_safe(target1.tar)
                 color2 = get_sk_color_safe(target2.tar)
             else:
-                color1 = color2 = drawer.dsUniformColor
+                color1 = color2 = drawer.uniform_color
             draw_connection_line(drawer, get_pos_from_target(target1), get_pos_from_target(target2), color1, color2)
     # 主要部分:
     is_one = len(target_sockets) == 1
 
     for target in target_sockets:
-        if (drawer.dsIsDrawLine) and ((not is_classic_flow) or (is_one and drawer.dsIsAlwaysLine)):
-            if drawer.dsIsColoredLine:
+        if (drawer.draw_line) and ((not is_classic_flow) or (is_one and drawer.always_draw_line)):
+            if drawer.color_line:
                 color1 = get_sk_color_safe(target.tar)
-                color2 = drawer.dsCursorColor if (is_one + (drawer.dsCursorColorAvailability - 1)) > 0 else color1
+                color2 = drawer.cursor_color if (is_one + (drawer.cursor_color_mode - 1)) > 0 else color1
             else:
-                color1 = color2 = drawer.dsUniformColor
+                color1 = color2 = drawer.uniform_color
             draw_connection_line(drawer, get_pos_from_target(target), cursor_loc, color1, color2)
-        if drawer.dsIsDrawSkArea:
+        if drawer.draw_socket_area:
             draw_socket_area(drawer, target.tar, target.bottom_top, Vec4(get_sk_color_safe(target.tar)))
-        if drawer.dsIsDrawPoint:
+        if drawer.draw_point:
             draw_socket_point(drawer, get_pos_from_target(target), Vec4(clamp_color(get_sk_color(target.tar))),
                               Vec4(get_sk_color_safe(target.tar)))
     # 文本
@@ -374,9 +374,9 @@ def draw_sockets_template(
             for cyc, target in enumerate(list_targets):
                 ofs_y = 0.75*hig - 1.5*cyc
                 dir = sold_override_dir if sold_override_dir else target.side * side_mark_offset
-                x_offset = drawer.dsDistFromCursor * dir
-                frame_dim = draw_socket_text(drawer, cursor_loc, (drawer.dsDistFromCursor * dir, ofs_y - 0.5), target)
-                if (drawer.dsIsDrawMarker) and ((target.tar.vl_sold_is_final_linked_cou) and (not is_draw_markers_more_than_one) or
+                x_offset = drawer.text_distance_from_cursor * dir
+                frame_dim = draw_socket_text(drawer, cursor_loc, (drawer.text_distance_from_cursor * dir, ofs_y - 0.5), target)
+                if (drawer.draw_marker) and ((target.tar.vl_sold_is_final_linked_cou) and (not is_draw_markers_more_than_one) or
                                                 (target.tar.vl_sold_is_final_linked_cou > 1)):
                     draw_socket_marker(drawer, cursor_loc, (frame_dim[0] * dir, frame_dim[1] * ofs_y), get_sk_color_safe(target.tar))
             # 绘制工具提示
@@ -396,8 +396,8 @@ def draw_sockets_template(
     #     # draw_world_text(drawer, drawer.cursor_loc, (0, 0), tool_name, text_color=colTx, colBg=colTx)
 
     # 经典流程的光标下点
-    if (is_classic_flow and is_one) and (drawer.dsIsDrawPoint):
-        draw_socket_point(drawer, cursor_loc, drawer.dsCursorColor, drawer.dsCursorColor)
+    if (is_classic_flow and is_one) and (drawer.draw_point):
+        draw_socket_point(drawer, cursor_loc, drawer.cursor_color, drawer.cursor_color)
 
 #Todo0SF "滑帧"的头疼!! Debug, Collapse, Alt, 以及所有地方.
 
@@ -433,9 +433,9 @@ class TestDraw:
         stNe = bpy.types.SpaceNodeEditor
         if stNe.nsCur != stNe.nsReg:
             # 重新关闭并打开:
-            prefs.dsIsTestDrawing = False
+            prefs.ds_is_test_drawing = False
             # 该死的拓扑!
-            prefs.dsIsTestDrawing = True
+            prefs.ds_is_test_drawing = True
             return  # 不知道是否必须退出.
         drawer = Drawer(context, context.space_data.cursor_location, context.preferences.system.dpi / 72, prefs)
         cls.b_view2d = BView2D.GetFields(context.region.view2d)
@@ -487,12 +487,12 @@ class TestDraw:
         draw_link_marker(drawer, center + Vec2((-100, -60)), col, 1)
         draw_link_marker(drawer, center + Vec2((-150, -60)), col, 2)
         drawer.draw_line_strip((center + Vec2((0, -60)), center + Vec2((100, -60))), (set_alpha(col), set_alpha(col)),
-                               drawer.dsLineWidth)
+                               drawer.line_width)
         drawer.draw_line_strip((center + Vec2((100, -60)), center + Vec2((200, -60))), (set_alpha(col), set_alpha(col, alpha=0.0)),
-                               drawer.dsLineWidth)
-        drawer.draw_point_highlight(center + Vec2((0, -60)), ((6 * drawer.dsPointScale + 1)**2 + 10)**0.5, Vec4(set_alpha(col)),
+                               drawer.line_width)
+        drawer.draw_point_highlight(center + Vec2((0, -60)), ((6 * drawer.point_scale + 1)**2 + 10)**0.5, Vec4(set_alpha(col)),
                                     Vec4(set_alpha(col)))
-        drawer.draw_point_highlight(center + Vec2((100, -60)), ((6 * drawer.dsPointScale + 1)**2 + 10)**0.5, col,
+        drawer.draw_point_highlight(center + Vec2((100, -60)), ((6 * drawer.point_scale + 1)**2 + 10)**0.5, col,
                                     Vec4(set_alpha(col)))
         import gpu_extras.presets
         gpu_extras.presets.draw_circle_2d((256, 256), (1, 1, 1, 1), 10)

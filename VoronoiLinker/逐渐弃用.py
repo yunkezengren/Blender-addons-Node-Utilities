@@ -85,16 +85,16 @@ def get_addon_settings_as_py(prefs: AddonPreferences):
 
     ignored_addon_prefs = {
         'bl_idname',
-        'vaUiTabs',
-        'vaInfoRestore',
-        'dsIsFieldDebug',
-        'dsIsTestDrawing',  # tovo2v6: 是全部吗?
-        'vaKmiMainstreamDiscl',
-        'vaKmiOtjersDiscl',
-        'vaKmiSpecialDiscl',
-        'vaKmiInvalidDiscl',
-        'vaKmiQqmDiscl',
-        'vaKmiCustomDiscl'
+        'va_ui_tabs',
+        'va_info_restore',
+        'ds_is_field_debug',
+        'ds_is_test_drawing',  # tovo2v6: 是全部吗?
+        'va_kmi_mainstream_discl',
+        'va_kmi_otjers_discl',
+        'va_kmi_special_discl',
+        'va_kmi_invalid_discl',
+        'va_kmi_qqm_discl',
+        'va_kmi_custom_discl'
     }
     for cls in vt_classes:
         ignored_addon_prefs.add(cls.discl_box_prop_name)

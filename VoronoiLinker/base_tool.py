@@ -129,7 +129,7 @@ class ModelBaseTool(BaseOperator, ProtocolTool):  #0
         if drawer.active_space != context.space_data:  # 需要只在活动的编辑器中绘制, 而不是在所有打开相同树的编辑器中绘制.
             return
         drawer.world_zoom = self.b_view2d.get_zoom()  # 每次都从 EdgePan 和鼠标滚轮获取. 以前可以一次性焊接.
-        if self.prefs.dsIsFieldDebug:
+        if self.prefs.ds_is_field_debug:
             draw_debug_info(self, drawer)
         if self.tree:  # 现在对于没有树的情况可以不显示任何迹象; 由于拓扑结构的头疼问题以及在插件树中传递热键时工具的跳过问题而关闭 (?).
             self.callback_draw(drawer)
@@ -181,9 +181,9 @@ class ModelBaseTool(BaseOperator, ProtocolTool):  #0
         solder_theme_cols(context.preferences.themes[0].node_editor)  # 和 font_id 一样; 虽然在大多数情况下主题在整个会话期间不会改变.
         self.region = context.region
         self.b_view2d = BView2D.GetFields(context.region.view2d)
-        if self.prefs.vIsOverwriteZoomLimits:
-            self.b_view2d.minzoom = self.prefs.vOwZoomMin
-            self.b_view2d.maxzoom = self.prefs.vOwZoomMax
+        if self.prefs.v_is_overwrite_zoom_limits:
+            self.b_view2d.minzoom = self.prefs.v_ow_zoom_min
+            self.b_view2d.maxzoom = self.prefs.v_ow_zoom_max
 
         if result := self.initialize_pre(event):  # 对于 'Pre' 返回某些内容不太重要.
             return result
@@ -351,8 +351,8 @@ def edge_pan_init(self: ModelBaseTool, area: Area):
     EdgePan.view2d = self.region.view2d
     EdgePan.center = Vec2((self.region.width / 2, self.region.height / 2))
     EdgePan.delta = perf_counter()  #..还有 "轻微边界".
-    EdgePan.zoom_fac = 1.0 - self.prefs.vEdgePanFac
-    EdgePan.speed = self.prefs.vEdgePanSpeed
+    EdgePan.zoom_fac = 1.0 - self.prefs.v_edge_pan_fac
+    EdgePan.speed = self.prefs.v_edge_pan_speed
     bpy.app.timers.register(edge_pan_timer, first_interval=0.0)
 
 def edge_pan_timer():

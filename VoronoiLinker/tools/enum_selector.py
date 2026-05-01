@@ -194,7 +194,7 @@ class NODE_OT_voronoi_enum_selector(SingleNodeTool):
             if self.isToggleOptions:
                 self.target_nd = tar_nd
                 # 和 VHT 的意思一样:
-                if prefs.vestIsToggleNodesOnDrag:
+                if prefs.vest_is_toggle_nodes_on_drag:
                     if self.firstResult is None:
                         self.firstResult = self.ToggleOptionsFromNode(node, True)
                     self.ToggleOptionsFromNode(node, self.firstResult, True)
@@ -220,12 +220,12 @@ class NODE_OT_voronoi_enum_selector(SingleNodeTool):
         if VestData.list_length:
             ndTar = self.target_nd.tar
             VestData.nd = ndTar
-            VestData.boxScale = prefs.vestBoxScale
+            VestData.boxScale = prefs.vest_box_scale
             if ndTar.bl_idname == "ShaderNodeMath":
                 VestData.boxScale = 0.9
-            # VestData.boxScale = prefs.vestBoxScale * len(VestData.enum_props)  # 这个整体缩放，不是x方向缩放
-            VestData.isDarkStyle = prefs.vestDarkStyle
-            VestData.isDisplayLabels = prefs.vestDisplayLabels
+            # VestData.boxScale = prefs.vest_box_scale * len(VestData.enum_props)  # 这个整体缩放，不是x方向缩放
+            VestData.isDarkStyle = prefs.vest_dark_style
+            VestData.isDisplayLabels = prefs.vest_display_labels
             VestData.isPieChoice = self.isPieChoice
             if self.isSelectNode:
                 select_and_active_nd_only(VestData.nd)
@@ -260,7 +260,7 @@ class NODE_OT_voronoi_enum_selector(SingleNodeTool):
             return True # 用于 modal(), 返回成功.
     def run(self, event, prefs, tree):
         if self.isToggleOptions:
-            if not prefs.vestIsToggleNodesOnDrag: # 和 VHT 中一样.
+            if not prefs.vest_is_toggle_nodes_on_drag: # 和 VHT 中一样.
                 self.ToggleOptionsFromNode(self.target_nd.tar, self.ToggleOptionsFromNode(self.target_nd.tar, True), True)
         else:
             if not self.isInstantActivation:
@@ -276,10 +276,10 @@ class NODE_OT_voronoi_enum_selector(SingleNodeTool):
         self.firstResult = None # 理想情况下也应该在上面, 但不是必须的, 参见 isToggleOptions 的拓扑.
     @staticmethod
     def draw_pref_settings(col, prefs):
-        split_prop(col, prefs,'vestIsToggleNodesOnDrag')
+        split_prop(col, prefs,'vest_is_toggle_nodes_on_drag')
     @staticmethod
     def draw_pref_appearance(col, prefs): # 注意: 这是 @staticmethod.
         if body_col := draw_panel_column(col, "Enum Select Box"):
-            split_prop(body_col, prefs,'vestBoxScale')
-            split_prop(body_col, prefs,'vestDisplayLabels', bool_label_left=True)
-            split_prop(body_col, prefs,'vestDarkStyle', bool_label_left=True)
+            split_prop(body_col, prefs,'vest_box_scale')
+            split_prop(body_col, prefs,'vest_display_labels', bool_label_left=True)
+            split_prop(body_col, prefs,'vest_dark_style', bool_label_left=True)

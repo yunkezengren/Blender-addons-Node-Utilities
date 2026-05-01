@@ -34,7 +34,7 @@ class NODE_OT_voronoi_quick_math(TripleSocketTool):
     def find_targets(self, is_first_active, prefs, tree):
         if is_first_active:
             self.target_sk0 = None
-        is_not_can_pick_third = not self.can_pick_third if prefs.vqmtIncludeThirdSk else True
+        is_not_can_pick_third = not self.can_pick_third if prefs.vqmt_include_third_sk else True
         if is_not_can_pick_third:
             self.target_sk1 = None
         tar_sockets = self.nearest_target_sockets(only_output=True)
@@ -109,7 +109,7 @@ class NODE_OT_voronoi_quick_math(TripleSocketTool):
         VqmtData.depth = 0
         VqmtData.isFirstDone = False
     def modal_handle_mouse(self, event, prefs): #复制警报, VLT 也有一个.
-        if event.type==prefs.vqmtRepickKey:
+        if event.type==prefs.vqmt_repick_key:
             self.repickState = event.value=='PRESS'
             if self.repickState:
                 self.find_targets_base(True)
@@ -170,8 +170,8 @@ class NODE_OT_voronoi_quick_math(TripleSocketTool):
         self.VqmSetPieData(prefs, power_color(get_sk_color_safe(VqmtData.sk0), power=2.2))
         if self.int_default_float:     # 整数接口浮点饼
             color = power_color(float_int_color["VALUE"], power=2.2)
-            pref().vaDecorColSkBack = color
-            pref().vaDecorColSk = color
+            pref().va_decor_col_skBack = color
+            pref().va_decor_col_sk = color
         VqmtData.isJustPie = False
         VqmtData.canProcHideSks = True
         bpy.ops.node.quick_math_sub('INVOKE_DEFAULT')
@@ -201,20 +201,20 @@ class NODE_OT_voronoi_quick_math(TripleSocketTool):
         self.isQuickQuickMath = not not( (self.quickOprFloat)or(self.quickOprVector)or(self.quickOprBool)or(self.quickOprColor) )
     @staticmethod
     def draw_pref_settings(col, prefs):
-        split_prop(col, prefs,'vqmtIncludeThirdSk')
-        active = prefs.vqmtPieType == 'CONTROL'
-        split_prop(col, prefs,'vqmtIncludeQuickPresets',   active=active)
-        split_prop(col, prefs,'vqmtIncludeExistingValues', active=active)
-        split_prop(col, prefs,'vqmtDisplayIcons',          active=active)
-        split_prop(col, prefs,'vqmtRepickKey', link_btn=True)
+        split_prop(col, prefs,'vqmt_include_third_sk')
+        active = prefs.vqmt_pie_type == 'CONTROL'
+        split_prop(col, prefs,'vqmt_include_quick_presets',   active=active)
+        split_prop(col, prefs,'vqmt_include_existing_values', active=active)
+        split_prop(col, prefs,'vqmt_display_icons',          active=active)
+        split_prop(col, prefs,'vqmt_repick_key', link_btn=True)
     @staticmethod
     def draw_pref_appearance(col, prefs):
         if body_col := draw_panel_column(col, "Quick Math Pie"):
-            split_prop(body_col, prefs,'vqmtPieType')
+            split_prop(body_col, prefs,'vqmt_pie_type')
             col_group = body_col.column()
-            split_prop(col_group, prefs,'vqmtPieScale')
-            # split_prop(col_group, prefs,'vqmtPieScaleExtra')  # 预设(隐藏了) 比如 +-*/ 的 缩放,暂时用不到
-            split_prop(col_group, prefs,'vqmtPieAlignment')
-            split_prop(col_group, prefs,'vqmtPieSocketDisplayType')
-            split_prop(col_group, prefs,'vqmtPieDisplaySocketColor')
-            col_group.active = prefs.vqmtPieType == 'CONTROL'
+            split_prop(col_group, prefs,'vqmt_pie_scale')
+            # split_prop(col_group, prefs,'vqmt_pie_scale_extra')  # 预设(隐藏了) 比如 +-*/ 的 缩放,暂时用不到
+            split_prop(col_group, prefs,'vqmt_pie_alignment')
+            split_prop(col_group, prefs,'vqmt_pie_socket_display_type')
+            split_prop(col_group, prefs,'vqmt_pie_display_socket_color')
+            col_group.active = prefs.vqmt_pie_type == 'CONTROL'

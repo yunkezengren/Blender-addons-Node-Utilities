@@ -46,7 +46,7 @@ class NODE_OT_voronoi_warper(SingleSocketTool):
                 unhide_node_reassign(nd, self, cond=self.target_sk)
                 break
     def handle_modal(self, event, prefs):
-        if event.type==prefs.vwtSelectTargetKey:
+        if event.type==prefs.vwt_select_target_key:
             self.isSelectTargetKey = event.value=='PRESS'
     def run(self, event, prefs, tree):
         skTar = self.target_sk.tar
@@ -77,11 +77,11 @@ class NODE_OT_voronoi_warper(SingleSocketTool):
                 bpy.ops.node.view_selected('INVOKE_DEFAULT')
             skTar.node.select = False #很棒的技巧.
     def initialize(self, event, prefs, tree):
-        self.isSelectTargetKey = prefs.vwtSelectTargetKey in GetSetOfKeysFromEvent(event)
+        self.isSelectTargetKey = prefs.vwt_select_target_key in GetSetOfKeysFromEvent(event)
         self.dict_saveRestoreRerouteSelecting = {} #见 `action='DESELECT'`.
         for nd in tree.nodes:
             if nd.type=='REROUTE':
                 self.dict_saveRestoreRerouteSelecting[nd] = nd.select
     @staticmethod
     def draw_pref_settings(col, prefs):
-        split_prop(col, prefs,'vwtSelectTargetKey', link_btn=True)
+        split_prop(col, prefs,'vwt_select_target_key', link_btn=True)

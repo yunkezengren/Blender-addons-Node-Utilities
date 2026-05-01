@@ -75,7 +75,7 @@ class TryAndPass():
         return True
 
 class VlnstData:
-    lastLastExecError = "" # 用于用户编辑 vlnstLastExecError, 不能添加或修改, 但可以删除.
+    lastLastExecError = "" # 用于用户编辑 vlnst_last_exec_error, 不能添加或修改, 但可以删除.
     isUpdateWorking = False
 
 def VlnstUpdateLastExecError(self, _context):
@@ -83,10 +83,10 @@ def VlnstUpdateLastExecError(self, _context):
         return
     VlnstData.isUpdateWorking = True
     if not VlnstData.lastLastExecError:
-        self.vlnstLastExecError = ""
-    elif self.vlnstLastExecError:
-        if self.vlnstLastExecError!=VlnstData.lastLastExecError: # 注意: 谨防堆栈溢出.
-            self.vlnstLastExecError = VlnstData.lastLastExecError
+        self.vlnst_last_exec_error = ""
+    elif self.vlnst_last_exec_error:
+        if self.vlnst_last_exec_error!=VlnstData.lastLastExecError: # 注意: 谨防堆栈溢出.
+            self.vlnst_last_exec_error = VlnstData.lastLastExecError
     else:
         VlnstData.lastLastExecError = ""
     VlnstData.isUpdateWorking = False
@@ -103,5 +103,5 @@ def set_pie_data(self: "ModelBaseTool", toolData: PieRootData, prefs: "VoronoiAd
     toolData.pieAlignment = get_pie_pref("PieAlignment")
     toolData.ui_scale = self.ui_scale
     toolData.prefs = prefs
-    prefs.vaDecorColSkBack = col
-    prefs.vaDecorColSk = col
+    prefs.va_decor_col_skBack = col
+    prefs.va_decor_col_sk = col

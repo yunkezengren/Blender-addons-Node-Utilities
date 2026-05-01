@@ -34,4 +34,4 @@ class NODE_OT_voronoi_dummy(SingleSocketTool):   # 快速便捷地添加新工�
         self.target_sk = None
     @staticmethod
     def draw_pref_settings(col, prefs):
-        add_nice_color_prop(col, prefs,'vdtDummy')
+        add_nice_color_prop(col, prefs,'vdt_dummy')

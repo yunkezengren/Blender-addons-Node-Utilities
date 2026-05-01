@@ -2,8 +2,8 @@ import bpy
 import rna_keymap_ui
 from typing import Callable
 from bpy.app.translations import pgettext_iface as _iface
-from bpy.props import BoolProperty, EnumProperty, FloatProperty, FloatVectorProperty, IntProperty, IntVectorProperty, StringProperty
-from bpy.types import KeyMapItem, UILayout, Operator, AddonPreferences
+from bpy.props import BoolProperty, EnumProperty, FloatProperty, FloatVectorProperty, IntProperty, IntVectorProperty, PointerProperty, StringProperty
+from bpy.types import KeyMapItem, UILayout, Operator, AddonPreferences, PropertyGroup
 
 from .common_class import VlnstUpdateLastExecError
 from .utils.ui import split_prop, draw_panel_column, ColumnSetActive, add_thin_sep, format_tool_label, user_node_keymap
@@ -17,7 +17,7 @@ HIDE_BOOL_SOCKET_ITEMS = [
 
 def update_test_draw(self, context):
     from .utils.drawing import TestDraw
-    TestDraw.Toggle(context, self.dsIsTestDrawing)
+    TestDraw.Toggle(context, self.ds_is_test_drawing)
 
 is_updating_decor_color = False
 
@@ -26,7 +26,7 @@ def update_decor_color_socket(self, _context):
     if is_updating_decor_color:
         return
     is_updating_decor_color = True
-    self.vaDecorColSk = self.vaDecorColSkBack
+    self.va_decor_col_sk = self.va_decor_col_skBack
     is_updating_decor_color = False
 
 class KeymapItemGroup:
@@ -58,12 +58,12 @@ class KeymapItemGroups:
 def build_keymap_item_groups() -> KeymapItemGroups:
     from . import keymap_groups
     kmi_groups = KeymapItemGroups()
-    kmi_groups.quick_math = KeymapItemGroup('quick_math', 'vaKmiQqmDiscl', set(), keymap_groups.quick_math)
-    kmi_groups.custom = KeymapItemGroup('custom', 'vaKmiCustomDiscl', set(), keymap_groups.custom)
-    kmi_groups.most_useful = KeymapItemGroup('most_useful', 'vaKmiMainstreamDiscl', set(), keymap_groups.most_useful)
-    kmi_groups.quite_useful = KeymapItemGroup('quite_useful', 'vaKmiOtjersDiscl', set(), keymap_groups.quite_useful)
-    kmi_groups.maybe_useful = KeymapItemGroup('maybe_useful', 'vaKmiSpecialDiscl', set(), keymap_groups.maybe_useful)
-    kmi_groups.invalid = KeymapItemGroup('invalid', 'vaKmiInvalidDiscl', set(), keymap_groups.invalid)
+    kmi_groups.quick_math = KeymapItemGroup('quick_math', 'va_kmi_qqm_discl', set(), keymap_groups.quick_math)
+    kmi_groups.custom = KeymapItemGroup('custom', 'va_kmi_custom_discl', set(), keymap_groups.custom)
+    kmi_groups.most_useful = KeymapItemGroup('most_useful', 'va_kmi_mainstream_discl', set(), keymap_groups.most_useful)
+    kmi_groups.quite_useful = KeymapItemGroup('quite_useful', 'va_kmi_otjers_discl', set(), keymap_groups.quite_useful)
+    kmi_groups.maybe_useful = KeymapItemGroup('maybe_useful', 'va_kmi_special_discl', set(), keymap_groups.maybe_useful)
+    kmi_groups.invalid = KeymapItemGroup('invalid', 'va_kmi_invalid_discl', set(), keymap_groups.invalid)
     kmi_groups.most_useful.filter_func = lambda kmi: kmi.idname in kmi_groups.most_useful.idnames
     kmi_groups.quite_useful.filter_func = lambda kmi: kmi.idname in kmi_groups.quite_useful.idnames
     kmi_groups.maybe_useful.filter_func = lambda kmi: kmi.idname in kmi_groups.maybe_useful.idnames
@@ -108,138 +108,138 @@ class VoronoiOpAddonTabs(Operator):
                     for kmi in category.matched_items:
                         kmi.active = should_activate
             case _:
-                prefs.vaUiTabs = self.opt
+                prefs.va_ui_tabs = self.opt
         return {'FINISHED'}
+
+class DrawPrefs(PropertyGroup):
+    draw_text: BoolProperty(name="Text", default=True)  # 考虑到 VHT 和 VEST, 这更多是用于框架中的文本, 而不是来自插槽的文本.
+    draw_marker: BoolProperty(name="Markers", default=True)
+    draw_point: BoolProperty(name="Points", default=True)
+    draw_line: BoolProperty(name="Line", default=True)
+    draw_socket_area: BoolProperty(name="Socket area", default=True)
+    color_text: BoolProperty(name="Text", default=True)
+    color_marker: BoolProperty(name="Markers", default=True)
+    color_point: BoolProperty(name="Points", default=True)
+    color_line: BoolProperty(name="Line", default=True)
+    color_socket_area: BoolProperty(name="Socket area", default=True)
+    color_nodes: BoolProperty(name="Nodes", default=True)
+    socket_area_alpha: FloatProperty(name="Socket area alpha", default=0.4, min=0.0, max=1.0, subtype="FACTOR")
+    uniform_color: FloatVectorProperty(name="Alternative uniform color", default=(1, 0, 0, 0.9), min=0, max=1, size=4, subtype='COLOR')
+    uniform_node_color: FloatVectorProperty(name="Alternative nodes color", default=(0, 1, 0, 0.9), min=0, max=1, size=4, subtype='COLOR')
+    cursor_color: FloatVectorProperty(name="Cursor color", default=(0, 0, 0, 1.0), min=0, max=1, size=4, subtype='COLOR')
+    cursor_color_mode: IntProperty(
+        name="Cursor color availability",
+        default=2,
+        min=0,
+        max=2,
+        description="If a line is drawn to the cursor, color part of it in the cursor color.\n0 – Disable.\n1 – For one line.\n2 – Always",
+    )
+    display_style: EnumProperty(name="Display frame style", default='ONLY_TEXT', items=(('CLASSIC', "Classic", "Classic"), ('SIMPLIFIED', "Simplified", "Simplified"), ('ONLY_TEXT', "Only text", "Only text")))
+    font_file: StringProperty(name="Font file", default='C:\\Windows\\Fonts\\consola.ttf', subtype='FILE_PATH')  # "Linux 用户表示不满".
+    line_width: FloatProperty(name="Line Width", default=2, min=0.5, max=8.0, subtype="FACTOR")
+    point_scale: FloatProperty(name="Point scale", default=1.0, min=0.0, max=3.0)
+    font_size: IntProperty(name="Font size", default=32, min=10, max=48)
+    marker_style: IntProperty(name="Marker Style", default=0, min=0, max=2)
+    text_y_offset: FloatProperty(name="Manual adjustment", default=-0.2, description="The Y-axis offset of text for this font")
+    point_offset_x: FloatProperty(name="Point offset X axis", default=8.0, min=-50.0, max=50.0)
+    frame_offset: IntProperty(name="Frame size", default=0, min=0, max=24, subtype='FACTOR')  # 注意: 这必须是 Int.
+    text_distance_from_cursor: FloatProperty(name="Text distance from cursor", default=25.0, min=5.0, max=50.0)
+    always_draw_line: BoolProperty(name="Always draw line", default=True, description="Draw a line to the cursor even from a single selected socket")
+    slide_on_nodes: BoolProperty(name="Slide on nodes", default=False)
+    draw_node_label: BoolProperty(name="Display text for node", default=True)
+    text_shadow: BoolProperty(name="Enable text shadow", default=False)
+    shadow_color: FloatVectorProperty(name="Shadow color", default=(0.0, 0.0, 0.0, 0.5), min=0, max=1, size=4, subtype='COLOR')
+    shadow_offset: IntVectorProperty(name="Shadow offset", default=(2, -2), min=-20, max=20, size=2)
+    shadow_blur: IntProperty(name="Shadow blur", default=2, min=0, max=2)
 
 class VoronoiAddonPrefs(AddonPreferences):
     bl_idname = __package__ # type: ignore
+    draw_prefs: PointerProperty(type=DrawPrefs)
     # --- VoronoiLinkerTool
-    vltRepickKey            : StringProperty(name="Repick Key", default='LEFT_ALT', description="Hold this key to re-pick target socket without releasing the mouse")
-    vltReroutesCanInAnyType : BoolProperty(name="Reroutes can be connected to any type", default=True)
-    vltDeselectAllNodes     : BoolProperty(name="Deselect all nodes on activate",        default=False)
-    vltPriorityIgnoring     : BoolProperty(name="Priority ignoring",                     default=False, description="High-level ignoring of \"annoying\" sockets during first search. (Currently, only the \"Alpha\" socket of the image nodes)")
-    vltSelectingInvolved    : BoolProperty(name="Selecting involved nodes",              default=False)
+    vlt_repick_key            : StringProperty(name="Repick Key", default='LEFT_ALT', description="Hold this key to re-pick target socket without releasing the mouse")
+    vlt_reroutes_can_in_any_type : BoolProperty(name="Reroutes can be connected to any type", default=True)
+    vlt_deselect_all_nodes     : BoolProperty(name="Deselect all nodes on activate",        default=False)
+    vlt_priority_ignoring     : BoolProperty(name="Priority ignoring",                     default=False, description="High-level ignoring of \"annoying\" sockets during first search. (Currently, only the \"Alpha\" socket of the image nodes)")
+    vlt_selecting_involved    : BoolProperty(name="Selecting involved nodes",              default=False)
     # --- VoronoiPreviewTool
-    vptAllowClassicGeoViewer        : BoolProperty(name="Allow classic GeoNodes Viewer",   default=True,  description="Allow use of classic GeoNodes Viewer by clicking on node")
-    vptAllowClassicCompositorViewer : BoolProperty(name="Allow classic Compositor Viewer", default=False, description="Allow use of classic Compositor Viewer by clicking on node")
-    vptIsLivePreview                : BoolProperty(name="Live Preview",                    default=True,  description="Real-time preview")
-    vptRvEeIsColorOnionNodes        : BoolProperty(name="Node onion colors",               default=False, description="Coloring topologically connected nodes")
-    vptRvEeSksHighlighting          : BoolProperty(name="Topology connected highlighting", default=False, description="Display names of sockets whose links are connected to a node")
-    vptRvEeIsSavePreviewResults     : BoolProperty(name="Save preview results",            default=False, description="Create a preview through an additional node, convenient for copying")
-    vptOnionColorIn                 : FloatVectorProperty(name="Onion color entrance", default=(0.55,  0.188, 0.188), min=0, max=1, size=3, subtype='COLOR')
-    vptOnionColorOut                : FloatVectorProperty(name="Onion color exit",     default=(0.188, 0.188, 0.5),   min=0, max=1, size=3, subtype='COLOR')
-    vptHlTextScale                  : FloatProperty(name="Text scale", default=1.0, min=0.5, max=5.0)
+    vpt_allow_classic_geo_viewer        : BoolProperty(name="Allow classic GeoNodes Viewer",   default=True,  description="Allow use of classic GeoNodes Viewer by clicking on node")
+    vpt_allow_classic_compositor_viewer : BoolProperty(name="Allow classic Compositor Viewer", default=False, description="Allow use of classic Compositor Viewer by clicking on node")
+    vpt_is_live_preview                : BoolProperty(name="Live Preview",                    default=True,  description="Real-time preview")
+    vpt_rv_ee_is_color_onion_nodes        : BoolProperty(name="Node onion colors",               default=False, description="Coloring topologically connected nodes")
+    vpt_rv_ee_sks_highlighting          : BoolProperty(name="Topology connected highlighting", default=False, description="Display names of sockets whose links are connected to a node")
+    vpt_rv_ee_is_save_preview_results     : BoolProperty(name="Save preview results",            default=False, description="Create a preview through an additional node, convenient for copying")
+    vpt_onion_color_in                 : FloatVectorProperty(name="Onion color entrance", default=(0.55,  0.188, 0.188), min=0, max=1, size=3, subtype='COLOR')
+    vpt_onion_color_out                : FloatVectorProperty(name="Onion color exit",     default=(0.188, 0.188, 0.5),   min=0, max=1, size=3, subtype='COLOR')
+    vpt_hl_text_scale                  : FloatProperty(name="Text scale", default=1.0, min=0.5, max=5.0)
     # ------
-    vmtReroutesCanInAnyType  : BoolProperty(name="Reroutes can be mixed to any type", default=True)
+    vmt_reroutes_can_in_any_type  : BoolProperty(name="Reroutes can be mixed to any type", default=True)
     ##
-    vmtPieType               : EnumProperty( name="Pie Type", default='CONTROL', items=( ('CONTROL',"Control",""), ('SPEED',"Speed","") ))
-    vmtPieScale              : FloatProperty(name="Pie scale",                default=1.3, min=1.0, max=2.0, subtype="FACTOR")
-    vmtPieAlignment          : IntProperty(  name="Alignment between items",  default=1,   min=0,   max=2, description="0 – Flat.\n1 – Rounded docked.\n2 – Gap")
-    vmtPieSocketDisplayType  : IntProperty(  name="Display socket type info", default=1,   min=-1,  max=1, description="0 – Disable.\n1 – From above.\n-1 – From below (VMT)")
-    vmtPieDisplaySocketColor : IntProperty(  name="Display socket color",     default=-1,  min=-4,  max=4, description="The sign is side of a color. The magnitude is width of a color")
+    vmt_pie_type               : EnumProperty( name="Pie Type", default='CONTROL', items=( ('CONTROL',"Control",""), ('SPEED',"Speed","") ))
+    vmt_pie_scale              : FloatProperty(name="Pie scale",                default=1.3, min=1.0, max=2.0, subtype="FACTOR")
+    vmt_pie_alignment          : IntProperty(  name="Alignment between items",  default=1,   min=0,   max=2, description="0 – Flat.\n1 – Rounded docked.\n2 – Gap")
+    vmt_pie_socket_display_type  : IntProperty(  name="Display socket type info", default=1,   min=-1,  max=1, description="0 – Disable.\n1 – From above.\n-1 – From below (VMT)")
+    vmt_pie_display_socket_color : IntProperty(  name="Display socket color",     default=-1,  min=-4,  max=4, description="The sign is side of a color. The magnitude is width of a color")
     # ------
-    vqmtDisplayIcons         : BoolProperty(name="Display icons",           default=True)
-    vqmtIncludeThirdSk       : BoolProperty(name="Include third socket",    default=True)
-    vqmtIncludeQuickPresets  : BoolProperty(name="Include quick presets",   default=False)
-    vqmtIncludeExistingValues: BoolProperty(name="Include existing values", default=False)
-    vqmtRepickKey            : StringProperty(name="Repick Key", default='LEFT_ALT', description="Hold this key to re-pick target socket without releasing the mouse")
+    vqmt_display_icons         : BoolProperty(name="Display icons",           default=True)
+    vqmt_include_third_sk       : BoolProperty(name="Include third socket",    default=True)
+    vqmt_include_quick_presets  : BoolProperty(name="Include quick presets",   default=False)
+    vqmt_include_existing_values: BoolProperty(name="Include existing values", default=False)
+    vqmt_repick_key            : StringProperty(name="Repick Key", default='LEFT_ALT', description="Hold this key to re-pick target socket without releasing the mouse")
     ##
-    vqmtPieType              : EnumProperty( name="Pie Type", default='CONTROL', items=( ('CONTROL',"Control",""), ('SPEED',"Speed","") ))
-    vqmtPieScale             : FloatProperty(name="Pie scale",                default=1.3,  min=1.0, max=2.0, subtype="FACTOR")
-    vqmtPieScaleExtra        : FloatProperty(name="Pie scale extra",          default=1.25, min=1.0, max=2.0, subtype="FACTOR")
-    vqmtPieAlignment         : IntProperty(  name="Alignment between items",  default=1,    min=0,   max=2, description="0 – Flat.\n1 – Rounded docked.\n2 – Gap")
-    vqmtPieSocketDisplayType : IntProperty(  name="Display socket type info", default=1,    min=-1,  max=1, description="0 – Disable.\n1 – From above.\n-1 – From below (VMT)")
-    vqmtPieDisplaySocketColor: IntProperty(  name="Display socket color",     default=-1,   min=-4,  max=4, description="The sign is side of a color. The magnitude is width of a color")
+    vqmt_pie_type              : EnumProperty( name="Pie Type", default='CONTROL', items=( ('CONTROL',"Control",""), ('SPEED',"Speed","") ))
+    vqmt_pie_scale             : FloatProperty(name="Pie scale",                default=1.3,  min=1.0, max=2.0, subtype="FACTOR")
+    vqmt_pie_scale_extra        : FloatProperty(name="Pie scale extra",          default=1.25, min=1.0, max=2.0, subtype="FACTOR")
+    vqmt_pie_alignment         : IntProperty(  name="Alignment between items",  default=1,    min=0,   max=2, description="0 – Flat.\n1 – Rounded docked.\n2 – Gap")
+    vqmt_pie_socket_display_type : IntProperty(  name="Display socket type info", default=1,    min=-1,  max=1, description="0 – Disable.\n1 – From above.\n-1 – From below (VMT)")
+    vqmt_pie_display_socket_color: IntProperty(  name="Display socket color",     default=-1,   min=-4,  max=4, description="The sign is side of a color. The magnitude is width of a color")
     # ------
-    vrtIsLiveRanto           : BoolProperty(name="Live Ranto", default=True)
-    vrtIsFixIslands          : BoolProperty(name="Fix islands", default=True)
+    vrt_is_live_ranto           : BoolProperty(name="Live Ranto", default=True)
+    vrt_is_fix_islands          : BoolProperty(name="Fix islands", default=True)
     # ------
-    vhtHideBoolSocket        : EnumProperty(name="Hide boolean sockets",             default='IF_FALSE', items=HIDE_BOOL_SOCKET_ITEMS)
-    vhtHideHiddenBoolSocket  : EnumProperty(name="Hide hidden boolean sockets",      default='ALWAYS',   items=HIDE_BOOL_SOCKET_ITEMS)
-    vhtNeverHideGeometry     : EnumProperty(name="Never hide geometry input socket", default='FALSE',    items=( ('FALSE',"False",""), ('ONLY_FIRST',"Only first",""), ('TRUE',"True","") ))
-    vhtIsUnhideVirtual       : BoolProperty(name="Unhide virtual sockets",           default=True)
-    vhtIsToggleNodesOnDrag   : BoolProperty(name="Toggle nodes on drag",             default=True)
+    vht_hide_bool_socket        : EnumProperty(name="Hide boolean sockets",             default='IF_FALSE', items=HIDE_BOOL_SOCKET_ITEMS)
+    vht_hide_hidden_bool_socket  : EnumProperty(name="Hide hidden boolean sockets",      default='ALWAYS',   items=HIDE_BOOL_SOCKET_ITEMS)
+    vht_never_hide_geometry     : EnumProperty(name="Never hide geometry input socket", default='FALSE',    items=( ('FALSE',"False",""), ('ONLY_FIRST',"Only first",""), ('TRUE',"True","") ))
+    vht_is_unhide_virtual       : BoolProperty(name="Unhide virtual sockets",           default=True)
+    vht_is_toggle_nodes_on_drag   : BoolProperty(name="Toggle nodes on drag",             default=True)
     # ------
-    vmltIgnoreCase           : BoolProperty(name="Ignore case", default=True)
+    vmlt_ignore_case           : BoolProperty(name="Ignore case", default=True)
     # ------
-    vestIsToggleNodesOnDrag  : BoolProperty(name="Toggle nodes on drag", default=True)
+    vest_is_toggle_nodes_on_drag  : BoolProperty(name="Toggle nodes on drag", default=True)
     ##
-    vestBoxScale             : FloatProperty(name="Box scale",           default=1.3, min=1.0, max=2.0, subtype="FACTOR")
-    vestDisplayLabels        : BoolProperty(name="Display enum names",   default=True)
-    vestDarkStyle            : BoolProperty(name="Dark style",           default=False)
-    vitPasteToAnySocket      : BoolProperty(name="Allow paste to any socket", default=False)
-    vwtSelectTargetKey       : StringProperty(name="Select target Key", default='LEFT_ALT', description="Hold this key to select the target node instead of just jumping to it")
-    vlnstNonColorName        : StringProperty(name="Non-Color name",  default="Non-Color")
-    vlnstLastExecError       : StringProperty(name="Last exec error", default="", update=VlnstUpdateLastExecError)
-    vdtDummy                 : StringProperty(name="Dummy", default="Dummy")
+    vest_box_scale             : FloatProperty(name="Box scale",           default=1.3, min=1.0, max=2.0, subtype="FACTOR")
+    vest_display_labels        : BoolProperty(name="Display enum names",   default=True)
+    vest_dark_style            : BoolProperty(name="Dark style",           default=False)
+    vit_paste_to_any_socket      : BoolProperty(name="Allow paste to any socket", default=False)
+    vwt_select_target_key       : StringProperty(name="Select target Key", default='LEFT_ALT', description="Hold this key to select the target node instead of just jumping to it")
+    vlnst_non_color_name        : StringProperty(name="Non-Color name",  default="Non-Color")
+    vlnst_last_exec_error       : StringProperty(name="Last exec error", default="", update=VlnstUpdateLastExecError)
+    vdt_dummy                 : StringProperty(name="Dummy", default="Dummy")
     # ------
-    dsIsFieldDebug       : BoolProperty(name="Field debug", default=False)
-    dsIsTestDrawing      : BoolProperty(name="Testing draw", default=False, update=update_test_draw)
-    dsIncludeDev         : BoolProperty(name="Include Dev", default=False)
+    ds_is_field_debug       : BoolProperty(name="Field debug", default=False)
+    ds_is_test_drawing      : BoolProperty(name="Testing draw", default=False, update=update_test_draw)
+    ds_include_dev         : BoolProperty(name="Include Dev", default=False)
     # ------
-    vaUiTabs: EnumProperty(name="Addon pref Tabs", default='SETTINGS', items=(
+    va_ui_tabs: EnumProperty(name="Addon pref Tabs", default='SETTINGS', items=(
         ('SETTINGS', "Settings", ""), ('APPEARANCE', "Appearance", ""), ('DRAW', "Draw", ""), ('KEYMAP', "Keymap", ""), ('INFO', "Info", "")))
-    vaInfoRestore        : BoolProperty(name="", description="This list is just a copy from the \"Preferences > Keymap\".\nResrore will restore everything \"Node Editor\", not just addon")
+    va_info_restore        : BoolProperty(name="", description="This list is just a copy from the \"Preferences > Keymap\".\nResrore will restore everything \"Node Editor\", not just addon")
     # Box disclosures:
-    vaKmiMainstreamDiscl : BoolProperty(name="Most Useful", default=True)
-    vaKmiOtjersDiscl     : BoolProperty(name="Quite Useful", default=False)
-    vaKmiSpecialDiscl    : BoolProperty(name="Maybe Useful", default=False)
-    vaKmiInvalidDiscl    : BoolProperty(name="Invalid", default=False)
-    vaKmiQqmDiscl        : BoolProperty(name="Quick Math", default=False)
-    vaKmiCustomDiscl     : BoolProperty(name="Custom", default=True)
-    vaDecorLy            : FloatVectorProperty(name="DecorForLayout",   default=(0.01, 0.01, 0.01),   min=0, max=1, size=3, subtype='COLOR')
-    vaDecorColSk         : FloatVectorProperty(name="DecorForColSk",    default=(1.0, 1.0, 1.0, 1.0), min=0, max=1, size=4, subtype='COLOR', update=update_decor_color_socket)
-    vaDecorColSkBack     : FloatVectorProperty(name="vaDecorColSkBack", default=(1.0, 1.0, 1.0, 1.0), min = 0, max=1, size=4, subtype='COLOR')
-    # ------
-    dsIsDrawText      : BoolProperty(name="Text",        default=True) # 考虑到 VHT 和 VEST, 这更多是用于框架中的文本, 而不是来自插槽的文本.
-    dsIsDrawMarker    : BoolProperty(name="Markers",     default=True)
-    dsIsDrawPoint     : BoolProperty(name="Points",      default=True)
-    dsIsDrawLine      : BoolProperty(name="Line",        default=True)
-    dsIsDrawSkArea    : BoolProperty(name="Socket area", default=True)
-    dsIsColoredText   : BoolProperty(name="Text",        default=True)
-    dsIsColoredMarker : BoolProperty(name="Markers",     default=True)
-    dsIsColoredPoint  : BoolProperty(name="Points",      default=True)
-    dsIsColoredLine   : BoolProperty(name="Line",        default=True)
-    dsIsColoredSkArea : BoolProperty(name="Socket area", default=True)
-    dsIsColoredNodes  : BoolProperty(name="Nodes",       default=True)
-    ##
-    dsSocketAreaAlpha : FloatProperty(name="Socket area alpha", default=0.4, min=0.0, max=1.0, subtype="FACTOR")
-    ##
-    dsUniformColor            : FloatVectorProperty(name="Alternative uniform color", default=(1, 0, 0, 0.9), min=0, max=1, size=4, subtype='COLOR') # 0.65, 0.65, 0.65, 1.0
-    dsUniformNodeColor        : FloatVectorProperty(name="Alternative nodes color",   default=(0, 1, 0, 0.9), min=0, max=1, size=4, subtype='COLOR') # 1.0, 1.0, 1.0, 0.9
-    dsCursorColor             : FloatVectorProperty(name="Cursor color",              default=(0, 0, 0, 1.0), min=0, max=1, size=4, subtype='COLOR') # 1.0, 1.0, 1.0, 1.0
-    dsCursorColorAvailability : IntProperty(name="Cursor color availability", default=2, min=0, max=2,
-                                               description="If a line is drawn to the cursor, color part of it in the cursor color.\n0 – Disable.\n1 – For one line.\n2 – Always")
-    ##
-    dsDisplayStyle : EnumProperty(name="Display frame style", default='ONLY_TEXT', items=( ('CLASSIC',"Classic","Classic"), ('SIMPLIFIED',"Simplified","Simplified"), ('ONLY_TEXT',"Only text","Only text") ))
-    dsFontFile     : StringProperty(name="Font file",    default='C:\\Windows\\Fonts\\consola.ttf', subtype='FILE_PATH') # "Linux 用户表示不满".
-    dsLineWidth    : FloatProperty( name="Line Width",   default=2, min=0.5, max=8.0, subtype="FACTOR")
-    dsPointScale   : FloatProperty( name="Point scale",  default=1.0, min=0.0, max=3.0)
-    dsFontSize     : IntProperty(   name="Font size",    default=32,  min=10,  max=48)
-    dsMarkerStyle  : IntProperty(   name="Marker Style", default=0,   min=0,   max=2)
-    ##
-    # https://blender.stackexchange.com/questions/312413/blf-module-how-to-draw-text-in-the-center
-    dsManualAdjustment : FloatProperty(name="Manual adjustment",         default=-0.2, description="The Y-axis offset of text for this font")
-    dsPointOffsetX     : FloatProperty(name="Point offset X axis",       default=8.0,   min=-50.0, max=50.0)
-    dsFrameOffset      : IntProperty(  name="Frame size",                default=0,      min=0,     max=24, subtype='FACTOR') # 注意: 这必须是 Int.
-    dsDistFromCursor   : FloatProperty(name="Text distance from cursor", default=25.0,   min=5.0,   max=50.0)
-    ##
-    dsIsAlwaysLine        : BoolProperty(name="Always draw line",      default=True, description="Draw a line to the cursor even from a single selected socket")
-    dsIsSlideOnNodes      : BoolProperty(name="Slide on nodes",        default=False)
-    dsIsDrawNodeNameLabel : BoolProperty(name="Display text for node", default=True)
-    ##
-    dsIsAllowTextShadow : BoolProperty(       name="Enable text shadow", default=False)
-    dsShadowCol         : FloatVectorProperty(name="Shadow color",       default=(0.0, 0.0, 0.0, 0.5), min=0,   max=1,  size=4, subtype='COLOR')
-    dsShadowOffset      : IntVectorProperty(  name="Shadow offset",      default=(2,-2),               min=-20, max=20, size=2)
-    dsShadowBlur        : IntProperty(        name="Shadow blur",        default=2,                    min=0,   max=2)
+    va_kmi_mainstream_discl : BoolProperty(name="Most Useful", default=True)
+    va_kmi_otjers_discl     : BoolProperty(name="Quite Useful", default=False)
+    va_kmi_special_discl    : BoolProperty(name="Maybe Useful", default=False)
+    va_kmi_invalid_discl    : BoolProperty(name="Invalid", default=False)
+    va_kmi_qqm_discl        : BoolProperty(name="Quick Math", default=False)
+    va_kmi_custom_discl     : BoolProperty(name="Custom", default=True)
+    va_decor_ly            : FloatVectorProperty(name="DecorForLayout",   default=(0.01, 0.01, 0.01),   min=0, max=1, size=3, subtype='COLOR')
+    va_decor_col_sk         : FloatVectorProperty(name="DecorForColSk",    default=(1.0, 1.0, 1.0, 1.0), min=0, max=1, size=4, subtype='COLOR', update=update_decor_color_socket)
+    va_decor_col_skBack     : FloatVectorProperty(name="va_decor_col_skBack", default=(1.0, 1.0, 1.0, 1.0), min = 0, max=1, size=4, subtype='COLOR')
     # ------
     # 没在任何地方使用; 似乎也永远不会用. 我本想添加这个, 但后来觉得太懒了. 这需要把所有东西都改成"仅插槽", 而且获取节点的标准也不知道怎么弄. 而且收益也不确定, 除了美观. 所以算了吧. "能用就行, 别乱动".而且"仅插槽"的实现可能会陷入潜在的兔子洞.
-    vSearchMethod          : EnumProperty(name="Search method", default='SOCKET', items=( ('NODE_SOCKET',"Nearest node > nearest socket",""), ('SOCKET',"Only nearest socket","") ))
-    vEdgePanFac            : FloatProperty(name="Edge pan zoom factor", default=0.33, min=0.0, max=1.0, description="0.0 – Shift only; 1.0 – Scale only")
-    vEdgePanSpeed          : FloatProperty(name="Edge pan speed", default=1.0, min=0.0, max=2.5)
-    vIsOverwriteZoomLimits : BoolProperty(name="Overwriting zoom limits", default=False)
-    vOwZoomMin             : FloatProperty(name="Zoom min", default=0.05,  min=0.0078125, max=1.0,  precision=3)
-    vOwZoomMax             : FloatProperty(name="Zoom max", default=2.301, min=1.0,       max=16.0, precision=3)
+    v_search_method          : EnumProperty(name="Search method", default='SOCKET', items=( ('NODE_SOCKET',"Nearest node > nearest socket",""), ('SOCKET',"Only nearest socket","") ))
+    v_edge_pan_fac            : FloatProperty(name="Edge pan zoom factor", default=0.33, min=0.0, max=1.0, description="0.0 – Shift only; 1.0 – Scale only")
+    v_edge_pan_speed          : FloatProperty(name="Edge pan speed", default=1.0, min=0.0, max=2.5)
+    v_is_overwrite_zoom_limits : BoolProperty(name="Overwriting zoom limits", default=False)
+    v_ow_zoom_min             : FloatProperty(name="Zoom min", default=0.05,  min=0.0078125, max=1.0,  precision=3)
+    v_ow_zoom_max             : FloatProperty(name="Zoom max", default=2.301, min=1.0,       max=16.0, precision=3)
     # ------
     def draw_tab_settings(self, layout: UILayout):
         col = layout.column()
@@ -255,13 +255,13 @@ class VoronoiAddonPrefs(AddonPreferences):
         col_main = layout.column()
 
         if panel_col := draw_panel_column(col_main, "Edge pan"):
-            split_prop(panel_col, self, 'vEdgePanFac', text="Zoom factor")
-            split_prop(panel_col, self, 'vEdgePanSpeed', text="Speed")
-            if (self.dsIncludeDev) or (self.vIsOverwriteZoomLimits):
-                split_prop(panel_col, self, 'vIsOverwriteZoomLimits', active=self.vIsOverwriteZoomLimits)
-                if self.vIsOverwriteZoomLimits:
-                    split_prop(panel_col, self, 'vOwZoomMin')
-                    split_prop(panel_col, self, 'vOwZoomMax')
+            split_prop(panel_col, self, 'v_edge_pan_fac', text="Zoom factor")
+            split_prop(panel_col, self, 'v_edge_pan_speed', text="Speed")
+            if (self.ds_include_dev) or (self.v_is_overwrite_zoom_limits):
+                split_prop(panel_col, self, 'v_is_overwrite_zoom_limits', active=self.v_is_overwrite_zoom_limits)
+                if self.v_is_overwrite_zoom_limits:
+                    split_prop(panel_col, self, 'v_ow_zoom_min')
+                    split_prop(panel_col, self, 'v_ow_zoom_max')
 
         from . import vt_classes
         for cls in vt_classes:
@@ -270,87 +270,88 @@ class VoronoiAddonPrefs(AddonPreferences):
 
     def draw_tab_draw(self, layout: UILayout):
         col_main = layout.column()
+        draw_prefs = self.draw_prefs
 
         split_draw_color = col_main.box().split(align=True)
         split_draw_color.use_property_split = True
 
         is_draw_settings = [
-            'dsIsDrawText',
-            'dsIsDrawMarker',
-            'dsIsDrawPoint',
-            'dsIsDrawLine',
-            'dsIsDrawSkArea',
+            'draw_text',
+            'draw_marker',
+            'draw_point',
+            'draw_line',
+            'draw_socket_area',
         ]
         is_draw_col = split_draw_color.column(align=True, heading='Draw')
         for is_draw in is_draw_settings:
-            is_draw_col.prop(self, is_draw)
-        with ColumnSetActive(is_draw_col, active=self.dsIsDrawText) as row:
-            row.prop(self, 'dsIsDrawNodeNameLabel', text="Node label")
+            is_draw_col.prop(draw_prefs, is_draw)
+        with ColumnSetActive(is_draw_col, active=draw_prefs.draw_text) as row:
+            row.prop(draw_prefs, 'draw_node_label', text="Node label")
         is_colored_col = split_draw_color.column(align=True, heading='Colored')
         for is_draw in is_draw_settings:
             row = is_colored_col.row(align=True)
-            row.prop(self, is_draw.replace("Draw", "Colored"))
-            row.active = getattr(self, is_draw)
+            row.prop(draw_prefs, is_draw.replace("Draw", "Colored"))
+            row.active = getattr(draw_prefs, is_draw)
 
-        is_nodes_toggle_active = self.dsIsDrawLine or self.dsIsDrawPoint or (self.dsIsDrawText and self.dsIsDrawNodeNameLabel)
+        is_nodes_toggle_active = draw_prefs.draw_line or draw_prefs.draw_point or (draw_prefs.draw_text and draw_prefs.draw_node_label)
         with ColumnSetActive(is_colored_col, active=is_nodes_toggle_active) as row:
-            row.prop(self, 'dsIsColoredNodes')
+            row.prop(draw_prefs, 'color_nodes')
         ##
         if panel_col := draw_panel_column(col_main, "Behavior"):
-            #split_prop(panel_col, self,'dsIsDrawNodeNameLabel', active=self.dsIsDrawText)
-            split_prop(panel_col, self, 'dsIsAlwaysLine')
-            split_prop(panel_col, self, 'dsIsSlideOnNodes')
+            #split_prop(panel_col, self,'draw_node_label', active=self.draw_text)
+            split_prop(panel_col, draw_prefs, 'always_draw_line')
+            split_prop(panel_col, draw_prefs, 'slide_on_nodes')
         ##
         if panel_col := draw_panel_column(col_main, "Color"):
-            split_prop(panel_col, self, 'dsSocketAreaAlpha', active=self.dsIsDrawSkArea)
-            show_uniform_color = ((self.dsIsDrawText and not self.dsIsColoredText) or (self.dsIsDrawMarker and not self.dsIsColoredMarker)
-                                  or (self.dsIsDrawPoint and not self.dsIsColoredPoint) or (self.dsIsDrawLine and not self.dsIsColoredLine)
-                                  or (self.dsIsDrawSkArea and not self.dsIsColoredSkArea))
+            split_prop(panel_col, draw_prefs, 'socket_area_alpha', active=draw_prefs.draw_socket_area)
+            show_uniform_color = ((draw_prefs.draw_text and not draw_prefs.color_text) or (draw_prefs.draw_marker and not draw_prefs.color_marker)
+                                  or (draw_prefs.draw_point and not draw_prefs.color_point) or (draw_prefs.draw_line and not draw_prefs.color_line)
+                                  or (draw_prefs.draw_socket_area and not draw_prefs.color_socket_area))
             if show_uniform_color:
-                split_prop(panel_col, self, 'dsUniformColor')
-            show_uniform_node_color = ((self.dsIsDrawText and self.dsIsColoredText) or (self.dsIsDrawPoint and self.dsIsColoredPoint)
-                                       or (self.dsIsDrawLine and self.dsIsColoredLine))
-            if show_uniform_node_color and not self.dsIsColoredNodes:
-                split_prop(panel_col, self, 'dsUniformNodeColor')
-            is_point_cursor_color_active = self.dsIsDrawPoint and self.dsIsColoredPoint
-            is_line_cursor_color_active = self.dsIsDrawLine and self.dsIsColoredLine and self.dsCursorColorAvailability
-            split_prop(panel_col, self, 'dsCursorColor', active=is_point_cursor_color_active or is_line_cursor_color_active)
-            split_prop(panel_col, self, 'dsCursorColorAvailability', active=self.dsIsDrawLine and self.dsIsColoredLine)
+                split_prop(panel_col, draw_prefs, 'uniform_color')
+            show_uniform_node_color = ((draw_prefs.draw_text and draw_prefs.color_text) or (draw_prefs.draw_point and draw_prefs.color_point)
+                                       or (draw_prefs.draw_line and draw_prefs.color_line))
+            if show_uniform_node_color and not draw_prefs.color_nodes:
+                split_prop(panel_col, draw_prefs, 'uniform_node_color')
+            is_point_cursor_color_active = draw_prefs.draw_point and draw_prefs.color_point
+            is_line_cursor_color_active = draw_prefs.draw_line and draw_prefs.color_line and draw_prefs.cursor_color_mode
+            split_prop(panel_col, draw_prefs, 'cursor_color', active=is_point_cursor_color_active or is_line_cursor_color_active)
+            split_prop(panel_col, draw_prefs, 'cursor_color_mode', active=draw_prefs.draw_line and draw_prefs.color_line)
         ##
         if panel_col := draw_panel_column(col_main, "Style"):
-            split_prop(panel_col, self, 'dsDisplayStyle')
-            split_prop(panel_col, self, 'dsFontFile')
-            if not self.dsFontFile.endswith((".ttf", ".otf")):
+            split_prop(panel_col, draw_prefs, 'display_style')
+            split_prop(panel_col, draw_prefs, 'font_file')
+            if not draw_prefs.font_file.endswith((".ttf", ".otf")):
                 split_row = panel_col.split(factor=0.4, align=True)
                 split_row.label(text="")
                 split_row.label(text="Only .ttf or .otf format", icon='ERROR')
             add_thin_sep(panel_col, 0.5)
-            split_prop(panel_col, self, 'dsLineWidth')
-            split_prop(panel_col, self, 'dsPointScale')
-            split_prop(panel_col, self, 'dsFontSize')
-            split_prop(panel_col, self, 'dsMarkerStyle')
+            split_prop(panel_col, draw_prefs, 'line_width')
+            split_prop(panel_col, draw_prefs, 'point_scale')
+            split_prop(panel_col, draw_prefs, 'font_size')
+            split_prop(panel_col, draw_prefs, 'marker_style')
         ##
         if panel_col := draw_panel_column(col_main, "Offset"):
-            split_prop(panel_col, self, 'dsManualAdjustment')
-            split_prop(panel_col, self, 'dsPointOffsetX')
-            split_prop(panel_col, self, 'dsFrameOffset')
-            split_prop(panel_col, self, 'dsDistFromCursor')
+            split_prop(panel_col, draw_prefs, 'text_y_offset')
+            split_prop(panel_col, draw_prefs, 'point_offset_x')
+            split_prop(panel_col, draw_prefs, 'frame_offset')
+            split_prop(panel_col, draw_prefs, 'text_distance_from_cursor')
             add_thin_sep(panel_col, 0.25)  # 间隔的空白会累加, 所以额外加个间隔来对齐.
-            split_prop(panel_col, self, 'dsIsAllowTextShadow')
-            if self.dsIsAllowTextShadow:
+            split_prop(panel_col, draw_prefs, 'text_shadow')
+            if draw_prefs.text_shadow:
                 col_shadow = panel_col.column(align=True)
-                split_prop(col_shadow, self, 'dsShadowCol')
-                split_prop(col_shadow, self, 'dsShadowBlur')  # 阴影模糊将它们分开, 以免在中间融合在一起.
-                row = split_prop(col_shadow, self, 'dsShadowOffset', returnAsLy=True).row(align=True)
-                row.row().prop(self, 'dsShadowOffset', text="X  ", translate=False, index=0, icon_only=True)
-                row.row().prop(self, 'dsShadowOffset', text="Y  ", translate=False, index=1, icon_only=True)
+                split_prop(col_shadow, draw_prefs, 'shadow_color')
+                split_prop(col_shadow, draw_prefs, 'shadow_blur')  # 阴影模糊将它们分开, 以免在中间融合在一起.
+                row = split_prop(col_shadow, draw_prefs, 'shadow_offset', returnAsLy=True).row(align=True)
+                row.row().prop(draw_prefs, 'shadow_offset', text="X  ", translate=False, index=0, icon_only=True)
+                row.row().prop(draw_prefs, 'shadow_offset', text="Y  ", translate=False, index=1, icon_only=True)
         ##
         col_dev = col_main.column(align=True)
-        if self.dsIncludeDev or self.dsIsFieldDebug or self.dsIsTestDrawing:
-            with ColumnSetActive(col_dev, active=self.dsIsFieldDebug) as row:
-                row.prop(self, 'dsIsFieldDebug')
-            with ColumnSetActive(col_dev, active=self.dsIsTestDrawing) as row:
-                row.prop(self, 'dsIsTestDrawing')
+        if self.ds_include_dev or self.ds_is_field_debug or self.ds_is_test_drawing:
+            with ColumnSetActive(col_dev, active=self.ds_is_field_debug) as row:
+                row.prop(self, 'ds_is_field_debug')
+            with ColumnSetActive(col_dev, active=self.ds_is_test_drawing) as row:
+                row.prop(self, 'ds_is_test_drawing')
 
     def draw_tab_keymaps(self, layout: UILayout):
         col_main = layout.column()
@@ -414,7 +415,7 @@ class VoronoiAddonPrefs(AddonPreferences):
             row.label()
 
         link_button(layout, "Check for updates yourself", "https://github.com/yunkezengren/Blender-addons-Node-Utilities/releases")
-        layout.prop(self, 'dsIncludeDev')
+        layout.prop(self, 'ds_include_dev')
 
         panel, body = layout.panel(idname="工具描述", default_closed=True)
         panel.label(text="Description")
@@ -461,7 +462,7 @@ class VoronoiAddonPrefs(AddonPreferences):
     def draw(self, context):
 
         def draw_layout_decor_column(layout: UILayout, scale_y=0.05, scale_x=1.0, enabled=False):
-            layout.prop(self, 'vaDecorLy', text="")
+            layout.prop(self, 'va_decor_ly', text="")
             layout.scale_x = scale_x
             layout.scale_y = scale_y  # 如果小于 0.05, 布局会消失, 圆角也会消失.
             layout.enabled = enabled
@@ -471,12 +472,12 @@ class VoronoiAddonPrefs(AddonPreferences):
         col_tabs = col_main.column(align=True)
         row_tabs = col_tabs.row(align=True)
         # 标签页切换是通过操作符创建的, 以免在按住鼠标拖动时意外切换标签页, 这在有大量"isColored"选项时很有诱惑力. 而且现在它们被装饰得更像"标签页"了, 这是普通的 prop 布局 с 'expand=True' 无法做到的.
-        for cyc, li in enumerate(en for en in self.rna_type.properties['vaUiTabs'].enum_items):
+        for cyc, li in enumerate(en for en in self.rna_type.properties['va_ui_tabs'].enum_items):
             col = row_tabs.row().column(align=True)
-            col.operator(VoronoiOpAddonTabs.bl_idname, text=_iface(li.name), depress=self.vaUiTabs == li.identifier).opt = li.identifier
+            col.operator(VoronoiOpAddonTabs.bl_idname, text=_iface(li.name), depress=self.va_ui_tabs == li.identifier).opt = li.identifier
             draw_layout_decor_column(col.row(align=True))
 
-        match self.vaUiTabs:
+        match self.va_ui_tabs:
             case 'SETTINGS':
                 self.draw_tab_settings(col_main)
             case 'APPEARANCE':

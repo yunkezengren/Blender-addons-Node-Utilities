@@ -84,20 +84,20 @@ class NODE_OT_voronoi_ranto(SingleNodeTool): #完成了.
             self.target_nd = tar_nd
             #if not self.ndMaxAccRoot:
             #    self.ndMaxAccRoot = nd
-            if prefs.vrtIsLiveRanto:
-                self.DoRANTO(nd, tree, prefs.vrtIsFixIslands)
+            if prefs.vrt_is_live_ranto:
+                self.DoRANTO(nd, tree, prefs.vrt_is_fix_islands)
             break
     def run(self, event, prefs, tree):
         ndTar = self.target_nd.tar
         #if self.isAccumulate:
         #    self.ndMaxAccRoot = None
         #    self.lastNdProc = None
-        self.DoRANTO(ndTar, tree, prefs.vrtIsFixIslands)
+        self.DoRANTO(ndTar, tree, prefs.vrt_is_fix_islands)
         display_message("RANTO", _iface("This tool is empty")+" ¯\_(ツ)_/¯")
     def initialize(self, event, prefs, tree):
         self.lastNdProc = None
         #self.ndMaxAccRoot = None
     @staticmethod
     def draw_pref_settings(col, prefs):
-        add_left_prop(col, prefs,'vrtIsLiveRanto')
-        add_left_prop(col, prefs,'vrtIsFixIslands')
+        add_left_prop(col, prefs,'vrt_is_live_ranto')
+        add_left_prop(col, prefs,'vrt_is_fix_islands')

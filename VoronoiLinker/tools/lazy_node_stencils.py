@@ -50,13 +50,13 @@ list_vlnstDataPool = []
 lzSt = LazyStencil(LazyKey(lzAny,'RGBA','Color',True, lzAny,'VECTOR','Normal',False), 2, "Fast Color NormalMap")
 lzSt.trees = {'ShaderNodeTree'}
 lzSt.list_nodes.append( LazyNode('ShaderNodeNormalMap', [], hhiSk=-2, hhoSk=1) )
-lzSt.txt_exec = "skFirst.node.image.colorspace_settings.name = prefs.vlnstNonColorName"
+lzSt.txt_exec = "skFirst.node.image.colorspace_settings.name = prefs.vlnst_non_color_name"
 list_vlnstDataPool.append(lzSt)
 ##
 lzSt = LazyStencil(LazyKey(lzAny,'RGBA','Color',True, lzAny,'VALUE',lzAny,False), 2, "Lazy Non-Color data to float socket")
 lzSt.trees = {'ShaderNodeTree'}
 lzSt.isSameLink = True
-lzSt.txt_exec = "skFirst.node.image.colorspace_settings.name = prefs.vlnstNonColorName"
+lzSt.txt_exec = "skFirst.node.image.colorspace_settings.name = prefs.vlnst_non_color_name"
 list_vlnstDataPool.append(lzSt)
 ##
 lzSt = LazyStencil(LazyKey(lzAny,'RGBA','Color',False), 1, "NW TexCord Parody")
@@ -149,7 +149,7 @@ def LzLazyStencil(prefs, tree, skFirst, skSecond):
                                             exec(li.txt_exec) # 警报!1, 哦不.. 别慌, 这是内部的. 一切仍然安全.
                                         except Exception as ex:
                                             VlnstData.lastLastExecError = str(ex)
-                                            prefs.vlnstLastExecError = VlnstData.lastLastExecError
+                                            prefs.vlnst_last_exec_error = VlnstData.lastLastExecError
                                     return result
 def VlnstLazyTemplate(prefs, tree, skFirst, skSecond, cursor_loc):
     list_nodes = LzLazyStencil(prefs, tree, skFirst, skSecond)
@@ -168,8 +168,8 @@ class NODE_OT_voronoi_lazy_node_stencils(PairSocketTool):  # 第一个应外部�
     def callback_draw(self, drawer):
         # 注意: 对于不同的性别, 文本侧与套接字性别的对应关系不明显. 大概要接受了.
         draw_sockets_template(drawer, self.target_sk0, self.target_sk1, tool_name="Lazy Node Stencils")
-        if ( (not not self.target_sk0)^(not not self.target_sk1) )and(drawer.dsIsDrawPoint):
-            draw_socket_point(drawer, drawer.cursor_loc, color1=drawer.dsCursorColor, color2=drawer.dsCursorColor) # 为了美观.
+        if ( (not not self.target_sk0)^(not not self.target_sk1) )and(drawer.draw_point):
+            draw_socket_point(drawer, drawer.cursor_loc, color1=drawer.cursor_color, color2=drawer.cursor_color) # 为了美观.
     def find_targets(self, is_first_active, prefs, tree):
         def FindAnySk():
             tar_sk_out, tar_sk_in = None, None
@@ -202,6 +202,6 @@ class NODE_OT_voronoi_lazy_node_stencils(PairSocketTool):  # 第一个应外部�
         VlnstLazyTemplate(prefs, tree, opt_tar_socket(self.target_sk0), opt_tar_socket(self.target_sk1), self.cursor_loc)
     @staticmethod
     def draw_pref_settings(col, prefs):
-        split_prop(col, prefs,'vlnstNonColorName')
-        if prefs.vlnstLastExecError:
-            split_prop(col, prefs,'vlnstLastExecError')
+        split_prop(col, prefs,'vlnst_non_color_name')
+        if prefs.vlnst_last_exec_error:
+            split_prop(col, prefs,'vlnst_last_exec_error')

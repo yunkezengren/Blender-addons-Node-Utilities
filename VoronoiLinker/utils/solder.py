@@ -70,7 +70,7 @@ def solder_theme_cols(theme_editor: ThemeNodeEditor):
             # col4 = mix_theme_color(SoldThemeCols.node_backdrop4, Vec4(set_alpha(getattr(theme_editor, identity))))
             setattr(SoldThemeCols, identity + "4", col4)
             setattr(SoldThemeCols, identity + "4pw", col4)
-            setattr(SoldThemeCols, identity + "3", Vec(col4[:3]))  # 用于 vptRvEeIsSavePreviewResults.
+            setattr(SoldThemeCols, identity + "3", Vec(col4[:3]))  # 用于 vpt_rv_ee_is_save_preview_results.
 
 def node_tag_color(node: Node):
     if bpy.app.version >= (5, 0, 0):

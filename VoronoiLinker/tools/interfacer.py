@@ -91,8 +91,8 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
             return  #Todo0VV 遍历版本并指出哪些会崩溃.
         for tar_nd in self.get_nearest_nodes(cur_x_off=0):
             nd = tar_nd.tar
-            if (not prefs.vitPasteToAnySocket) and (self.toolMode == eMode.PASTE.value) and (nd.type not in NodeItemsUtils.support_types):
-                break  # 光标必须靠近骑士 (或组节点) (对于非 vitPasteToAnySocket). 还有 `continue` 不会有高级取消.
+            if (not prefs.vit_paste_to_any_socket) and (self.toolMode == eMode.PASTE.value) and (nd.type not in NodeItemsUtils.support_types):
+                break  # 光标必须靠近骑士 (或组节点) (对于非 vit_paste_to_any_socket). 还有 `continue` 不会有高级取消.
             tar_sks_in, tar_sks_out = self.get_nearest_sockets(nd, cur_x_off=0)
             self.target_skMain = find_any_sk(nd, tar_sks_in, tar_sks_out)
             if self.target_skMain:
@@ -249,7 +249,7 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
             case eMode.PASTE:
                 #tovo1v6 添加一个按键, 按下后会“取消”--不进行粘贴; 因为此模式保证会粘附 (参见选项) 到任何套接字, 需要某种方式来“退后一步”.
                 skMain = self.target_skMain.tar
-                if (skMain.node.type not in NodeItemsUtils.support_types) and (prefs.vitPasteToAnySocket):
+                if (skMain.node.type not in NodeItemsUtils.support_types) and (prefs.vit_paste_to_any_socket):
                     skMain.name = self.clipboard
                 else:
                     NodeItemsUtils(skMain).get_item(skMain).name = self.clipboard
@@ -332,4 +332,4 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
 
     @staticmethod
     def draw_pref_settings(col, prefs):
-        split_prop(col, prefs, 'vitPasteToAnySocket')
+        split_prop(col, prefs, 'vit_paste_to_any_socket')

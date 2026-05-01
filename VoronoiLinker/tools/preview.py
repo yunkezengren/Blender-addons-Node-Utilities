@@ -163,7 +163,7 @@ def VptPreviewFromSk(self, prefs, skTar):
                         sk = ViaVerGetSkf(ng, True, voronoiSkPreviewName)
                         if sk:
                             ViaVerSkfRemove(ng, True, sk)
-    if (prefs.vptRvEeIsSavePreviewResults)and(not self.isAnyAncohorExist): # 帮助逆向工程 -- 保存当前查看的插槽以供后续"管理".
+    if (prefs.vpt_rv_ee_is_save_preview_results)and(not self.isAnyAncohorExist): # 帮助逆向工程 -- 保存当前查看的插槽以供后续"管理".
         def GetTypeOfNodeSave(sk):
             match sk.type:
                 case 'GEOMETRY': return 2
@@ -367,7 +367,7 @@ class NODE_OT_voronoi_preview(SingleSocketTool):
     isTriggerOnlyOnLink:      bpy.props.BoolProperty(name="Only linked",           default=False, description="Trigger only on linked socket") #最初在 prefs 中.
     isEqualAnchorType:        bpy.props.BoolProperty(name="Equal anchor type",     default=False, description="Trigger only on anchor type sockets")
     def callback_draw(self, drawer):
-        if (self.prefs.vptRvEeSksHighlighting)and(self.target_sk): #帮助逆向工程 -- 高亮连接点, 并同时显示这些接口的名称.
+        if (self.prefs.vpt_rv_ee_sks_highlighting)and(self.target_sk): #帮助逆向工程 -- 高亮连接点, 并同时显示这些接口的名称.
             solder_sk_links(self.tree) #否则在 `tar.tar==sk:` 上会崩溃.
             #确定标签的缩放比例:
             soldCursorLoc = drawer.cursor_loc
@@ -383,9 +383,9 @@ class NODE_OT_voronoi_preview(SingleSocketTool):
                             for tar in tar_sks:
                                 if tar.tar==sk:
                                     #不支持遍历转接点. 因为懒, 而且懒得为此重写代码.
-                                    if drawer.dsIsDrawSkArea:
+                                    if drawer.draw_socket_area:
                                         draw_socket_area(drawer, tar.tar, tar.bottom_top, get_sk_color_safe(tar.tar))
-                                    draw_socket_text(drawer, tar.pos, (1-isSide*2, -0.5), tar, font_size_override=min(24*drawer.world_zoom*self.prefs.vptHlTextScale, 25))
+                                    draw_socket_text(drawer, tar.pos, (1-isSide*2, -0.5), tar, font_size_override=min(24*drawer.world_zoom*self.prefs.vpt_hl_text_scale, 25))
                                     break
                         nd.hide = False #在绘制时写入. 至少不像 VMLT 中那么严重.
                         #todo0SF: 使用 bpy.ops.wm.redraw_timer 会导致死锁. 所以这里还有另一个“跳帧”.
@@ -421,7 +421,7 @@ class NODE_OT_voronoi_preview(SingleSocketTool):
         self.target_sk = None #没必要, 但为了清晰起见重置. 对调试很有用.
         for tar_nd in self.get_nearest_nodes(cur_x_off=Cursor_X_Offset):
             nd = tar_nd.tar
-            if (prefs.vptRvEeIsSavePreviewResults)and(nd.name==voronoiPreviewResultNdName): #忽略准备好的节点以进行重命名, 从而保存预览结果.
+            if (prefs.vpt_rv_ee_is_save_preview_results)and(nd.name==voronoiPreviewResultNdName): #忽略准备好的节点以进行重命名, 从而保存预览结果.
                 continue
             #如果在几何节点中, 则忽略没有几何输出的节点
             if (isGeoTree)and(not self.isAnyAncohorExist):
@@ -457,9 +457,9 @@ class NODE_OT_voronoi_preview(SingleSocketTool):
                 break
         if self.target_sk:
             unhide_node_reassign(nd, self, cond=True)
-            if prefs.vptIsLivePreview:
+            if prefs.vpt_is_live_preview:
                 VptPreviewFromSk(self, prefs, self.target_sk.tar)
-            if prefs.vptRvEeIsColorOnionNodes: #帮助逆向工程 -- 不是用眼睛寻找细线, 而是快速视觉读取拓扑连接的节点.
+            if prefs.vpt_rv_ee_is_color_onion_nodes: #帮助逆向工程 -- 不是用眼睛寻找细线, 而是快速视觉读取拓扑连接的节点.
                 solder_sk_links(tree) #没有这个, 将不得不手动为接收节点着色, 以免“闪烁".
                 ndTar = self.target_sk.tar.node
                 #不要费心记住最后一个, 每次都把它们全部关闭. 简单粗暴
@@ -472,18 +472,18 @@ class NODE_OT_voronoi_preview(SingleSocketTool):
                             RecrRerouteWalkerPainter(nd.outputs[0] if sk.is_output else nd.inputs[0], col)
                         else:
                             nd.use_custom_color = True
-                            if (not prefs.vptRvEeIsSavePreviewResults)or(nd.name!=voronoiPreviewResultNdName): #不重新着色用于保存结果的节点
+                            if (not prefs.vpt_rv_ee_is_save_preview_results)or(nd.name!=voronoiPreviewResultNdName): #不重新着色用于保存结果的节点
                                 self.OmgNodeColor(nd, col)
                             nd.hide = False #并展开它们.
                 for sk in ndTar.outputs:
-                    RecrRerouteWalkerPainter(sk, prefs.vptOnionColorOut)
+                    RecrRerouteWalkerPainter(sk, prefs.vpt_onion_color_out)
                 for sk in ndTar.inputs:
-                    RecrRerouteWalkerPainter(sk, prefs.vptOnionColorIn)
+                    RecrRerouteWalkerPainter(sk, prefs.vpt_onion_color_in)
     def run(self, event, prefs, tree):
         solder_sk_links(tree) #否则会崩溃.
         VptPreviewFromSk(self, prefs, self.target_sk.tar)
         vlrt_remember_last_sockets(self.target_sk.tar, None)
-        if prefs.vptRvEeIsColorOnionNodes:
+        if prefs.vpt_rv_ee_is_color_onion_nodes:
             for nd in tree.nodes:
                 dv = self.dict_saveRestoreNodeColors.get(nd, None) #与 restore_collapsed_nodes 中完全相同.
                 if dv:
@@ -493,12 +493,12 @@ class NODE_OT_voronoi_preview(SingleSocketTool):
         #如果允许使用经典查看器, 则用跳过标记完成工具, “将接力棒传给”原始查看器.
         match tree.bl_idname:
             case 'GeometryNodeTree':
-                if (prefs.vptAllowClassicGeoViewer)and('FINISHED' in bpy.ops.node.select('INVOKE_DEFAULT')):
+                if (prefs.vpt_allow_classic_geo_viewer)and('FINISHED' in bpy.ops.node.select('INVOKE_DEFAULT')):
                     return {'PASS_THROUGH'}
             case 'CompositorNodeTree':
-                if (prefs.vptAllowClassicCompositorViewer)and('FINISHED' in bpy.ops.node.select('INVOKE_DEFAULT')):
+                if (prefs.vpt_allow_classic_compositor_viewer)and('FINISHED' in bpy.ops.node.select('INVOKE_DEFAULT')):
                     return {'PASS_THROUGH'}
-        if prefs.vptRvEeIsColorOnionNodes:
+        if prefs.vpt_rv_ee_is_color_onion_nodes:
             #记住所有颜色, 并将它们全部重置:
             self.dict_saveRestoreNodeColors = {}
             for nd in tree.nodes:
@@ -522,17 +522,17 @@ class NODE_OT_voronoi_preview(SingleSocketTool):
         self.isAnyAncohorExist = not not (rrAnch or list_distAnchs) #对于几何节点; 如果其中有锚点, 则不仅触发几何接口.
     @staticmethod
     def draw_pref_settings(col, prefs):
-        split_prop(col, prefs,'vptAllowClassicGeoViewer')
-        split_prop(col, prefs,'vptAllowClassicCompositorViewer')
-        split_prop(col, prefs,'vptIsLivePreview')
-        split_prop(col, prefs,'vptRvEeIsColorOnionNodes')
-        if prefs.vptRvEeIsColorOnionNodes:
+        split_prop(col, prefs,'vpt_allow_classic_geo_viewer')
+        split_prop(col, prefs,'vpt_allow_classic_compositor_viewer')
+        split_prop(col, prefs,'vpt_is_live_preview')
+        split_prop(col, prefs,'vpt_rv_ee_is_color_onion_nodes')
+        if prefs.vpt_rv_ee_is_color_onion_nodes:
             split = col.split(factor=0.4)
             split.label()
             row = split.row(align=True)
-            row.prop(prefs,'vptOnionColorIn', text="")
-            row.prop(prefs,'vptOnionColorOut', text="")
-        split_prop(col, prefs,'vptRvEeSksHighlighting')
-        if prefs.vptRvEeSksHighlighting:
-            split_prop(col, prefs,'vptHlTextScale')
-        split_prop(col, prefs,'vptRvEeIsSavePreviewResults')
+            row.prop(prefs,'vpt_onion_color_in', text="")
+            row.prop(prefs,'vpt_onion_color_out', text="")
+        split_prop(col, prefs,'vpt_rv_ee_sks_highlighting')
+        if prefs.vpt_rv_ee_sks_highlighting:
+            split_prop(col, prefs,'vpt_hl_text_scale')
+        split_prop(col, prefs,'vpt_rv_ee_is_save_preview_results')

@@ -26,7 +26,7 @@ class NODE_OT_voronoi_mixer(TripleSocketTool):
             self.target_sk0 = None # 需要清空, 因为下面有两个 continue.
         if not self.can_pick_third:
             self.target_sk1 = None
-        soldReroutesCanInAnyType = prefs.vmtReroutesCanInAnyType
+        soldReroutesCanInAnyType = prefs.vmt_reroutes_can_in_any_type
         tar_sockets = self.nearest_target_sockets(only_output=True)
         # todo 逻辑有点混乱 tar_sockets 双重循环了
         for tar_sks_out in tar_sockets:
@@ -108,14 +108,14 @@ class NODE_OT_voronoi_mixer(TripleSocketTool):
             display_message(self.bl_label, txt_vmtNoMixingOptions, icon='RADIOBUT_OFF')
     @staticmethod
     def draw_pref_settings(col, prefs):
-        split_prop(col, prefs,'vmtReroutesCanInAnyType')
+        split_prop(col, prefs,'vmt_reroutes_can_in_any_type')
     @staticmethod
     def draw_pref_appearance(col, prefs):
         if body_col := draw_panel_column(col, "Mix Pie"):
-            split_prop(body_col, prefs, 'vmtPieType')
+            split_prop(body_col, prefs, 'vmt_pie_type')
             col_group = body_col.column(align=True)
-            split_prop(col_group, prefs, 'vmtPieScale')
-            split_prop(col_group, prefs, 'vmtPieAlignment')
-            split_prop(col_group, prefs, 'vmtPieSocketDisplayType')
-            split_prop(col_group, prefs, 'vmtPieDisplaySocketColor')
-            col_group.active = getattr(prefs, 'vmtPieType') == 'CONTROL'
+            split_prop(col_group, prefs, 'vmt_pie_scale')
+            split_prop(col_group, prefs, 'vmt_pie_alignment')
+            split_prop(col_group, prefs, 'vmt_pie_socket_display_type')
+            split_prop(col_group, prefs, 'vmt_pie_display_socket_color')
+            col_group.active = getattr(prefs, 'vmt_pie_type') == 'CONTROL'

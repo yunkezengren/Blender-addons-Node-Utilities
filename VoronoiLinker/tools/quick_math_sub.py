@@ -23,8 +23,8 @@ class NODE_OT_quick_math_sub(BaseOperator):
             _switch = {"VALUE":"INT", "INT":"VALUE"}
             VqmtData.qmSkType = _switch[VqmtData.qmSkType]
             color = power_color(float_int_color[VqmtData.qmSkType], power=2.2)
-            pref().vaDecorColSkBack = color
-            pref().vaDecorColSk = color
+            pref().va_decor_col_skBack = color
+            pref().va_decor_col_sk = color
 
             VqmtData.test_bool = True
             _x = event.mouse_region_x
@@ -39,7 +39,7 @@ class NODE_OT_quick_math_sub(BaseOperator):
                 else:
                     VqmtData.depth += 1
                     VqmtData.dict_existingValues.clear()
-                    if VqmtData.prefs.vqmtIncludeExistingValues:
+                    if VqmtData.prefs.vqmt_include_existing_values:
                         for nd in tree.nodes:
                             if (VqmtData.qmSkType=='VECTOR')and(nd.type=='VECT_MATH')or(VqmtData.qmSkType=='VALUE')and(nd.type=='MATH'):
                                 list_sks = []
@@ -83,7 +83,7 @@ class NODE_MT_quick_math_pie(Menu):
             if text == "DEGREES":
                 label = "To Degrees"
             where.operator(NODE_OT_quick_math_sub.bl_idname, text=label, icon=icon, translate=False).operation = text
-        soldCanIcons = VqmtData.prefs.vqmtDisplayIcons
+        soldCanIcons = VqmtData.prefs.vqmt_display_icons
         def add_item(where: UILayout, txt, ico='NONE'):
             ly = where.row(align=VqmtData.pieAlignment==0)
             soldPdsc = VqmtData.pieDisplaySocketColor# if not VqmtData.isJustPie else 0
@@ -91,10 +91,10 @@ class NODE_MT_quick_math_pie(Menu):
                 # ly = ly.split(factor=( abs( (soldPdsc>0)-.01*abs(soldPdsc)/(1+(soldPdsc>0)) ) )/VqmtData.ui_scale, align=True)
                 ly = ly.split(factor=Color_Bar_Width * VqmtData.ui_scale, align=True)  # 小王 饼菜单颜色条宽度
             if soldPdsc<0:
-                ly.prop(VqmtData.prefs,'vaDecorColSk', text="")
+                ly.prop(VqmtData.prefs,'va_decor_col_sk', text="")
             add_op(ly, text=txt, icon=ico if soldCanIcons else 'NONE')
             if soldPdsc>0:
-                ly.prop(VqmtData.prefs,'vaDecorColSk', text="")
+                ly.prop(VqmtData.prefs,'va_decor_col_sk', text="")
         pie = self.layout.menu_pie()
         if VqmtData.isSpeedPie:
             for li in VqmtData.list_speedPieDisplayItems:
@@ -150,7 +150,7 @@ class NODE_MT_quick_math_pie(Menu):
                 if True:
                     nonlocal col_right
                     dict_presets = dict_vqmtQuickPresets[VqmtData.qmSkType]
-                    canPreset = (VqmtData.prefs.vqmtIncludeQuickPresets)and(dict_presets)
+                    canPreset = (VqmtData.prefs.vqmt_include_quick_presets)and(dict_presets)
                     if canPreset:
                         col_right.ui_units_x *= 1.55
                     rowRigth = col_right.row()
@@ -159,20 +159,20 @@ class NODE_MT_quick_math_pie(Menu):
                     if canPreset:
                         colRightQp = rowRigth.column(align=isGap)
                         colRightQp.ui_units_x = uiUnitsX/2
-                        colRightQp.scale_y = VqmtData.prefs.vqmtPieScaleExtra/VqmtData.pieScale
+                        colRightQp.scale_y = VqmtData.prefs.vqmt_pie_scale_extra/VqmtData.pieScale
                         for dk, dv in dict_presets.items():
                             ly = colRightQp.row() if VqmtData.pieAlignment else colRightQp
                             ly.operator(NODE_OT_quick_math_sub.bl_idname, text=dv.replace(" ",""), translate=False).operation = dk
                     ##
                     nonlocal col_left
-                    canExist = (VqmtData.prefs.vqmtIncludeExistingValues)and(VqmtData.dict_existingValues)
+                    canExist = (VqmtData.prefs.vqmt_include_existing_values)and(VqmtData.dict_existingValues)
                     if canExist:
                         col_left.ui_units_x *= 2.05
                     rowLeft = col_left.row()
                     if canExist:
                         colLeftExt = rowLeft.column(align=isGap)
                         colLeftExt.ui_units_x = uiUnitsX
-                        colLeftExt.scale_y = VqmtData.prefs.vqmtPieScaleExtra/VqmtData.pieScale
+                        colLeftExt.scale_y = VqmtData.prefs.vqmt_pie_scale_extra/VqmtData.pieScale
                         for nd, list_sks in list(VqmtData.dict_existingValues.values())[-16:]:
                             ly = colLeftExt.row() if VqmtData.pieAlignment else colLeftExt
                             rowItem = ly.row(align=True)
