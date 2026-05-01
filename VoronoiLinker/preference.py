@@ -98,7 +98,16 @@ def populate_keymap_item_groups(node_km: KeyMap) -> KeymapItemGroups:
                     group.matched_items.add(item)
                     group.count += 1
                     continue
+            # quick_math 的判断比 most_useful 更具体；若不先判断，会被按 idname 的 most_useful 提前截走。
+            quick_math_group = kmi_groups.get(Group.quick_math)
+            if quick_math_group and quick_math_group.filter(item):
+                quick_math_group.matched_items.add(item)
+                quick_math_group.count += 1
+                continue
+            # 其余分组继续沿用原有顺序匹配，命中第一个后就停止。
             for dv in kmi_groups.values():
+                if dv is quick_math_group:
+                    continue
                 if dv.filter(item):
                     dv.matched_items.add(item)
                     dv.count += 1
@@ -118,8 +127,8 @@ class VoronoiOpAddonTabs(Operator):
             case opt if opt.startswith("toggle_kmi_group:"):
                 group_key = opt.split(":", 1)[1]
                 kmi_groups = populate_keymap_item_groups(user_node_keymap())
-                # kmi_groups 现在是用 Group 枚举作键的字典，所以不能再用 getattr(...) 去查字符串形式的 group_key
-                category = next((group for group in kmi_groups.values() if group.group_key == group_key), None)
+                from . import Group
+                category = kmi_groups.get(Group(group_key))
                 if category and category.matched_items:
                     should_activate = not any(kmi.active for kmi in category.matched_items)
                     for kmi in category.matched_items:
