@@ -92,7 +92,7 @@ def populate_keymap_item_groups(node_kms) -> KeymapItemGroups:
     for li in node_kms.keymap_items:
         if li.idname.startswith("node.voronoi_"):
             for dv in kmi_groups.__dict__.values():
-                if dv.filter_func(li):
+                if dv.filter(li):
                     dv.matched_items.add(li)
                     dv.count += 1
                     break
@@ -232,11 +232,11 @@ class VoronoiAddonPrefs(AddonPreferences):
     va_decor_col_sk         : FloatVectorProperty(name="DecorForColSk",    default=(1.0, 1.0, 1.0, 1.0), min=0, max=1, size=4, subtype='COLOR', update=update_decor_color_socket)
     va_decor_col_skBack     : FloatVectorProperty(name="va_decor_col_skBack", default=(1.0, 1.0, 1.0, 1.0), min = 0, max=1, size=4, subtype='COLOR')
     # ------
-    edge_pan_factor      : FloatProperty(name="Edge pan zoom factor", default=0.33, min=0.0, max=1.0, description="0.0 – Shift only; 1.0 – Scale only")
-    edge_pan_speed            : FloatProperty(name="Edge pan speed", default=1.0, min=0.0, max=2.5)
-    override_zoom_limits      : BoolProperty(name="Overwriting zoom limits", default=False)
-    zoom_min         : FloatProperty(name="Zoom min", default=0.05,  min=0.0078125, max=1.0,  precision=3)
-    zoom_max         : FloatProperty(name="Zoom max", default=2.301, min=1.0,       max=16.0, precision=3)
+    edge_pan_zoom_mix    : FloatProperty(name="Edge pan zoom mix", default=0.33, min=0.0, max=1.0, description="Blend between panning and scaling near edges.\n0.0 – Pan only.\n1.0 – Scale only")
+    edge_pan_speed       : FloatProperty(name="Edge pan speed", default=1.0, min=0.0, max=2.5)
+    override_zoom_limit  : BoolProperty(name="Overwriting zoom limits", default=False)
+    zoom_min             : FloatProperty(name="Zoom min", default=0.05,  min=0.0078125, max=1.0,  precision=3)
+    zoom_max             : FloatProperty(name="Zoom max", default=2.301, min=1.0,       max=16.0, precision=3)
     # ------
     def draw_tab_settings(self, layout: UILayout):
         col = layout.column()
@@ -252,11 +252,11 @@ class VoronoiAddonPrefs(AddonPreferences):
         col_main = layout.column()
 
         if panel_col := draw_panel_column(col_main, "Edge pan"):
-            split_prop(panel_col, self, 'edge_pan_factor', text="Zoom factor")
+            split_prop(panel_col, self, 'edge_pan_zoom_mix', text="Zoom mix")
             split_prop(panel_col, self, 'edge_pan_speed', text="Speed")
-            if self.show_dev_options or self.override_zoom_limits:
-                split_prop(panel_col, self, 'override_zoom_limits')
-                if self.override_zoom_limits:
+            if self.show_dev_options or self.override_zoom_limit:
+                split_prop(panel_col, self, 'override_zoom_limit')
+                if self.override_zoom_limit:
                     split_prop(panel_col, self, 'zoom_min')
                     split_prop(panel_col, self, 'zoom_max')
 

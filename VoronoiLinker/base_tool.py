@@ -181,7 +181,7 @@ class ModelBaseTool(BaseOperator, ProtocolTool):  #0
         solder_theme_cols(context.preferences.themes[0].node_editor)  # 和 font_id 一样; 虽然在大多数情况下主题在整个会话期间不会改变.
         self.region = context.region
         self.b_view2d = BView2D.GetFields(context.region.view2d)
-        if self.prefs.override_zoom_limits:
+        if self.prefs.override_zoom_limit:
             self.b_view2d.minzoom = self.prefs.zoom_min
             self.b_view2d.maxzoom = self.prefs.zoom_max
 
@@ -352,7 +352,7 @@ def edge_pan_init(self: ModelBaseTool, area: Area):
     EdgePan.view2d = self.region.view2d
     EdgePan.center = Vec2((self.region.width / 2, self.region.height / 2))
     EdgePan.delta = perf_counter()  #..还有 "轻微边界".
-    EdgePan.zoom_fac = 1.0 - self.prefs.edge_pan_factor
+    EdgePan.zoom_fac = 1.0 - self.prefs.edge_pan_zoom_mix
     EdgePan.speed = self.prefs.edge_pan_speed
     bpy.app.timers.register(edge_pan_timer, first_interval=0.0)
 

@@ -1096,13 +1096,16 @@ _translations_dict: dict[tuple[context_s, str], dict[locale_s, str]] = {
     },
 
     # Settings
-    ("*", "Edge pan zoom factor"): {
-        "zh_HANS": "边缘滑动缩放系数",
+    ("*", "Edge pan zoom mix"): {
+        "zh_HANS": "边缘平移缩放混合",
         "ru_RU": "Фактор панорамирования масштаба",
     },
-    ("*", "0.0 – Shift only; 1.0 – Scale only"): {
-        "zh_HANS": "0.0 – 仅平移; 1.0 – 仅缩放",
+    ("*", "Blend between panning and scaling near edges.\n0.0 – Pan only.\n1.0 – Scale only"): {
+        "zh_HANS": "控制靠近边缘时平移与缩放的混合比例。\n0.0 – 仅平移。\n1.0 – 仅缩放",
         "ru_RU": "0.0 – Только сдвиг; 1.0 – Только масштаб",
+    },
+    ("*", "Zoom mix"): {
+        "zh_HANS": "缩放混合",
     },
     ("*", "Edge pan speed"): {
         "zh_HANS": "边缘滑动速度",
