@@ -103,5 +103,5 @@ def set_pie_data(self: "ModelBaseTool", toolData: PieRootData, prefs: "VoronoiAd
     toolData.pieAlignment = get_pie_pref("pie_alignment")
     toolData.ui_scale = self.ui_scale
     toolData.prefs = prefs
-    prefs.va_decor_col_skBack = col
-    prefs.va_decor_col_sk = col
+    prefs.sk_hint_base_color = col
+    prefs.sk_hint_color = col

@@ -1100,8 +1100,8 @@ _translations_dict: dict[tuple[context_s, str], dict[locale_s, str]] = {
         "zh_HANS": "边缘平移缩放混合",
         "ru_RU": "Фактор панорамирования масштаба",
     },
-    ("*", "Blend between panning and scaling near edges.\n0.0 – Pan only.\n1.0 – Scale only"): {
-        "zh_HANS": "控制靠近边缘时平移与缩放的混合比例。\n0.0 – 仅平移。\n1.0 – 仅缩放",
+    ("*", "Blend between pan-like and scale-like edge motion.\n0.0 – More pan-like.\n1.0 – More scale-like"): {
+        "zh_HANS": "控制靠近边缘时更像平移还是更像缩放。\n0.0 – 更像平移。\n1.0 – 更像缩放",
         "ru_RU": "0.0 – Только сдвиг; 1.0 – Только масштаб",
     },
     ("*", "Zoom mix"): {

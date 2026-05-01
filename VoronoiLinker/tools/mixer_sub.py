@@ -93,10 +93,10 @@ class NODE_MT_mixer_pie(Menu):
             if soldPdsc:
                 ly = ly.split(factor=Color_Bar_Width * VmtData.ui_scale, align=True)      # 饼菜单颜色条宽度
             if soldPdsc<0:
-                ly.prop(VmtData.prefs,'va_decor_col_sk', text="")
+                ly.prop(VmtData.prefs, 'sk_hint_color', text="")
             LyVmAddOp(ly, txt)
             if soldPdsc>0:
-                ly.prop(VmtData.prefs,'va_decor_col_sk', text="")
+                ly.prop(VmtData.prefs, 'sk_hint_color', text="")
         pie = self.layout.menu_pie()
         tree_idname = context.space_data.tree_type
 

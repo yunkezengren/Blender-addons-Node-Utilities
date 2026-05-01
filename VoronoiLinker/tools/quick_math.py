@@ -170,8 +170,8 @@ class NODE_OT_voronoi_quick_math(TripleSocketTool):
         self.VqmSetPieData(prefs, power_color(get_sk_color_safe(VqmtData.sk0), power=2.2))
         if self.int_default_float:     # 整数接口浮点饼
             color = power_color(float_int_color["VALUE"], power=2.2)
-            pref().va_decor_col_skBack = color
-            pref().va_decor_col_sk = color
+            pref().sk_hint_base_color = color
+            pref().sk_hint_color = color
         VqmtData.isJustPie = False
         VqmtData.canProcHideSks = True
         bpy.ops.node.quick_math_sub('INVOKE_DEFAULT')

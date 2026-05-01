@@ -23,8 +23,8 @@ class NODE_OT_quick_math_sub(BaseOperator):
             _switch = {"VALUE":"INT", "INT":"VALUE"}
             VqmtData.qmSkType = _switch[VqmtData.qmSkType]
             color = power_color(float_int_color[VqmtData.qmSkType], power=2.2)
-            pref().va_decor_col_skBack = color
-            pref().va_decor_col_sk = color
+            pref().sk_hint_base_color = color
+            pref().sk_hint_color = color
 
             VqmtData.test_bool = True
             _x = event.mouse_region_x
@@ -91,10 +91,10 @@ class NODE_MT_quick_math_pie(Menu):
                 # ly = ly.split(factor=( abs( (soldPdsc>0)-.01*abs(soldPdsc)/(1+(soldPdsc>0)) ) )/VqmtData.ui_scale, align=True)
                 ly = ly.split(factor=Color_Bar_Width * VqmtData.ui_scale, align=True)  # 小王 饼菜单颜色条宽度
             if soldPdsc<0:
-                ly.prop(VqmtData.prefs,'va_decor_col_sk', text="")
+                ly.prop(VqmtData.prefs, 'sk_hint_color', text="")
             add_op(ly, text=txt, icon=ico if soldCanIcons else 'NONE')
             if soldPdsc>0:
-                ly.prop(VqmtData.prefs,'va_decor_col_sk', text="")
+                ly.prop(VqmtData.prefs, 'sk_hint_color', text="")
         pie = self.layout.menu_pie()
         if VqmtData.isSpeedPie:
             for li in VqmtData.list_speedPieDisplayItems:

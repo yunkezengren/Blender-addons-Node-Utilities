@@ -31,15 +31,15 @@ def update_test_draw(self, context):
     from .utils.drawing import TestDraw
     TestDraw.Toggle(context, self.test_drawing)
 
-is_updating_decor_color = False
+is_updating_sk_hint_color = False
 
-def update_decor_color_socket(self, _context):
-    global is_updating_decor_color
-    if is_updating_decor_color:
+def update_sk_hint_color(self, _context):
+    global is_updating_sk_hint_color
+    if is_updating_sk_hint_color:
         return
-    is_updating_decor_color = True
-    self.va_decor_col_sk = self.va_decor_col_skBack
-    is_updating_decor_color = False
+    is_updating_sk_hint_color = True
+    self.sk_hint_color = self.sk_hint_base_color
+    is_updating_sk_hint_color = False
 
 class KeymapItemGroup:
     """快捷键项分类 - 用于组织和过滤keymap items"""
@@ -117,7 +117,7 @@ class VoronoiOpAddonTabs(Operator):
                     for kmi in category.matched_items:
                         kmi.active = should_activate
             case _:
-                prefs.va_ui_tabs = self.opt
+                prefs.addon_tabs = self.opt
         return {'FINISHED'}
 
 class DrawPrefs(PropertyGroup):
@@ -225,14 +225,12 @@ class VoronoiAddonPrefs(AddonPreferences):
     # ------
     show_dev_options          : BoolProperty(name="Include Dev", default=False)
     # ------
-    va_ui_tabs: EnumProperty(name="Addon pref Tabs", default='SETTINGS', items=(
-        ('SETTINGS', "Settings", ""), ('APPEARANCE', "Appearance", ""), ('DRAW', "Draw", ""), ('KEYMAP', "Keymap", ""), ('INFO', "Info", "")))
-    va_info_restore        : BoolProperty(name="", description="This list is just a copy from the \"Preferences > Keymap\".\nResrore will restore everything \"Node Editor\", not just addon")
-    va_decor_ly            : FloatVectorProperty(name="DecorForLayout",   default=(0.01, 0.01, 0.01),   min=0, max=1, size=3, subtype='COLOR')
-    va_decor_col_sk         : FloatVectorProperty(name="DecorForColSk",    default=(1.0, 1.0, 1.0, 1.0), min=0, max=1, size=4, subtype='COLOR', update=update_decor_color_socket)
-    va_decor_col_skBack     : FloatVectorProperty(name="va_decor_col_skBack", default=(1.0, 1.0, 1.0, 1.0), min = 0, max=1, size=4, subtype='COLOR')
+    addon_tabs: EnumProperty(name="Addon pref Tabs", default='SETTINGS', items=(('SETTINGS', "Settings", ""), ('APPEARANCE', "Appearance", ""), ('DRAW', "Draw", ""), ('KEYMAP', "Keymap", ""), ('INFO', "Info", "")))
+    tab_bottom_line_color  : FloatVectorProperty(default=(0.1, 0.1, 0.1), min=0, max=1, size=3, subtype='COLOR')
+    sk_hint_color          : FloatVectorProperty(name="Socket hint color", default=(1.0, 1.0, 1.0, 1.0), min=0, max=1, size=4, subtype='COLOR', update=update_sk_hint_color)
+    sk_hint_base_color     : FloatVectorProperty(name="Socket hint base color", default=(1.0, 1.0, 1.0, 1.0), min = 0, max=1, size=4, subtype='COLOR')
     # ------
-    edge_pan_zoom_mix    : FloatProperty(name="Edge pan zoom mix", default=0.33, min=0.0, max=1.0, description="Blend between panning and scaling near edges.\n0.0 – Pan only.\n1.0 – Scale only")
+    edge_pan_zoom_mix    : FloatProperty(name="Edge pan zoom mix", default=0.33, min=0.0, max=1.0, description="Blend between pan-like and scale-like edge motion.\n0.0 – More pan-like.\n1.0 – More scale-like")
     edge_pan_speed       : FloatProperty(name="Edge pan speed", default=1.0, min=0.0, max=2.5)
     override_zoom_limit  : BoolProperty(name="Overwriting zoom limits", default=False)
     zoom_min             : FloatProperty(name="Zoom min", default=0.05,  min=0.0078125, max=1.0,  precision=3)
@@ -449,22 +447,20 @@ class VoronoiAddonPrefs(AddonPreferences):
 
     def draw(self, context):
 
-        def draw_layout_decor_column(layout: UILayout, scale_y=0.05, scale_x=1.0, enabled=False):
-            layout.prop(self, 'va_decor_ly', text="")
-            layout.scale_x = scale_x
+        def draw_tab_with_line(layout: UILayout, scale_y=0.05):
+            layout.prop(self, 'tab_bottom_line_color', text="")
             layout.scale_y = scale_y  # 如果小于 0.05, 布局会消失, 圆角也会消失.
-            layout.enabled = enabled
 
         col_layout = self.layout.column()
         col_main = col_layout.column(align=True)
         col_tabs = col_main.column(align=True)
         row_tabs = col_tabs.row(align=True)
-        for cyc, li in enumerate(en for en in self.rna_type.properties['va_ui_tabs'].enum_items):
+        for _, prop in enumerate(enum for enum in self.rna_type.properties['addon_tabs'].enum_items):
             col = row_tabs.row().column(align=True)
-            col.operator(VoronoiOpAddonTabs.bl_idname, text=_iface(li.name), depress=self.va_ui_tabs == li.identifier).opt = li.identifier
-            draw_layout_decor_column(col.row(align=True))
+            col.operator(VoronoiOpAddonTabs.bl_idname, text=_iface(prop.name), depress=self.addon_tabs == prop.identifier).opt = prop.identifier
+            draw_tab_with_line(col.row(align=True))
 
-        match self.va_ui_tabs:
+        match self.addon_tabs:
             case 'SETTINGS':
                 self.draw_tab_settings(col_main)
             case 'APPEARANCE':
