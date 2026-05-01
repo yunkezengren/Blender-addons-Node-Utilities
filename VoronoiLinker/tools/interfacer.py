@@ -19,7 +19,7 @@ class InterfacerMode(Enum):
     MOVE   = 'MOVE'
     NEW    = 'NEW'
     CREATE = 'CREATE'
-    TYPE   = 'TYPE'
+    # TYPE   = 'TYPE'
 
 eMode = InterfacerMode
 ModeItems = (
@@ -30,7 +30,7 @@ ModeItems = (
     (eMode.NEW.value,    "New",    "Create an interface using virtual sockets"),
     (eMode.CREATE.value, "Create", "Create an interface from a selected socket, and paste it into a specified location"),
     # (eMode.DELETE.value, "Delete", "Delete one socket"),
-    (eMode.TYPE.value,   "Type", "Change socket type"),
+    # (eMode.TYPE.value,   "Type", "Change socket type"),
 )
 # yapf: enable
 

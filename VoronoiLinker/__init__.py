@@ -109,14 +109,14 @@ operator_keymaps: dict[type[Operator], list[str | tuple[str, dict[str, object]] 
         ("S##_V", {'toolMode': LinkRepeatingMode.NODE.value}),
     ],
     NODE_OT_voronoi_interfacer: [
-        ("SC#_A", {'toolMode': InterfacerMode.NEW.value}),
         ("S#A_A", {'toolMode': InterfacerMode.CREATE.value}, Group.most_useful),
+        ("S#A_Z", {'toolMode': InterfacerMode.MOVE.value}, Group.most_useful),
+        ("S#A_X", {'toolMode': InterfacerMode.SWAP.value}),
+        ("SC#_A", {'toolMode': InterfacerMode.NEW.value}),
         ("S#A_C", {'toolMode': InterfacerMode.COPY.value}),
         ("S#A_V", {'toolMode': InterfacerMode.PASTE.value}),
-        ("S#A_X", {'toolMode': InterfacerMode.SWAP.value}),
-        ("S#A_Z", {'toolMode': InterfacerMode.MOVE.value}, Group.most_useful),
-        # ("S#A_Q", {'toolMode':InterfacerMode.DELETE.value}),
         # ("S#A_E", {'toolMode':InterfacerMode.TYPE.value}),
+        # ("S#A_Q", {'toolMode':InterfacerMode.DELETE.value}),
     ],
     NODE_OT_voronoi_quick_math: [
         "S#A_RIGHTMOUSE",  # 留在了右键, 以免在'Speed Pie'类型的饼菜单下三击左键时抓狂.

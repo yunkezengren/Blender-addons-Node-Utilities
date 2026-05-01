@@ -80,9 +80,8 @@ def populate_keymap_item_groups(node_km: KeyMap) -> KeymapItemGroups:
         for item_def in keymap_item_defs:
             if item_def.group_tag is None:
                 continue
-            if item_def.idname != kmi.idname or item_def.key != kmi.type:
-                continue
-            if item_def.shift != kmi.shift or item_def.ctrl != kmi.ctrl or item_def.alt != kmi.alt or item_def.repeat != kmi.repeat:
+            # 这里只拿“操作本身”的特征来认分组，不要求用户仍然保留默认按键。
+            if item_def.idname != kmi.idname:
                 continue
             if all(getattr(kmi.properties, key, None) == value for key, value in item_def.props.items()):
                 return item_def.group_tag
