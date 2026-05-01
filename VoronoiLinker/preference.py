@@ -121,7 +121,7 @@ class VoronoiOpAddonTabs(Operator):
         return {'FINISHED'}
 
 class DrawPrefs(PropertyGroup):
-    draw_text         : BoolProperty(name="Text",        default=True)  # 考虑到 VHT 和 VEST, 这更多是用于框架中的文本, 而不是来自插槽的文本.
+    draw_text         : BoolProperty(name="Text",        default=True)
     node_label        : BoolProperty(name="Node label",  default=True)
     draw_point        : BoolProperty(name="Points",      default=True)
     draw_marker       : BoolProperty(name="Markers",     default=True)
@@ -222,9 +222,8 @@ class VoronoiAddonPrefs(AddonPreferences):
     vwt_select_target_key       : StringProperty(name="Select target Key", default='LEFT_ALT', description="Hold this key to select the target node instead of just jumping to it")
     vlnst_non_color_name        : StringProperty(name="Non-Color name",  default="Non-Color")
     vlnst_last_exec_error       : StringProperty(name="Last exec error", default="", update=VlnstUpdateLastExecError)
-    vdt_dummy                 : StringProperty(name="Dummy", default="Dummy")
     # ------
-    ds_include_dev          : BoolProperty(name="Include Dev", default=False)
+    show_dev_options          : BoolProperty(name="Include Dev", default=False)
     # ------
     va_ui_tabs: EnumProperty(name="Addon pref Tabs", default='SETTINGS', items=(
         ('SETTINGS', "Settings", ""), ('APPEARANCE', "Appearance", ""), ('DRAW', "Draw", ""), ('KEYMAP', "Keymap", ""), ('INFO', "Info", "")))
@@ -255,7 +254,7 @@ class VoronoiAddonPrefs(AddonPreferences):
         if panel_col := draw_panel_column(col_main, "Edge pan"):
             split_prop(panel_col, self, 'edge_pan_factor', text="Zoom factor")
             split_prop(panel_col, self, 'edge_pan_speed', text="Speed")
-            if (self.ds_include_dev) or self.override_zoom_limits:
+            if self.show_dev_options or self.override_zoom_limits:
                 split_prop(panel_col, self, 'override_zoom_limits')
                 if self.override_zoom_limits:
                     split_prop(panel_col, self, 'zoom_min')
@@ -344,7 +343,7 @@ class VoronoiAddonPrefs(AddonPreferences):
                 row.row().prop(draw_pref, 'shadow_offset', text="X  ", translate=False, index=0, icon_only=True)
                 row.row().prop(draw_pref, 'shadow_offset', text="Y  ", translate=False, index=1, icon_only=True)
 
-        if self.ds_include_dev:
+        if self.show_dev_options:
             if panel_col := draw_panel_column(col_main, "Debug"):
                 split_prop(panel_col, draw_pref, 'debug_field')
                 split_prop(panel_col, draw_pref, 'test_drawing')
@@ -410,7 +409,7 @@ class VoronoiAddonPrefs(AddonPreferences):
             row.label()
 
         link_button(layout, "Check for updates yourself", "https://github.com/yunkezengren/Blender-addons-Node-Utilities/releases")
-        layout.prop(self, 'ds_include_dev')
+        layout.prop(self, 'show_dev_options')
 
         panel, body = layout.panel(idname="工具描述", default_closed=True)
         panel.label(text="Description")
@@ -441,8 +440,8 @@ class VoronoiAddonPrefs(AddonPreferences):
             layout = body
             col_main = layout.column()
             col_urls = col_main.column()
-            link_button(col_urls, "VL Wiki", "https://github.com/neliut/VoronoiLinker/wiki")
-            link_button(col_urls, "RANTO Git", "https://github.com/ugorek000/RANTO")
+            link_button(col_urls, "VoronoiLinker Github Wiki", "https://github.com/neliut/VoronoiLinker/wiki")
+            link_button(col_urls, "RANTO Github", "https://github.com/ugorek000/RANTO")
             col_urls.separator()
             link_button(col_urls, "Event Type Items", "https://docs.blender.org/api/current/bpy_types_enum_items/event_type_items.html")
             link_button(col_urls, "Translator guide", "https://developer.blender.org/docs/handbook/translating/translator_guide/")
@@ -460,7 +459,6 @@ class VoronoiAddonPrefs(AddonPreferences):
         col_main = col_layout.column(align=True)
         col_tabs = col_main.column(align=True)
         row_tabs = col_tabs.row(align=True)
-        # 标签页切换是通过操作符创建的, 以免在按住鼠标拖动时意外切换标签页, 这在有大量"isColored"选项时很有诱惑力. 而且现在它们被装饰得更像"标签页"了, 这是普通的 prop 布局 с 'expand=True' 无法做到的.
         for cyc, li in enumerate(en for en in self.rna_type.properties['va_ui_tabs'].enum_items):
             col = row_tabs.row().column(align=True)
             col.operator(VoronoiOpAddonTabs.bl_idname, text=_iface(li.name), depress=self.va_ui_tabs == li.identifier).opt = li.identifier

@@ -204,7 +204,8 @@ class ModelBaseTool(BaseOperator, ProtocolTool):  #0
     def modal(self, context, event):
         context.area.tag_redraw()
         if num := (event.type == 'WHEELUPMOUSE') - (event.type == 'WHEELDOWNMOUSE'):
-            self.b_view2d.cur.zoom(self.cursor_loc, 1.0 - num*0.15)
+            zoom_center = context.region.view2d.region_to_view(event.mouse_region_x, event.mouse_region_y)
+            self.b_view2d.cur.zoom(zoom_center, 1.0 - num*0.15)
         self.handle_modal(event, self.prefs)
         if not self.modal_handle_mouse(event, self.prefs):
             return OP_RUNNING_MODAL
@@ -338,7 +339,7 @@ class EdgePan:
     cursor_loc: Vec2 = Vec2((0, 0))
     ui_scale = 1.0
     center: Vec2 = Vec2((0, 0))
-    delta = 0.0  # 哦, 这些增量.
+    delta = 0.0
     zoom_fac = 0.5
     speed = 1.0
 
