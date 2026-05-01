@@ -11,6 +11,7 @@ class NODE_OT_voronoi_links_transfer(PairNodeTool):
     use_for_custom_tree = True
     can_draw_settings = False
     isByIndexes: bpy.props.BoolProperty(name="Transfer by indexes", default=False)
+    slide_first_target: bpy.props.BoolProperty(name="Slide first target", default=False, description="Let the first target follow the cursor and slide on node box")
     def callback_draw(self, drawer):
         if not self.target_nd0:
             draw_sockets_template(drawer, None, tool_name="Links Transfer")
@@ -33,12 +34,8 @@ class NODE_OT_voronoi_links_transfer(PairNodeTool):
             self.target_nd1 = tar_nd
             if self.target_nd0.tar==self.target_nd1.tar:
                 self.target_nd1 = None
-            # 成了. 现在 VL 有两个节点了.
-            # 突然发现, 节点的“命中”位置简直是粘在它上面, 这在整个都是关于套接字的聚会中观察到相当不寻常.
-            # 它应该滑动而不是粘住吗?. 大概不应该, 否则不可避免地会有轴向投影, 在视觉上“抹去”信息.
-            # 而且它们都会随着光标移动而改变, 导致无法直观地知道谁是第一个, 谁是第二个,
-            # 与粘住不同, 粘住时可以清楚地知道“这个是第一个”; 这对于这个工具尤其重要, 因为哪个节点被首先选择很重要.
-            if prefs.draw_prefs.slide_on_nodes: # 虽然不急, 但还是留着吧.
+            # 默认保持第一个目标固定, 这样更容易看清先后顺序. 需要时也可以让第一个目标跟着光标在节点表面滑动.
+            if self.slide_first_target:
                 if self.target_nd0:
                     self.target_nd0.pos = gen_tar_from_nd(self.target_nd0.tar, self.cursor_loc, self.ui_scale).pos
             break

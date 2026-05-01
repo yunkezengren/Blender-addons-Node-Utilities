@@ -93,14 +93,14 @@ def VlnstUpdateLastExecError(self, _context):
 
 def set_pie_data(self: "ModelBaseTool", toolData: PieRootData, prefs: "VoronoiAddonPrefs", col: UILayout):
 
-    def get_pie_pref(name):
-        return getattr(prefs, self.vl_triple_name.lower() + name)
+    def get_pie_pref(name: str):
+        return getattr(prefs, f"{self.vl_triple_name.lower()}_{name}")
 
-    toolData.isSpeedPie = get_pie_pref("PieType") == 'SPEED'
-    toolData.pieScale = get_pie_pref("PieScale")
-    toolData.pieDisplaySocketTypeInfo = get_pie_pref("PieSocketDisplayType")
-    toolData.pieDisplaySocketColor = get_pie_pref("PieDisplaySocketColor")
-    toolData.pieAlignment = get_pie_pref("PieAlignment")
+    toolData.isSpeedPie = get_pie_pref("pie_type") == 'SPEED'
+    toolData.pieScale = get_pie_pref("pie_scale")
+    toolData.pieDisplaySocketTypeInfo = get_pie_pref("pie_socket_display_type")
+    toolData.pieDisplaySocketColor = get_pie_pref("pie_display_socket_color")
+    toolData.pieAlignment = get_pie_pref("pie_alignment")
     toolData.ui_scale = self.ui_scale
     toolData.prefs = prefs
     prefs.va_decor_col_skBack = col

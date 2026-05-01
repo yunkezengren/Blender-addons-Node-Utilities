@@ -128,7 +128,6 @@ class DrawPrefs(PropertyGroup):
     color_socket_area : BoolProperty(name="Socket area", default=True)
 
     always_draw_line  : BoolProperty(name="Always draw line", default=True, description="Draw a line to the cursor even from a single selected socket")
-    slide_on_nodes    : BoolProperty(name="Slide on nodes", default=False)
 
     socket_area_alpha : FloatProperty(name="Socket area alpha", default=0.4, min=0.0, max=1.0, subtype="FACTOR")
     uniform_color     : FloatVectorProperty(name="Alternative uniform color", default=(1, 0, 0, 0.9), min=0, max=1, size=4, subtype='COLOR')
@@ -288,7 +287,6 @@ class VoronoiAddonPrefs(AddonPreferences):
         if panel_col := draw_panel_column(col_main, "Behavior"):
             #split_prop(panel_col, self,'node_label', active=self.draw_text)
             split_prop(panel_col, draw_pref, 'always_draw_line')
-            split_prop(panel_col, draw_pref, 'slide_on_nodes')
 
         if panel_col := draw_panel_column(col_main, "Color"):
             split_prop(panel_col, draw_pref, 'socket_area_alpha', active=draw_pref.draw_socket_area)

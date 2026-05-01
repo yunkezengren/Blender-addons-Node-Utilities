@@ -76,7 +76,7 @@ class NODE_OT_voronoi_quick_math(TripleSocketTool):
                 is_first_active = False #但考虑到当前的选择拓扑, 这没有必要.
             unhide_node_reassign(nd, self, cond=self.target_sk0, flag=True) #todo0NA 参见上面一行, 这个 'cond' 不应该来自 is_first_active.
             skOut0 = opt_tar_socket(self.target_sk0)
-            if isNotCanPickThird:
+            if is_not_can_pick_third:
                 #对于第二个, 根据条件:
                 if skOut0:
                     for tar in tar_sks_out:

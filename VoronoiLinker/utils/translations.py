@@ -807,6 +807,12 @@ _translations_dict: dict[tuple[context_s, str], dict[locale_s, str]] = {
         "zh_HANS": "按顺序传输",
         "ru_RU": "Переносить по индексам",
     },
+    ("*", "Slide first target"): {
+        "zh_HANS": "滑动第一个目标",
+    },
+    ("*", "Let the first target follow the cursor and slide on node box"): {
+        "zh_HANS": "让第一个目标跟随光标在节点边框滑动",
+    },
 
     # VoronoiLazyNodeStencilsTool
     ("*", "Non-Color name"): {
@@ -1012,10 +1018,6 @@ _translations_dict: dict[tuple[context_s, str], dict[locale_s, str]] = {
     ("*", "Draw a line to the cursor even from a single selected socket"): {
         "zh_HANS": "在鼠标移动到移动到已有连接接口的时是否还显示连线",
         "ru_RU": "Рисовать линию к курсору даже от одного выбранного сокета",
-    },
-    ("*", "Slide on nodes"): {
-        "zh_HANS": "在节点上滑动",
-        "ru_RU": "Скользить по нодам",
     },
     ("*", "Enable text shadow"): {
         "zh_HANS": "启用文本阴影",
