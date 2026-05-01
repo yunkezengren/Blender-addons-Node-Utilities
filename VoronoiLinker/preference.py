@@ -48,12 +48,12 @@ class KeymapItemGroup:
     """快捷键项分类 - 用于组织和过滤keymap items"""
     group_key: str
     label: str
-    matched_items: set
+    matched_items: set[KeyMapItem]
     idnames: tuple[str, ...]
     count: int
     filter: Callable[[KeyMapItem], bool] | None
 
-    def __init__(self, group_key='', matched_items=set(), idnames=()):
+    def __init__(self, group_key='', matched_items: set[KeyMapItem] | None = None, idnames=()):
         self.group_key = group_key
         self.label = group_key.replace("_", " ").title()
         self.matched_items = matched_items
@@ -372,7 +372,7 @@ class VoronoiAddonPrefs(AddonPreferences):
         col_list = col_main.column(align=True)
         node_kms = user_node_keymap()
         ##
-        voronoi_kmis = [li for li in node_kms.keymap_items if li.idname.startswith("node.voronoi_")]
+        voronoi_kmis = [kmi for kmi in node_kms.keymap_items if kmi.idname.startswith("node.voronoi_")]
         shortcut_count = len(voronoi_kmis)
         active_shortcut_count = sum(int(kmi.active) for kmi in voronoi_kmis)
         kmi_groups = populate_keymap_item_groups(node_kms)
@@ -402,9 +402,13 @@ class VoronoiAddonPrefs(AddonPreferences):
                 split_body.label(text="")
                 body_col = split_body.column(align=True)
                 idname_order = {idname: idx for idx, idname in enumerate(category.idnames)}
+                prev_idname = None
                 for li in sorted(category.matched_items, key=lambda a: (idname_order.get(a.idname, len(idname_order)), a.id)):
+                    if prev_idname is not None and li.idname != prev_idname:
+                        body_col.separator()
                     body_col.context_pointer_set('keymap', node_kms)
                     rna_keymap_ui.draw_kmi([], bpy.context.window_manager.keyconfigs.user, node_kms, li, body_col, 0)
+                    prev_idname = li.idname
 
         for category in kmi_groups.values():
             draw_km_group(col_list, category)

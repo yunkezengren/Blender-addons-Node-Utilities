@@ -65,7 +65,7 @@ class NODE_OT_voronoi_interfacer(PairSocketTool):
             eMode.PASTE:  "Paste Socket Name",
             eMode.MOVE:   "Move Socket",
             eMode.SWAP:   "Swap Sockets",
-            eMode.TYPE:   "Change Socket Type",
+            # eMode.TYPE:   "Change Socket Type",
         }
         mode = mode_map[eMode(self.toolMode)]
         match eMode(self.toolMode):
