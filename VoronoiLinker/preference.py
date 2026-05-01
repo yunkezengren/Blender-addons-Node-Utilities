@@ -53,9 +53,9 @@ class KeymapItemGroup:
     count: int
     filter: Callable[[KeyMapItem], bool] | None
 
-    def __init__(self, label='', matched_items=set(), idnames=()):
-        self.group_key = "_".join(label.lower().split())
-        self.label = label
+    def __init__(self, group_key='', matched_items=set(), idnames=()):
+        self.group_key = group_key
+        self.label = group_key.replace("_", " ").title()
         self.matched_items = matched_items
         self.idnames = idnames
         self.count = 0
@@ -65,7 +65,7 @@ KeymapItemGroups = dict['Group', KeymapItemGroup]
 
 def build_keymap_item_groups() -> KeymapItemGroups:
     from . import keymap_groups, Group
-    kmi_groups = {tag: KeymapItemGroup(tag.value.replace("_", " ").title(), set(), keymap_groups[tag]) for tag in Group}
+    kmi_groups = {tag: KeymapItemGroup(tag.value, set(), keymap_groups[tag]) for tag in Group}
     kmi_groups[Group.invalid].filter = lambda kmi: True
     kmi_groups[Group.quick_math].filter = lambda kmi: any(
         True for txt in {'quickOprFloat', 'quickOprVector', 'quickOprBool', 'quickOprColor', 'justPieCall', 'isRepeatLastOperation'}
@@ -118,7 +118,8 @@ class VoronoiOpAddonTabs(Operator):
             case opt if opt.startswith("toggle_kmi_group:"):
                 group_key = opt.split(":", 1)[1]
                 kmi_groups = populate_keymap_item_groups(user_node_keymap())
-                category = getattr(kmi_groups, group_key, None)
+                # kmi_groups 现在是用 Group 枚举作键的字典，所以不能再用 getattr(...) 去查字符串形式的 group_key
+                category = next((group for group in kmi_groups.values() if group.group_key == group_key), None)
                 if category and category.matched_items:
                     should_activate = not any(kmi.active for kmi in category.matched_items)
                     for kmi in category.matched_items:
@@ -397,17 +398,8 @@ class VoronoiAddonPrefs(AddonPreferences):
                     body_col.context_pointer_set('keymap', node_kms)
                     rna_keymap_ui.draw_kmi([], bpy.context.window_manager.keyconfigs.user, node_kms, li, body_col, 0)
 
-        from . import Group
-        key_group_order = (
-            Group.most_useful,
-            Group.quite_useful,
-            Group.maybe_useful,
-            Group.quick_math,
-            Group.custom,
-            Group.invalid,
-        )
-        for group_tag in key_group_order:
-            draw_km_group(col_list, kmi_groups[group_tag])
+        for category in kmi_groups.values():
+            draw_km_group(col_list, category)
 
     def draw_tab_info(self, layout: UILayout):
 
