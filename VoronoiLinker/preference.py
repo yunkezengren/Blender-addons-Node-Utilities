@@ -106,9 +106,6 @@ class VoronoiOpAddonTabs(Operator):
     def invoke(self, context, event):
         prefs = pref()
         match self.opt:
-            case 'copy_settings':
-                from .逐渐弃用 import get_addon_settings_as_py as addon_settings
-                context.window_manager.clipboard = addon_settings(prefs)
             case 'add_new_kmi':
                 user_node_keymap().keymap_items.new("node.voronoi_", 'D', 'PRESS').show_expanded = True
             case opt if opt.startswith("toggle_kmi_group:"):
@@ -450,12 +447,6 @@ class VoronoiAddonPrefs(AddonPreferences):
             link_button(col_urls, "Event Type Items", "https://docs.blender.org/api/current/bpy_types_enum_items/event_type_items.html")
             link_button(col_urls, "Translator guide", "https://developer.blender.org/docs/handbook/translating/translator_guide/")
             link_button(col_urls, "Translator dev guide", "https://developer.blender.org/docs/handbook/translating/developer_guide/")
-
-            # todo 弃用,以后删
-            col_main.separator()
-            row = col_main.row(align=True)
-            row.alignment = 'LEFT'
-            row.operator(VoronoiOpAddonTabs.bl_idname, text="Copy addon settings as .py script", icon='COPYDOWN').opt = 'copy_settings'
 
     def draw(self, context):
 
