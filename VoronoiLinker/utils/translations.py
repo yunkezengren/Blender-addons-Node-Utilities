@@ -14,6 +14,21 @@ _translations_dict: dict[tuple[context_s, str], dict[locale_s, str]] = {
         "zh_HANS": "只支持.ttf或.otf格式",
         "ru_RU": "Только .ttf или .otf формат",
     },
+    ("*", "Point X offset"): {
+        "zh_HANS": "点 X 偏移",
+    },
+    ("*", "Frame padding"): {
+        "zh_HANS": "文本框边距",
+    },
+    ("*", "Extra padding for text frames"): {
+        "zh_HANS": "文本框的额外边距",
+    },
+    ("*", "Text Y offset"): {
+        "zh_HANS": "文本 Y 偏移",
+    },
+    ("*", "Text X offset"): {
+        "zh_HANS": "文本 X 偏移",
+    },
     ("*", "Include Dev"): {
         "zh_HANS": "显示开发选项",
         "ru_RU": "Показать опции разработки",
@@ -945,14 +960,6 @@ _translations_dict: dict[tuple[context_s, str], dict[locale_s, str]] = {
     ("*", "Font file"): {
         "zh_HANS": "字体文件",
         "ru_RU": "Файл шрифта",
-    },
-    ("*", "Manual adjustment"): {
-        "zh_HANS": "手动调整",
-        "ru_RU": "Ручная корректировка",
-    },
-    ("*", "The Y-axis offset of text for this font"): {
-        "zh_HANS": "此字体文本的Y轴偏移量",
-        "ru_RU": "Смещение текста по оси Y для данного шрифта",
     },
     ("*", "Point offset X axis"): {
         "zh_HANS": "X轴上的点偏移",

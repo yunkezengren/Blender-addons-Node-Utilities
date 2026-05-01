@@ -32,16 +32,14 @@ def update_decor_color_socket(self, _context):
 class KeymapItemGroup:
     """快捷键项分类 - 用于组织和过滤keymap items"""
     group_key: str
-    panel_id: str
     label: str
     matched_items: set
     idnames: set
     count: int
     filter_func: Callable[[KeyMapItem], bool] | None
 
-    def __init__(self, group_key='', panel_id='', label='', matched_items=set(), idnames=set()):
+    def __init__(self, group_key='', label='', matched_items=set(), idnames=set()):
         self.group_key = group_key
-        self.panel_id = panel_id
         self.label = label
         self.matched_items = matched_items
         self.idnames = idnames
@@ -60,12 +58,12 @@ class KeymapItemGroups:
 def build_keymap_item_groups() -> KeymapItemGroups:
     from . import keymap_groups
     kmi_groups = KeymapItemGroups()
-    kmi_groups.quick_math = KeymapItemGroup('quick_math', 'quick_math', 'Quick Math', set(), keymap_groups.quick_math)
-    kmi_groups.custom = KeymapItemGroup('custom', 'custom', 'Custom', set(), keymap_groups.custom)
-    kmi_groups.most_useful = KeymapItemGroup('most_useful', 'most_useful', 'Most Useful', set(), keymap_groups.most_useful)
-    kmi_groups.quite_useful = KeymapItemGroup('quite_useful', 'quite_useful', 'Quite Useful', set(), keymap_groups.quite_useful)
-    kmi_groups.maybe_useful = KeymapItemGroup('maybe_useful', 'maybe_useful', 'Maybe Useful', set(), keymap_groups.maybe_useful)
-    kmi_groups.invalid = KeymapItemGroup('invalid', 'invalid', 'Invalid', set(), keymap_groups.invalid)
+    kmi_groups.quick_math = KeymapItemGroup('quick_math', 'Quick Math', set(), keymap_groups.quick_math)
+    kmi_groups.custom = KeymapItemGroup('custom', 'Custom', set(), keymap_groups.custom)
+    kmi_groups.most_useful = KeymapItemGroup('most_useful', 'Most Useful', set(), keymap_groups.most_useful)
+    kmi_groups.quite_useful = KeymapItemGroup('quite_useful', 'Quite Useful', set(), keymap_groups.quite_useful)
+    kmi_groups.maybe_useful = KeymapItemGroup('maybe_useful', 'Maybe Useful', set(), keymap_groups.maybe_useful)
+    kmi_groups.invalid = KeymapItemGroup('invalid', 'Invalid', set(), keymap_groups.invalid)
     kmi_groups.most_useful.filter_func = lambda kmi: kmi.idname in kmi_groups.most_useful.idnames
     kmi_groups.quite_useful.filter_func = lambda kmi: kmi.idname in kmi_groups.quite_useful.idnames
     kmi_groups.maybe_useful.filter_func = lambda kmi: kmi.idname in kmi_groups.maybe_useful.idnames
@@ -138,7 +136,6 @@ class DrawPrefs(PropertyGroup):
     cursor_color      : FloatVectorProperty(name="Cursor color", default=(0, 0, 0, 1.0), min=0, max=1, size=4, subtype='COLOR')
     cursor_color_mode : IntProperty(name="Cursor color availability", default=2, min=0, max=2, description="If a line is drawn to the cursor, color part of it in the cursor color.\n0 – Disable.\n1 – For one line.\n2 – Always",)
 
-    # Style
     display_style     : EnumProperty(name="Display frame style", default='ONLY_TEXT', items=(('CLASSIC', "Classic", "Classic"), ('SIMPLIFIED', "Simplified", "Simplified"), ('ONLY_TEXT', "Only text", "Only text")))
     font_file         : StringProperty(name="Font file", default='C:\\Windows\\Fonts\\consola.ttf', subtype='FILE_PATH')  # "Linux 用户表示不满".
     font_size         : IntProperty(name="Font size", default=32, min=10, max=48)
@@ -146,12 +143,12 @@ class DrawPrefs(PropertyGroup):
     point_scale       : FloatProperty(name="Point scale", default=1.0, min=0.0, max=3.0)
     marker_style      : IntProperty(name="Marker Style", default=0, min=0, max=2)
 
-    text_y_offset     : FloatProperty(name="Manual adjustment", default=-0.2, description="The Y-axis offset of text for this font")
-    point_offset_x    : FloatProperty(name="Point offset X axis", default=8.0, min=-50.0, max=50.0)
-    frame_offset      : IntProperty(name="Frame size", default=0, min=0, max=24, subtype='FACTOR')  # : 这必须是 Int.
-    text_distance_from_cursor: FloatProperty(name="Text distance from cursor", default=25.0, min=5.0, max=50.0)
+    text_x_offset     : FloatProperty(name="Text X offset", default=25.0, min=-50.0, max=50.0)
+    text_y_offset     : FloatProperty(name="Text Y offset", default=-0.2)
+    point_x_offset    : FloatProperty(name="Point X offset", default=8.0, min=-50.0, max=50.0)
+    frame_padding     : IntProperty(name="Frame padding", default=0, min=0, max=24, subtype='FACTOR', description="Extra padding for text frames")  # : 这必须是 Int.
 
-    enable_text_shadow: BoolProperty(name="Enable text shadow", default=False)
+    enable_shadow     : BoolProperty(name="Enable text shadow", default=False)
     shadow_color      : FloatVectorProperty(name="Shadow color", default=(0.0, 0.0, 0.0, 0.5), min=0, max=1, size=4, subtype='COLOR')
     shadow_offset     : IntVectorProperty(name="Shadow offset", default=(2, -2), min=-20, max=20, size=2)
     shadow_blur       : IntProperty(name="Shadow blur", default=2, min=0, max=2)
@@ -209,7 +206,6 @@ class VoronoiAddonPrefs(AddonPreferences):
     vmlt_ignore_case           : BoolProperty(name="Ignore case", default=True)
     # ------
     vest_is_toggle_nodes_on_drag  : BoolProperty(name="Toggle nodes on drag", default=True)
-    ##
     vest_box_scale             : FloatProperty(name="Box scale",           default=1.3, min=1.0, max=2.0, subtype="FACTOR")
     vest_display_labels        : BoolProperty(name="Display enum names",   default=True)
     vest_dark_style            : BoolProperty(name="Dark style",           default=False)
@@ -228,8 +224,6 @@ class VoronoiAddonPrefs(AddonPreferences):
     va_decor_col_sk         : FloatVectorProperty(name="DecorForColSk",    default=(1.0, 1.0, 1.0, 1.0), min=0, max=1, size=4, subtype='COLOR', update=update_decor_color_socket)
     va_decor_col_skBack     : FloatVectorProperty(name="va_decor_col_skBack", default=(1.0, 1.0, 1.0, 1.0), min = 0, max=1, size=4, subtype='COLOR')
     # ------
-    # 没在任何地方使用; 似乎也永远不会用. 我本想添加这个, 但后来觉得太懒了. 这需要把所有东西都改成"仅插槽", 而且获取节点的标准也不知道怎么弄. 而且收益也不确定, 除了美观. 所以算了吧. "能用就行, 别乱动".而且"仅插槽"的实现可能会陷入潜在的兔子洞.
-    # find_method          : EnumProperty(name="Find method", default='SOCKET', items=( ('NODE_SOCKET',"Nearest node > nearest socket",""), ('SOCKET',"Only nearest socket","") ))
     edge_pan_factor      : FloatProperty(name="Edge pan zoom factor", default=0.33, min=0.0, max=1.0, description="0.0 – Shift only; 1.0 – Scale only")
     edge_pan_speed            : FloatProperty(name="Edge pan speed", default=1.0, min=0.0, max=2.5)
     override_zoom_limits      : BoolProperty(name="Overwriting zoom limits", default=False)
@@ -328,14 +322,14 @@ class VoronoiAddonPrefs(AddonPreferences):
             split_prop(panel_col, draw_pref, 'marker_style')
 
         if panel_col := draw_panel_column(col_main, "Offset"):
+            split_prop(panel_col, draw_pref, 'point_x_offset')
+            split_prop(panel_col, draw_pref, 'text_x_offset')
             split_prop(panel_col, draw_pref, 'text_y_offset')
-            split_prop(panel_col, draw_pref, 'point_offset_x')
             if draw_pref.display_style != "ONLY_TEXT":
-                split_prop(panel_col, draw_pref, 'frame_offset')
-            split_prop(panel_col, draw_pref, 'text_distance_from_cursor')
+                split_prop(panel_col, draw_pref, 'frame_padding')
             add_thin_sep(panel_col, 0.25)  # 间隔的空白会累加, 所以额外加个间隔来对齐.
-            split_prop(panel_col, draw_pref, 'enable_text_shadow')
-            if draw_pref.enable_text_shadow:
+            split_prop(panel_col, draw_pref, 'enable_shadow')
+            if draw_pref.enable_shadow:
                 col_shadow = panel_col.column(align=True)
                 split_prop(col_shadow, draw_pref, 'shadow_color')
                 split_prop(col_shadow, draw_pref, 'shadow_blur')  # 阴影模糊将它们分开, 以免在中间融合在一起.
@@ -377,7 +371,7 @@ class VoronoiAddonPrefs(AddonPreferences):
         def draw_km_group(layout: UILayout, category: KeymapItemGroup):
             if not category.matched_items:
                 return
-            panel, body = layout.panel(idname=category.panel_id, default_closed=True)
+            panel, body = layout.panel(idname=category.group_key, default_closed=True)
             row = panel.row(align=True)
             active_count = sum(kmi.active for kmi in category.matched_items)
             icon= 'CHECKBOX_HLT' if active_count else 'CHECKBOX_DEHLT'

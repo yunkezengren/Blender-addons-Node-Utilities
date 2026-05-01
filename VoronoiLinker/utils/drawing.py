@@ -146,7 +146,7 @@ def draw_link_marker(drawer: Drawer, pos: float2, color: float4, style: int) -> 
 def draw_socket_marker(drawer: Drawer, pos: Vec2, offset: float2, color: float4) -> None:
     vec = drawer.ui_to_region(pos)
     dir = 1 if offset[0] > 0 else -1
-    ofsX = dir * ((20 * drawer.draw_text + drawer.text_distance_from_cursor) * 1.5 + drawer.frame_offset) + 4
+    ofsX = dir * ((20 * drawer.draw_text + drawer.text_x_offset) * 1.5 + drawer.frame_padding) + 4
     color = color if drawer.color_marker else drawer.uniform_color
     draw_link_marker(drawer, (vec[0] + offset[0] + ofsX, vec[1] + offset[1]), color, drawer.marker_style)
 
@@ -195,7 +195,7 @@ def draw_framed_text(drawer: Drawer, pos1: float2, pos2: float2, text: str, size
     blf.color(font_id, 0.0, 0.0, 0.0, 0.0)
     blf.draw(font_id, text)
     # 文本本身:
-    if drawer.enable_text_shadow:
+    if drawer.enable_shadow:
         color = drawer.shadow_color
         blf.shadow_offset(font_id, drawer.shadow_offset[0], drawer.shadow_offset[1])
         blf.shadow(font_id, (0, 3, 5)[drawer.shadow_blur], color[0], color[1], color[2], color[3])
@@ -218,7 +218,7 @@ def draw_world_text(drawer: Drawer,
     # 需要特殊字符作为"通用情况"来覆盖最大高度. 其他字符用于可能比"█"高的特殊字体.
     dimDb = (blf.dimensions(drawer.font_id, text)[0], blf.dimensions(drawer.font_id, "█GJKLPgjklp!?")[1])
     pos = drawer.ui_to_region(pos)
-    frameOffset = drawer.frame_offset
+    frameOffset = drawer.frame_padding
     ofsGap = 10
     pos = (pos[0] - (dimDb[0] + frameOffset + ofsGap) * (offset[0] < 0) + (frameOffset+1) * (offset[0] > -1), pos[1] + frameOffset)
     # 我已经完全忘了我搞了什么鬼以及它是如何工作的; 但它工作了 -- 这就很好, "能工作就别动":
@@ -299,8 +299,8 @@ def draw_node_template(drawer: Drawer, target_node: Target | None, side: int = 1
             draw_socket_point(drawer, target_node.pos, color_point, color_point)
         if drawer.draw_text and drawer.node_label:
             text = node_show_name(node_target)
-            draw_world_text(drawer, drawer.cursor_loc, (drawer.text_distance_from_cursor * side, -0.5), text, color_text, color_text)
-            draw_world_text(drawer, drawer.cursor_loc, (drawer.text_distance_from_cursor * side, 1), _iface(tool_name), color_text, color_text)
+            draw_world_text(drawer, drawer.cursor_loc, (drawer.text_x_offset * side, -0.5), text, color_text, color_text)
+            draw_world_text(drawer, drawer.cursor_loc, (drawer.text_x_offset * side, 1), _iface(tool_name), color_text, color_text)
 
     elif drawer.draw_point:
         color = white  # 唯一剩下的未定义颜色. 'cursor_color' 在这里按设计不适合 (整个插件都是为了套接字, 对吧?).
@@ -320,7 +320,7 @@ def draw_sockets_template(
 ) -> None:
 
     def get_pos_from_target(target: Target) -> Vec2:
-        return target.pos + Vec2((drawer.point_offset_x * target.side, 0.0))
+        return target.pos + Vec2((drawer.point_x_offset * target.side, 0.0))
 
     target_sockets = [ar for ar in args_targets if ar]
     cursor_loc = drawer.cursor_loc
@@ -328,7 +328,7 @@ def draw_sockets_template(
     if not target_sockets:  # 方便地只为了现在不存在的 DrawDoubleNone() 使用模板, 通过向 args_targets 发送 `None, None`.
         color = drawer.cursor_color if drawer.color_point else drawer.uniform_color
         is_pair = len(args_targets) == 2
-        vec = Vec2((drawer.point_offset_x * 0.75, 0)) if (is_pair) and (is_classic_flow) else Vec2((0.0, 0.0))
+        vec = Vec2((drawer.point_x_offset * 0.75, 0)) if (is_pair) and (is_classic_flow) else Vec2((0.0, 0.0))
         if (is_pair) and (drawer.draw_line) and (drawer.always_draw_line):
             draw_connection_line(drawer, cursor_loc - vec, cursor_loc + vec, color, color)
         if drawer.draw_point:
@@ -374,8 +374,8 @@ def draw_sockets_template(
             for cyc, target in enumerate(list_targets):
                 ofs_y = 0.75*hig - 1.5*cyc
                 dir = sold_override_dir if sold_override_dir else target.side * side_mark_offset
-                x_offset = drawer.text_distance_from_cursor * dir
-                frame_dim = draw_socket_text(drawer, cursor_loc, (drawer.text_distance_from_cursor * dir, ofs_y - 0.5), target)
+                x_offset = drawer.text_x_offset * dir
+                frame_dim = draw_socket_text(drawer, cursor_loc, (drawer.text_x_offset * dir, ofs_y - 0.5), target)
                 if (drawer.draw_marker) and ((target.tar.vl_sold_is_final_linked_cou) and (not is_draw_markers_more_than_one) or
                                                 (target.tar.vl_sold_is_final_linked_cou > 1)):
                     draw_socket_marker(drawer, cursor_loc, (frame_dim[0] * dir, frame_dim[1] * ofs_y), get_sk_color_safe(target.tar))
