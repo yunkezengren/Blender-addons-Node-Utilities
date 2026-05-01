@@ -34,8 +34,8 @@ class NODE_OT_voronoi_quick_math(TripleSocketTool):
     def find_targets(self, is_first_active, prefs, tree):
         if is_first_active:
             self.target_sk0 = None
-        isNotCanPickThird = not self.canPickThird if prefs.vqmtIncludeThirdSk else True
-        if isNotCanPickThird:
+        is_not_can_pick_third = not self.can_pick_third if prefs.vqmtIncludeThirdSk else True
+        if is_not_can_pick_third:
             self.target_sk1 = None
         tar_sockets = self.nearest_target_sockets(only_output=True)
         # todo 逻辑有点混乱 tar_sockets 双重循环了
@@ -113,7 +113,7 @@ class NODE_OT_voronoi_quick_math(TripleSocketTool):
             self.repickState = event.value=='PRESS'
             if self.repickState:
                 self.find_targets_base(True)
-                self.canPickThird = False #为有第三个套接字的工具添加重新选择功能, 总体上是个糟糕的主意; 工具的控制变得更难了.
+                self.can_pick_third = False #为有第三个套接字的工具添加重新选择功能, 总体上是个糟糕的主意; 工具的控制变得更难了.
         else:
             match event.type:
                 case 'MOUSEMOVE':

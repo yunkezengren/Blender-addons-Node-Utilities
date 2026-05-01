@@ -492,8 +492,8 @@ class VoronoiAddonPrefs(AddonPreferences):
 def add_dynamic_properties(vt_classes):
     """为每个工具类动态添加 BoxDiscl 属性到 VoronoiAddonPrefs"""
     for cls in vt_classes:
-        setattr(VoronoiAddonPrefs, cls.disclBoxPropName, BoolProperty(name="", default=False))
-        setattr(VoronoiAddonPrefs, cls.disclBoxPropNameInfo, BoolProperty(name="", default=False))
+        setattr(VoronoiAddonPrefs, cls.discl_box_prop_name, BoolProperty(name="", default=False))
+        setattr(VoronoiAddonPrefs, cls.discl_box_prop_name_info, BoolProperty(name="", default=False))
 
 def pref() -> VoronoiAddonPrefs:
     return bpy.context.preferences.addons[__package__].preferences # type: ignore

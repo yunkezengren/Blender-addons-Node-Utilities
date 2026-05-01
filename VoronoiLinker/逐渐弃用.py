@@ -97,8 +97,8 @@ def get_addon_settings_as_py(prefs: AddonPreferences):
         'vaKmiCustomDiscl'
     }
     for cls in vt_classes:
-        ignored_addon_prefs.add(cls.disclBoxPropName)
-        ignored_addon_prefs.add(cls.disclBoxPropNameInfo)
+        ignored_addon_prefs.add(cls.discl_box_prop_name)
+        ignored_addon_prefs.add(cls.discl_box_prop_name_info)
 
     addon_pref_items: list[tuple[str, object]] = []
     lines = [dedent(f"""

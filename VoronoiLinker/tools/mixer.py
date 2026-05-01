@@ -24,7 +24,7 @@ class NODE_OT_voronoi_mixer(TripleSocketTool):
     def find_targets(self, is_first_active, prefs, tree):
         if is_first_active:
             self.target_sk0 = None # 需要清空, 因为下面有两个 continue.
-        if not self.canPickThird:
+        if not self.can_pick_third:
             self.target_sk1 = None
         soldReroutesCanInAnyType = prefs.vmtReroutesCanInAnyType
         tar_sockets = self.nearest_target_sockets(only_output=True)
@@ -39,7 +39,7 @@ class NODE_OT_voronoi_mixer(TripleSocketTool):
             skOut0 = opt_tar_socket(self.target_sk0)
             # todo 做一些接口类型判断,比如 一个是 geometry 剩下的也要是
             if skOut0:
-                if not self.canPickThird:
+                if not self.can_pick_third:
                     for tar in tar_sockets:
                         skOut1 = tar.tar
                         if skOut0 == skOut1:

@@ -94,7 +94,7 @@ def VlnstUpdateLastExecError(self, _context):
 def set_pie_data(self: "ModelBaseTool", toolData: PieRootData, prefs: "VoronoiAddonPrefs", col: UILayout):
 
     def get_pie_pref(name):
-        return getattr(prefs, self.vlTripleName.lower() + name)
+        return getattr(prefs, self.vl_triple_name.lower() + name)
 
     toolData.isSpeedPie = get_pie_pref("PieType") == 'SPEED'
     toolData.pieScale = get_pie_pref("PieScale")

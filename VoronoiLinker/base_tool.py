@@ -62,7 +62,7 @@ class ProtocolTool: #-1
 
 class ModelBaseTool(BaseOperator, ProtocolTool):  #0
     # 点击节点编辑器总是不可避免的, 那里有节点, 所以对于所有工具
-    isPassThrough: BoolProperty(name="Pass through node selecting", default=False, description="Clicking over a node activates selection, not the tool")
+    is_pass_through: BoolProperty(name="Pass through node selecting", default=False, description="Clicking over a node activates selection, not the tool")
 
     # class config
     use_for_undefine_tree: ClassVar[bool] = False
@@ -71,9 +71,9 @@ class ModelBaseTool(BaseOperator, ProtocolTool):  #0
     can_draw_appearance: ClassVar[bool] = False
 
     # class metadata
-    vlTripleName: ClassVar[str]
-    disclBoxPropName: ClassVar[str]
-    disclBoxPropNameInfo: ClassVar[str]
+    vl_triple_name: ClassVar[str]
+    discl_box_prop_name: ClassVar[str]
+    discl_box_prop_name_info: ClassVar[str]
 
     # runtime state, assigned in invoke()
     tree: NodeTree | None
@@ -158,7 +158,7 @@ class ModelBaseTool(BaseOperator, ProtocolTool):  #0
             return OP_FINISHED
 
         # 对所有工具相同的跳过选择处理
-        if self.isPassThrough and tree and ('FINISHED' in bpy.ops.node.select('INVOKE_DEFAULT')):  # 检查树是第二位的, 为了美学优化.
+        if self.is_pass_through and tree and ('FINISHED' in bpy.ops.node.select('INVOKE_DEFAULT')):  # 检查树是第二位的, 为了美学优化.
             # 如果调用工具的热键与取消选择的热键相同, 那么上面一行选择的节点在交接后会重新取消选择 (但仍然是活动的).
             # 因此, 对于这种情况, 需要取消选择, 以便再次切换回已选择的节点.
             tree.nodes.active.select = False  # 但没有条件, 对所有情况都适用. 因为 ^ 否则将永远是选择而不切换; 我没有想法如何处理这种情况.
@@ -268,18 +268,18 @@ class PairSocketTool(SingleSocketTool):  #2
 
 class TripleSocketTool(PairSocketTool):  #3
     target_sk2: Target | None
-    canPickThird: bool
-    isStartWithModf: bool
+    can_pick_third: bool
+    is_start_with_mod: bool
 
     def handle_modal(self, event: Event, prefs: VoronoiAddonPrefs):
-        if (self.isStartWithModf) and (not self.canPickThird):  # 谁会真的通过按下和释放某个修饰键来切换到选择第三个套接字呢?.
+        if (self.is_start_with_mod) and (not self.can_pick_third):  # 谁会真的通过按下和释放某个修饰键来切换到选择第三个套接字呢?.
             # 因为这代价太高了; 既然选择了没有修饰键的热键, 那就满足于有限的功能吧. 或者自己动手.
-            self.canPickThird = not (event.shift or event.ctrl or event.alt)
+            self.can_pick_third = not (event.shift or event.ctrl or event.alt)
 
     def initialize_pre(self, event: Event):
         self.target_sk2 = None
-        self.canPickThird = False
-        self.isStartWithModf = (event.shift) or (event.ctrl) or (event.alt)
+        self.can_pick_third = False
+        self.is_start_with_mod = (event.shift) or (event.ctrl) or (event.alt)
 
 class SingleNodeTool(ModelBaseTool):  #1
     target_nd: Target | None

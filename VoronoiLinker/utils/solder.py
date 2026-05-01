@@ -94,9 +94,9 @@ def node_tag_color(node: Node):
 def assign_tool_class_names(class_list: list[type["ModelBaseTool"]]):
     """为工具类分配名称属性，用于偏好设置中的折叠面板"""
     for cls in class_list:
-        cls.vlTripleName = get_first_upper_letters(cls.bl_label)+"T" # 最初创建是"因为好玩", 但现在需要了; 参见 set_pie_data().
-        cls.disclBoxPropName = cls.vlTripleName[:-1].lower()+"BoxDiscl"
-        cls.disclBoxPropNameInfo = cls.disclBoxPropName+"Info"
+        cls.vl_triple_name = get_first_upper_letters(cls.bl_label)+"T" # 最初创建是"因为好玩", 但现在需要了; 参见 set_pie_data().
+        cls.discl_box_prop_name = cls.vl_triple_name[:-1].lower()+"BoxDiscl"
+        cls.discl_box_prop_name_info = cls.discl_box_prop_name+"Info"
 
 def register_socket_properties():
     """为 NodeSocket 注册扩展属性，用于缓存链接信息"""

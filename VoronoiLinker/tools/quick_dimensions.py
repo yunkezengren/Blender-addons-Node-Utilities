@@ -21,7 +21,7 @@ class NODE_OT_voronoi_quick_dimensions(TripleSocketTool):
     def find_targets(self, is_first_active, prefs, tree):
         if is_first_active:
             self.target_sk0 = None
-        if not self.canPickThird:
+        if not self.can_pick_third:
             self.target_sk1 = None
         for tar_nd in self.get_nearest_nodes(cur_x_off=Cursor_X_Offset):
             nd = tar_nd.tar
@@ -42,7 +42,7 @@ class NODE_OT_voronoi_quick_dimensions(TripleSocketTool):
             if sk_out0:
                 if not get_dimension_node(tree, sk_out0.type):
                     break
-                if not self.canPickThird:
+                if not self.can_pick_third:
                     for tar in tar_sks_out:
                         if tar.tar.type==sk_out0.type:
                             self.target_sk1 = tar

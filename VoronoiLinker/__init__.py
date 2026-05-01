@@ -224,7 +224,7 @@ def register():
     prefs = pref()
     prefs.vlnstLastExecError = ""
     for cls in vt_classes:
-        setattr(prefs, cls.disclBoxPropNameInfo, False)
+        setattr(prefs, cls.discl_box_prop_name_info, False)
     prefs.dsIsTestDrawing = False
 
     km = bpy.context.window_manager.keyconfigs.addon.keymaps.new(name="Node Editor", space_type='NODE_EDITOR')
