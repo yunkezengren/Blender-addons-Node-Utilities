@@ -123,18 +123,25 @@ def draw_socket_point(drawer: Drawer,
     drawer.draw_point_highlight(drawer.ui_to_region(pos), ((6 * drawer.point_scale * drawer.world_zoom)**2 + 10)**0.5, color1, color2,
                                 resolution)
 
-def draw_link_marker(drawer: Drawer, pos: float2, color: float4, style: int) -> None:
+MARKER_STYLE_INDEX = {
+    'SMOOTH': 0,
+    'SHARP': 1,
+    'LOW_POLY': 2,
+}
+
+def draw_link_marker(drawer: Drawer, pos: float2, color: float4, style: str) -> None:
+    style_index = MARKER_STYLE_INDEX[style]
     fac = get_color_brightness(color, power=1.5) * 0.625  #todo1v6 标记颜色在亮色和黑色之间看起来不美观; 需要想点办法.
     colSh = (fac, fac, fac, 0.5)  # 阴影
-    colHl = (0.65, 0.65, 0.65, max(max(color[0], color[1]), color[2]) * 0.9 / (3.5, 5.75, 4.5)[style])  # 透明白色描边
+    colHl = (0.65, 0.65, 0.65, max(max(color[0], color[1]), color[2]) * 0.9 / (3.5, 5.75, 4.5)[style_index])  # 透明白色描边
     colMt = (color[0], color[1], color[2], 0.925)  # 彩色底
-    resolution = (16, 16, 5)[style]
+    resolution = (16, 16, 5)[style_index]
     ##
     drawer.draw_ring((pos[0] + 1.5, pos[1] + 3.5), 9.0, 3.0, resolution, colSh)
     drawer.draw_ring((pos[0] - 3.5, pos[1] - 5.0), 9.0, 3.0, resolution, colSh)
 
     def draw_marker_backlight(spin: float, color: float4) -> None:
-        resolution = (16, 4, 16)[style]
+        resolution = (16, 4, 16)[style_index]
         drawer.draw_ring((pos[0], pos[1] + 5.0), 9.0, 3.0, resolution, color, spin)
         drawer.draw_ring((pos[0] - 5.0, pos[1] - 3.5), 9.0, 3.0, resolution, color, spin)
 
@@ -354,7 +361,7 @@ def draw_sockets_template(
         if (drawer.draw_line) and ((not is_classic_flow) or (is_one and drawer.always_draw_line)):
             if drawer.color_line:
                 color1 = get_sk_color_safe(target.tar)
-                color2 = drawer.cursor_color if (is_one + (drawer.cursor_color_mode - 1)) > 0 else color1
+                color2 = drawer.cursor_color if (drawer.cursor_color_mode == 'ALWAYS' or (drawer.cursor_color_mode == 'SINGLE' and is_one)) else color1
             else:
                 color1 = color2 = drawer.uniform_color
             draw_connection_line(drawer, get_pos_from_target(target), cursor_loc, color1, color2)

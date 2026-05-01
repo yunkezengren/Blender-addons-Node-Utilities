@@ -6,13 +6,25 @@ from bpy.props import BoolProperty, EnumProperty, FloatProperty, FloatVectorProp
 from bpy.types import KeyMapItem, UILayout, Operator, AddonPreferences, PropertyGroup
 
 from .common_class import VlnstUpdateLastExecError
-from .utils.ui import split_prop, draw_panel_column, ColumnSetActive, add_thin_sep, format_tool_label, user_node_keymap
+from .utils.ui import split_prop, draw_panel_column, add_thin_sep, format_tool_label, user_node_keymap
 
 HIDE_BOOL_SOCKET_ITEMS = [
     ('ALWAYS', "Always", "Always"),
     ('IF_FALSE', "If false", "If false"),
     ('NEVER', "Never", "Never"),
     ('IF_TRUE', "If true", "If true"),
+]
+
+CURSOR_COLOR_MODE_ITEMS = [
+    ('DISABLED', "Disabled", "Do not tint lines with the cursor color"),
+    ('SINGLE', "Single line", "Tint only the line from a single target to the cursor"),
+    ('ALWAYS', "Always", "Always tint the cursor-side part of the line"),
+]
+
+MARKER_STYLE_ITEMS = [
+    ('SMOOTH', "Smooth", "Smooth circular marker"),
+    ('SHARP', "Sharp", "Sharper angular marker"),
+    ('LOW_POLY', "Low-poly", "Low-poly marker"),
 ]
 
 def update_test_draw(self, context):
@@ -36,7 +48,7 @@ class KeymapItemGroup:
     matched_items: set
     idnames: set
     count: int
-    filter_func: Callable[[KeyMapItem], bool] | None
+    filter: Callable[[KeyMapItem], bool] | None
 
     def __init__(self, group_key='', label='', matched_items=set(), idnames=set()):
         self.group_key = group_key
@@ -44,7 +56,7 @@ class KeymapItemGroup:
         self.matched_items = matched_items
         self.idnames = idnames
         self.count = 0
-        self.filter_func = None
+        self.filter = None
 
 class KeymapItemGroups:
     """快捷键项分类容器 - 管理多个KeymapItemCategory实例"""
@@ -64,14 +76,14 @@ def build_keymap_item_groups() -> KeymapItemGroups:
     kmi_groups.quite_useful = KeymapItemGroup('quite_useful', 'Quite Useful', set(), keymap_groups.quite_useful)
     kmi_groups.maybe_useful = KeymapItemGroup('maybe_useful', 'Maybe Useful', set(), keymap_groups.maybe_useful)
     kmi_groups.invalid = KeymapItemGroup('invalid', 'Invalid', set(), keymap_groups.invalid)
-    kmi_groups.most_useful.filter_func = lambda kmi: kmi.idname in kmi_groups.most_useful.idnames
-    kmi_groups.quite_useful.filter_func = lambda kmi: kmi.idname in kmi_groups.quite_useful.idnames
-    kmi_groups.maybe_useful.filter_func = lambda kmi: kmi.idname in kmi_groups.maybe_useful.idnames
-    kmi_groups.invalid.filter_func = lambda kmi: True
-    kmi_groups.quick_math.filter_func = lambda kmi: any(
+    kmi_groups.most_useful.filter = lambda kmi: kmi.idname in kmi_groups.most_useful.idnames
+    kmi_groups.quite_useful.filter = lambda kmi: kmi.idname in kmi_groups.quite_useful.idnames
+    kmi_groups.maybe_useful.filter = lambda kmi: kmi.idname in kmi_groups.maybe_useful.idnames
+    kmi_groups.invalid.filter = lambda kmi: True
+    kmi_groups.quick_math.filter = lambda kmi: any(
         True for txt in {'quickOprFloat', 'quickOprVector', 'quickOprBool', 'quickOprColor', 'justPieCall', 'isRepeatLastOperation'}
         if getattr(kmi.properties, txt, None))
-    kmi_groups.custom.filter_func = lambda kmi: kmi.id < 0  # 负id用于自定义
+    kmi_groups.custom.filter = lambda kmi: kmi.id < 0  # 负id用于自定义
     return kmi_groups
 
 
@@ -112,19 +124,17 @@ class VoronoiOpAddonTabs(Operator):
         return {'FINISHED'}
 
 class DrawPrefs(PropertyGroup):
-    debug_field       : BoolProperty(name="Field debug", default=False)
-    test_drawing      : BoolProperty(name="Testing draw", default=False, update=update_test_draw)
-    draw_text         : BoolProperty(name="Text", default=True)  # 考虑到 VHT 和 VEST, 这更多是用于框架中的文本, 而不是来自插槽的文本.
-    node_label        : BoolProperty(name="Node label", default=True)
-    draw_point        : BoolProperty(name="Points", default=True)
-    draw_marker       : BoolProperty(name="Markers", default=True)
-    draw_line         : BoolProperty(name="Line", default=True)
+    draw_text         : BoolProperty(name="Text",        default=True)  # 考虑到 VHT 和 VEST, 这更多是用于框架中的文本, 而不是来自插槽的文本.
+    node_label        : BoolProperty(name="Node label",  default=True)
+    draw_point        : BoolProperty(name="Points",      default=True)
+    draw_marker       : BoolProperty(name="Markers",     default=True)
+    draw_line         : BoolProperty(name="Line",        default=True)
     draw_socket_area  : BoolProperty(name="Socket area", default=True)
-    color_text        : BoolProperty(name="Text", default=True)
-    color_node_label  : BoolProperty(name="Node label", default=True)
-    color_point       : BoolProperty(name="Points", default=True)
-    color_marker      : BoolProperty(name="Markers", default=True)
-    color_line        : BoolProperty(name="Line", default=True)
+    color_text        : BoolProperty(name="Text",        default=True)
+    color_node_label  : BoolProperty(name="Node label",  default=True)
+    color_point       : BoolProperty(name="Points",      default=True)
+    color_marker      : BoolProperty(name="Markers",     default=True)
+    color_line        : BoolProperty(name="Line",        default=True)
     color_socket_area : BoolProperty(name="Socket area", default=True)
 
     always_draw_line  : BoolProperty(name="Always draw line", default=True, description="Draw a line to the cursor even from a single selected socket")
@@ -133,14 +143,14 @@ class DrawPrefs(PropertyGroup):
     uniform_color     : FloatVectorProperty(name="Alternative uniform color", default=(1, 0, 0, 0.9), min=0, max=1, size=4, subtype='COLOR')
     uniform_node_color: FloatVectorProperty(name="Alternative nodes color", default=(0, 1, 0, 0.9), min=0, max=1, size=4, subtype='COLOR')
     cursor_color      : FloatVectorProperty(name="Cursor color", default=(0, 0, 0, 1.0), min=0, max=1, size=4, subtype='COLOR')
-    cursor_color_mode : IntProperty(name="Cursor color availability", default=2, min=0, max=2, description="If a line is drawn to the cursor, color part of it in the cursor color.\n0 – Disable.\n1 – For one line.\n2 – Always",)
+    cursor_color_mode : EnumProperty(name="Cursor color mode", default='ALWAYS', items=CURSOR_COLOR_MODE_ITEMS, description="How cursor color is applied to lines")
 
     display_style     : EnumProperty(name="Display frame style", default='ONLY_TEXT', items=(('CLASSIC', "Classic", "Classic"), ('SIMPLIFIED', "Simplified", "Simplified"), ('ONLY_TEXT', "Only text", "Only text")))
     font_file         : StringProperty(name="Font file", default='C:\\Windows\\Fonts\\consola.ttf', subtype='FILE_PATH')  # "Linux 用户表示不满".
     font_size         : IntProperty(name="Font size", default=32, min=10, max=48)
     line_width        : FloatProperty(name="Line Width", default=2, min=0.5, max=8.0, subtype="FACTOR")
     point_scale       : FloatProperty(name="Point scale", default=1.0, min=0.0, max=3.0)
-    marker_style      : IntProperty(name="Marker Style", default=0, min=0, max=2)
+    marker_style      : EnumProperty(name="Marker style", default='SMOOTH', items=MARKER_STYLE_ITEMS, description="Shape used for link markers")
 
     text_x_offset     : FloatProperty(name="Text X offset", default=25.0, min=-50.0, max=50.0)
     text_y_offset     : FloatProperty(name="Text Y offset", default=-0.2)
@@ -151,6 +161,9 @@ class DrawPrefs(PropertyGroup):
     shadow_color      : FloatVectorProperty(name="Shadow color", default=(0.0, 0.0, 0.0, 0.5), min=0, max=1, size=4, subtype='COLOR')
     shadow_offset     : IntVectorProperty(name="Shadow offset", default=(2, -2), min=-20, max=20, size=2)
     shadow_blur       : IntProperty(name="Shadow blur", default=2, min=0, max=2)
+
+    debug_field       : BoolProperty(name="Field debug", default=False)
+    test_drawing      : BoolProperty(name="Testing draw", default=False, update=update_test_draw)
 
 class VoronoiAddonPrefs(AddonPreferences):
     bl_idname = __package__ # type: ignore
@@ -285,25 +298,24 @@ class VoronoiAddonPrefs(AddonPreferences):
             row.active = getattr(draw_pref, is_draw) and label_active
 
         if panel_col := draw_panel_column(col_main, "Behavior"):
-            #split_prop(panel_col, self,'node_label', active=self.draw_text)
             split_prop(panel_col, draw_pref, 'always_draw_line')
 
         if panel_col := draw_panel_column(col_main, "Color"):
             split_prop(panel_col, draw_pref, 'socket_area_alpha', active=draw_pref.draw_socket_area)
-            show_uniform_color = ((draw_pref.draw_text and not draw_pref.color_text)
-                                  or (draw_pref.draw_marker and not draw_pref.color_marker)
-                                  or (draw_pref.draw_point and not draw_pref.color_point)
-                                  or (draw_pref.draw_line and not draw_pref.color_line)
-                                  or (draw_pref.draw_socket_area and not draw_pref.color_socket_area))
-            if show_uniform_color:
+            use_uniform_color = ((draw_pref.draw_text and not draw_pref.color_text)
+                                 or (draw_pref.draw_marker and not draw_pref.color_marker)
+                                 or (draw_pref.draw_point and not draw_pref.color_point)
+                                 or (draw_pref.draw_line and not draw_pref.color_line)
+                                 or (draw_pref.draw_socket_area and not draw_pref.color_socket_area))
+            if use_uniform_color:
                 split_prop(panel_col, draw_pref, 'uniform_color')
-            show_uniform_node_color = ((draw_pref.draw_text and draw_pref.color_text) or (draw_pref.draw_point and draw_pref.color_point)
-                                       or (draw_pref.draw_line and draw_pref.color_line))
-            if show_uniform_node_color and not draw_pref.color_node_label:
+            use_node_color = ((draw_pref.draw_text and draw_pref.color_text) or (draw_pref.draw_point and draw_pref.color_point)
+                              or (draw_pref.draw_line and draw_pref.color_line))
+            if use_node_color and not draw_pref.color_node_label:
                 split_prop(panel_col, draw_pref, 'uniform_node_color')
-            is_point_cursor_color_active = draw_pref.draw_point and draw_pref.color_point
-            is_line_cursor_color_active = draw_pref.draw_line and draw_pref.color_line and draw_pref.cursor_color_mode
-            split_prop(panel_col, draw_pref, 'cursor_color', active=is_point_cursor_color_active or is_line_cursor_color_active)
+            point_cursor = draw_pref.draw_point and draw_pref.color_point
+            line_cursor = draw_pref.draw_line and draw_pref.color_line and draw_pref.cursor_color_mode != 'DISABLED'
+            split_prop(panel_col, draw_pref, 'cursor_color', active=point_cursor or line_cursor)
             split_prop(panel_col, draw_pref, 'cursor_color_mode', active=draw_pref.draw_line and draw_pref.color_line)
 
         if panel_col := draw_panel_column(col_main, "Style"):

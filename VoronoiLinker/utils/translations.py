@@ -29,6 +29,51 @@ _translations_dict: dict[tuple[context_s, str], dict[locale_s, str]] = {
     ("*", "Text X offset"): {
         "zh_HANS": "文本 X 偏移",
     },
+    ("*", "Cursor color mode"): {
+        "zh_HANS": "光标颜色模式",
+    },
+    ("*", "How cursor color is applied to lines"): {
+        "zh_HANS": "控制光标颜色如何应用到连线上",
+    },
+    ("*", "Disabled"): {
+        "zh_HANS": "禁用",
+    },
+    ("*", "Do not tint lines with the cursor color"): {
+        "zh_HANS": "不要用光标颜色给连线着色",
+    },
+    ("*", "Single line"): {
+        "zh_HANS": "单条线",
+    },
+    ("*", "Tint only the line from a single target to the cursor"): {
+        "zh_HANS": "只给单一目标到光标的连线着色",
+    },
+    ("*", "Always tint the cursor-side part of the line"): {
+        "zh_HANS": "始终给靠近光标的一段连线着色",
+    },
+    ("*", "Marker style"): {
+        "zh_HANS": "标记样式",
+    },
+    ("*", "Shape used for link markers"): {
+        "zh_HANS": "连接标记使用的形状",
+    },
+    ("*", "Smooth"): {
+        "zh_HANS": "平滑",
+    },
+    ("*", "Smooth circular marker"): {
+        "zh_HANS": "平滑的圆形标记",
+    },
+    ("*", "Sharp"): {
+        "zh_HANS": "锐利",
+    },
+    ("*", "Sharper angular marker"): {
+        "zh_HANS": "更锐利的棱角标记",
+    },
+    ("*", "Low-poly"): {
+        "zh_HANS": "低多边形",
+    },
+    ("*", "Low-poly marker"): {
+        "zh_HANS": "低多边形标记",
+    },
     ("*", "Include Dev"): {
         "zh_HANS": "显示开发选项",
         "ru_RU": "Показать опции разработки",
@@ -950,14 +995,6 @@ _translations_dict: dict[tuple[context_s, str], dict[locale_s, str]] = {
     ("*", "Cursor color"): {
         "zh_HANS": "光标颜色",
         "ru_RU": "Цвет курсора",
-    },
-    ("*", "Cursor color availability"): {
-        "zh_HANS": "光标颜色设置",
-        "ru_RU": "Наличие цвета курсора",
-    },
-    ("*", "If a line is drawn to the cursor, color part of it in the cursor color.\n0 – Disable.\n1 – For one line.\n2 – Always"): {
-        "zh_HANS": "如果绘制到光标的线条,将其中一部分着色为光标颜色。\n0 – 禁用。\n1 – 仅一条线。\n2 – 始终",
-        "ru_RU": "Если линия рисуется к курсору, окрашивать её часть в цвет курсора.\n0 – Выключено.\n1 – Для одной линии.\n2 – Всегда",
     },
     ("*", "Socket area alpha"): {
         "zh_HANS": "接口区域的透明度",
