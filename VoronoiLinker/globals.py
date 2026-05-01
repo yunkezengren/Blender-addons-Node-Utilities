@@ -54,7 +54,7 @@ sk_support_math = base_fields + ["ROTATION"]
 
 implicit_convert_map = {
         "BOOLEAN" : base_types,
-        "VALUE" : base_types,
+        "VALUE" : base_types + ["ROTATION"],
         "INT" : base_types,
         "VECTOR" : base_types + ['ROTATION'],
         "INT_VECTOR" : base_types + ['ROTATION'], # todo 不确定是否支持

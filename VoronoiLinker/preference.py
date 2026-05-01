@@ -50,8 +50,8 @@ class KeymapItemGroup:
     count: int
     filter: Callable[[KeyMapItem], bool] | None
 
-    def __init__(self, group_key='', label='', matched_items=set(), idnames=set()):
-        self.group_key = group_key
+    def __init__(self, label='', matched_items=set(), idnames=set()):
+        self.group_key = "_".join(label.lower().split())
         self.label = label
         self.matched_items = matched_items
         self.idnames = idnames
@@ -70,12 +70,12 @@ class KeymapItemGroups:
 def build_keymap_item_groups() -> KeymapItemGroups:
     from . import keymap_groups
     kmi_groups = KeymapItemGroups()
-    kmi_groups.quick_math = KeymapItemGroup('quick_math', 'Quick Math', set(), keymap_groups.quick_math)
-    kmi_groups.custom = KeymapItemGroup('custom', 'Custom', set(), keymap_groups.custom)
-    kmi_groups.most_useful = KeymapItemGroup('most_useful', 'Most Useful', set(), keymap_groups.most_useful)
-    kmi_groups.quite_useful = KeymapItemGroup('quite_useful', 'Quite Useful', set(), keymap_groups.quite_useful)
-    kmi_groups.maybe_useful = KeymapItemGroup('maybe_useful', 'Maybe Useful', set(), keymap_groups.maybe_useful)
-    kmi_groups.invalid = KeymapItemGroup('invalid', 'Invalid', set(), keymap_groups.invalid)
+    kmi_groups.quick_math =   KeymapItemGroup('Quick Math',   set(), keymap_groups.quick_math)
+    kmi_groups.custom =       KeymapItemGroup('Custom',       set(), keymap_groups.custom)
+    kmi_groups.most_useful =  KeymapItemGroup('Most Useful',  set(), keymap_groups.most_useful)
+    kmi_groups.quite_useful = KeymapItemGroup('Quite Useful', set(), keymap_groups.quite_useful)
+    kmi_groups.maybe_useful = KeymapItemGroup('Maybe Useful', set(), keymap_groups.maybe_useful)
+    kmi_groups.invalid =      KeymapItemGroup('Invalid',      set(), keymap_groups.invalid)
     kmi_groups.most_useful.filter = lambda kmi: kmi.idname in kmi_groups.most_useful.idnames
     kmi_groups.quite_useful.filter = lambda kmi: kmi.idname in kmi_groups.quite_useful.idnames
     kmi_groups.maybe_useful.filter = lambda kmi: kmi.idname in kmi_groups.maybe_useful.idnames

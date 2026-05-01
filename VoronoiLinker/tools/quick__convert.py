@@ -42,8 +42,8 @@ def call_convert_pie(menu_key: Convert) -> None:
     bpy.ops.wm.call_menu_pie(name=NODE_MT_voronoi_convert.bl_idname)
 
 class NODE_MT_voronoi_convert(bpy.types.Menu):
+    bl_label = "Voronoi Convert"
     bl_idname = "NODE_MT_voronoi_convert"
-    bl_label = ""
 
     def draw(self, context):
         pie = self.layout.menu_pie()
@@ -51,7 +51,7 @@ class NODE_MT_voronoi_convert(bpy.types.Menu):
             op = pie.operator(NODE_OT_voronoi_convert.bl_idname, text=text)
             op.node_type = node_type
 
-def _run_node_convert(context: Context, isS: bool, isA: bool, node_type: str):
+def _run_node_convert(context: Context, shift: bool, alt: bool, node_type: str):
     tree: NodeTree = context.space_data.edit_tree
     bpy.ops.node.add_node('INVOKE_DEFAULT', type=node_type, use_transform=True)
     new_node = context.active_node
@@ -79,10 +79,9 @@ def _run_node_convert(context: Context, isS: bool, isA: bool, node_type: str):
         sk_out = new_node.inputs[0]
         tree.links.new(sk0, sk_out)
 
-# NODE_OT_voronoi_convert 只被快速维度和常量使用
 class NODE_OT_voronoi_convert(BaseOperator):
     bl_idname = "node.voronoi_convert"
-    bl_label = "Mixer Mixer"
+    bl_label = "Voronoi Convert"
     node_type: bpy.props.StringProperty()
     def invoke(self, context, event):
         _run_node_convert(context, event.shift, event.alt, self.node_type)
