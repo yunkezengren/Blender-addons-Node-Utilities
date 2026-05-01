@@ -226,7 +226,7 @@ def register():
     prefs.vlnst_last_exec_error = ""
     for cls in vt_classes:
         setattr(prefs, cls.discl_box_prop_name_info, False)
-    prefs.ds_is_test_drawing = False
+    prefs.draw_prefs.test_drawing = False
 
     km = bpy.context.window_manager.keyconfigs.addon.keymaps.new(name="Node Editor", space_type='NODE_EDITOR')
     for idname, key, shift, ctrl, alt, repeat, props in keymap_item_defs:

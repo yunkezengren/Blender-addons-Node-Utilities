@@ -195,7 +195,7 @@ def draw_framed_text(drawer: Drawer, pos1: float2, pos2: float2, text: str, size
     blf.color(font_id, 0.0, 0.0, 0.0, 0.0)
     blf.draw(font_id, text)
     # 文本本身:
-    if drawer.text_shadow:
+    if drawer.enable_text_shadow:
         color = drawer.shadow_color
         blf.shadow_offset(font_id, drawer.shadow_offset[0], drawer.shadow_offset[1])
         blf.shadow(font_id, (0, 3, 5)[drawer.shadow_blur], color[0], color[1], color[2], color[3])
@@ -280,7 +280,7 @@ def draw_node_template(drawer: Drawer, target_node: Target | None, side: int = 1
     #todo1v6 模板只有一个 tar, 没有分层, 两个调用会从一个绘制点和线到另一个的文本上方.
     if target_node:
         node_target = target_node.tar
-        if drawer.color_nodes:  # 嗯.. 现在节点终于有颜色了; 感谢 ctypes.
+        if drawer.color_node_label:  # 嗯.. 现在节点终于有颜色了; 感谢 ctypes.
             color_line = node_tag_color(node_target)
             # color_line[0] += 0.5
             # color_line[1] += 0.5
@@ -297,7 +297,7 @@ def draw_node_template(drawer: Drawer, target_node: Target | None, side: int = 1
             draw_connection_line(drawer, drawer.cursor_loc, target_node.pos, color_line, color_line)
         if drawer.draw_point:
             draw_socket_point(drawer, target_node.pos, color_point, color_point)
-        if (drawer.draw_text) and (drawer.draw_node_label):
+        if drawer.draw_text and drawer.node_label:
             text = node_show_name(node_target)
             draw_world_text(drawer, drawer.cursor_loc, (drawer.text_distance_from_cursor * side, -0.5), text, color_text, color_text)
             draw_world_text(drawer, drawer.cursor_loc, (drawer.text_distance_from_cursor * side, 1), _iface(tool_name), color_text, color_text)
@@ -433,9 +433,9 @@ class TestDraw:
         stNe = bpy.types.SpaceNodeEditor
         if stNe.nsCur != stNe.nsReg:
             # 重新关闭并打开:
-            prefs.ds_is_test_drawing = False
+            prefs.draw_prefs.test_drawing = False
             # 该死的拓扑!
-            prefs.ds_is_test_drawing = True
+            prefs.draw_prefs.test_drawing = True
             return  # 不知道是否必须退出.
         drawer = Drawer(context, context.space_data.cursor_location, context.preferences.system.dpi / 72, prefs)
         cls.b_view2d = BView2D.GetFields(context.region.view2d)

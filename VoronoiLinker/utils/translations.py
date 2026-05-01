@@ -229,7 +229,7 @@ _translations_dict: dict[tuple[context_s, str], dict[locale_s, str]] = {
         "ru_RU": "Кастомизация",
     },
     ("*", "Colored"): {
-        "zh_HANS": "接口动态颜色:",
+        "zh_HANS": "彩色:",
         "ru_RU": "Цветной",
     },
 

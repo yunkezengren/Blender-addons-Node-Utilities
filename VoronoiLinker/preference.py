@@ -17,7 +17,7 @@ HIDE_BOOL_SOCKET_ITEMS = [
 
 def update_test_draw(self, context):
     from .utils.drawing import TestDraw
-    TestDraw.Toggle(context, self.ds_is_test_drawing)
+    TestDraw.Toggle(context, self.test_drawing)
 
 is_updating_decor_color = False
 
@@ -32,15 +32,17 @@ def update_decor_color_socket(self, _context):
 class KeymapItemGroup:
     """快捷键项分类 - 用于组织和过滤keymap items"""
     group_key: str
-    prop_name: str
+    panel_id: str
+    label: str
     matched_items: set
     idnames: set
     count: int
     filter_func: Callable[[KeyMapItem], bool] | None
 
-    def __init__(self, group_key='', prop_name='', matched_items=set(), idnames=set()):
+    def __init__(self, group_key='', panel_id='', label='', matched_items=set(), idnames=set()):
         self.group_key = group_key
-        self.prop_name = prop_name
+        self.panel_id = panel_id
+        self.label = label
         self.matched_items = matched_items
         self.idnames = idnames
         self.count = 0
@@ -58,12 +60,12 @@ class KeymapItemGroups:
 def build_keymap_item_groups() -> KeymapItemGroups:
     from . import keymap_groups
     kmi_groups = KeymapItemGroups()
-    kmi_groups.quick_math = KeymapItemGroup('quick_math', 'va_kmi_qqm_discl', set(), keymap_groups.quick_math)
-    kmi_groups.custom = KeymapItemGroup('custom', 'va_kmi_custom_discl', set(), keymap_groups.custom)
-    kmi_groups.most_useful = KeymapItemGroup('most_useful', 'va_kmi_mainstream_discl', set(), keymap_groups.most_useful)
-    kmi_groups.quite_useful = KeymapItemGroup('quite_useful', 'va_kmi_otjers_discl', set(), keymap_groups.quite_useful)
-    kmi_groups.maybe_useful = KeymapItemGroup('maybe_useful', 'va_kmi_special_discl', set(), keymap_groups.maybe_useful)
-    kmi_groups.invalid = KeymapItemGroup('invalid', 'va_kmi_invalid_discl', set(), keymap_groups.invalid)
+    kmi_groups.quick_math = KeymapItemGroup('quick_math', 'quick_math', 'Quick Math', set(), keymap_groups.quick_math)
+    kmi_groups.custom = KeymapItemGroup('custom', 'custom', 'Custom', set(), keymap_groups.custom)
+    kmi_groups.most_useful = KeymapItemGroup('most_useful', 'most_useful', 'Most Useful', set(), keymap_groups.most_useful)
+    kmi_groups.quite_useful = KeymapItemGroup('quite_useful', 'quite_useful', 'Quite Useful', set(), keymap_groups.quite_useful)
+    kmi_groups.maybe_useful = KeymapItemGroup('maybe_useful', 'maybe_useful', 'Maybe Useful', set(), keymap_groups.maybe_useful)
+    kmi_groups.invalid = KeymapItemGroup('invalid', 'invalid', 'Invalid', set(), keymap_groups.invalid)
     kmi_groups.most_useful.filter_func = lambda kmi: kmi.idname in kmi_groups.most_useful.idnames
     kmi_groups.quite_useful.filter_func = lambda kmi: kmi.idname in kmi_groups.quite_useful.idnames
     kmi_groups.maybe_useful.filter_func = lambda kmi: kmi.idname in kmi_groups.maybe_useful.idnames
@@ -112,45 +114,47 @@ class VoronoiOpAddonTabs(Operator):
         return {'FINISHED'}
 
 class DrawPrefs(PropertyGroup):
-    draw_text: BoolProperty(name="Text", default=True)  # 考虑到 VHT 和 VEST, 这更多是用于框架中的文本, 而不是来自插槽的文本.
-    draw_marker: BoolProperty(name="Markers", default=True)
-    draw_point: BoolProperty(name="Points", default=True)
-    draw_line: BoolProperty(name="Line", default=True)
-    draw_socket_area: BoolProperty(name="Socket area", default=True)
-    color_text: BoolProperty(name="Text", default=True)
-    color_marker: BoolProperty(name="Markers", default=True)
-    color_point: BoolProperty(name="Points", default=True)
-    color_line: BoolProperty(name="Line", default=True)
-    color_socket_area: BoolProperty(name="Socket area", default=True)
-    color_nodes: BoolProperty(name="Nodes", default=True)
-    socket_area_alpha: FloatProperty(name="Socket area alpha", default=0.4, min=0.0, max=1.0, subtype="FACTOR")
-    uniform_color: FloatVectorProperty(name="Alternative uniform color", default=(1, 0, 0, 0.9), min=0, max=1, size=4, subtype='COLOR')
+    debug_field       : BoolProperty(name="Field debug", default=False)
+    test_drawing      : BoolProperty(name="Testing draw", default=False, update=update_test_draw)
+    draw_text         : BoolProperty(name="Text", default=True)  # 考虑到 VHT 和 VEST, 这更多是用于框架中的文本, 而不是来自插槽的文本.
+    node_label        : BoolProperty(name="Node label", default=True)
+    draw_point        : BoolProperty(name="Points", default=True)
+    draw_marker       : BoolProperty(name="Markers", default=True)
+    draw_line         : BoolProperty(name="Line", default=True)
+    draw_socket_area  : BoolProperty(name="Socket area", default=True)
+    color_text        : BoolProperty(name="Text", default=True)
+    color_node_label  : BoolProperty(name="Node label", default=True)
+    color_point       : BoolProperty(name="Points", default=True)
+    color_marker      : BoolProperty(name="Markers", default=True)
+    color_line        : BoolProperty(name="Line", default=True)
+    color_socket_area : BoolProperty(name="Socket area", default=True)
+
+    always_draw_line  : BoolProperty(name="Always draw line", default=True, description="Draw a line to the cursor even from a single selected socket")
+    slide_on_nodes    : BoolProperty(name="Slide on nodes", default=False)
+
+    socket_area_alpha : FloatProperty(name="Socket area alpha", default=0.4, min=0.0, max=1.0, subtype="FACTOR")
+    uniform_color     : FloatVectorProperty(name="Alternative uniform color", default=(1, 0, 0, 0.9), min=0, max=1, size=4, subtype='COLOR')
     uniform_node_color: FloatVectorProperty(name="Alternative nodes color", default=(0, 1, 0, 0.9), min=0, max=1, size=4, subtype='COLOR')
-    cursor_color: FloatVectorProperty(name="Cursor color", default=(0, 0, 0, 1.0), min=0, max=1, size=4, subtype='COLOR')
-    cursor_color_mode: IntProperty(
-        name="Cursor color availability",
-        default=2,
-        min=0,
-        max=2,
-        description="If a line is drawn to the cursor, color part of it in the cursor color.\n0 – Disable.\n1 – For one line.\n2 – Always",
-    )
-    display_style: EnumProperty(name="Display frame style", default='ONLY_TEXT', items=(('CLASSIC', "Classic", "Classic"), ('SIMPLIFIED', "Simplified", "Simplified"), ('ONLY_TEXT', "Only text", "Only text")))
-    font_file: StringProperty(name="Font file", default='C:\\Windows\\Fonts\\consola.ttf', subtype='FILE_PATH')  # "Linux 用户表示不满".
-    line_width: FloatProperty(name="Line Width", default=2, min=0.5, max=8.0, subtype="FACTOR")
-    point_scale: FloatProperty(name="Point scale", default=1.0, min=0.0, max=3.0)
-    font_size: IntProperty(name="Font size", default=32, min=10, max=48)
-    marker_style: IntProperty(name="Marker Style", default=0, min=0, max=2)
-    text_y_offset: FloatProperty(name="Manual adjustment", default=-0.2, description="The Y-axis offset of text for this font")
-    point_offset_x: FloatProperty(name="Point offset X axis", default=8.0, min=-50.0, max=50.0)
-    frame_offset: IntProperty(name="Frame size", default=0, min=0, max=24, subtype='FACTOR')  # 注意: 这必须是 Int.
+    cursor_color      : FloatVectorProperty(name="Cursor color", default=(0, 0, 0, 1.0), min=0, max=1, size=4, subtype='COLOR')
+    cursor_color_mode : IntProperty(name="Cursor color availability", default=2, min=0, max=2, description="If a line is drawn to the cursor, color part of it in the cursor color.\n0 – Disable.\n1 – For one line.\n2 – Always",)
+
+    # Style
+    display_style     : EnumProperty(name="Display frame style", default='ONLY_TEXT', items=(('CLASSIC', "Classic", "Classic"), ('SIMPLIFIED', "Simplified", "Simplified"), ('ONLY_TEXT', "Only text", "Only text")))
+    font_file         : StringProperty(name="Font file", default='C:\\Windows\\Fonts\\consola.ttf', subtype='FILE_PATH')  # "Linux 用户表示不满".
+    font_size         : IntProperty(name="Font size", default=32, min=10, max=48)
+    line_width        : FloatProperty(name="Line Width", default=2, min=0.5, max=8.0, subtype="FACTOR")
+    point_scale       : FloatProperty(name="Point scale", default=1.0, min=0.0, max=3.0)
+    marker_style      : IntProperty(name="Marker Style", default=0, min=0, max=2)
+
+    text_y_offset     : FloatProperty(name="Manual adjustment", default=-0.2, description="The Y-axis offset of text for this font")
+    point_offset_x    : FloatProperty(name="Point offset X axis", default=8.0, min=-50.0, max=50.0)
+    frame_offset      : IntProperty(name="Frame size", default=0, min=0, max=24, subtype='FACTOR')  # : 这必须是 Int.
     text_distance_from_cursor: FloatProperty(name="Text distance from cursor", default=25.0, min=5.0, max=50.0)
-    always_draw_line: BoolProperty(name="Always draw line", default=True, description="Draw a line to the cursor even from a single selected socket")
-    slide_on_nodes: BoolProperty(name="Slide on nodes", default=False)
-    draw_node_label: BoolProperty(name="Display text for node", default=True)
-    text_shadow: BoolProperty(name="Enable text shadow", default=False)
-    shadow_color: FloatVectorProperty(name="Shadow color", default=(0.0, 0.0, 0.0, 0.5), min=0, max=1, size=4, subtype='COLOR')
-    shadow_offset: IntVectorProperty(name="Shadow offset", default=(2, -2), min=-20, max=20, size=2)
-    shadow_blur: IntProperty(name="Shadow blur", default=2, min=0, max=2)
+
+    enable_text_shadow: BoolProperty(name="Enable text shadow", default=False)
+    shadow_color      : FloatVectorProperty(name="Shadow color", default=(0.0, 0.0, 0.0, 0.5), min=0, max=1, size=4, subtype='COLOR')
+    shadow_offset     : IntVectorProperty(name="Shadow offset", default=(2, -2), min=-20, max=20, size=2)
+    shadow_blur       : IntProperty(name="Shadow blur", default=2, min=0, max=2)
 
 class VoronoiAddonPrefs(AddonPreferences):
     bl_idname = __package__ # type: ignore
@@ -215,31 +219,22 @@ class VoronoiAddonPrefs(AddonPreferences):
     vlnst_last_exec_error       : StringProperty(name="Last exec error", default="", update=VlnstUpdateLastExecError)
     vdt_dummy                 : StringProperty(name="Dummy", default="Dummy")
     # ------
-    ds_is_field_debug       : BoolProperty(name="Field debug", default=False)
-    ds_is_test_drawing      : BoolProperty(name="Testing draw", default=False, update=update_test_draw)
-    ds_include_dev         : BoolProperty(name="Include Dev", default=False)
+    ds_include_dev          : BoolProperty(name="Include Dev", default=False)
     # ------
     va_ui_tabs: EnumProperty(name="Addon pref Tabs", default='SETTINGS', items=(
         ('SETTINGS', "Settings", ""), ('APPEARANCE', "Appearance", ""), ('DRAW', "Draw", ""), ('KEYMAP', "Keymap", ""), ('INFO', "Info", "")))
     va_info_restore        : BoolProperty(name="", description="This list is just a copy from the \"Preferences > Keymap\".\nResrore will restore everything \"Node Editor\", not just addon")
-    # Box disclosures:
-    va_kmi_mainstream_discl : BoolProperty(name="Most Useful", default=True)
-    va_kmi_otjers_discl     : BoolProperty(name="Quite Useful", default=False)
-    va_kmi_special_discl    : BoolProperty(name="Maybe Useful", default=False)
-    va_kmi_invalid_discl    : BoolProperty(name="Invalid", default=False)
-    va_kmi_qqm_discl        : BoolProperty(name="Quick Math", default=False)
-    va_kmi_custom_discl     : BoolProperty(name="Custom", default=True)
     va_decor_ly            : FloatVectorProperty(name="DecorForLayout",   default=(0.01, 0.01, 0.01),   min=0, max=1, size=3, subtype='COLOR')
     va_decor_col_sk         : FloatVectorProperty(name="DecorForColSk",    default=(1.0, 1.0, 1.0, 1.0), min=0, max=1, size=4, subtype='COLOR', update=update_decor_color_socket)
     va_decor_col_skBack     : FloatVectorProperty(name="va_decor_col_skBack", default=(1.0, 1.0, 1.0, 1.0), min = 0, max=1, size=4, subtype='COLOR')
     # ------
     # 没在任何地方使用; 似乎也永远不会用. 我本想添加这个, 但后来觉得太懒了. 这需要把所有东西都改成"仅插槽", 而且获取节点的标准也不知道怎么弄. 而且收益也不确定, 除了美观. 所以算了吧. "能用就行, 别乱动".而且"仅插槽"的实现可能会陷入潜在的兔子洞.
-    v_search_method          : EnumProperty(name="Search method", default='SOCKET', items=( ('NODE_SOCKET',"Nearest node > nearest socket",""), ('SOCKET',"Only nearest socket","") ))
-    v_edge_pan_fac            : FloatProperty(name="Edge pan zoom factor", default=0.33, min=0.0, max=1.0, description="0.0 – Shift only; 1.0 – Scale only")
-    v_edge_pan_speed          : FloatProperty(name="Edge pan speed", default=1.0, min=0.0, max=2.5)
-    v_is_overwrite_zoom_limits : BoolProperty(name="Overwriting zoom limits", default=False)
-    v_ow_zoom_min             : FloatProperty(name="Zoom min", default=0.05,  min=0.0078125, max=1.0,  precision=3)
-    v_ow_zoom_max             : FloatProperty(name="Zoom max", default=2.301, min=1.0,       max=16.0, precision=3)
+    # find_method          : EnumProperty(name="Find method", default='SOCKET', items=( ('NODE_SOCKET',"Nearest node > nearest socket",""), ('SOCKET',"Only nearest socket","") ))
+    edge_pan_factor      : FloatProperty(name="Edge pan zoom factor", default=0.33, min=0.0, max=1.0, description="0.0 – Shift only; 1.0 – Scale only")
+    edge_pan_speed            : FloatProperty(name="Edge pan speed", default=1.0, min=0.0, max=2.5)
+    override_zoom_limits      : BoolProperty(name="Overwriting zoom limits", default=False)
+    zoom_min         : FloatProperty(name="Zoom min", default=0.05,  min=0.0078125, max=1.0,  precision=3)
+    zoom_max         : FloatProperty(name="Zoom max", default=2.301, min=1.0,       max=16.0, precision=3)
     # ------
     def draw_tab_settings(self, layout: UILayout):
         col = layout.column()
@@ -255,13 +250,13 @@ class VoronoiAddonPrefs(AddonPreferences):
         col_main = layout.column()
 
         if panel_col := draw_panel_column(col_main, "Edge pan"):
-            split_prop(panel_col, self, 'v_edge_pan_fac', text="Zoom factor")
-            split_prop(panel_col, self, 'v_edge_pan_speed', text="Speed")
-            if (self.ds_include_dev) or (self.v_is_overwrite_zoom_limits):
-                split_prop(panel_col, self, 'v_is_overwrite_zoom_limits', active=self.v_is_overwrite_zoom_limits)
-                if self.v_is_overwrite_zoom_limits:
-                    split_prop(panel_col, self, 'v_ow_zoom_min')
-                    split_prop(panel_col, self, 'v_ow_zoom_max')
+            split_prop(panel_col, self, 'edge_pan_factor', text="Zoom factor")
+            split_prop(panel_col, self, 'edge_pan_speed', text="Speed")
+            if (self.ds_include_dev) or self.override_zoom_limits:
+                split_prop(panel_col, self, 'override_zoom_limits')
+                if self.override_zoom_limits:
+                    split_prop(panel_col, self, 'zoom_min')
+                    split_prop(panel_col, self, 'zoom_max')
 
         from . import vt_classes
         for cls in vt_classes:
@@ -270,88 +265,88 @@ class VoronoiAddonPrefs(AddonPreferences):
 
     def draw_tab_draw(self, layout: UILayout):
         col_main = layout.column()
-        draw_prefs = self.draw_prefs
+        draw_pref = self.draw_prefs
 
-        split_draw_color = col_main.box().split(align=True)
-        split_draw_color.use_property_split = True
-
-        is_draw_settings = [
+        is_draw_props = [
             'draw_text',
-            'draw_marker',
+            'node_label',
             'draw_point',
+            'draw_marker',
             'draw_line',
             'draw_socket_area',
         ]
-        is_draw_col = split_draw_color.column(align=True, heading='Draw')
-        for is_draw in is_draw_settings:
-            is_draw_col.prop(draw_prefs, is_draw)
-        with ColumnSetActive(is_draw_col, active=draw_prefs.draw_text) as row:
-            row.prop(draw_prefs, 'draw_node_label', text="Node label")
-        is_colored_col = split_draw_color.column(align=True, heading='Colored')
-        for is_draw in is_draw_settings:
+        box_split_draw = col_main.box().split(align=True)
+        box_split_draw.use_property_split = True
+        is_draw_col = box_split_draw.column(align=True, heading='Draw')
+        for is_draw in is_draw_props:
+            row = is_draw_col.row(align=True)
+            row.prop(draw_pref, is_draw)
+            if is_draw == "node_label":
+                row.active = draw_pref.draw_text
+        is_colored_col = box_split_draw.column(align=True, heading='Colored')
+        for is_draw in is_draw_props:
             row = is_colored_col.row(align=True)
-            row.prop(draw_prefs, is_draw.replace("Draw", "Colored"))
-            row.active = getattr(draw_prefs, is_draw)
+            color_prop = is_draw.replace("draw_", "color_", 1) if is_draw.startswith("draw_") else f"color_{is_draw}"
+            row.prop(draw_pref, color_prop)
+            label_active = True if is_draw != "node_label" else draw_pref.draw_text and draw_pref.color_text and draw_pref.color_node_label
+            row.active = getattr(draw_pref, is_draw) and label_active
 
-        is_nodes_toggle_active = draw_prefs.draw_line or draw_prefs.draw_point or (draw_prefs.draw_text and draw_prefs.draw_node_label)
-        with ColumnSetActive(is_colored_col, active=is_nodes_toggle_active) as row:
-            row.prop(draw_prefs, 'color_nodes')
-        ##
         if panel_col := draw_panel_column(col_main, "Behavior"):
-            #split_prop(panel_col, self,'draw_node_label', active=self.draw_text)
-            split_prop(panel_col, draw_prefs, 'always_draw_line')
-            split_prop(panel_col, draw_prefs, 'slide_on_nodes')
-        ##
+            #split_prop(panel_col, self,'node_label', active=self.draw_text)
+            split_prop(panel_col, draw_pref, 'always_draw_line')
+            split_prop(panel_col, draw_pref, 'slide_on_nodes')
+
         if panel_col := draw_panel_column(col_main, "Color"):
-            split_prop(panel_col, draw_prefs, 'socket_area_alpha', active=draw_prefs.draw_socket_area)
-            show_uniform_color = ((draw_prefs.draw_text and not draw_prefs.color_text) or (draw_prefs.draw_marker and not draw_prefs.color_marker)
-                                  or (draw_prefs.draw_point and not draw_prefs.color_point) or (draw_prefs.draw_line and not draw_prefs.color_line)
-                                  or (draw_prefs.draw_socket_area and not draw_prefs.color_socket_area))
+            split_prop(panel_col, draw_pref, 'socket_area_alpha', active=draw_pref.draw_socket_area)
+            show_uniform_color = ((draw_pref.draw_text and not draw_pref.color_text)
+                                  or (draw_pref.draw_marker and not draw_pref.color_marker)
+                                  or (draw_pref.draw_point and not draw_pref.color_point)
+                                  or (draw_pref.draw_line and not draw_pref.color_line)
+                                  or (draw_pref.draw_socket_area and not draw_pref.color_socket_area))
             if show_uniform_color:
-                split_prop(panel_col, draw_prefs, 'uniform_color')
-            show_uniform_node_color = ((draw_prefs.draw_text and draw_prefs.color_text) or (draw_prefs.draw_point and draw_prefs.color_point)
-                                       or (draw_prefs.draw_line and draw_prefs.color_line))
-            if show_uniform_node_color and not draw_prefs.color_nodes:
-                split_prop(panel_col, draw_prefs, 'uniform_node_color')
-            is_point_cursor_color_active = draw_prefs.draw_point and draw_prefs.color_point
-            is_line_cursor_color_active = draw_prefs.draw_line and draw_prefs.color_line and draw_prefs.cursor_color_mode
-            split_prop(panel_col, draw_prefs, 'cursor_color', active=is_point_cursor_color_active or is_line_cursor_color_active)
-            split_prop(panel_col, draw_prefs, 'cursor_color_mode', active=draw_prefs.draw_line and draw_prefs.color_line)
-        ##
+                split_prop(panel_col, draw_pref, 'uniform_color')
+            show_uniform_node_color = ((draw_pref.draw_text and draw_pref.color_text) or (draw_pref.draw_point and draw_pref.color_point)
+                                       or (draw_pref.draw_line and draw_pref.color_line))
+            if show_uniform_node_color and not draw_pref.color_node_label:
+                split_prop(panel_col, draw_pref, 'uniform_node_color')
+            is_point_cursor_color_active = draw_pref.draw_point and draw_pref.color_point
+            is_line_cursor_color_active = draw_pref.draw_line and draw_pref.color_line and draw_pref.cursor_color_mode
+            split_prop(panel_col, draw_pref, 'cursor_color', active=is_point_cursor_color_active or is_line_cursor_color_active)
+            split_prop(panel_col, draw_pref, 'cursor_color_mode', active=draw_pref.draw_line and draw_pref.color_line)
+
         if panel_col := draw_panel_column(col_main, "Style"):
-            split_prop(panel_col, draw_prefs, 'display_style')
-            split_prop(panel_col, draw_prefs, 'font_file')
-            if not draw_prefs.font_file.endswith((".ttf", ".otf")):
+            split_prop(panel_col, draw_pref, 'display_style')
+            split_prop(panel_col, draw_pref, 'font_file')
+            if not draw_pref.font_file.endswith((".ttf", ".otf")):
                 split_row = panel_col.split(factor=0.4, align=True)
                 split_row.label(text="")
                 split_row.label(text="Only .ttf or .otf format", icon='ERROR')
             add_thin_sep(panel_col, 0.5)
-            split_prop(panel_col, draw_prefs, 'line_width')
-            split_prop(panel_col, draw_prefs, 'point_scale')
-            split_prop(panel_col, draw_prefs, 'font_size')
-            split_prop(panel_col, draw_prefs, 'marker_style')
-        ##
+            split_prop(panel_col, draw_pref, 'line_width')
+            split_prop(panel_col, draw_pref, 'point_scale')
+            split_prop(panel_col, draw_pref, 'font_size')
+            split_prop(panel_col, draw_pref, 'marker_style')
+
         if panel_col := draw_panel_column(col_main, "Offset"):
-            split_prop(panel_col, draw_prefs, 'text_y_offset')
-            split_prop(panel_col, draw_prefs, 'point_offset_x')
-            split_prop(panel_col, draw_prefs, 'frame_offset')
-            split_prop(panel_col, draw_prefs, 'text_distance_from_cursor')
+            split_prop(panel_col, draw_pref, 'text_y_offset')
+            split_prop(panel_col, draw_pref, 'point_offset_x')
+            if draw_pref.display_style != "ONLY_TEXT":
+                split_prop(panel_col, draw_pref, 'frame_offset')
+            split_prop(panel_col, draw_pref, 'text_distance_from_cursor')
             add_thin_sep(panel_col, 0.25)  # 间隔的空白会累加, 所以额外加个间隔来对齐.
-            split_prop(panel_col, draw_prefs, 'text_shadow')
-            if draw_prefs.text_shadow:
+            split_prop(panel_col, draw_pref, 'enable_text_shadow')
+            if draw_pref.enable_text_shadow:
                 col_shadow = panel_col.column(align=True)
-                split_prop(col_shadow, draw_prefs, 'shadow_color')
-                split_prop(col_shadow, draw_prefs, 'shadow_blur')  # 阴影模糊将它们分开, 以免在中间融合在一起.
-                row = split_prop(col_shadow, draw_prefs, 'shadow_offset', returnAsLy=True).row(align=True)
-                row.row().prop(draw_prefs, 'shadow_offset', text="X  ", translate=False, index=0, icon_only=True)
-                row.row().prop(draw_prefs, 'shadow_offset', text="Y  ", translate=False, index=1, icon_only=True)
-        ##
-        col_dev = col_main.column(align=True)
-        if self.ds_include_dev or self.ds_is_field_debug or self.ds_is_test_drawing:
-            with ColumnSetActive(col_dev, active=self.ds_is_field_debug) as row:
-                row.prop(self, 'ds_is_field_debug')
-            with ColumnSetActive(col_dev, active=self.ds_is_test_drawing) as row:
-                row.prop(self, 'ds_is_test_drawing')
+                split_prop(col_shadow, draw_pref, 'shadow_color')
+                split_prop(col_shadow, draw_pref, 'shadow_blur')  # 阴影模糊将它们分开, 以免在中间融合在一起.
+                row = split_prop(col_shadow, draw_pref, 'shadow_offset', returnAsLy=True).row(align=True)
+                row.row().prop(draw_pref, 'shadow_offset', text="X  ", translate=False, index=0, icon_only=True)
+                row.row().prop(draw_pref, 'shadow_offset', text="Y  ", translate=False, index=1, icon_only=True)
+
+        if self.ds_include_dev:
+            if panel_col := draw_panel_column(col_main, "Debug"):
+                split_prop(panel_col, draw_pref, 'debug_field')
+                split_prop(panel_col, draw_pref, 'test_drawing')
 
     def draw_tab_keymaps(self, layout: UILayout):
         col_main = layout.column()
@@ -382,13 +377,12 @@ class VoronoiAddonPrefs(AddonPreferences):
         def draw_km_group(layout: UILayout, category: KeymapItemGroup):
             if not category.matched_items:
                 return
-            group_name = self.bl_rna.properties[category.prop_name].name
-            panel, body = layout.panel(idname=category.prop_name, default_closed=True)
+            panel, body = layout.panel(idname=category.panel_id, default_closed=True)
             row = panel.row(align=True)
             active_count = sum(kmi.active for kmi in category.matched_items)
             icon= 'CHECKBOX_HLT' if active_count else 'CHECKBOX_DEHLT'
             row.operator(VoronoiOpAddonTabs.bl_idname, text="", icon=icon, emboss=False).opt = f"toggle_kmi_group:{category.group_key}"
-            row.label(text=f"{_iface(group_name)}  ({active_count}/{category.count})")
+            row.label(text=f"{_iface(category.label)}  ({active_count}/{category.count})")
             if body:
                 split_body = body.split(factor=0.02, align=False)
                 split_body.label(text="")
