@@ -398,12 +398,14 @@ class VoronoiAddonPrefs(AddonPreferences):
 
     def draw_tab_info(self, layout: UILayout):
 
-        def link_button(layout: UILayout, text, url, highlight_text=""):
+        def link_button(layout: UILayout, text, url, target_text=""):
             row = layout.row(align=True)
             row.alignment = 'LEFT'
-            if highlight_text:
-                highlight_text = "#:~:text=" + highlight_text
-            row.operator('wm.url_open', text=text, icon='URL').url = url + highlight_text
+            # 浏览器支持 `#:~:text=` 片段, 打开页面后会尽量定位到对应文本.
+            if target_text:
+                url += "#:~:text=" + target_text
+            row.operator('wm.url_open', text=text, icon='URL').url = url
+            # 留一个空槽位, 避免按钮把整行横向撑满.
             row.label()
 
         link_button(layout, "Check for updates yourself", "https://github.com/yunkezengren/Blender-addons-Node-Utilities/releases")
@@ -451,14 +453,12 @@ class VoronoiAddonPrefs(AddonPreferences):
             layout.prop(self, 'tab_bottom_line_color', text="")
             layout.scale_y = scale_y  # 如果小于 0.05, 布局会消失, 圆角也会消失.
 
-        col_layout = self.layout.column()
-        col_main = col_layout.column(align=True)
-        col_tabs = col_main.column(align=True)
-        row_tabs = col_tabs.row(align=True)
-        for _, prop in enumerate(enum for enum in self.rna_type.properties['addon_tabs'].enum_items):
-            col = row_tabs.row().column(align=True)
-            col.operator(VoronoiOpAddonTabs.bl_idname, text=_iface(prop.name), depress=self.addon_tabs == prop.identifier).opt = prop.identifier
-            draw_tab_with_line(col.row(align=True))
+        col_main = self.layout.column(align=True)
+        row_tabs = col_main.row(align=True)
+        for prop in self.rna_type.properties['addon_tabs'].enum_items:
+            tab_col = row_tabs.column(align=True)
+            tab_col.operator(VoronoiOpAddonTabs.bl_idname, text=_iface(prop.name), depress=self.addon_tabs == prop.identifier).opt = prop.identifier
+            draw_tab_with_line(tab_col.row(align=True))
 
         match self.addon_tabs:
             case 'SETTINGS':
