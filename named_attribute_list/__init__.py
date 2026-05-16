@@ -240,6 +240,8 @@ def get_tree_attrs_list(tree: NodeTree, all_tree_attr: list[str], stored_group) 
         if node.mute: continue
         if node.bl_idname == 'GeometryNodeStoreNamedAttribute':
             if show_unused or is_node_output_used(node):
+                name_input = node.inputs["Name"]
+                if name_input.is_linked: continue
                 attr_name = node.inputs["Name"].default_value
                 if attr_name == "":  continue
 
