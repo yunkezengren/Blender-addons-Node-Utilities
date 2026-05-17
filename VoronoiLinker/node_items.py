@@ -250,6 +250,8 @@ class NodeItemsUtils:
             self.type = eType.GROUP
             if not tar_node.node_tree:
                 raise Exception(f"Tree for nodegroup `{tar_node.path_from_id()}` not found, from `{sk_or_nd.path_from_id()}`")
+            # 后续同步实例 socket 时要匹配被修改的节点组树，而不是当前外层编辑树。
+            self.tree = tar_node.node_tree
             self.items = tar_node.node_tree.interface.items_tree
         else:
             raise Exception(f"Unhandled equestrian node type: `{type(tar_node).__name__}` (bl_idname=`{tar_node.bl_idname}`, node.type=`{tar_node.type}`) from `{sk_or_nd.path_from_id()}`")

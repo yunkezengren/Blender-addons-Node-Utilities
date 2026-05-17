@@ -14,6 +14,21 @@ def sk_loc(socket: NodeSocket):
     loc = Float2.from_address(loc_address)
     return Vec2(loc[:])
 
+
+import bpy
+def is_active_viewer(node: bpy.types.Node):
+    if node.type != "VIEWER": return False
+    import ctypes
+    flag_offset = 116
+    import platform
+    if platform.system() == 'Windows':
+        flag_offset += 8
+    flag = ctypes.c_int.from_address(node.as_pointer() + flag_offset).value
+    return bool(flag & (1 << 6))
+
+node = bpy.data.node_groups["Combine Matrix.001"].nodes["Viewer.001"]
+print(is_active_viewer(node))
+
 def sk_loc(socket: NodeSocket):
     """ 直接从地址创建最终的目标类型对象 """
     #😍 offset 偏移量 是一个字段相对于其结构体起始位置的字节距离
@@ -47,7 +62,7 @@ def sk_support_types(socket: NodeSocket):
     declare_ptr_addr = runtime_addr + 8
     declare_addr = c_void_p.from_address(declare_ptr_addr).value
     declare_addr -= 8 * 5
-    support_type_addr = declare_addr + 424 - 8 * 2 
+    support_type_addr = declare_addr + 424 - 8 * 2
     begain_addr = c_void_p.from_address(support_type_addr).value
     end_addr = c_void_p.from_address(support_type_addr + 8).value
 
@@ -79,7 +94,7 @@ def sk_support_types(socket: NodeSocket):
     # in_out         = c_int.from_address(declare_addr + 224)
     # align_pre_sk   = c_bool.from_address(declare_addr + 240).value
     # return in_out, f"{align_pre_sk=}"
-    support_type_addr = declare_addr + 424 - 8 * 2 
+    support_type_addr = declare_addr + 424 - 8 * 2
     # supported_types_ 是 blender::Vector<Component::Type>, begain_ 和 end_ 是Vector里前两个指针成员
     begain_addr = c_void_p.from_address(support_type_addr).value
     end_addr = c_void_p.from_address(support_type_addr + 8).value
@@ -137,7 +152,7 @@ def sk_support_types(socket: NodeSocket):
 #   bool only_realized_data() const;
 #   bool only_instances() const;
 # };
-# 
+#
 
 # class bNodeSocketRuntime : NonCopyable, NonMovable {
 #  public:

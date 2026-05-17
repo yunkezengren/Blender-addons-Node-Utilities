@@ -393,7 +393,7 @@ class VoronoiAddonPrefs(AddonPreferences):
                 return
             panel, body = layout.panel(idname=category.group_key, default_closed=True)
             row = panel.row(align=True)
-            active_count = sum(kmi.active for kmi in category.matched_items)
+            active_count = sum(int(kmi.active) for kmi in category.matched_items)
             icon= 'CHECKBOX_HLT' if active_count else 'CHECKBOX_DEHLT'
             row.operator(VoronoiOpAddonTabs.bl_idname, text="", icon=icon, emboss=False).opt = f"toggle_kmi_group:{category.group_key}"
             row.label(text=f"{_iface(category.label)}  ({active_count}/{category.count})")
