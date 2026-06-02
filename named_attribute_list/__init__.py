@@ -24,15 +24,15 @@ domain_cn_list = [ '点',    '边',   '面',   '面拐',   '样条线', '实例'
 get_domain_cn = {k: v for k, v in zip(domain_en_list, domain_cn_list)}
 
 data_types = ['BOOLEAN', 'FLOAT', 'INT', 'FLOAT_VECTOR', 'FLOAT_COLOR', 'QUATERNION', 'FLOAT4X4',
-             'INT8', 'FLOAT2', 'BYTE_COLOR']
+             'INT8', 'FLOAT2', 'INT16_2D', 'BYTE_COLOR']
 png_list = ['域-布尔.png', '域-浮点.png', '域-整数.png', '域-矢量.png', '域-颜色.png', '域-旋转.png', '域-矩阵.png']
-data_with_png = {k: v for k, v in zip(data_types, png_list+['域-整数.png', '域-矢量.png', '域-颜色.png'])}
+data_with_png = {k: v for k, v in zip(data_types, png_list+['域-整数.png', '域-矢量.png', '域-矢量.png', '域-颜色.png'])}
 
 shader_date_types = ['BOOLEAN', 'FLOAT', 'INT', 'FLOAT_VECTOR', 'FLOAT_COLOR', 'INT8', 'FLOAT2', 'BYTE_COLOR']
 # data_type:命名属性7种,存储属性10种
-sub_data_type = {"BYTE_COLOR": "FLOAT_COLOR", "FLOAT2": "FLOAT_VECTOR", "INT8": "INT"}
+sub_data_type = {"BYTE_COLOR": "FLOAT_COLOR", "FLOAT2": "FLOAT_VECTOR", "INT8": "INT", 'INT16_2D': 'FLOAT_VECTOR'}
 
-common_l = [['FLOAT2', 'FLOAT_VECTOR'], ['BYTE_COLOR', 'FLOAT_COLOR'], 'QUATERNION', 'FLOAT4X4']
+common_l = [['INT16_2D', 'FLOAT2', 'FLOAT_VECTOR'], ['BYTE_COLOR', 'FLOAT_COLOR'], 'QUATERNION', 'FLOAT4X4']
 sort_key_l1: list[Union[str, list]] = ['BOOLEAN', 'FLOAT', ['INT8', 'INT']] + common_l
 sort_key_l2: list[Union[str, list]] = [['INT8', 'INT'], 'BOOLEAN', 'FLOAT'] + common_l
 
@@ -136,7 +136,9 @@ def get_proper_obj() -> Object:
         a_object = bpy.context.space_data.id
     if ui_type == 'ShaderNodeTree':
         a_object = bpy.context.object   # .active_object ?
-    return a_object
+    deps = bpy.context.view_layer.depsgraph
+    # return a_object
+    return deps.id_eval_get(a_object)
 
 def get_active_gn_tree():
     active_mod = get_proper_obj().modifiers.active
@@ -280,7 +282,6 @@ def extend_dict_with_evaluated_obj_attrs(attrs_d: Attr_Dict, exclude_l: list[str
         # exclude_set = set(exclude_l) | set(all_tree_attr) # 集合的in查找操作的平均时间复杂度是 O(1)，而不是列表的 O(n), 性能提升不明显啊 0.02s 左右
         for i, component in enumerate(components):
             if not component: continue
-            component.id_type.lower() == 'pointcloud'
             for attr in component.attributes:
                 domain = attr.domain if i else "INSTANCE"  # 只有i是0时,这时虽然是点云,其实是实例
                 # todo gp 只有layer的 没点和线的
@@ -288,7 +289,7 @@ def extend_dict_with_evaluated_obj_attrs(attrs_d: Attr_Dict, exclude_l: list[str
                 all_evaluated_attr.append(name)      # [name, domain, attr.data_type] 暂时只用name应该就足够了
                 if name in exclude_l or name in all_tree_attr: continue   # 不覆盖 遍历节点得到有更多信息的属性,补上遍历漏的
                 if not domain: continue      # 5.0 为什么点云会存上其他域的,并且 domain 是空 ''
-                if name.startswith(".a_"): continue           # 匿名属性,噪音
+                # if name.startswith(".a_"): continue           # 匿名属性,噪音
                 if name not in attrs_d:
                     attrs_d[name] = Attr_Info(data_type=attr.data_type, domain=[domain],
                                             domain_info=[tr(get_domain_cn[domain])], group_name=[tr("不确定")])
@@ -409,7 +410,7 @@ def draw_attr_menu(layout: UILayout, context: Context, attrs: Attr_Dict, is_pane
     ui_type = context.area.ui_type
     for attr_name, attr_info in attrs.items():
         data_type = attr_info.data_type
-        if data_type not in data_type: continue      # 用处不大了,但可能有string属性?
+        # if data_type not in data_types: continue      # 用处不大了,但可能有string属性?
         if ui_type == 'ShaderNodeTree' and data_type not in shader_date_types: continue
 
         stored_domain_list = list(set(attr_info.domain_info))
@@ -510,6 +511,8 @@ class AL_OT_add_node_from_list(Operator):
             attr_node = context.active_node
             attr_node.inputs["Name"].default_value = self.attr_name
             if self._shift:
+                if self.attr_type == "INT16_2D":
+                    self.attr_type = "FLOAT2"
                 attr_node.data_type = self.attr_type
                 attr_node.domain = self.domain
                 attr_node.inputs["Selection"].hide = prefs.hide_Select_socket
