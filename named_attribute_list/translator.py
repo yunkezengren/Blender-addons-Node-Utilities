@@ -40,7 +40,7 @@ dictionary = {
         "隐藏前缀": "Hide Prefix",
         "列表排序方式": "List Sorting Method",
         "属性列表里是否显示": "Show in Attribute List",
-        "属性列表里是否隐藏": "Hide in Attribute List",
+        "属性列表里隐藏": "Hide in Attribute List",
         "未使用": "Unused",
         "组内属性": "Attrs in Group",
         "额外属性": "Extra Attrs",
@@ -104,6 +104,8 @@ dictionary = {
         "查找命名属性节点": "Find Stored Named Attribute Node",
         "跳转到已命名属性节点位置": "Find Stored Named Attribute Node",
         "隐藏额外的属性:\n--属性编辑器-数据-属性\n--物体/集合信息节点带的(和别的几何数据合并几何才显示顶点组)\n--存储属性节点名称接口连了线的\n--活动修改器之上的GN修改器的属性": "Hide extra attributes:\n--Properties Editor-Data-Attributes\n--object/collection info nodes(only show vertex Groups when join geometry with other geometry)\n--Store Named Attribute node name socket linked\n--the attrs of the GN modifiers above the active modifier",
+        "细化隐藏菜单,按类别分子菜单显示: 顶点组/UV/颜色属性/额外属性/未使用/组内/前缀": "Refine hide menu, show submenus by category: Vertex Group/UV Map/Color Attr/Extra Attr/Unused/Attrs in Group/Hide Prefix",
+        "按类别分类": "By Category",
     },
 }
 

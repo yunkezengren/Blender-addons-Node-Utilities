@@ -5,7 +5,7 @@ from bpy.props import StringProperty, EnumProperty, BoolProperty
 from pprint import pprint
 from typing import Union
 
-from .my_dataclass import Attr_Info, Attr_Dict
+from .my_dataclass import Attr_Info, Attr_Dict, AttrGroup
 from .translator import i18n as tr
 
 # todo 重命名属性标签和接口
@@ -35,6 +35,16 @@ sub_data_type = {"BYTE_COLOR": "FLOAT_COLOR", "FLOAT2": "FLOAT_VECTOR", "INT8": 
 common_l = [['INT16_2D', 'FLOAT2', 'FLOAT_VECTOR'], ['BYTE_COLOR', 'FLOAT_COLOR'], 'QUATERNION', 'FLOAT4X4']
 sort_key_l1: list[Union[str, list]] = ['BOOLEAN', 'FLOAT', ['INT8', 'INT']] + common_l
 sort_key_l2: list[Union[str, list]] = [['INT8', 'INT'], 'BOOLEAN', 'FLOAT'] + common_l
+
+HIDE_GROUPS = [
+    (AttrGroup.VERTEX_GROUP, tr("顶点组"),     "GROUP_VERTEX"),
+    (AttrGroup.UV_MAP,       tr("UV贴图"),     "UV"),
+    (AttrGroup.COLOR_ATTR,   tr("颜色属性"),   "COLOR"),
+    (AttrGroup.EXTRA_ATTR,   tr("额外属性"),   "CON_GEOMETRYATTRIBUTE"),
+    (AttrGroup.UNUSED,       tr("未使用的"),   "OUTLINER_DATA_POINTCLOUD"),
+    (AttrGroup.GROUP,        tr("组内属性"),   "NODETREE"),
+    (AttrGroup.PREFIX,       tr("隐藏前缀"),   "INDIRECT_ONLY_OFF"),
+]
 
 def pref() -> "ATTRLIST_AddonPrefs":
     assert __package__ is not None      # 断言 __package__ 在这里不可能是 None,因为 __getitem__ 接受的 key 只能是 int 或 str
@@ -91,6 +101,7 @@ class ATTRLIST_AddonPrefs(AddonPreferences):
     hide_unused_attr   : BoolProperty(description=tr('todo-隐藏没连到组输出的存储属性节点的属性'), default=False)
     hide_attr_in_group : BoolProperty(description=tr('隐藏节点组里的属性'), default=False)
     hide_extra_attr    : BoolProperty(description=tr('隐藏额外的属性:\n--属性编辑器-数据-属性\n--物体/集合信息节点带的(和别的几何数据合并几何才显示顶点组)\n--存储属性节点名称接口连了线的\n--活动修改器之上的GN修改器的属性'), default=False)
+    hide_by_group : BoolProperty(description=tr('细化隐藏菜单,按类别分子菜单显示: 顶点组/UV/颜色属性/额外属性/未使用/组内/前缀'), default=True)
     add_settings       : BoolProperty(name=tr('添加节点选项'),   description=tr('添加节点选项'),       default=False)
     show_settings      : BoolProperty(name=tr('列表显示选项'),   description=tr('列表显示选项'),       default=True)
     show_attr_domain   : BoolProperty(description=tr('是否显示属性所在域'), default=True)
@@ -201,7 +212,8 @@ def get_tree_attrs_dict(
             """ # print("-" * 60)
             # print(f"{attr_name = } {tree.name = } ")
             # print(f"{group_name_parent = }") """
-            _attrs_dict = sub_attrs if (in_group and pref().hide_attr_in_group) else attrs_dict
+            _in_group_hide = in_group and pref().hide_attr_in_group
+            _attrs_dict = sub_attrs if _in_group_hide else attrs_dict
             if attr_name not in _attrs_dict:                      # 没有存过这个属性名
                 attr_info = Attr_Info(data_type=node.data_type,
                                       domain=[node.domain],
@@ -210,7 +222,8 @@ def get_tree_attrs_dict(
                                       group_name_parent=[group_name_parent],
                                       node_name=[node.name],
                                       group_node_name=[group_node_name],
-                                      if_instanced=loop_find_if_instanced(node)
+                                      if_instanced=loop_find_if_instanced(node),
+                                      attr_group=AttrGroup.GROUP if _in_group_hide else None,
                                       )
                 _attrs_dict[attr_name] = attr_info
             else:                                                # 已经存过这个属性名
@@ -261,7 +274,7 @@ def get_tree_attrs_list(tree: NodeTree, all_tree_attr: list[str], stored_group) 
     return all_tree_attr
 
 # + 隐藏未使用属性不好用 可以用新的获取属性的查漏补缺
-def extend_dict_with_evaluated_obj_attrs(attrs_d: Attr_Dict, exclude_l: list[str], obj: Object, all_tree_attr: list[str]):
+def extend_dict_with_evaluated_obj_attrs(attrs_d: Attr_Dict, exclude_l: list[str], obj: Object, all_tree_attr: list[str], attr_group: str = None):
     exclude_l = exclude_l + [
                     "position", "sharp_face", "material_index",              # "id",
                     ".edge_verts", ".corner_vert", ".corner_edge",
@@ -292,7 +305,8 @@ def extend_dict_with_evaluated_obj_attrs(attrs_d: Attr_Dict, exclude_l: list[str
                 # if name.startswith(".a_"): continue           # 匿名属性,噪音
                 if name not in attrs_d:
                     attrs_d[name] = Attr_Info(data_type=attr.data_type, domain=[domain],
-                                            domain_info=[tr(get_domain_cn[domain])], group_name=[tr("不确定")])
+                                            domain_info=[tr(get_domain_cn[domain])], group_name=[tr("不确定")],
+                                            attr_group=attr_group)
                 else:
                     info = attrs_d[name]
                     info.domain.append(domain)
@@ -306,7 +320,8 @@ def extend_dict_with_evaluated_obj_attrs(attrs_d: Attr_Dict, exclude_l: list[str
             if name in exclude_l or name in all_tree_attr: continue   # 用节点名称接口连了线的属性(第一种方法获取不到)
             all_evaluated_attr.append(name)
             attrs_d[name] = Attr_Info(data_type=attr.data_type, domain=[attr.domain],
-                                        domain_info=[tr(get_domain_cn[domain])], group_name=tr("不确定"))
+                                        domain_info=[tr(get_domain_cn[domain])], group_name=tr("不确定"),
+                                        attr_group=attr_group)
     return all_evaluated_attr
 
 def extend_dict_with_obj_data_attrs(attrs_d: Attr_Dict, sub_attrs_d: Attr_Dict, all_tree_attr: list[str]):
@@ -323,28 +338,40 @@ def extend_dict_with_obj_data_attrs(attrs_d: Attr_Dict, sub_attrs_d: Attr_Dict, 
     _dict = sub_attrs_d if prefs.hide_extra_attr else attrs_d
 
     # s_time = time.perf_counter()
-    all_evaluated_attr = extend_dict_with_evaluated_obj_attrs(_dict, exclude_l, a_object, all_tree_attr)
+    _extra_cat = AttrGroup.EXTRA_ATTR if prefs.hide_extra_attr else None
+    all_evaluated_attr = extend_dict_with_evaluated_obj_attrs(_dict, exclude_l, a_object, all_tree_attr, attr_group=_extra_cat)
     # print("总耗时: ", f"{time.perf_counter() - s_time:.6f}s\n")
     if a_object.type == "MESH":
-        hideInSub = prefs.hide_vertex_group
+        hide_in_sub = prefs.hide_vertex_group
         for attr in vertex_groups:
-            if attrs_d.get(attr.name) and not hideInSub: continue        # 如果节点里又存了顶点组之类的,别覆盖
-            _attrs_d = sub_attrs_d if hideInSub else attrs_d
-            _attrs_d[attr.name] = Attr_Info(data_type='FLOAT', domain=["POINT"], domain_info=[tr('点')],
-                                        group_name=tr("物体属性"), info=tr("顶点组"))
-        hideInSub = prefs.hide_uv_map
+            if attrs_d.get(attr.name) and not hide_in_sub: continue  # 如果节点里又存了顶点组之类的,别覆盖
+            _attrs_d = sub_attrs_d if hide_in_sub else attrs_d
+            _attrs_d[attr.name] = Attr_Info(data_type='FLOAT',
+                                            domain=["POINT"],
+                                            domain_info=[tr('点')],
+                                            group_name=tr("物体属性"),
+                                            info=tr("顶点组"),
+                                            attr_group=AttrGroup.VERTEX_GROUP if hide_in_sub else None)
+        hide_in_sub = prefs.hide_uv_map
         for attr in uv_layers:
-            if attrs_d.get(attr.name) and not hideInSub: continue
-            _attrs_d = sub_attrs_d if hideInSub else attrs_d
-            _attrs_d[attr.name] = Attr_Info(data_type='FLOAT2', domain=["CORNER"], domain_info=[tr('面拐')],
-                                        group_name=tr("物体属性"), info=tr("UV贴图"))
-        hideInSub = prefs.hide_color_attr
+            if attrs_d.get(attr.name) and not hide_in_sub: continue
+            _attrs_d = sub_attrs_d if hide_in_sub else attrs_d
+            _attrs_d[attr.name] = Attr_Info(data_type='FLOAT2',
+                                            domain=["CORNER"],
+                                            domain_info=[tr('面拐')],
+                                            group_name=tr("物体属性"),
+                                            info=tr("UV贴图"),
+                                            attr_group=AttrGroup.UV_MAP if hide_in_sub else None)
+        hide_in_sub = prefs.hide_color_attr
         for attr in color_attrs:
-            if attrs_d.get(attr.name) and not hideInSub: continue
-            _attrs_d = sub_attrs_d if hideInSub else attrs_d
-            _attrs_d[attr.name] = Attr_Info(data_type=attr.data_type, domain=[attr.domain],
-                                        domain_info=[tr(get_domain_cn[attr.domain])],
-                                        group_name=tr("物体属性"), info=tr("颜色属性"))
+            if attrs_d.get(attr.name) and not hide_in_sub: continue
+            _attrs_d = sub_attrs_d if hide_in_sub else attrs_d
+            _attrs_d[attr.name] = Attr_Info(data_type=attr.data_type,
+                                            domain=[attr.domain],
+                                            domain_info=[tr(get_domain_cn[attr.domain])],
+                                            group_name=tr("物体属性"),
+                                            info=tr("颜色属性"),
+                                            attr_group=AttrGroup.COLOR_ATTR if hide_in_sub else None)
     return all_evaluated_attr
 
 def move_by_prefix_or_unused(dict1: Attr_Dict, dict2: Attr_Dict, all_evaluated_attr: list):
@@ -360,7 +387,12 @@ def move_by_prefix_or_unused(dict1: Attr_Dict, dict2: Attr_Dict, all_evaluated_a
                     break
         hide_unuse = (pref().hide_unused_attr and name not in all_evaluated_attr)
         if has_prefix or hide_unuse:
-            dict2[name] = dict1.pop(name)    # pop() 会删除并返回值
+            attr_info = dict1.pop(name)
+            if has_prefix:
+                attr_info.attr_group = AttrGroup.PREFIX
+            elif hide_unuse:
+                attr_info.attr_group = AttrGroup.UNUSED
+            dict2[name] = attr_info
 
 def custom_sort_dict(attrs: Attr_Dict, sort_key_l: list[Union[str, list]]) -> Attr_Dict:
     sorted_attrs: Attr_Dict = {}
@@ -403,6 +435,11 @@ def get_attrs(get_hided=False):
     move_by_prefix_or_unused(attrs, sub_attrs, all_evaluated_attr)
     attrs = sub_attrs if get_hided else attrs
     return sort_attr_dict(attrs)
+
+def get_hided_attrs_by_group(group: AttrGroup) -> Attr_Dict:
+    """获取指定组的隐藏属性"""
+    attrs = get_attrs(get_hided=True)
+    return {k: v for k, v in attrs.items() if v.attr_group == group}
 
 def draw_attr_menu(layout: UILayout, context: Context, attrs: Attr_Dict, is_panel=False):
     '''is_panel = True 时,在面板里额外绘制一些东西'''
@@ -488,7 +525,7 @@ class AL_OT_add_node_from_list(Operator):
             key_des = tr("● 默认:  添加命名属性节点 \n● Shift: 添加存储属性节点 \n")
         if ui_type == 'ShaderNodeTree' and props.shader_node_type != "ShaderNodeAttribute":
             key_des = tr("● 默认:  添加属性节点 \n● Shift: 添加UV贴图或颜色属性节点 \n")
-        return key_des + props.bl_description if props else "" 
+        return key_des + props.bl_description if props else ""
 
     @classmethod
     def poll(cls, context):
@@ -584,8 +621,28 @@ class ATTRLIST_MT_SubMenu(Menu):
     bl_label = "Hide Menu"
 
     def draw(self, context):
-        attrs = get_attrs(get_hided=True)
+        if pref().hide_by_group:
+            for group_key, group_label, group_icon in HIDE_GROUPS:
+                attrs = get_hided_attrs_by_group(group_key)
+                if attrs:
+                    self.layout.menu(f"ATTRLIST_MT_SubMenu_{group_key.value}", text=group_label, icon=group_icon)
+        else:
+            attrs = get_attrs(get_hided=True)
+            draw_attr_menu(self.layout, context, attrs)
+
+def _make_submenu_draw(group):
+    def draw(self, context):
+        attrs = get_hided_attrs_by_group(group)
         draw_attr_menu(self.layout, context, attrs)
+    return draw
+
+for _group_key, _group_label, _group_icon in HIDE_GROUPS:
+    _cls = type(f"ATTRLIST_MT_SubMenu_{_group_key.value}", (Menu,), {
+        "bl_idname": f"ATTRLIST_MT_SubMenu_{_group_key.value}",
+        "bl_label": _group_label,
+        "draw": _make_submenu_draw(_group_key),
+    })
+    globals()[_cls.__name__] = _cls
 
 class ATTRLIST_MT_Menu(Menu):
     bl_idname = "ATTRLIST_MT_Menu"
@@ -598,8 +655,15 @@ class ATTRLIST_MT_Menu(Menu):
 
     def draw(self, context):
         self.bl_options = {'SEARCH_ON_KEY_PRESS'} if not pref().use_accelerator_key else set()
-        if get_attrs(get_hided=True):
-            self.layout.menu("ATTRLIST_MT_SubMenu", text="Hide", icon='GROUP')
+        if pref().hide_by_group:
+            for group_key, group_label, group_icon in HIDE_GROUPS:
+                attrs = get_hided_attrs_by_group(group_key)
+                if attrs:
+                    self.layout.menu(f"ATTRLIST_MT_SubMenu_{group_key.value}", text=group_label, icon=group_icon)
+        else:
+            if get_attrs(get_hided=True):
+                self.layout.menu("ATTRLIST_MT_SubMenu", text="Hide", icon='GROUP')
+        self.layout.separator()
         attrs = get_attrs()
         draw_attr_menu(self.layout, context, attrs)
 
@@ -672,7 +736,9 @@ class ATTRLIST_PT_NPanel(Panel):
                 split2.label(text=tr('列表排序方式'))
                 split2.prop(prefs, 'sort_type', text='')
 
-                box1.label(text=tr('属性列表里是否隐藏'))
+                hide_row = box1.row().split(factor=0.6)
+                hide_row.label(text=tr('属性列表里隐藏'))
+                hide_row.prop(prefs, 'hide_by_group', toggle=True, text=tr('按类别分类'))
 
                 split3 = box1.split(factor=0.05)        # 使得文本左顶格,按钮前稍微缩进
                 split3.label(text="")
@@ -839,6 +905,11 @@ classes = [
     NODE_OT_View_Stored_Attribute_Node,
     NODE_OT_Add_Named_Attribute,
 ]
+# 注册动态生成的组子菜单类
+for _group_key, _group_label, _group_icon in HIDE_GROUPS:
+    _cls_name = f"ATTRLIST_MT_SubMenu_{_group_key.value}"
+    if _cls_name in globals():
+        classes.append(globals()[_cls_name])
 
 def register():
     global _icons
