@@ -42,13 +42,13 @@ def sk_loc(socket: NodeSocket):
         import platform
         from ctypes import c_float, c_void_p
         runtime_offset = 520  # DNA_node_types.h    - bNodeSocket        - runtime
-        location_offset = 16  # BKE_node_runtime.hh - bNodeSocketRuntime - location
-        if platform.system() == 'Windows':
-            location_offset += 8
+        location_offset = 24  # BKE_node_runtime.hh - bNodeSocketRuntime - location
         if bpy.app.version >= (5, 1, 0):
             runtime_offset = 456
         if bpy.app.version >= (5, 2, 0):
             location_offset = 32
+        if platform.system() != 'Windows':  # Windows 额外加
+            location_offset -= 8
         runtime = c_void_p.from_address(socket.as_pointer() + runtime_offset).value
         return Vec2((c_float * 2).from_address(runtime + location_offset))
     except:
@@ -57,8 +57,11 @@ def sk_loc(socket: NodeSocket):
 def node_abs_loc(nd: Node) -> Vec2:
     return nd.location + node_abs_loc(nd.parent) if nd.parent else nd.location
 
+def icon_visible(socket: NodeSocket):
+    return socket.is_icon_visible if hasattr(socket, "is_icon_visible") else True
+
 def is_socket_visible(socket: NodeSocket):
-    return socket.enabled and (not socket.hide) and socket.is_icon_visible
+    return socket.enabled and (not socket.hide) and icon_visible(socket)
 
 # 提供对折叠节点的支持:
 # 终于等到了... 当然, 这不是"真正的支持". 我鄙视折叠起来的节点; 我也不想去处理圆角和随之改变的绘制逻辑.
@@ -182,7 +185,7 @@ def node_enum_props(node: Node) -> list[bpy.types.EnumProperty]:   # 小王-判�
     return enum_l
 
 def node_visible_menu_inputs(node: Node) -> list[NodeSocket]:
-    return [socket for socket in node.inputs if (socket.type == 'MENU' and socket.is_icon_visible)]
+    return [socket for socket in node.inputs if (socket.type == 'MENU' and icon_visible(socket))]
 
 class VlrtData:
     reprLastSkOut = ""
