@@ -124,14 +124,13 @@ dictionary = {
         "按节点组名分子菜单显示": "Show submenus by node group name",
         "所有属性平铺显示,按节点组名标注": "Show all attributes flat with node group name labels",
         "当成常规属性,不隐藏到组内子菜单": "Treat as regular attributes, not hidden in group submenu",
-        "组内属性": "In Group",
-        "组内显示方式": "Group Display Mode",
+        "组内属性": "Attrs In Group",
+        "组内属性显示方式": "Attrs In Group Display Mode",
         "按节点组再分": "By Node Group",
         "跳过未评估节点组": "Skip Unevaluated Groups",
         "跳过": "Skip",
     },
 }
-
 
 def i18n(text: str) -> str:
     view = bpy.context.preferences.view

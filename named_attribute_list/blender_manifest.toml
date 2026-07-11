@@ -1,6 +1,6 @@
 schema_version = "1.0.0"
 id = "named_attribute_list"
-version = "2.9.0"
+version = "2.10.0"
 name = "Node Attribute List(节点属性列表)"
 tagline = "Quickly Add Attribute Node in GN and Shader(几何节点和材质里快速添加属性节点)"
 maintainer = "W_Cloud(一尘不染)"

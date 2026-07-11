@@ -288,7 +288,7 @@ class ATTRLIST_PT_NPanel(Panel):
                     split41.prop(prefs, 'prefix_to_hide', text='')
 
                 split4 = box1.split(factor=0.5)
-                split4.label(text=tr('组内显示方式'))
+                split4.label(text=tr('组内属性显示方式'))
                 split4.row().prop(prefs, 'group_attr_display', expand=True)
 
                 split5 = box1.split(factor=0.5)
