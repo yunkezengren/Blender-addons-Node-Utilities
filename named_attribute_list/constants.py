@@ -25,7 +25,7 @@ GROUP_DESC = {
     Group.UV_MAP:       tr('属性列表中的UV贴图'),
     Group.COLOR_ATTR:   tr('属性列表中的颜色属性'),
     Group.EXTRA_ATTR:   tr('额外属性:\n--属性编辑器-数据-属性\n--物体/集合信息节点带的属性\n--存储属性节点名称接口连了线的\n--活动修改器之上的GN修改器的属性'),
-    Group.UNEVALUATED:  tr('物体最终评估时不评估的属性\n(仅判断存储属性节点输出是否连线,不追踪完整链路)'),
+    Group.UNEVALUATED:  tr('物体最终评估时不存在的(被删掉的)或不评估的属性\n(仅判断存储属性节点输出是否连线,不追踪完整链路)'),
     Group.GROUP:        tr('节点组内部存储的属性'),
     Group.PREFIX:       tr('带有特定前缀的属性'),
 }

@@ -42,6 +42,9 @@ class Attr_Info:
     # 隐藏原因分组
     attr_group: Group | None = None
 
+    # 是否来自非顶层节点组(用于显示模式判断)
+    is_from_group: bool = False
+
 Attr_Dict = dict[str, Attr_Info]
 
 _example = {

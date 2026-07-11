@@ -1,6 +1,8 @@
+import bpy
 from bpy.types import Menu, Panel, Context, UILayout
 
 from .constants import GROUPS, data_with_png, shader_date_types
+from .my_dataclass import Attr_Dict, Group
 from .preferences import pref
 from .utils import get_attrs, get_hided_attrs_by_group, exist_node_tree, get_domain_list
 from .operators import AL_OT_add_node, AT_OT_group_info
@@ -63,12 +65,72 @@ class ATTRLIST_MT_SubMenu(Menu):
     def draw(self, context):
         if pref().hide_by_group:
             for group_key, group_label, group_icon, _ in GROUPS:
+                # 组内属性类别只在 hide_attr_in_group 时显示
+                if group_key == Group.GROUP and not pref().hide_attr_in_group:
+                    continue
                 attrs = get_hided_attrs_by_group(group_key)
                 if attrs:
                     self.layout.menu(f"ATTRLIST_MT_SubMenu_{group_key.value}", text=group_label, icon=group_icon)
         else:
-            attrs = get_attrs(get_hided=True)
-            draw_attr_menu(self.layout, context, attrs)
+            _draw_attrs_split_group(self.layout, context, get_attrs(get_hided=True), pref().group_attr_display)
+
+# 节点组子菜单槽位：预注册固定数量，draw 时填充数据
+_NTS_SLOT_COUNT = 32
+_nodetree_slots: dict[int, tuple[str, Attr_Dict]] = {}
+
+def _make_nts_draw(slot):
+    def draw(self, context):
+        data = _nodetree_slots.get(slot)
+        if data:
+            draw_attr_menu(self.layout, context, data[1])
+    return draw
+
+nodetree_slot_classes = []
+for _i in range(_NTS_SLOT_COUNT):
+    _cls = type(f"ATTRLIST_MT_NTS_{_i}", (Menu,), {
+        "bl_idname": f"ATTRLIST_MT_NTS_{_i}",
+        "bl_label": f"NodeTree Slot {_i}",
+        "draw": _make_nts_draw(_i),
+    })
+    nodetree_slot_classes.append(_cls)
+
+def _draw_group_attrs_by_tree(attrs):
+    """按节点组分类 (SUBGROUP/FLAT 共用)"""
+    by_tree: dict[str, Attr_Dict] = {}
+    for name, info in attrs.items():
+        for gn in (info.group_name if isinstance(info.group_name, list) else [info.group_name]):
+            by_tree.setdefault(gn, {})[name] = info
+    return by_tree
+
+def _draw_with_group_mode(layout, context, attrs, mode):
+    """按组内显示模式绘制属性"""
+    if mode == 'SUBGROUP':
+        by_tree = _draw_group_attrs_by_tree(attrs)
+        _nodetree_slots.clear()
+        sorted_trees = sorted(by_tree)
+        for i, tree_name in enumerate(sorted_trees[:_NTS_SLOT_COUNT]):
+            _nodetree_slots[i] = (tree_name, by_tree[tree_name])
+        for i, tree_name in enumerate(sorted_trees[:_NTS_SLOT_COUNT]):
+            layout.menu(f"ATTRLIST_MT_NTS_{i}", text=tree_name, icon='NODETREE')
+    elif mode == 'FLAT':
+        by_tree = _draw_group_attrs_by_tree(attrs)
+        for tree_name in sorted(by_tree):
+            layout.label(text=tree_name, icon='NODETREE')
+            draw_attr_menu(layout, context, by_tree[tree_name])
+    else:  # DEFAULT
+        draw_attr_menu(layout, context, attrs)
+
+def _draw_attrs_split_group(layout, context, attrs, mode):
+    """绘制属性列表, 组内属性按 mode 分离绘制, 非组内属性平铺"""
+    if mode == 'DEFAULT':
+        draw_attr_menu(layout, context, attrs)
+        return
+    group_attrs = {k: v for k, v in attrs.items() if v.is_from_group}
+    other_attrs = {k: v for k, v in attrs.items() if not v.is_from_group}
+    if other_attrs:
+        draw_attr_menu(layout, context, other_attrs)
+    if group_attrs:
+        _draw_with_group_mode(layout, context, group_attrs, mode)
 
 def _make_submenu_draw(group, desc):
     def draw(self, context):
@@ -76,7 +138,15 @@ def _make_submenu_draw(group, desc):
         op = layout.operator(AT_OT_group_info.bl_idname, text=" ", icon='INFO', emboss=False)
         op.group_desc = desc
         attrs = get_hided_attrs_by_group(group)
-        draw_attr_menu(layout, context, attrs)
+        if not attrs:
+            return
+        mode = pref().group_attr_display
+        if group == Group.GROUP:
+            _draw_with_group_mode(layout, context, attrs, mode)
+        elif group == Group.UNEVALUATED:
+            _draw_attrs_split_group(layout, context, attrs, mode)
+        else:
+            draw_attr_menu(layout, context, attrs)
     return draw
 
 # 动态生成子菜单类
@@ -102,6 +172,9 @@ class ATTRLIST_MT_Menu(Menu):
         self.bl_options = {'SEARCH_ON_KEY_PRESS'} if not pref().use_accelerator_key else set()
         if pref().hide_by_group:
             for group_key, group_label, group_icon, _ in GROUPS:
+                # 组内属性类别只在 hide_attr_in_group 时显示
+                if group_key == Group.GROUP and not pref().hide_attr_in_group:
+                    continue
                 attrs = get_hided_attrs_by_group(group_key)
                 if attrs:
                     self.layout.menu(f"ATTRLIST_MT_SubMenu_{group_key.value}", text=group_label, icon=group_icon)
@@ -109,9 +182,14 @@ class ATTRLIST_MT_Menu(Menu):
             if get_attrs(get_hided=True):
                 self.layout.menu("ATTRLIST_MT_SubMenu", text="Hide", icon='GROUP')
         attrs = get_attrs()
-        if attrs:
+        mode = pref().group_attr_display
+        if attrs and mode != 'DEFAULT' and not pref().hide_attr_in_group:
             self.layout.separator()
-        draw_attr_menu(self.layout, context, attrs)
+            _draw_attrs_split_group(self.layout, context, attrs, mode)
+        else:
+            if attrs:
+                self.layout.separator()
+            draw_attr_menu(self.layout, context, attrs)
 
 class ATTRLIST_PT_NPanel(Panel):
     bl_label = tr('命名属性面板')
@@ -208,6 +286,10 @@ class ATTRLIST_PT_NPanel(Panel):
                 split41.prop(prefs, 'hide_by_prefix', toggle=True, text=tr('隐藏前缀'))
                 if prefs.hide_by_prefix:
                     split41.prop(prefs, 'prefix_to_hide', text='')
+
+                split4 = box1.split(factor=0.5)
+                split4.label(text=tr('组内显示方式'))
+                split4.row().prop(prefs, 'group_attr_display', expand=True)
 
                 split5 = box1.split(factor=0.5)
                 split5.label(text=tr('跳过未评估节点组'))

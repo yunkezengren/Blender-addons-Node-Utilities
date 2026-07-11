@@ -27,6 +27,11 @@ class ATTRLIST_AddonPrefs(AddonPreferences):
     hide_unevaluated_attr : BoolProperty(description=GROUP_DESC[Group.UNEVALUATED],  default=False)
     skip_unevaluated_group: BoolProperty(description=tr('跳过输出未连线的节点组\n(仅判断节点组输出是否连线,不追踪完整链路)'), default=True)
     hide_attr_in_group : BoolProperty(description=GROUP_DESC[Group.GROUP],        default=False)
+    group_attr_display : EnumProperty(description=tr('节点组内属性的显示方式'),
+                                        items=[('DEFAULT',  tr('默认'),   tr('当成常规属性,不隐藏到组内子菜单')),
+                                               ('FLAT',     tr('平铺'),   tr('所有属性平铺显示,按节点组名标注')),
+                                               ('SUBGROUP', tr('子菜单'), tr('按节点组名分子菜单显示'))],
+                                        default='SUBGROUP')
     hide_extra_attr    : BoolProperty(description=GROUP_DESC[Group.EXTRA_ATTR],   default=False)
     hide_by_group      : BoolProperty(description=tr('细化隐藏菜单,按类别分子菜单显示: 顶点组/UV/颜色属性/额外属性/未评估/组内/前缀'), default=True)
     add_settings       : BoolProperty(name=tr('添加节点选项'),   description=tr('添加节点选项'),       default=False)

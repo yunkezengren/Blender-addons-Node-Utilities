@@ -98,7 +98,8 @@ def get_tree_attrs_dict(
                 continue
             domain_cn = tr(get_domain_cn[node.domain])
 
-            _in_group_hide = in_group and pref().hide_attr_in_group
+            _in_group_hide = in_group and pref().hide_attr_in_group and group_node_name != "当前group是顶层节点树"
+            _group_display_active = in_group and pref().group_attr_display != 'DEFAULT' and group_node_name != "当前group是顶层节点树"
             _attrs_dict = sub_attrs if _in_group_hide else attrs_dict
             if attr_name not in _attrs_dict:
                 attr_info = Attr_Info(data_type=node.data_type,
@@ -110,6 +111,7 @@ def get_tree_attrs_dict(
                                       group_node_name=[group_node_name],
                                       if_instanced=loop_find_if_instanced(node),
                                       attr_group=Group.GROUP if _in_group_hide else None,
+                                      is_from_group=_group_display_active,
                                       )
                 _attrs_dict[attr_name] = attr_info
             else:
@@ -119,6 +121,8 @@ def get_tree_attrs_dict(
                 attr_info.group_name.append(tree.name)
                 attr_info.group_name_parent.append(group_name_parent)
                 attr_info.group_node_name.append(group_node_name)
+                if _group_display_active:
+                    attr_info.is_from_group = True
                 attr_info.node_name.append(node.name)
         if node.type == "GROUP" and node.node_tree:
             if pref().skip_unevaluated_group and not is_node_output_used(node):
@@ -254,7 +258,7 @@ def extend_dict_with_obj_data_attrs(attrs_d: Attr_Dict, sub_attrs_d: Attr_Dict, 
     return all_evaluated_attr
 
 def move_by_prefix_or_unused(dict1: Attr_Dict, dict2: Attr_Dict, all_evaluated_attr: list):
-    """ 把符合条件的从 dict1 移到 dict2 """
+    """ 把符合条件的从 dict1 积到 dict2, 优先级: 前缀 > 未评估 > 组内 """
     prefix_list = pref().prefix_to_hide.split("|")
     for name in list(dict1):
         has_prefix = False
@@ -271,6 +275,11 @@ def move_by_prefix_or_unused(dict1: Attr_Dict, dict2: Attr_Dict, all_evaluated_a
             elif hide_unuse:
                 attr_info.attr_group = Group.UNEVALUATED
             dict2[name] = attr_info
+    # 未评估优先级高于组内: 把 dict2 中 attr_group==GROUP 且未评估的改为 UNEVALUATED
+    if pref().hide_unevaluated_attr:
+        for name, attr_info in dict2.items():
+            if attr_info.attr_group == Group.GROUP and name not in all_evaluated_attr:
+                attr_info.attr_group = Group.UNEVALUATED
 
 def custom_sort_dict(attrs: Attr_Dict, sort_key_l: list[Union[str, list]]) -> Attr_Dict:
     sorted_attrs: Attr_Dict = {}

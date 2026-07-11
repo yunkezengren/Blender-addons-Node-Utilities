@@ -4,7 +4,7 @@ import bpy.utils.previews
 from .constants import png_list
 from .preferences import ATTRLIST_AddonPrefs
 from .operators import AL_OT_add_node, NODE_OT_view_stored_attribute_node, NODE_OT_quick_add_named_attribute, AT_OT_group_info
-from .ui import ATTRLIST_MT_SubMenu, ATTRLIST_MT_Menu, ATTRLIST_PT_NPanel, submenu_classes
+from .ui import ATTRLIST_MT_SubMenu, ATTRLIST_MT_Menu, ATTRLIST_PT_NPanel, submenu_classes, nodetree_slot_classes
 from .utils import add_to_attr_list_mt_editor_menus
 
 addon_keymaps = {}
@@ -19,7 +19,7 @@ classes = [
     ATTRLIST_AddonPrefs,
     NODE_OT_view_stored_attribute_node,
     NODE_OT_quick_add_named_attribute,
-] + submenu_classes
+] + submenu_classes + nodetree_slot_classes
 
 def register():
     global _icons
