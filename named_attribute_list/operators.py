@@ -2,8 +2,9 @@ import bpy
 from bpy.types import Operator, Context, Nodes
 from bpy.props import StringProperty, BoolProperty
 
-from .constants import sub_data_type, data_with_png
-from .utils import pref, exit_group_to_root, proper_scroll_view
+from .constants import sub_data_type
+from .preferences import pref
+from .utils import exit_group_to_root, proper_scroll_view
 from .translator import i18n as tr
 
 class AL_OT_add_node_from_list(Operator):
@@ -55,20 +56,20 @@ class AL_OT_add_node_from_list(Operator):
                     self.attr_type = "FLOAT2"
                 attr_node.data_type = self.attr_type
                 attr_node.domain = self.domain
-                attr_node.inputs["Selection"].hide = prefs.hide_Select_socket
-                attr_node.show_options = not prefs.hide_Store_option
+                attr_node.inputs["Selection"].hide = prefs.hide_select_socket
+                attr_node.show_options = not prefs.hide_store_option
             else:
                 attr_node.data_type = data_type2
-                attr_node.inputs["Name"].hide = prefs.hide_Name_socket
+                attr_node.inputs["Name"].hide = prefs.hide_name_socket
                 attr_node.show_options = not prefs.hide_option
-                if prefs.rename_Attr_socket:
+                if prefs.rename_attr_socket:
                     if bpy.data.version >= (4, 1, 0):
                         attr_node.outputs["Attribute"].name = self.attr_name
                     else:
                         for socket in attr_node.outputs:
                             if socket.enabled and not socket.hide and socket.name=="Attribute":
                                 socket.name = self.attr_name
-                attr_node.outputs["Exists"].hide = prefs.hide_Exists_socket
+                attr_node.outputs["Exists"].hide = prefs.hide_exists_socket
 
         if ui_type == 'ShaderNodeTree':
             prefs.panel_info = tr("添加属性节点")
@@ -89,7 +90,7 @@ class AL_OT_add_node_from_list(Operator):
                                 }
                 for i, out_soc in enumerate(attr_node.outputs):
                     order = socket_order[data_type2]
-                    if i == order and prefs.rename_Attr_socket:
+                    if i == order and prefs.rename_attr_socket:
                         out_soc.name = self.attr_name
                     if i != order:
                         out_soc.hide = True
@@ -97,14 +98,14 @@ class AL_OT_add_node_from_list(Operator):
                 attr_node.layer_name = self.attr_name
             if node_type == "ShaderNodeUVMap":
                 attr_node.uv_map = self.attr_name
-            attr_node.show_options = not prefs.hide_Name_socket
+            attr_node.show_options = not prefs.hide_name_socket
 
         if node_type == "GeometryNodeStoreNamedAttribute":
-            attr_node.label = (prefs.rename_prefix + self.attr_name) if prefs.rename_Store_Node else ""
-            attr_node.hide = prefs.hide_Store_Node
+            attr_node.label = (prefs.rename_prefix + self.attr_name) if prefs.rename_store_node else ""
+            attr_node.hide = prefs.hide_store_node
         else:
-            attr_node.label = (prefs.rename_prefix + self.attr_name) if prefs.rename_Node else ""
-            attr_node.hide = prefs.hide_Node
+            attr_node.label = (prefs.rename_prefix + self.attr_name) if prefs.rename_node else ""
+            attr_node.hide = prefs.hide_node
         return {"FINISHED"}
 
 class NODE_OT_View_Stored_Attribute_Node(Operator):
@@ -166,19 +167,19 @@ class NODE_OT_Add_Named_Attribute(Operator):
             attr_node = context.active_node
             attr_node.data_type = data_type
             attr_node.inputs["Name"].default_value = attr_name
-            attr_node.inputs["Name"].hide = prefs.hide_Name_socket
+            attr_node.inputs["Name"].hide = prefs.hide_name_socket
             attr_node.show_options = not prefs.hide_option
-            attr_node.hide = prefs.hide_Node
-            if prefs.rename_Node:
+            attr_node.hide = prefs.hide_node
+            if prefs.rename_node:
                 attr_node.label = prefs.rename_prefix + attr_name
-            if prefs.rename_Attr_socket:
+            if prefs.rename_attr_socket:
                 if bpy.data.version >= (4, 1, 0):
                     attr_node.outputs["Attribute"].name = attr_name
                 else:
                     for socket in attr_node.outputs:
                         if socket.enabled and not socket.hide and socket.name=="Attribute":
                             socket.name = attr_name
-            attr_node.outputs["Exists"].hide = prefs.hide_Exists_socket
+            attr_node.outputs["Exists"].hide = prefs.hide_exists_socket
         else:
             bpy.ops.node.add_node('INVOKE_DEFAULT', use_transform=True, type='GeometryNodeInputNamedAttribute')
         return {"FINISHED"}

@@ -1,21 +1,21 @@
+import bpy
 from bpy.types import AddonPreferences
 from bpy.props import StringProperty, EnumProperty, BoolProperty
 
-from .utils import pref, find_user_keyconfig
 from .translator import i18n as tr
 
 class ATTRLIST_AddonPrefs(AddonPreferences):
     bl_idname = __package__
     hide_option        : BoolProperty(description=tr('添加时是否隐藏选项'),           default=True)
-    hide_Exists_socket : BoolProperty(description=tr('添加时是否隐藏输出存在接口'),   default=True)
-    hide_Name_socket   : BoolProperty(description=tr('添加时是否隐藏输入名称接口'),   default=False)
-    rename_Attr_socket : BoolProperty(description=tr('添加时是否重命名输出属性接口'), default=False)
-    hide_Node          : BoolProperty(description=tr('添加时是否折叠节点'),           default=False)
-    rename_Node        : BoolProperty(description=tr('添加时是否重命名节点为属性名'), default=False)
-    hide_Store_Node    : BoolProperty(description=tr('添加时是否折叠节点'),           default=False)
-    hide_Store_option  : BoolProperty(description=tr('添加时是否隐藏选项'),           default=False)
-    hide_Select_socket : BoolProperty(description=tr('添加时是否隐藏输入名称接口'),   default=True)
-    rename_Store_Node  : BoolProperty(description=tr('添加时是否重命名节点为属性名'), default=False)
+    hide_exists_socket : BoolProperty(description=tr('添加时是否隐藏输出存在接口'),   default=True)
+    hide_name_socket   : BoolProperty(description=tr('添加时是否隐藏输入名称接口'),   default=False)
+    rename_attr_socket : BoolProperty(description=tr('添加时是否重命名输出属性接口'), default=False)
+    hide_node          : BoolProperty(description=tr('添加时是否折叠节点'),           default=False)
+    rename_node        : BoolProperty(description=tr('添加时是否重命名节点为属性名'), default=False)
+    hide_store_node    : BoolProperty(description=tr('添加时是否折叠节点'),           default=False)
+    hide_store_option  : BoolProperty(description=tr('添加时是否隐藏选项'),           default=False)
+    hide_select_socket : BoolProperty(description=tr('添加时是否隐藏输入名称接口'),   default=True)
+    rename_store_node  : BoolProperty(description=tr('添加时是否重命名节点为属性名'), default=False)
     hide_by_prefix     : BoolProperty(description=tr('是否隐藏带有特定前缀的属性'),   default=False)
     show_set_panel     : BoolProperty(description=tr('显示设置'),                     default=True)
     if_scale_editor    : BoolProperty(description=tr('查找节点时适当缩放视图'),       default=True)
@@ -40,6 +40,7 @@ class ATTRLIST_AddonPrefs(AddonPreferences):
                                                 ('完全按字符串排序', tr('完全按字符串排序'), tr('首字-数字英文中文'), 0, 3)])
 
     def draw(self, context):
+        from .utils import find_user_keyconfig
         layout = self.layout
         split = layout.split(factor=0.5)
 
@@ -63,3 +64,8 @@ class ATTRLIST_AddonPrefs(AddonPreferences):
         box1.label(text=limit2)
         box1.label(text=limit3)
         box1.label(text="information outdated / 描述信息过时")
+
+
+def pref() -> ATTRLIST_AddonPrefs:
+    assert __package__ is not None
+    return bpy.context.preferences.addons[__package__].preferences

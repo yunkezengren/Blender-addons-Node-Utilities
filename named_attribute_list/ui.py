@@ -1,8 +1,9 @@
 from bpy.types import Menu, Panel, Context, UILayout
 
 from .constants import HIDE_GROUPS, data_with_png, shader_date_types
-from .utils import pref, get_attrs, get_hided_attrs_by_group, exist_node_tree, get_domain_list
-from .operators import AL_OT_add_node_from_list, NODE_OT_View_Stored_Attribute_Node
+from .preferences import pref
+from .utils import get_attrs, get_hided_attrs_by_group, exist_node_tree, get_domain_list
+from .operators import AL_OT_add_node_from_list
 from .translator import i18n as tr
 
 def draw_attr_menu(layout: UILayout, context: Context, attrs, is_panel=False):
@@ -104,8 +105,9 @@ class ATTRLIST_MT_Menu(Menu):
         else:
             if get_attrs(get_hided=True):
                 self.layout.menu("ATTRLIST_MT_SubMenu", text="Hide", icon='GROUP')
-        self.layout.separator()
         attrs = get_attrs()
+        if attrs:
+            self.layout.separator()
         draw_attr_menu(self.layout, context, attrs)
 
 class ATTRLIST_PT_NPanel(Panel):
@@ -151,24 +153,24 @@ class ATTRLIST_PT_NPanel(Panel):
                 box1.label(text="——→"+tr("属性节点:"))
                 split = box1.split(factor=0.5)
                 split.prop(prefs, 'hide_option',        toggle=True, text=tr('隐藏节点选项'))
-                split.prop(prefs, 'hide_Exists_socket', toggle=True, text=tr('隐藏存在接口'))
+                split.prop(prefs, 'hide_exists_socket', toggle=True, text=tr('隐藏存在接口'))
                 split = box1.split(factor=0.5)
-                split.prop(prefs, 'hide_Name_socket',   toggle=True, text=tr('隐藏名称接口'))
-                split.prop(prefs, 'rename_Attr_socket', toggle=True, text=tr('重命名属性接口'))
+                split.prop(prefs, 'hide_name_socket',   toggle=True, text=tr('隐藏名称接口'))
+                split.prop(prefs, 'rename_attr_socket', toggle=True, text=tr('重命名属性接口'))
                 split = box1.split(factor=0.5)
-                split.prop(prefs, 'hide_Node',          toggle=True, text=tr('折叠节点'))
-                split.prop(prefs, 'rename_Node',        toggle=True, text=tr('重命名节点标签'))
+                split.prop(prefs, 'hide_node',          toggle=True, text=tr('折叠节点'))
+                split.prop(prefs, 'rename_node',        toggle=True, text=tr('重命名节点标签'))
                 split = box1.split(factor=0.5)
                 split.label(text=tr('重命名添加前缀: '))
                 split.prop(prefs, 'rename_prefix', text="")
 
                 box1.label(text="——→"+tr("存储属性节点:"))
                 split = box1.split(factor=0.5)
-                split.prop(prefs, 'hide_Store_option',  toggle=True, text=tr('隐藏节点选项'))
-                split.prop(prefs, 'hide_Select_socket', toggle=True, text=tr('隐藏选中项接口'))
+                split.prop(prefs, 'hide_store_option',  toggle=True, text=tr('隐藏节点选项'))
+                split.prop(prefs, 'hide_select_socket', toggle=True, text=tr('隐藏选中项接口'))
                 split = box1.split(factor=0.5)
-                split.prop(prefs, 'hide_Store_Node',    toggle=True, text=tr('折叠节点'))
-                split.prop(prefs, 'rename_Store_Node',  toggle=True, text=tr('重命名节点标签'))
+                split.prop(prefs, 'hide_store_node',    toggle=True, text=tr('折叠节点'))
+                split.prop(prefs, 'rename_store_node',  toggle=True, text=tr('重命名节点标签'))
 
             arrow_add = "TRIA_DOWN" if prefs.show_settings else "TRIA_RIGHT"
             box1.prop(prefs, "show_settings", toggle=True, icon=arrow_add)

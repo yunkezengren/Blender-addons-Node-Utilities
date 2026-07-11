@@ -5,11 +5,8 @@ from typing import Union
 
 from .constants import domain_cn_list, domain_lower_list, get_domain_cn, sort_key_l1, sort_key_l2
 from .my_dataclass import Attr_Info, Attr_Dict, AttrGroup
+from .preferences import pref
 from .translator import i18n as tr
-
-def pref() -> "ATTRLIST_AddonPrefs":
-    assert __package__ is not None
-    return bpy.context.preferences.addons[__package__].preferences
 
 def get_domain_list():
     view = bpy.context.preferences.view
@@ -95,9 +92,9 @@ def get_tree_attrs_dict(
     for node in nodes:
         if node.mute: continue
         if node.bl_idname == 'GeometryNodeStoreNamedAttribute':
-            name_soc = node.inputs["Name"]
-            if name_soc.is_linked: continue
-            attr_name = name_soc.default_value
+            name_sk = node.inputs["Name"]
+            if name_sk.is_linked: continue
+            attr_name = name_sk.default_value
             if attr_name == "":
                 continue
             domain_cn = tr(get_domain_cn[node.domain])
@@ -165,6 +162,7 @@ def extend_dict_with_evaluated_obj_attrs(attrs_d: Attr_Dict, exclude_l: list[str
                     "position", "sharp_face", "material_index",
                     ".edge_verts", ".corner_vert", ".corner_edge",
                     ".select_vert", ".select_edge", ".select_poly",
+                    ".uv_select_vert", ".uv_select_edge", ".uv_select_face",
                     ".sculpt_face_set",
                     ".reference_index", "instance_transform",
                     "radius", "curve_type", "cyclic",
