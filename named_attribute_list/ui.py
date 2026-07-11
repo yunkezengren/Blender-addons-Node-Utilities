@@ -3,7 +3,7 @@ from bpy.types import Menu, Panel, Context, UILayout
 from .constants import GROUPS, data_with_png, shader_date_types
 from .preferences import pref
 from .utils import get_attrs, get_hided_attrs_by_group, exist_node_tree, get_domain_list
-from .operators import AL_OT_add_node, ATTRLIST_OT_GroupInfo
+from .operators import AL_OT_add_node, AT_OT_group_info
 from .translator import i18n as tr
 
 def draw_attr_menu(layout: UILayout, context: Context, attrs, is_panel=False):
@@ -73,7 +73,7 @@ class ATTRLIST_MT_SubMenu(Menu):
 def _make_submenu_draw(group, desc):
     def draw(self, context):
         layout = self.layout
-        op = layout.operator(ATTRLIST_OT_GroupInfo.bl_idname, text=" ", icon='INFO', emboss=False)
+        op = layout.operator(AT_OT_group_info.bl_idname, text=" ", icon='INFO', emboss=False)
         op.group_desc = desc
         attrs = get_hided_attrs_by_group(group)
         draw_attr_menu(layout, context, attrs)
@@ -199,7 +199,7 @@ class ATTRLIST_PT_NPanel(Panel):
                 split41 = split4.split(factor=0.33)
                 split41.prop(prefs, 'hide_extra_attr', toggle=True, text=tr('额外属性'))
                 split42 = split41.split(factor=0.5)
-                split42.prop(prefs, 'hide_unused_attr',   toggle=True, text=tr('未使用'))
+                split42.prop(prefs, 'hide_unevaluated_attr', toggle=True, text=tr('未评估'))
                 split42.prop(prefs, 'hide_attr_in_group', toggle=True, text=tr('组内属性'))
 
                 split4 = box1.split(factor=0.05)
@@ -222,7 +222,7 @@ class ATTRLIST_PT_NPanel(Panel):
                 split7.prop(prefs, 'use_accelerator_key', toggle=True, text=tr('使用加速键'))
 
 
-        if prefs.hide_unused_attr and hasattr(layout, "panel"):
+        if prefs.hide_unevaluated_attr and hasattr(layout, "panel"):
             box3 = layout.box()
             panel, body = box3.panel("未使用", default_closed=True)
             panel.label(text=tr('未使用'))

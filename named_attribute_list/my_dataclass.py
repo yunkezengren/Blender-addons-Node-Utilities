@@ -1,4 +1,3 @@
-from typing import Union, Optional
 from dataclasses import dataclass, field
 from enum import Enum
 
@@ -11,7 +10,7 @@ class Group(Enum):
     UV_MAP = "uv_map"
     COLOR_ATTR = "color_attr"
     EXTRA_ATTR = "extra_attr"
-    UNUSED = "unused"
+    UNEVALUATED = "unevaluated"
     GROUP = "group"
     PREFIX = "prefix"
 
@@ -27,7 +26,7 @@ class Attr_Info:
     """ ### todo 应该可以删掉 domain_info,在需要的地方再 domain -> domain_info """
 
     # 对于 list或dict这样的可变类型,必须这样, 直接写domain:list=[], 所有实例都会共享同一个列表
-    group_name: Union[str, list[str]] = field(default_factory=list)
+    group_name: str | list[str] = field(default_factory=list)
 
     group_node_name: list[str] = field(default_factory=list)
 
@@ -35,13 +34,13 @@ class Attr_Info:
 
     node_name: list[str] = field(default_factory=list)
 
-    # "可能存在"的属性,Optional[bool] 是 Union[bool, None] 的简写
-    if_instanced: Optional[bool] = None
+    # "可能存在"的属性
+    if_instanced: bool | None = None
 
-    info: Optional[str] = None
+    info: str | None = None
 
     # 隐藏原因分组
-    attr_group: Optional[Group] = None
+    attr_group: Group | None = None
 
 Attr_Dict = dict[str, Attr_Info]
 

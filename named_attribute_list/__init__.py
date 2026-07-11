@@ -3,7 +3,7 @@ import bpy.utils.previews
 
 from .constants import png_list
 from .preferences import ATTRLIST_AddonPrefs
-from .operators import AL_OT_add_node, NODE_OT_View_Stored_Attribute_Node, NODE_OT_Add_Named_Attribute, ATTRLIST_OT_GroupInfo
+from .operators import AL_OT_add_node, NODE_OT_view_stored_attribute_node, NODE_OT_quick_add_named_attribute, AT_OT_group_info
 from .ui import ATTRLIST_MT_SubMenu, ATTRLIST_MT_Menu, ATTRLIST_PT_NPanel, submenu_classes
 from .utils import add_to_attr_list_mt_editor_menus
 
@@ -12,13 +12,13 @@ _icons = None
 
 classes = [
     AL_OT_add_node,
-    ATTRLIST_OT_GroupInfo,
+    AT_OT_group_info,
     ATTRLIST_MT_SubMenu,
     ATTRLIST_MT_Menu,
     ATTRLIST_PT_NPanel,
     ATTRLIST_AddonPrefs,
-    NODE_OT_View_Stored_Attribute_Node,
-    NODE_OT_Add_Named_Attribute,
+    NODE_OT_view_stored_attribute_node,
+    NODE_OT_quick_add_named_attribute,
 ] + submenu_classes
 
 def register():
@@ -44,7 +44,7 @@ def register():
     kmi.properties.keep_open = True
     addon_keymaps['命名属性面板快捷键'] = (km, kmi)
 
-    kmi = km.keymap_items.new('node.add_named_attribute_node', 'TWO', 'PRESS', ctrl=True, alt=False, shift=False, repeat=False)
+    kmi = km.keymap_items.new(NODE_OT_quick_add_named_attribute.bl_idname, 'TWO', 'PRESS', ctrl=True, alt=False, shift=False, repeat=False)
     addon_keymaps['添加存储节点对应属性节点'] = (km, kmi)
 
 def unregister():

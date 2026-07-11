@@ -33,7 +33,7 @@ class AL_OT_add_node(Operator):
 
     @classmethod
     def poll(cls, context):
-        return True
+        return context.area.type == "NODE_EDITOR"
 
     def invoke(self, context, event):
         self._shift = event.shift
@@ -108,7 +108,7 @@ class AL_OT_add_node(Operator):
             attr_node.hide = prefs.hide_node
         return {"FINISHED"}
 
-class NODE_OT_View_Stored_Attribute_Node(Operator):
+class NODE_OT_view_stored_attribute_node(Operator):
     bl_idname = "node.view_stored_attribute_node"
     bl_label = tr("跳转到已命名属性节点位置")
     bl_description = tr("对于存了多次的属性,查找节点目前只能定位到其中之一")
@@ -145,8 +145,8 @@ class NODE_OT_View_Stored_Attribute_Node(Operator):
             bpy.ops.node.view_selected()
         return {'FINISHED'}
 
-class NODE_OT_Add_Named_Attribute(Operator):
-    bl_idname = "node.add_named_attribute_node"
+class NODE_OT_quick_add_named_attribute(Operator):
+    bl_idname = "node.quick_add_named_attribute"
     bl_label = tr("快速添加命名属性节点")
     bl_description = tr("快速添加选中的活动存储属性节点相应的已命名属性节点")
     bl_options = {"REGISTER", "UNDO"}
@@ -184,8 +184,8 @@ class NODE_OT_Add_Named_Attribute(Operator):
             bpy.ops.node.add_node('INVOKE_DEFAULT', use_transform=True, type='GeometryNodeInputNamedAttribute')
         return {"FINISHED"}
 
-class ATTRLIST_OT_GroupInfo(Operator):
-    bl_idname = "attrlist.hide_group_info"
+class AT_OT_group_info(Operator):
+    bl_idname = "attrlist.group_info"
     bl_label = ""
     bl_options = {'INTERNAL'}
     group_desc : StringProperty(options={'HIDDEN'})
@@ -193,6 +193,10 @@ class ATTRLIST_OT_GroupInfo(Operator):
     @classmethod
     def description(cls, context, props):
         return props.group_desc if props else ""
+
+    @classmethod
+    def poll(cls, context):
+        return context.area.type == "NODE_EDITOR"
 
     def execute(self, context):
         return {'PASS_THROUGH'}

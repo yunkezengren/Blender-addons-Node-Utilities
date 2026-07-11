@@ -25,7 +25,7 @@ GROUP_DESC = {
     Group.UV_MAP:       tr('属性列表中的UV贴图'),
     Group.COLOR_ATTR:   tr('属性列表中的颜色属性'),
     Group.EXTRA_ATTR:   tr('额外属性:\n--属性编辑器-数据-属性\n--物体/集合信息节点带的属性\n--存储属性节点名称接口连了线的\n--活动修改器之上的GN修改器的属性'),
-    Group.UNUSED:       tr('未连接到组输出的存储属性'),
+    Group.UNEVALUATED:  tr('物体最终评估时不评估的属性(逻辑上未连接到组输出的存储属性)'),
     Group.GROUP:        tr('节点组内部存储的属性'),
     Group.PREFIX:       tr('带有特定前缀的属性'),
 }
@@ -35,7 +35,7 @@ GROUPS = [
     (Group.UV_MAP,       tr("UV贴图"),     "UV",                       GROUP_DESC[Group.UV_MAP]),
     (Group.COLOR_ATTR,   tr("颜色属性"),   "COLOR",                    GROUP_DESC[Group.COLOR_ATTR]),
     (Group.EXTRA_ATTR,   tr("额外属性"),   "CON_GEOMETRYATTRIBUTE",    GROUP_DESC[Group.EXTRA_ATTR]),
-    (Group.UNUSED,       tr("未使用的"),   "OUTLINER_DATA_POINTCLOUD", GROUP_DESC[Group.UNUSED]),
+    (Group.UNEVALUATED,  tr("未评估的"),   "OUTLINER_DATA_POINTCLOUD", GROUP_DESC[Group.UNEVALUATED]),
     (Group.GROUP,        tr("组内属性"),   "NODETREE",                 GROUP_DESC[Group.GROUP]),
     (Group.PREFIX,       tr("隐藏前缀"),   "INDIRECT_ONLY_OFF",        GROUP_DESC[Group.PREFIX]),
 ]

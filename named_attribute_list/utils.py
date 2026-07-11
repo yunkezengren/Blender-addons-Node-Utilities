@@ -134,7 +134,7 @@ def get_tree_attrs_dict(
 def get_tree_attrs_list(tree: NodeTree, all_tree_attr: list[str], stored_group) -> list[str]:
     """ 遍历节点得到的属性名称列表,省的被evaluated_obj_attrs里的同名,重存覆盖 """
     nodes = tree.nodes
-    show_unused = not pref().hide_unused_attr
+    show_unused = not pref().hide_unevaluated_attr
 
     for node in nodes:
         if node.mute: continue
@@ -261,13 +261,13 @@ def move_by_prefix_or_unused(dict1: Attr_Dict, dict2: Attr_Dict, all_evaluated_a
                 if prefix and name.startswith(prefix):
                     has_prefix = True
                     break
-        hide_unuse = (pref().hide_unused_attr and name not in all_evaluated_attr)
+        hide_unuse = (pref().hide_unevaluated_attr and name not in all_evaluated_attr)
         if has_prefix or hide_unuse:
             attr_info = dict1.pop(name)
             if has_prefix:
                 attr_info.attr_group = Group.PREFIX
             elif hide_unuse:
-                attr_info.attr_group = Group.UNUSED
+                attr_info.attr_group = Group.UNEVALUATED
             dict2[name] = attr_info
 
 def custom_sort_dict(attrs: Attr_Dict, sort_key_l: list[Union[str, list]]) -> Attr_Dict:

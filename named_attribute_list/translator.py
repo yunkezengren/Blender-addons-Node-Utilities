@@ -110,9 +110,12 @@ dictionary = {
         "属性列表中的颜色属性": "Color attributes in attribute list",
         "额外属性:\n--属性编辑器-数据-属性\n--物体/集合信息节点带的属性\n--存储属性节点名称接口连了线的\n--活动修改器之上的GN修改器的属性": "Extra attributes:\n--Properties Editor-Data-Attributes\n--Attributes from object/collection info nodes\n--Store Named Attribute node with name socket linked\n--Attributes of GN modifiers above the active modifier",
         "未连接到组输出的存储属性": "Store attributes not connected to group output",
+        "未评估的": "Unevaluated",
+        "未评估": "Unevaluated",
+        "物体最终评估时不评估的属性(逻辑上未连接到组输出的存储属性)": "Attributes not evaluated during final object evaluation (logically store attributes not connected to group output)",
         "节点组内部存储的属性": "Attributes stored inside node groups",
         "带有特定前缀的属性": "Attributes with specific prefixes",
-        "细化隐藏菜单,按类别分子菜单显示: 顶点组/UV/颜色属性/额外属性/未使用/组内/前缀": "Refine hide menu, show submenus by category: Vertex Group/UV Map/Color Attr/Extra Attr/Unused/Attrs in Group/Hide Prefix",
+        "细化隐藏菜单,按类别分子菜单显示: 顶点组/UV/颜色属性/额外属性/未评估/组内/前缀": "Refine hide menu, show submenus by category: Vertex Group/UV Map/Color Attr/Extra Attr/Unevaluated/Attrs in Group/Hide Prefix",
     },
 }
 
