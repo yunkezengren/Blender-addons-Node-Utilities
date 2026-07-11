@@ -3,7 +3,7 @@ import bpy.utils.previews
 
 from .constants import png_list
 from .preferences import ATTRLIST_AddonPrefs
-from .operators import AL_OT_add_node_from_list, NODE_OT_View_Stored_Attribute_Node, NODE_OT_Add_Named_Attribute
+from .operators import AL_OT_add_node, NODE_OT_View_Stored_Attribute_Node, NODE_OT_Add_Named_Attribute, ATTRLIST_OT_GroupInfo
 from .ui import ATTRLIST_MT_SubMenu, ATTRLIST_MT_Menu, ATTRLIST_PT_NPanel, submenu_classes
 from .utils import add_to_attr_list_mt_editor_menus
 
@@ -11,7 +11,8 @@ addon_keymaps = {}
 _icons = None
 
 classes = [
-    AL_OT_add_node_from_list,
+    AL_OT_add_node,
+    ATTRLIST_OT_GroupInfo,
     ATTRLIST_MT_SubMenu,
     ATTRLIST_MT_Menu,
     ATTRLIST_PT_NPanel,

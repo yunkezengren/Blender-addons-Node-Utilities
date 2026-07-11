@@ -6,7 +6,7 @@ from enum import Enum
 # 创建一个 Attr_Info 对象时，如果没给 domain_info 传值，它都会得到一个属于自己的、新的空列表。
 # 默认值只在函数/类定义时创建一次;所有实例共享同一个默认值;修改一个，影响所有
 
-class AttrGroup(Enum):
+class Group(Enum):
     VERTEX_GROUP = "vertex_group"
     UV_MAP = "uv_map"
     COLOR_ATTR = "color_attr"
@@ -41,7 +41,7 @@ class Attr_Info:
     info: Optional[str] = None
 
     # 隐藏原因分组
-    attr_group: Optional[AttrGroup] = None
+    attr_group: Optional[Group] = None
 
 Attr_Dict = dict[str, Attr_Info]
 

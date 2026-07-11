@@ -1,4 +1,4 @@
-from .my_dataclass import AttrGroup
+from .my_dataclass import Group
 from .translator import i18n as tr
 
 domain_en_list = [ 'POINT', 'EDGE', 'FACE', 'CORNER', 'CURVE',  'INSTANCE', 'LAYER' ]
@@ -20,12 +20,22 @@ common_l = [['INT16_2D', 'FLOAT2', 'FLOAT_VECTOR'], ['BYTE_COLOR', 'FLOAT_COLOR'
 sort_key_l1: list[str | list] = ['BOOLEAN', 'FLOAT', ['INT8', 'INT']] + common_l
 sort_key_l2: list[str | list] = [['INT8', 'INT'], 'BOOLEAN', 'FLOAT'] + common_l
 
-HIDE_GROUPS = [
-    (AttrGroup.VERTEX_GROUP, tr("顶点组"),     "GROUP_VERTEX"),
-    (AttrGroup.UV_MAP,       tr("UV贴图"),     "UV"),
-    (AttrGroup.COLOR_ATTR,   tr("颜色属性"),   "COLOR"),
-    (AttrGroup.EXTRA_ATTR,   tr("额外属性"),   "CON_GEOMETRYATTRIBUTE"),
-    (AttrGroup.UNUSED,       tr("未使用的"),   "OUTLINER_DATA_POINTCLOUD"),
-    (AttrGroup.GROUP,        tr("组内属性"),   "NODETREE"),
-    (AttrGroup.PREFIX,       tr("隐藏前缀"),   "INDIRECT_ONLY_OFF"),
+GROUP_DESC = {
+    Group.VERTEX_GROUP: tr('属性列表中的顶点组'),
+    Group.UV_MAP:       tr('属性列表中的UV贴图'),
+    Group.COLOR_ATTR:   tr('属性列表中的颜色属性'),
+    Group.EXTRA_ATTR:   tr('额外属性:\n--属性编辑器-数据-属性\n--物体/集合信息节点带的属性\n--存储属性节点名称接口连了线的\n--活动修改器之上的GN修改器的属性'),
+    Group.UNUSED:       tr('未连接到组输出的存储属性'),
+    Group.GROUP:        tr('节点组内部存储的属性'),
+    Group.PREFIX:       tr('带有特定前缀的属性'),
+}
+
+GROUPS = [
+    (Group.VERTEX_GROUP, tr("顶点组"),     "GROUP_VERTEX",             GROUP_DESC[Group.VERTEX_GROUP]),
+    (Group.UV_MAP,       tr("UV贴图"),     "UV",                       GROUP_DESC[Group.UV_MAP]),
+    (Group.COLOR_ATTR,   tr("颜色属性"),   "COLOR",                    GROUP_DESC[Group.COLOR_ATTR]),
+    (Group.EXTRA_ATTR,   tr("额外属性"),   "CON_GEOMETRYATTRIBUTE",    GROUP_DESC[Group.EXTRA_ATTR]),
+    (Group.UNUSED,       tr("未使用的"),   "OUTLINER_DATA_POINTCLOUD", GROUP_DESC[Group.UNUSED]),
+    (Group.GROUP,        tr("组内属性"),   "NODETREE",                 GROUP_DESC[Group.GROUP]),
+    (Group.PREFIX,       tr("隐藏前缀"),   "INDIRECT_ONLY_OFF",        GROUP_DESC[Group.PREFIX]),
 ]

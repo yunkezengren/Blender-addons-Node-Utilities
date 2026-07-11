@@ -4,7 +4,7 @@ from pprint import pprint
 from typing import Union
 
 from .constants import domain_cn_list, domain_lower_list, get_domain_cn, sort_key_l1, sort_key_l2
-from .my_dataclass import Attr_Info, Attr_Dict, AttrGroup
+from .my_dataclass import Attr_Info, Attr_Dict, Group
 from .preferences import pref
 from .translator import i18n as tr
 
@@ -110,7 +110,7 @@ def get_tree_attrs_dict(
                                       node_name=[node.name],
                                       group_node_name=[group_node_name],
                                       if_instanced=loop_find_if_instanced(node),
-                                      attr_group=AttrGroup.GROUP if _in_group_hide else None,
+                                      attr_group=Group.GROUP if _in_group_hide else None,
                                       )
                 _attrs_dict[attr_name] = attr_info
             else:
@@ -216,7 +216,7 @@ def extend_dict_with_obj_data_attrs(attrs_d: Attr_Dict, sub_attrs_d: Attr_Dict, 
     prefs = pref()
     _dict = sub_attrs_d if prefs.hide_extra_attr else attrs_d
 
-    _extra_cat = AttrGroup.EXTRA_ATTR if prefs.hide_extra_attr else None
+    _extra_cat = Group.EXTRA_ATTR if prefs.hide_extra_attr else None
     all_evaluated_attr = extend_dict_with_evaluated_obj_attrs(_dict, exclude_l, a_object, all_tree_attr, attr_group=_extra_cat)
     if a_object.type == "MESH":
         hide_in_sub = prefs.hide_vertex_group
@@ -228,7 +228,7 @@ def extend_dict_with_obj_data_attrs(attrs_d: Attr_Dict, sub_attrs_d: Attr_Dict, 
                                             domain_info=[tr('点')],
                                             group_name=tr("物体属性"),
                                             info=tr("顶点组"),
-                                            attr_group=AttrGroup.VERTEX_GROUP if hide_in_sub else None)
+                                            attr_group=Group.VERTEX_GROUP if hide_in_sub else None)
         hide_in_sub = prefs.hide_uv_map
         for attr in uv_layers:
             if attrs_d.get(attr.name) and not hide_in_sub: continue
@@ -238,7 +238,7 @@ def extend_dict_with_obj_data_attrs(attrs_d: Attr_Dict, sub_attrs_d: Attr_Dict, 
                                             domain_info=[tr('面拐')],
                                             group_name=tr("物体属性"),
                                             info=tr("UV贴图"),
-                                            attr_group=AttrGroup.UV_MAP if hide_in_sub else None)
+                                            attr_group=Group.UV_MAP if hide_in_sub else None)
         hide_in_sub = prefs.hide_color_attr
         for attr in color_attrs:
             if attrs_d.get(attr.name) and not hide_in_sub: continue
@@ -248,7 +248,7 @@ def extend_dict_with_obj_data_attrs(attrs_d: Attr_Dict, sub_attrs_d: Attr_Dict, 
                                             domain_info=[tr(get_domain_cn[attr.domain])],
                                             group_name=tr("物体属性"),
                                             info=tr("颜色属性"),
-                                            attr_group=AttrGroup.COLOR_ATTR if hide_in_sub else None)
+                                            attr_group=Group.COLOR_ATTR if hide_in_sub else None)
     return all_evaluated_attr
 
 def move_by_prefix_or_unused(dict1: Attr_Dict, dict2: Attr_Dict, all_evaluated_attr: list):
@@ -265,9 +265,9 @@ def move_by_prefix_or_unused(dict1: Attr_Dict, dict2: Attr_Dict, all_evaluated_a
         if has_prefix or hide_unuse:
             attr_info = dict1.pop(name)
             if has_prefix:
-                attr_info.attr_group = AttrGroup.PREFIX
+                attr_info.attr_group = Group.PREFIX
             elif hide_unuse:
-                attr_info.attr_group = AttrGroup.UNUSED
+                attr_info.attr_group = Group.UNUSED
             dict2[name] = attr_info
 
 def custom_sort_dict(attrs: Attr_Dict, sort_key_l: list[Union[str, list]]) -> Attr_Dict:
@@ -304,7 +304,7 @@ def get_attrs(get_hided=False):
     attrs = sub_attrs if get_hided else attrs
     return sort_attr_dict(attrs)
 
-def get_hided_attrs_by_group(group: AttrGroup) -> Attr_Dict:
+def get_hided_attrs_by_group(group: Group) -> Attr_Dict:
     """获取指定组的隐藏属性"""
     attrs = get_attrs(get_hided=True)
     return {k: v for k, v in attrs.items() if v.attr_group == group}

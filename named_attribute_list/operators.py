@@ -7,7 +7,7 @@ from .preferences import pref
 from .utils import exit_group_to_root, proper_scroll_view
 from .translator import i18n as tr
 
-class AL_OT_add_node_from_list(Operator):
+class AL_OT_add_node(Operator):
     bl_idname = "al.add_node_from_list"
     bl_label = "属性隐藏选项"
     bl_options = {"REGISTER", "UNDO"}
@@ -183,3 +183,16 @@ class NODE_OT_Add_Named_Attribute(Operator):
         else:
             bpy.ops.node.add_node('INVOKE_DEFAULT', use_transform=True, type='GeometryNodeInputNamedAttribute')
         return {"FINISHED"}
+
+class ATTRLIST_OT_GroupInfo(Operator):
+    bl_idname = "attrlist.hide_group_info"
+    bl_label = ""
+    bl_options = {'INTERNAL'}
+    group_desc : StringProperty(options={'HIDDEN'})
+
+    @classmethod
+    def description(cls, context, props):
+        return props.group_desc if props else ""
+
+    def execute(self, context):
+        return {'PASS_THROUGH'}

@@ -2,6 +2,8 @@ import bpy
 from bpy.types import AddonPreferences
 from bpy.props import StringProperty, EnumProperty, BoolProperty
 
+from .constants import GROUP_DESC
+from .my_dataclass import Group
 from .translator import i18n as tr
 
 class ATTRLIST_AddonPrefs(AddonPreferences):
@@ -16,15 +18,15 @@ class ATTRLIST_AddonPrefs(AddonPreferences):
     hide_store_option  : BoolProperty(description=tr('添加时是否隐藏选项'),           default=False)
     hide_select_socket : BoolProperty(description=tr('添加时是否隐藏输入名称接口'),   default=True)
     rename_store_node  : BoolProperty(description=tr('添加时是否重命名节点为属性名'), default=False)
-    hide_by_prefix     : BoolProperty(description=tr('是否隐藏带有特定前缀的属性'),   default=False)
+    hide_by_prefix     : BoolProperty(description=GROUP_DESC[Group.PREFIX],     default=False)
     show_set_panel     : BoolProperty(description=tr('显示设置'),                     default=True)
     if_scale_editor    : BoolProperty(description=tr('查找节点时适当缩放视图'),       default=True)
-    hide_vertex_group  : BoolProperty(description=tr('是否在属性列表里隐藏顶点组'),   default=False)
-    hide_uv_map        : BoolProperty(description=tr('是否在属性列表里隐藏UV贴图'),   default=False)
-    hide_color_attr    : BoolProperty(description=tr('是否在属性列表里隐藏颜色属性'), default=False)
-    hide_unused_attr   : BoolProperty(description=tr('todo-隐藏没连到组输出的存储属性节点的属性'), default=False)
-    hide_attr_in_group : BoolProperty(description=tr('隐藏节点组里的属性'), default=False)
-    hide_extra_attr    : BoolProperty(description=tr('隐藏额外的属性:\n--属性编辑器-数据-属性\n--物体/集合信息节点带的(和别的几何数据合并几何才显示顶点组)\n--存储属性节点名称接口连了线的\n--活动修改器之上的GN修改器的属性'), default=False)
+    hide_vertex_group  : BoolProperty(description=GROUP_DESC[Group.VERTEX_GROUP], default=False)
+    hide_uv_map        : BoolProperty(description=GROUP_DESC[Group.UV_MAP],       default=False)
+    hide_color_attr    : BoolProperty(description=GROUP_DESC[Group.COLOR_ATTR],   default=False)
+    hide_unused_attr   : BoolProperty(description=GROUP_DESC[Group.UNUSED],       default=False)
+    hide_attr_in_group : BoolProperty(description=GROUP_DESC[Group.GROUP],        default=False)
+    hide_extra_attr    : BoolProperty(description=GROUP_DESC[Group.EXTRA_ATTR],   default=False)
     hide_by_group      : BoolProperty(description=tr('细化隐藏菜单,按类别分子菜单显示: 顶点组/UV/颜色属性/额外属性/未使用/组内/前缀'), default=True)
     add_settings       : BoolProperty(name=tr('添加节点选项'),   description=tr('添加节点选项'),       default=False)
     show_settings      : BoolProperty(name=tr('列表显示选项'),   description=tr('列表显示选项'),       default=True)

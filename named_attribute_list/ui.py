@@ -1,9 +1,9 @@
 from bpy.types import Menu, Panel, Context, UILayout
 
-from .constants import HIDE_GROUPS, data_with_png, shader_date_types
+from .constants import GROUPS, data_with_png, shader_date_types
 from .preferences import pref
 from .utils import get_attrs, get_hided_attrs_by_group, exist_node_tree, get_domain_list
-from .operators import AL_OT_add_node_from_list
+from .operators import AL_OT_add_node, ATTRLIST_OT_GroupInfo
 from .translator import i18n as tr
 
 def draw_attr_menu(layout: UILayout, context: Context, attrs, is_panel=False):
@@ -30,7 +30,7 @@ def draw_attr_menu(layout: UILayout, context: Context, attrs, is_panel=False):
                 can_find_store_node = True
         if group_name == tr("物体属性"):
             description += f'\n{tr("类型: ")}' + attr_info.info
-        op: AL_OT_add_node_from_list = None
+        op: AL_OT_add_node = None
         if is_panel:
             split = layout.split(factor=0.9)
             op = split.operator('al.add_node_from_list', text=button_txt, icon_value=(_icons[data_with_png[data_type]].icon_id))
@@ -62,7 +62,7 @@ class ATTRLIST_MT_SubMenu(Menu):
 
     def draw(self, context):
         if pref().hide_by_group:
-            for group_key, group_label, group_icon in HIDE_GROUPS:
+            for group_key, group_label, group_icon, _ in GROUPS:
                 attrs = get_hided_attrs_by_group(group_key)
                 if attrs:
                     self.layout.menu(f"ATTRLIST_MT_SubMenu_{group_key.value}", text=group_label, icon=group_icon)
@@ -70,19 +70,22 @@ class ATTRLIST_MT_SubMenu(Menu):
             attrs = get_attrs(get_hided=True)
             draw_attr_menu(self.layout, context, attrs)
 
-def _make_submenu_draw(group):
+def _make_submenu_draw(group, desc):
     def draw(self, context):
+        layout = self.layout
+        op = layout.operator(ATTRLIST_OT_GroupInfo.bl_idname, text=" ", icon='INFO', emboss=False)
+        op.group_desc = desc
         attrs = get_hided_attrs_by_group(group)
-        draw_attr_menu(self.layout, context, attrs)
+        draw_attr_menu(layout, context, attrs)
     return draw
 
 # 动态生成子菜单类
 submenu_classes = []
-for _group_key, _group_label, _group_icon in HIDE_GROUPS:
+for _group_key, _group_label, _group_icon, _group_desc in GROUPS:
     _cls = type(f"ATTRLIST_MT_SubMenu_{_group_key.value}", (Menu,), {
         "bl_idname": f"ATTRLIST_MT_SubMenu_{_group_key.value}",
         "bl_label": _group_label,
-        "draw": _make_submenu_draw(_group_key),
+        "draw": _make_submenu_draw(_group_key, _group_desc),
     })
     submenu_classes.append(_cls)
 
@@ -98,7 +101,7 @@ class ATTRLIST_MT_Menu(Menu):
     def draw(self, context):
         self.bl_options = {'SEARCH_ON_KEY_PRESS'} if not pref().use_accelerator_key else set()
         if pref().hide_by_group:
-            for group_key, group_label, group_icon in HIDE_GROUPS:
+            for group_key, group_label, group_icon, _ in GROUPS:
                 attrs = get_hided_attrs_by_group(group_key)
                 if attrs:
                     self.layout.menu(f"ATTRLIST_MT_SubMenu_{group_key.value}", text=group_label, icon=group_icon)
