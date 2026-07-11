@@ -25,6 +25,7 @@ class ATTRLIST_AddonPrefs(AddonPreferences):
     hide_uv_map        : BoolProperty(description=GROUP_DESC[Group.UV_MAP],       default=False)
     hide_color_attr    : BoolProperty(description=GROUP_DESC[Group.COLOR_ATTR],   default=False)
     hide_unevaluated_attr : BoolProperty(description=GROUP_DESC[Group.UNEVALUATED],  default=False)
+    skip_unevaluated_group: BoolProperty(description=tr('跳过输出未连线的节点组\n(仅判断节点组输出是否连线,不追踪完整链路)'), default=True)
     hide_attr_in_group : BoolProperty(description=GROUP_DESC[Group.GROUP],        default=False)
     hide_extra_attr    : BoolProperty(description=GROUP_DESC[Group.EXTRA_ATTR],   default=False)
     hide_by_group      : BoolProperty(description=tr('细化隐藏菜单,按类别分子菜单显示: 顶点组/UV/颜色属性/额外属性/未评估/组内/前缀'), default=True)

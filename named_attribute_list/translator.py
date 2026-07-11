@@ -113,9 +113,13 @@ dictionary = {
         "未评估的": "Unevaluated",
         "未评估": "Unevaluated",
         "物体最终评估时不评估的属性(逻辑上未连接到组输出的存储属性)": "Attributes not evaluated during final object evaluation (logically store attributes not connected to group output)",
+        "物体最终评估时不评估的属性\n(仅简单判断存储属性节点输出是否连线,不追踪完整链路)": "Attributes not evaluated during final object evaluation\n(only simple checks if store attribute node output is linked, does not trace full chain)",
         "节点组内部存储的属性": "Attributes stored inside node groups",
         "带有特定前缀的属性": "Attributes with specific prefixes",
         "细化隐藏菜单,按类别分子菜单显示: 顶点组/UV/颜色属性/额外属性/未评估/组内/前缀": "Refine hide menu, show submenus by category: Vertex Group/UV Map/Color Attr/Extra Attr/Unevaluated/Attrs in Group/Hide Prefix",
+        "跳过输出未连线的节点组\n(仅简单判断节点组输出是否连线,不追踪完整链路)": "Skip node groups with unlinked output\n(only simple checks if node group output is linked, does not trace full chain)",
+        "跳过未评估节点组": "Skip Unevaluated Groups",
+        "跳过": "Skip",
     },
 }
 

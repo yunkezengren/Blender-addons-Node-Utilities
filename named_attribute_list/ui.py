@@ -210,6 +210,10 @@ class ATTRLIST_PT_NPanel(Panel):
                     split41.prop(prefs, 'prefix_to_hide', text='')
 
                 split5 = box1.split(factor=0.5)
+                split5.label(text=tr('跳过未评估节点组'))
+                split5.prop(prefs, 'skip_unevaluated_group', toggle=True, text=tr('跳过'))
+
+                split5 = box1.split(factor=0.5)
                 split5.label(text=tr('属性列表文本设置'))
                 split5.prop(prefs, 'show_attr_domain', toggle=True, text=tr('显示所在域'))
 

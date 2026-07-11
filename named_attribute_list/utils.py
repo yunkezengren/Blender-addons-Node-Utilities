@@ -56,10 +56,9 @@ def get_active_gn_tree():
 
 def is_node_output_used(node: Node):
     soc_out = node.outputs
-    if len(soc_out):
-        for soc in soc_out:
-            if soc.is_linked:
-                return True
+    for soc in soc_out:
+        if soc.is_linked:
+            return True
     return False
 
 def loop_find_if_instanced(node: Node):
@@ -122,6 +121,8 @@ def get_tree_attrs_dict(
                 attr_info.group_node_name.append(group_node_name)
                 attr_info.node_name.append(node.name)
         if node.type == "GROUP" and node.node_tree:
+            if pref().skip_unevaluated_group and not is_node_output_used(node):
+                continue
             group_name = node.node_tree.name
             if group_name in stored_group:  continue
             stored_group.append(group_name)
@@ -148,12 +149,13 @@ def get_tree_attrs_list(tree: NodeTree, all_tree_attr: list[str], stored_group) 
                 if attr_name not in all_tree_attr:
                     all_tree_attr.append(attr_name)
         if node.type == "GROUP" and node.node_tree:
+            if pref().skip_unevaluated_group and not is_node_output_used(node):
+                continue
             group_name = node.node_tree.name
             if group_name in stored_group:
                 continue
             stored_group.append(group_name)
-            if show_unused or is_node_output_used(node):
-                all_tree_attr = get_tree_attrs_list(node.node_tree, all_tree_attr, stored_group)
+            all_tree_attr = get_tree_attrs_list(node.node_tree, all_tree_attr, stored_group)
 
     return all_tree_attr
 
