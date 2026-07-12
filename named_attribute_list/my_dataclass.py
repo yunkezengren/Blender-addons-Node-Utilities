@@ -28,9 +28,11 @@ class Attr_Info:
     # 对于 list或dict这样的可变类型,必须这样, 直接写domain:list=[], 所有实例都会共享同一个列表
     group_name: str | list[str] = field(default_factory=list)
 
-    group_node_name: list[str] = field(default_factory=list)
+    group_node_path: list[str] = field(default_factory=list)
+    """Group节点实例名路径, 例: 当前group是顶层节点树/Group/InnerGroup"""
 
-    group_name_parent: list[str] = field(default_factory=list)
+    parent_path: list[str] = field(default_factory=list)
+    """对应节点树名路径, 例: 顶层节点树无父级/wrapper/inner"""
 
     node_name: list[str] = field(default_factory=list)
 
@@ -53,8 +55,8 @@ _example = {
         'domain': ['EDGE'],
         'domain_info': ['边'],
         'group_name': ['测试.001'],
-        'group_name_parent': ['顶层节点树无父级/wrapper'],
-        'group_node_name': ['当前group是顶层节点树/Group'],
+        'parent_path': ['顶层节点树无父级/wrapper'],
+        'group_node_path': ['当前group是顶层节点树/Group'],
         'if_instanced': False,
         'node_name': ['Store Named Attribute.007']
     },
@@ -76,8 +78,8 @@ _example = {
         'domain': ['POINT', 'POINT'],
         'domain_info': ['点', '点'],
         'group_name': ['测试.001', '测试.001'],
-        'group_name_parent': ['顶层节点树无父级/wrapper', '顶层节点树无父级/wrapper'],
-        'group_node_name': ['当前group是顶层节点树/Group', '当前group是顶层节点树/Group'],
+        'parent_path': ['顶层节点树无父级/wrapper', '顶层节点树无父级/wrapper'],
+        'group_node_path': ['当前group是顶层节点树/Group', '当前group是顶层节点树/Group'],
         'if_instanced': False,
         'node_name': ['Store Named Attribute.008', 'Store Named Attribute.011']
     },

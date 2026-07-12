@@ -40,9 +40,9 @@ def draw_attr_menu(layout: UILayout, context: Context, attrs, is_panel=False):
             if ui_type == 'GeometryNodeTree':
                 op_find = split.operator('node.view_stored_attribute_node', text="", emboss=can_find_store_node, icon=icon)
                 op_find.node_name = (attr_info.node_name or "无属性")[0]
-                group_name_list = attr_info.group_node_name or "无属性"
-                op_find.group_node_name = str(group_name_list[0])
-                op_find.parent_path = (attr_info.group_name_parent or "无属性")[0]
+                group_name_list = attr_info.group_node_path or "无属性"
+                op_find.group_node_path = str(group_name_list[0])
+                op_find.parent_path = (attr_info.parent_path or "无属性")[0]
         else:
             op = layout.operator('al.add_node_from_list', text=button_txt, icon_value=(_icons[data_with_png[data_type]].icon_id))
         op.attr_name = attr_name

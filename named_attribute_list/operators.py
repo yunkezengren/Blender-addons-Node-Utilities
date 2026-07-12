@@ -114,7 +114,7 @@ class NODE_OT_view_stored_attribute_node(Operator):
     bl_description = tr("对于存了多次的属性,查找节点目前只能定位到其中之一")
     node_name       : StringProperty(name='node_name', description='存储属性节点目标', default="无", subtype='NONE')
     parent_path     : StringProperty(name='parent_path', description='parent_path', default="", subtype='NONE')
-    group_node_name : StringProperty(name='group_node_name', description='group_node_name', default="", subtype='NONE')
+    group_node_path : StringProperty(name='group_node_path', description='group_node_path', default="", subtype='NONE')
 
     @classmethod
     def poll(cls, context):
@@ -126,7 +126,7 @@ class NODE_OT_view_stored_attribute_node(Operator):
         exit_group_to_root()
 
         path_list = self.parent_path.split("/")[1:]
-        name_list = self.group_node_name.split("/")[1:]
+        name_list = self.group_node_path.split("/")[1:]
 
         for path, name in zip(path_list, name_list):
             nodes = bpy.data.node_groups[path].nodes

@@ -1,5 +1,5 @@
 import bpy
-from bpy.types import Context, Object, NodeTree, Node
+from bpy.types import Context, Object, NodeTree, Node, NodeSocket
 from pprint import pprint
 
 from .constants import domain_cn_list, domain_lower_list, get_domain_cn, sort_key_l1, sort_key_l2
@@ -80,7 +80,7 @@ def loop_find_if_instanced(node: Node):
                 return False
     return False
 
-def _resolve_linked_name(socket, group_node_stack: list[Node]):
+def _resolve_linked_name(socket: NodeSocket, group_stack: list[Node]):
     """从 socket 沿连接回溯, 尝试解析到字符串常量"""
     _sk = socket.links[0].from_socket
     visited = set()
@@ -91,9 +91,9 @@ def _resolve_linked_name(socket, group_node_stack: list[Node]):
         visited.add(_node)
         if isinstance(_node, B.NodeGroupInput):
             # GroupInput 的输出对应父层 Group 节点的同名输入
-            if not group_node_stack:
+            if not group_stack:
                 break
-            _parent = group_node_stack.pop()
+            _parent = group_stack.pop()
             _input = _parent.inputs.get(_sk.name)
             if _input is None:
                 break
@@ -116,14 +116,14 @@ def get_tree_attrs_dict(
     tree: NodeTree,
     attrs_dict: Attr_Dict,
     sub_attrs: Attr_Dict,
-    group_node_name: str,
-    group_name_parent: str,
+    group_node_path: str,
+    parent_path: str,
     visited_trees: set[NodeTree],
     in_group=False,
-    group_node_stack: list[Node] | None = None,
+    group_stack: list[Node] | None = None,
 ) -> Attr_Dict:
-    if group_node_stack is None:
-        group_node_stack = []
+    if group_stack is None:
+        group_stack = []
     nodes = tree.nodes
     for node in nodes:
         if node.mute: continue
@@ -131,24 +131,24 @@ def get_tree_attrs_dict(
             name_sk = node.inputs["Name"]
             attr_name = ""
             if name_sk.is_linked:
-                attr_name = _resolve_linked_name(name_sk, group_node_stack.copy())
+                attr_name = _resolve_linked_name(name_sk, group_stack.copy())
             else:
                 attr_name = name_sk.default_value
             if attr_name == "":
                 continue
             domain_cn = tr(get_domain_cn[node.domain])
 
-            _in_group_hide = in_group and pref().hide_attr_in_group and group_node_name != "当前group是顶层节点树"
-            _group_display_active = in_group and pref().group_attr_display != 'DEFAULT' and group_node_name != "当前group是顶层节点树"
+            _in_group_hide = in_group and pref().hide_attr_in_group and group_node_path != "当前group是顶层节点树"
+            _group_display_active = in_group and pref().group_attr_display != 'DEFAULT' and group_node_path != "当前group是顶层节点树"
             _attrs_dict = sub_attrs if _in_group_hide else attrs_dict
             if attr_name not in _attrs_dict:
                 attr_info = Attr_Info(data_type=node.data_type,
                                       domain=[node.domain],
                                       domain_info=[domain_cn],
                                       group_name=[tree.name],
-                                      group_name_parent=[group_name_parent],
+                                      parent_path=[parent_path],
                                       node_name=[node.name],
-                                      group_node_name=[group_node_name],
+                                      group_node_path=[group_node_path],
                                       if_instanced=loop_find_if_instanced(node),
                                       attr_group=Group.GROUP if _in_group_hide else None,
                                       is_from_group=_group_display_active,
@@ -158,9 +158,11 @@ def get_tree_attrs_dict(
                 attr_info = _attrs_dict[attr_name]
                 attr_info.domain.append(node.domain)
                 attr_info.domain_info.append(domain_cn)
-                attr_info.group_name.append(tree.name)
-                attr_info.group_name_parent.append(group_name_parent)
-                attr_info.group_node_name.append(group_node_name)
+                # 按节点树名去重, 保留首次出现的顺序
+                if tree.name not in attr_info.group_name:
+                    attr_info.group_name.append(tree.name)
+                    attr_info.parent_path.append(parent_path)
+                    attr_info.group_node_path.append(group_node_path)
                 if _group_display_active:
                     attr_info.is_from_group = True
                 attr_info.node_name.append(node.name)
@@ -169,20 +171,20 @@ def get_tree_attrs_dict(
                 continue
             if node.node_tree in visited_trees:  continue  # 防递归循环
             visited_trees.add(node.node_tree)
-            temp1 = group_node_name + "/" + node.name
-            temp2 = group_name_parent + "/" + tree.name
-            _stack = group_node_stack + [node]
+            temp1 = group_node_path + "/" + node.name
+            temp2 = parent_path + "/" + tree.name
+            _stack = group_stack + [node]
             get_tree_attrs_dict(node.node_tree, attrs_dict, sub_attrs, visited_trees=visited_trees,
-                                group_node_name=temp1, group_name_parent=temp2, in_group=True,
-                                group_node_stack=_stack)
+                                group_node_path=temp1, parent_path=temp2, in_group=True,
+                                group_stack=_stack)
             visited_trees.discard(node.node_tree)
     return attrs_dict
 
 def get_tree_attrs_list(tree: NodeTree, all_tree_attr: list[str], visited_trees: set[NodeTree],
-                        group_node_stack: list[Node] | None = None) -> list[str]:
+                        group_stack: list[Node] | None = None) -> list[str]:
     """ 遍历节点得到的属性名称列表,省的被evaluated_obj_attrs里的同名,重存覆盖 """
-    if group_node_stack is None:
-        group_node_stack = []
+    if group_stack is None:
+        group_stack = []
     nodes = tree.nodes
     show_unused = not pref().hide_unevaluated_attr
 
@@ -192,7 +194,7 @@ def get_tree_attrs_list(tree: NodeTree, all_tree_attr: list[str], visited_trees:
             if show_unused or is_node_output_used(node):
                 name_input = node.inputs["Name"]
                 if name_input.is_linked:
-                    attr_name = _resolve_linked_name(name_input, group_node_stack.copy())
+                    attr_name = _resolve_linked_name(name_input, group_stack.copy())
                 else:
                     attr_name = name_input.default_value
                 if attr_name == "":  continue
@@ -206,7 +208,7 @@ def get_tree_attrs_list(tree: NodeTree, all_tree_attr: list[str], visited_trees:
                 continue
             visited_trees.add(node.node_tree)
             all_tree_attr = get_tree_attrs_list(node.node_tree, all_tree_attr, visited_trees,
-                                                group_node_stack=group_node_stack + [node])
+                                                group_stack=group_stack + [node])
             visited_trees.discard(node.node_tree)
 
     return all_tree_attr
@@ -356,7 +358,7 @@ def get_attrs(get_hided=False):
     all_tree_attr = []
     sub_attrs: Attr_Dict = {}
     if tree:
-        attrs = get_tree_attrs_dict(tree, attrs, sub_attrs, visited_trees=set(), group_node_name="当前group是顶层节点树", group_name_parent="顶层节点树无父级")
+        attrs = get_tree_attrs_dict(tree, attrs, sub_attrs, visited_trees=set(), group_node_path="当前group是顶层节点树", parent_path="顶层节点树无父级")
         all_tree_attr = get_tree_attrs_list(tree, all_tree_attr=[], visited_trees=set())
     all_evaluated_attr = extend_dict_with_obj_data_attrs(attrs, sub_attrs, all_tree_attr)
     move_by_prefix_or_unused(attrs, sub_attrs, all_evaluated_attr)
