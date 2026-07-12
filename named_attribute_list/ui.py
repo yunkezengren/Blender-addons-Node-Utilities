@@ -102,6 +102,9 @@ def _draw_group_attrs_by_tree(attrs):
             by_tree.setdefault(gn, {})[name] = info
     return by_tree
 
+def tree_icon(tree_name):
+    return 'QUESTION' if tree_name == tr("不确定") else 'NODETREE'
+
 def _draw_with_group_mode(layout, context, attrs, mode):
     """按组内显示模式绘制属性"""
     if mode == 'SUBGROUP':
@@ -111,22 +114,28 @@ def _draw_with_group_mode(layout, context, attrs, mode):
         for i, tree_name in enumerate(sorted_trees[:_NTS_SLOT_COUNT]):
             _nodetree_slots[i] = (tree_name, by_tree[tree_name])
         for i, tree_name in enumerate(sorted_trees[:_NTS_SLOT_COUNT]):
-            layout.menu(f"ATTRLIST_MT_NTS_{i}", text=tree_name, icon='NODETREE')
+            layout.menu(f"ATTRLIST_MT_NTS_{i}", text=tree_name, icon=tree_icon(tree_name))
     elif mode == 'FLAT':
         by_tree = _draw_group_attrs_by_tree(attrs)
         for tree_name in sorted(by_tree):
-            layout.label(text=tree_name, icon='NODETREE')
+            layout.label(text=tree_name, icon=tree_icon(tree_name))
             draw_attr_menu(layout, context, by_tree[tree_name])
     else:  # DEFAULT
         draw_attr_menu(layout, context, attrs)
 
+def _is_unknown_group(info):
+    gn = info.group_name
+    if isinstance(gn, list):
+        return tr("不确定") in gn
+    return gn == tr("不确定")
+
 def _draw_attrs_split_group(layout, context, attrs, mode):
-    """绘制属性列表, 组内属性按 mode 分离绘制, 非组内属性平铺"""
+    """绘制属性列表, 组内属性和不确定属性按 mode 分离绘制, 其余平铺"""
     if mode == 'DEFAULT':
         draw_attr_menu(layout, context, attrs)
         return
-    group_attrs = {k: v for k, v in attrs.items() if v.is_from_group}
-    other_attrs = {k: v for k, v in attrs.items() if not v.is_from_group}
+    group_attrs = {k: v for k, v in attrs.items() if v.is_from_group or _is_unknown_group(v)}
+    other_attrs = {k: v for k, v in attrs.items() if not v.is_from_group and not _is_unknown_group(v)}
     if other_attrs:
         draw_attr_menu(layout, context, other_attrs)
     if group_attrs:

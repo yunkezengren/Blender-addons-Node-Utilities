@@ -1,12 +1,13 @@
-import bpy, time
+import bpy
 from bpy.types import Context, Object, NodeTree, Node
 from pprint import pprint
-from typing import Union
 
 from .constants import domain_cn_list, domain_lower_list, get_domain_cn, sort_key_l1, sort_key_l2
 from .my_dataclass import Attr_Info, Attr_Dict, Group
 from .preferences import pref
 from .translator import i18n as tr
+
+B = bpy.types
 
 def get_domain_list():
     view = bpy.context.preferences.view
@@ -54,6 +55,7 @@ def get_active_gn_tree():
     else:
         return False
 
+# todo 可以改成递归判断的
 def is_node_output_used(node: Node):
     soc_out = node.outputs
     for soc in soc_out:
@@ -84,7 +86,7 @@ def get_tree_attrs_dict(
     sub_attrs: Attr_Dict,
     group_node_name: str,
     group_name_parent: str,
-    stored_group: list,
+    stored_group: list[str],
     in_group=False,
 ) -> Attr_Dict:
     nodes = tree.nodes
@@ -281,7 +283,7 @@ def move_by_prefix_or_unused(dict1: Attr_Dict, dict2: Attr_Dict, all_evaluated_a
             if attr_info.attr_group == Group.GROUP and name not in all_evaluated_attr:
                 attr_info.attr_group = Group.UNEVALUATED
 
-def custom_sort_dict(attrs: Attr_Dict, sort_key_l: list[Union[str, list]]) -> Attr_Dict:
+def custom_sort_dict(attrs: Attr_Dict, sort_key_l: list[str | list]) -> Attr_Dict:
     sorted_attrs: Attr_Dict = {}
     for sort_key in sort_key_l:
         _sort_key: set[str] = set(sort_key) if isinstance(sort_key, list) else {sort_key}
