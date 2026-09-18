@@ -247,7 +247,7 @@ class NODE_MT_mixer_pie(Menu):
         tup_nodes = mixer_tree_sk_nodes[tree_idname].get(VmtData.skType, default_nodes)
         if VmtData.isSpeedPie:
             for ti in tup_nodes:
-                if ti != SEPARATE:
+                if ti != SEPARATE and hasattr(bpy.types, ti):
                     LyVmAddOp(pie, ti)
         else:
             # 如果执行时列为空, 则只显示一个空的点框. 下面两个列表是为了修复这个问题.
@@ -269,6 +269,8 @@ class NODE_MT_mixer_pie(Menu):
             _align = VmtData.pieAlignment == 0
 
             for idname in default_nodes:
+                if not hasattr(bpy.types, idname):
+                    continue
                 row123 = col_left.row(align=_align)
                 LyVmAddItem(row123, idname)
 
@@ -276,6 +278,8 @@ class NODE_MT_mixer_pie(Menu):
             last_ti = None
             for ti in tup_nodes:
                 if ti in node_support_all_gn_sk: continue
+                if ti != SEPARATE and not hasattr(bpy.types, ti):
+                    continue
                 match ti:
                     case 'ShaderNodeMix'           :
                         # todo 改进这里的逻辑,虽然mix节点三个节点树都有，但为了画在左半
