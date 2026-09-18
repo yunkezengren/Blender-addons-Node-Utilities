@@ -155,6 +155,7 @@ class NODE_OT_voronoi_quick_math(TripleSocketTool):
             case 'ShaderNodeTree':     VqmtData.qmSkType = {'BOOLEAN':'VALUE'}.get(VqmtData.qmSkType, VqmtData.qmSkType)
             case 'GeometryNodeTree':   pass
             case 'CompositorNodeTree': VqmtData.qmSkType = {'BOOLEAN':'VALUE'}.get(VqmtData.qmSkType, VqmtData.qmSkType)
+            case 'ImageNodeTree':      VqmtData.qmSkType = {'INT':'VALUE'}.get(VqmtData.qmSkType, VqmtData.qmSkType)
             case 'TextureNodeTree':    VqmtData.qmSkType = {'BOOLEAN':'VALUE', 'VECTOR':'RGBA'}.get(VqmtData.qmSkType, VqmtData.qmSkType)
         if self.isRepeatLastOperation:
             return do_quick_math(event, tree, VqmtData.dict_lastOperation[VqmtData.qmTrueSkType])
@@ -184,6 +185,8 @@ class NODE_OT_voronoi_quick_math(TripleSocketTool):
                     can = self.justPieCall in {1, 2, 4}
                 case 'GeometryNodeTree':
                     can = True
+                case 'ImageNodeTree':
+                    can = self.justPieCall in {1, 2, 3, 4, 5}
                 case 'TextureNodeTree':
                     can = self.justPieCall in {1, 4}
             if not can:
@@ -194,6 +197,8 @@ class NODE_OT_voronoi_quick_math(TripleSocketTool):
             VqmtData.sk1 = None
             VqmtData.sk2 = None
             VqmtData.qmSkType = ('VALUE','VECTOR','BOOLEAN','RGBA', 'INT')[self.justPieCall-1]
+            if tree.bl_idname == 'ImageNodeTree' and VqmtData.qmSkType == 'INT':
+                VqmtData.qmSkType = 'VALUE'
             self.VqmSetPieData(prefs, sk_type_color_map[VqmtData.qmSkType])
             VqmtData.isJustPie = True
             bpy.ops.node.quick_math_sub('INVOKE_DEFAULT')

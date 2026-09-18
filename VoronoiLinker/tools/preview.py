@@ -116,6 +116,13 @@ def VptGetRootNd(tree):
             for nd in tree.nodes:
                 if nd.type=='OUTPUT':
                     return nd
+        case 'ImageNodeTree':
+            for nd in tree.nodes:
+                if nd.bl_idname=='ImageNodeViewer' or nd.type=='VIEWER':
+                    return nd
+            for nd in tree.nodes:
+                if (nd.type=='GROUP_OUTPUT') and getattr(nd, 'is_active_output', True):
+                    return nd
     return None
 
 def VptGetRootSk(tree, ndRoot, skTar):
@@ -187,7 +194,14 @@ def VptPreviewFromSk(self, prefs, skTar):
                 case 0: txt = "MixRGB" # 因为它可以在所有编辑器中使用; 还有 Shift+G > Type.
                 case 1: txt = "AddShader"
                 case 2: txt = "SeparateGeometry" # 需要一个影响(负载)最小且支持所有几何类型的节点, (并且没有多输入).
-            ndRvSave = self.tree.nodes.new(self.tree.bl_idname.replace("Tree","")+txt)
+            if self.tree.bl_idname == 'ImageNodeTree':
+                # ImageNodeMixRGB 不存在；GPU Texture Editor 复用 Shader/Compositor 节点
+                save_idname = {'MixRGB': 'ShaderNodeMixRGB',
+                               'AddShader': 'ShaderNodeMix',
+                               'SeparateGeometry': 'ShaderNodeMixRGB'}.get(txt, 'ShaderNodeMixRGB')
+            else:
+                save_idname = self.tree.bl_idname.replace("Tree", "") + txt
+            ndRvSave = self.tree.nodes.new(save_idname)
             ndRvSave.location = pos
         ndRvSave.name = voronoiPreviewResultNdName
         ndRvSave.select = False

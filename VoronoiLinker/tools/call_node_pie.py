@@ -1,6 +1,7 @@
 import bpy
 from ..base_tool import unhide_node_reassign, AnyTargetTool
 from bpy.app.translations import pgettext_iface as _iface
+from .quick__convert import call_convert_pie_for_socket
 
 def show_node_pie_install_popup():
 
@@ -29,7 +30,10 @@ class NODE_OT_voronoi_call_node_pie(AnyTargetTool):
             unhide_node_reassign(nearest_tar_sk.tar.node, self, cond=self.target_any)
 
     def run(self, event, prefs, tree):
-        path = repr(self.target_any.tar)  # 有效解决几何和材质节点 节点数据路径不太一样的问题
+        sk = self.target_any.tar
+        if call_convert_pie_for_socket(sk):
+            return
+        path = repr(sk)  # 有效解决几何和材质节点 节点数据路径不太一样的问题
         try:
             bpy.ops.node_pie.call_node_pie("INVOKE_DEFAULT", reset_args=False, voronoi_call=True, socket_path=path)
         except AttributeError:

@@ -4,7 +4,7 @@ from ..base_tool import unhide_node_reassign, TripleSocketTool
 from ..globals import AllQuickDimensions, Cursor_X_Offset
 from ..utils.drawing import draw_sockets_template
 from ..utils.node import node_enum_props, opt_tar_socket, remember_add_link
-from .quick__convert import Convert_Data, Convert, call_convert_pie
+from .quick__convert import call_convert_pie_for_socket, _sync_selected_node, _start_transform
 
 def get_dimension_node(tree: NodeTree, sk_type: str):
     return AllQuickDimensions.get(tree.bl_idname, None).get(sk_type, None)
@@ -76,25 +76,25 @@ class NODE_OT_voronoi_quick_dimensions(TripleSocketTool):
         isGeoTree = tree.bl_idname=='GeometryNodeTree'
         isOutNdQuat = (isGeoTree)and(sk_out0.node.bl_idname==Q_Dimensions['ROTATION'][0])
         #Добавить:
-        if sk_out0.type == "ROTATION":        # 小王-Alt D 旋转接口
-            Convert_Data.sk0 = sk_out0
-            if self.target_sk1:
-                Convert_Data.sk1 = self.target_sk1.tar
-            if self.target_sk2:
-                Convert_Data.sk2 = self.target_sk2.tar
-            call_convert_pie(Convert.rotation_to)
-        elif sk_out0.type == "MATRIX":        # 小王-Alt D 矩阵接口
-            Convert_Data.sk0 = sk_out0
-            if self.target_sk1:
-                Convert_Data.sk1 = self.target_sk1.tar
-            if self.target_sk2:
-                Convert_Data.sk2 = self.target_sk2.tar
-            call_convert_pie(Convert.separate_matrix)
+        extra = []
+        if self.target_sk1:
+            extra.append(self.target_sk1.tar)
+        if self.target_sk2:
+            extra.append(self.target_sk2.tar)
+        # Closure Alt+D is just Evaluate Closure; pie menus belong to Alt / Ctrl LMB.
+        if sk_out0.type != 'CLOSURE' and call_convert_pie_for_socket(sk_out0, *extra):
+            return
         else:
-            bpy.ops.node.add_node('INVOKE_DEFAULT',
-                                  type=Q_Dimensions[sk_out0.type][isOutNdCol if not isOutNdQuat else 2],
-                                  use_transform=not self.isPlaceImmediately)
+            node_type = Q_Dimensions[sk_out0.type][isOutNdCol if not isOutNdQuat else 2]
+            needs_sync = sk_out0.type in {'CLOSURE', 'BUNDLE'}
+            bpy.ops.node.add_node(
+                'EXEC_DEFAULT' if needs_sync else 'INVOKE_DEFAULT',
+                type=node_type,
+                use_transform=(not needs_sync) and (not self.isPlaceImmediately),
+            )
             aNd = tree.nodes.active
+            if aNd is None:
+                return {'CANCELLED'}
             aNd.width = 140
             if aNd.bl_idname in {Q_Dimensions['RGBA'][0], Q_Dimensions['VALUE'][1]}:  #|3|.
                 aNd.show_options = False  # 不加区分地隐藏(所有选项)不太美观, 所以才有了上面的检查.
@@ -123,5 +123,9 @@ class NODE_OT_voronoi_quick_dimensions(TripleSocketTool):
             if self.target_sk2:
                 remember_add_link(self.target_sk2.tar, aNd.inputs[2])
 
-            if sk_out0.type in ["CLOSURE", "BUNDLE"]:
-                bpy.ops.node.sockets_sync()
+            if needs_sync:
+                _sync_selected_node(tree, aNd)
+                aNd.select = True
+                tree.nodes.active = aNd
+                if not self.isPlaceImmediately:
+                    _start_transform()

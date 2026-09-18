@@ -6,6 +6,83 @@ B = bpy.types
 
 from .globals import is_bl5_plus
 
+# 新建组接口时不要抄这些: 只读、身份信息、或依赖邻居/面板才可写的标志.
+_INTERFACE_COPY_SKIP = {
+    'rna_type', 'bl_rna', 'name', 'identifier', 'item_type', 'index', 'position',
+    'socket_type', 'parent', 'in_out', 'select', 'is_panel_toggle',
+    'join_to_next_parameter',  # 排在最后时只读, 抄了会把后面的默认值同步打断
+}
+
+
+def _snapshot_rna_value(val):
+    if val is None or isinstance(val, (str, bytes, bool, int, float)):
+        return val
+    try:
+        return val[:]
+    except Exception:
+        try:
+            return tuple(val)
+        except Exception:
+            return val
+
+
+def _assign_rna(dst, ident, value) -> bool:
+    try:
+        setattr(dst, ident, value)
+        return True
+    except Exception:
+        return False
+
+
+def _copy_default_value(dst, src) -> None:
+    if src is None or not hasattr(dst, 'default_value') or not hasattr(src, 'default_value'):
+        return
+    _assign_rna(dst, 'default_value', _snapshot_rna_value(src.default_value))
+
+
+def _copy_interface_props(dst, src) -> None:
+    if src is None:
+        return
+    for pr in dst.rna_type.properties:
+        ident = pr.identifier
+        if ident == 'default_value' or ident in _INTERFACE_COPY_SKIP:
+            continue
+        if pr.is_readonly or pr.is_registered:
+            continue
+        if not hasattr(src, ident):
+            continue
+        _assign_rna(dst, ident, _snapshot_rna_value(getattr(src, ident)))
+    _copy_default_value(dst, src)
+
+
+def _sync_group_socket_defaults(group_tree: NodeTree, interface_sk, from_sk: NodeSocket) -> None:
+    if not hasattr(interface_sk, 'default_value'):
+        return
+    default = _snapshot_rna_value(interface_sk.default_value)
+
+    def fix_in_tree(tree: NodeTree):
+        for nd in tree.nodes:
+            if nd.type == 'GROUP' and nd.node_tree == group_tree:
+                for sk in nd.inputs:
+                    if sk.identifier == interface_sk.identifier and hasattr(sk, 'default_value'):
+                        _assign_rna(sk, 'default_value', default)
+
+    from .utils.node import is_builtin_tree
+    for ng in bpy.data.node_groups:
+        if is_builtin_tree(ng.bl_idname):
+            fix_in_tree(ng)
+    data_names = ['materials', 'scenes', 'worlds', 'textures', 'lights', 'linestyles']
+    if is_bl5_plus:
+        data_names.remove('scenes')
+    for att in data_names:
+        for dt in getattr(bpy.data, att):
+            if dt.node_tree:
+                fix_in_tree(dt.node_tree)
+    try:
+        group_tree.interface_update(bpy.context)
+    except Exception:
+        pass
+
 node_has_items = {
     'SIMULATION_INPUT', 'SIMULATION_OUTPUT', 'REPEAT_INPUT', 'REPEAT_OUTPUT', 'MENU_SWITCH', 'BAKE', 'CAPTURE_ATTRIBUTE',
     'INDEX_SWITCH'
@@ -115,7 +192,7 @@ class NodeItemsUtils:
                 raise Exception(f"`Socket for node side not found: {item}`")
 
     def new_item_from_socket(self, from_sk: NodeSocket, is_flip_side: bool = False):
-        from .utils.node import socket_label, sk_type_to_idname, add_item_for_index_switch, is_builtin_tree  # 延迟导入避免循环导入
+        from .utils.node import socket_label, sk_type_to_idname, add_item_for_index_switch
         sk_name = socket_label(from_sk)
         sk_type = from_sk.type
         match self.type:
@@ -142,36 +219,17 @@ class NodeItemsUtils:
                                                socket_type=sk_type_to_idname(from_sk),
                                                in_out='OUTPUT' if (from_sk.is_output ^ is_flip_side) else 'INPUT')
                 interface_sk.hide_value = from_sk.hide_value
-                if hasattr(interface_sk, 'default_value') and from_sk.type != "MENU":
-                    # todo 菜单接口先连线才能设置默认值啊
-                    interface_sk.default_value = from_sk.default_value
-                    if hasattr(interface_sk, 'min_value'):
-                        nd = from_sk.node
-                        if (nd.type in {'GROUP_INPUT', 'GROUP_OUTPUT'}) or ((nd.type == 'GROUP') and (nd.node_tree)):
-                            # 如果套接字来自另一个节点组，则完全复制。
-                            source_item = NodeItemsUtils(nd).get_item(from_sk)
-                            for pr in interface_sk.rna_type.properties:
-                                if not (pr.is_readonly or pr.is_registered):
-                                    setattr(interface_sk, pr.identifier, getattr(source_item, pr.identifier))
-                    # tovo2v6 用于 `interface_sk.subtype =` 的套接字 blid 替换映射。
-                    # TODO0 需要想办法在创建之前嵌入，以便所有组的套接字立即拥有 item 默认值。Blender 自己是怎么做到的？
-                    def fix_in_tree(tree: NodeTree):
-                        for nd in tree.nodes:
-                            if (nd.type == 'GROUP') and (nd.node_tree == self.tree):
-                                for sk in nd.inputs:
-                                    if sk.identifier == interface_sk.identifier:
-                                        sk.default_value = from_sk.default_value
-
-                    for ng in bpy.data.node_groups:
-                        if is_builtin_tree(ng.bl_idname):
-                            fix_in_tree(ng)
-                    data_names = ['materials', 'scenes', 'worlds', 'textures', 'lights', 'linestyles']
-                    if is_bl5_plus:
-                        data_names.remove('scenes')
-                    for att in data_names:  # 是这些，还是我忘了某个？
-                        for dt in getattr(bpy.data, att):
-                            if dt.node_tree:  # 对于 materials -- https://github.com/ugorek000/VoronoiLinker/issues/19; 我仍然不明白它怎么可能是 None。
-                                fix_in_tree(dt.node_tree)
+                nd = from_sk.node
+                source_item = None
+                if (nd.type in {'GROUP_INPUT', 'GROUP_OUTPUT'}) or ((nd.type == 'GROUP') and (nd.node_tree)):
+                    source_item = NodeItemsUtils(nd).get_item(from_sk)
+                # 先写当前插座默认值; 组接口再抄 subtype/min/max, 最后覆盖 default_value.
+                # join_to_next_parameter 等只读属性跳过, 避免打断后面的默认值.
+                if from_sk.type != "MENU":
+                    _copy_default_value(interface_sk, from_sk)
+                if source_item:
+                    _copy_interface_props(interface_sk, source_item)
+                _sync_group_socket_defaults(self.tree, interface_sk, from_sk)
                 return interface_sk
 
     def move_items(self, from_item: Any, to_item: Any, *, is_swap: bool = False):  # 本可以自行处理“按 item 移动”的复杂性，但这已经是调用方的责任了。

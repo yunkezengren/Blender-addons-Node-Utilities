@@ -43,6 +43,9 @@ sk_type_idname_map = {
     'TEXTURE':   'NodeSocketTexture',
     'IMAGE':     'NodeSocketImage',
     'MATRIX':    'NodeSocketMatrix',
+    'MENU':      'NodeSocketMenu',
+    'BUNDLE':    'NodeSocketBundle',
+    'CLOSURE':   'NodeSocketClosure',
     'CUSTOM':    'NodeSocketVirtual',
 }
 
@@ -121,6 +124,7 @@ mixer_default: dict[str, tuple[str]] = {
     'ShaderNodeTree':     ('GeometryNodeMenuSwitch', ),
     'GeometryNodeTree':   node_support_all_gn_sk,
     'CompositorNodeTree': ('GeometryNodeMenuSwitch', ),
+    'ImageNodeTree':      node_support_all_gn_sk,  # GPU Texture Editor：Switch / Index / Menu 均可用
 }
 
 # geo_sk_type = [
@@ -137,7 +141,16 @@ mixer_tree_sk_nodes: dict[str, dict[str, tuple[str]]] = {
                 'VALUE':      ('ShaderNodeCombineXYZ', 'ShaderNodeMixRGB',  'ShaderNodeMix',                      'ShaderNodeMath'),
                 'RGBA':       ('ShaderNodeMixRGB',  'ShaderNodeMix'),
                 'VECTOR':     ('ShaderNodeMixRGB',  'ShaderNodeMix',                                       'ShaderNodeVectorMath'),
-                'INT':        ('ShaderNodeCombineXYZ', 'ShaderNodeMixRGB',  'ShaderNodeMix',                      'ShaderNodeMath')},
+                'INT':        ('ShaderNodeCombineXYZ', 'ShaderNodeMixRGB',  'ShaderNodeMix',                      'ShaderNodeMath'),
+                'BUNDLE':     ('NodeJoinBundle', 'NodeStoreBundleItem', 'NodeGetBundleItem'),
+                'ROTATION':   ('ShaderNodeMix', SEPARATE,
+                                'FunctionNodeInvertRotation', 'FunctionNodeRotateRotation',
+                                'FunctionNodeAlignRotationToVector', 'FunctionNodeRotateVector', SEPARATE,
+                                'FunctionNodeRotationToEuler', 'FunctionNodeRotationToAxisAngle',
+                                'FunctionNodeRotationToQuaternion', 'FunctionNodeEulerToRotation',
+                                'FunctionNodeAxisAngleToRotation', 'FunctionNodeQuaternionToRotation',
+                                'FunctionNodeAxesToRotation'),
+                },
                 ##
         'GeometryNodeTree':   {
                 'VALUE':      node_support_all_gn_sk + ( 'ShaderNodeMix', 'ShaderNodeCombineXYZ', 'FunctionNodeCompare', 'ShaderNodeMath'),
@@ -147,25 +160,64 @@ mixer_tree_sk_nodes: dict[str, dict[str, tuple[str]]] = {
                                                    'FunctionNodeStringLength', 'FunctionNodeReplaceString', ),
                 'INT':        node_support_all_gn_sk + ( 'ShaderNodeMix', 'ShaderNodeCombineXYZ', 'FunctionNodeCompare', 'ShaderNodeMath'),
                 'BOOLEAN':    _support_data_type+ ( 'ShaderNodeMath',                       'FunctionNodeBooleanMath'),
-                'ROTATION':   node_support_all_gn_sk + ( 'ShaderNodeMix', ),
+                'ROTATION':   node_support_all_gn_sk + ( 'ShaderNodeMix', SEPARATE,
+                                'FunctionNodeInvertRotation', 'FunctionNodeRotateRotation',
+                                'FunctionNodeAlignRotationToVector', 'FunctionNodeRotateVector', SEPARATE,
+                                'FunctionNodeRotationToEuler', 'FunctionNodeRotationToAxisAngle',
+                                'FunctionNodeRotationToQuaternion', 'FunctionNodeEulerToRotation',
+                                'FunctionNodeAxisAngleToRotation', 'FunctionNodeQuaternionToRotation',
+                                'FunctionNodeAxesToRotation'),
                 'MATRIX':     node_support_all_gn_sk + ( 'FunctionNodeMatrixMultiply', SEPARATE,
                                 'FunctionNodeTransposeMatrix', 'FunctionNodeInvertMatrix', 'FunctionNodeMatrixDeterminant', SEPARATE,
                                 'FunctionNodeTransformPoint', 'FunctionNodeTransformDirection', 'FunctionNodeProjectPoint', SEPARATE,
                                 'FunctionNodeSeparateTransform', 'FunctionNodeSeparateMatrix'),
                 'GEOMETRY':   node_support_all_gn_sk + ('GeometryNodeJoinGeometry', 'GeometryNodeInstanceOnPoints', 'GeometryNodeCurveToMesh',
-                                                   'GeometryNodeMeshBoolean', 'GeometryNodeGeometryToInstance')},
-                ##
+                                                   'GeometryNodeMeshBoolean', 'GeometryNodeGeometryToInstance'),
+                'BUNDLE':     node_support_all_gn_sk + ('NodeJoinBundle', SEPARATE,
+                                'NodeStoreBundleItem', 'NodeGetBundleItem', 'NodeGetNestedBundlePaths', SEPARATE,
+                                'NodeSeparateBundle'),
+                'CLOSURE':    node_support_all_gn_sk + ('GeometryNodeSetClosureDefault', SEPARATE, 'NodeEvaluateClosure'),
+        },
         'CompositorNodeTree': {
                 'VALUE':      ('ShaderNodeMix', SEPARATE, 'ShaderNodeCombineXYZ' , 'ShaderNodeMath',      'CompositorNodeSwitch', 'CompositorNodeSplitViewer', 'CompositorNodeSwitchView'),
                 'RGBA':       ('ShaderNodeMix', SEPARATE, 'CompositorNodeAlphaOver', 'CompositorNodeSwitch', 'CompositorNodeSplitViewer', 'CompositorNodeSwitchView'),
                 'VECTOR':     ('ShaderNodeMix', SEPARATE,                           'CompositorNodeSwitch', 'CompositorNodeSplitViewer', 'CompositorNodeSwitchView'),
-                'INT':        ('ShaderNodeMix', SEPARATE, 'ShaderNodeCombineXYZ', 'ShaderNodeMath',      'CompositorNodeSwitch', 'CompositorNodeSplitViewer', 'CompositorNodeSwitchView')},
+                'INT':        ('ShaderNodeMix', SEPARATE, 'ShaderNodeCombineXYZ', 'ShaderNodeMath',      'CompositorNodeSwitch', 'CompositorNodeSplitViewer', 'CompositorNodeSwitchView'),
+                'BUNDLE':     ('NodeJoinBundle', SEPARATE, 'NodeStoreBundleItem', 'NodeGetBundleItem'),
+                'ROTATION':   ('ShaderNodeMix', SEPARATE,
+                                'FunctionNodeInvertRotation', 'FunctionNodeRotateRotation',
+                                'FunctionNodeAlignRotationToVector', 'FunctionNodeRotateVector', SEPARATE,
+                                'FunctionNodeRotationToEuler', 'FunctionNodeRotationToAxisAngle',
+                                'FunctionNodeRotationToQuaternion', 'FunctionNodeEulerToRotation',
+                                'FunctionNodeAxisAngleToRotation', 'FunctionNodeQuaternionToRotation',
+                                'FunctionNodeAxesToRotation'),
+                },
                                 ##
         'TextureNodeTree':    {
                 'VALUE':       ('ShaderNodeCombineXYZ' , 'TextureNodeMixRGB', 'TextureNodeTexture', 'TextureNodeMath'),
                 'RGBA':       ('TextureNodeMixRGB', 'TextureNodeTexture'),
                 'VECTOR':     ('TextureNodeMixRGB',                                        'TextureNodeDistance'),
-                'INT':        ('TextureNodeMixRGB', 'TextureNodeTexture', 'TextureNodeMath')}}
+                'INT':        ('TextureNodeMixRGB', 'TextureNodeTexture', 'TextureNodeMath')},
+        ## BIKINI GPU Texture Editor：合成器节点 + 通用 Math/Mix/Switch
+        'ImageNodeTree':      {
+                'VALUE':      node_support_all_gn_sk + ('ShaderNodeMix', SEPARATE, 'ShaderNodeCombineXYZ', 'ShaderNodeMath', 'CompositorNodeSwitch'),
+                'RGBA':       _support_data_type + ('CompositorNodeAlphaOver', 'CompositorNodeSwitch'),
+                'VECTOR':     _support_data_type + ('ShaderNodeVectorMath', 'CompositorNodeSwitch'),
+                'INT':        node_support_all_gn_sk + ('ShaderNodeMix', 'ShaderNodeCombineXYZ', 'FunctionNodeCompare', 'ShaderNodeMath'),
+                'BOOLEAN':    _support_data_type + ('FunctionNodeBooleanMath',),
+                'STRING':     node_support_all_gn_sk + ('FunctionNodeCompare',),
+                'BUNDLE':     node_support_all_gn_sk + ('NodeJoinBundle', SEPARATE,
+                                'NodeStoreBundleItem', 'NodeGetBundleItem'),
+                'ROTATION':   node_support_all_gn_sk + ( 'ShaderNodeMix', SEPARATE,
+                                'FunctionNodeInvertRotation', 'FunctionNodeRotateRotation',
+                                'FunctionNodeAlignRotationToVector', 'FunctionNodeRotateVector', SEPARATE,
+                                'FunctionNodeRotationToEuler', 'FunctionNodeRotationToAxisAngle',
+                                'FunctionNodeRotationToQuaternion', 'FunctionNodeEulerToRotation',
+                                'FunctionNodeAxisAngleToRotation', 'FunctionNodeQuaternionToRotation',
+                                'FunctionNodeAxesToRotation'),
+                'CLOSURE':    node_support_all_gn_sk + ('NodeEvaluateClosure',),
+                },
+        }
 
 # ! 混合饼菜单在这里加不如改进 VoronoiLinker和NodePie联动
 # 按一次Shift 多一个接口
@@ -199,6 +251,25 @@ dict_vmtMixerNodesDefs = { # '-1' 表示这里的视觉标记，它们的连接�
         'CompositorNodeAlphaOver':        (1, 2, 'Alpha Over '),
         'TextureNodeDistance':            (0, 1, 'Distance '),
         'GeometryNodeJoinGeometry':       (0, 0, 'Join '),
+        'NodeJoinBundle':                (0, 0, 'Join Bundle '),
+        'NodeStoreBundleItem':           (0, 0, 'Store '),
+        'NodeGetBundleItem':             (0, 0, 'Get Bundle Item '),
+        'NodeGetNestedBundlePaths':      (0, 0, 'Get Nested Bundle Path '),
+        'NodeSeparateBundle':            (0, 0, 'Separate Bundle '),
+        'NodeCombineBundle':             (0, 0, 'Combine Bundle '),
+        'NodeEvaluateClosure':           (0, 0, 'Evaluate Closure '),
+        'GeometryNodeSetClosureDefault': (0, 1, 'Set Default Closure '),
+        'FunctionNodeInvertRotation':    (0, 0, 'Invert Rotation '),
+        'FunctionNodeRotateRotation':    (0, 1, 'Rotate Rotation '),
+        'FunctionNodeAlignRotationToVector': (0, 0, 'Align Rotation to Vector '),
+        'FunctionNodeRotateVector':      (1, 1, 'Rotate Vector '),
+        'FunctionNodeRotationToEuler':   (0, 0, 'Rotation to Euler '),
+        'FunctionNodeRotationToAxisAngle': (0, 0, 'Rotation to Axis Angle '),
+        'FunctionNodeRotationToQuaternion': (0, 0, 'Rotation to Quaternion '),
+        'FunctionNodeEulerToRotation':   (0, 0, 'Euler to Rotation '),
+        'FunctionNodeAxisAngleToRotation': (0, 0, 'Axis Angle to Rotation '),
+        'FunctionNodeQuaternionToRotation': (0, 0, 'Quaternion to Rotation '),
+        'FunctionNodeAxesToRotation':    (0, 0, 'Axes to Rotation '),
         'GeometryNodeInstanceOnPoints':   (0, 2, 'Instance on Points '),
         'GeometryNodeCurveToMesh':        (0, 1, 'Curve to Mesh '),
         'GeometryNodeMeshBoolean':        (0, 1, 'Boolean '),
@@ -269,23 +340,27 @@ dict_vqmtEditorNodes = {
         'VALUE':   {'ShaderNodeTree':     'ShaderNodeMath',
                     'GeometryNodeTree':   'ShaderNodeMath',
                     'CompositorNodeTree': 'ShaderNodeMath',
+                    'ImageNodeTree':      'ShaderNodeMath',
                     'TextureNodeTree':    'TextureNodeMath'},
         ##
         'VECTOR':  {'ShaderNodeTree':     'ShaderNodeVectorMath',
                     'GeometryNodeTree':   'ShaderNodeVectorMath',
                     'CompositorNodeTree': 'ShaderNodeVectorMath',
+                    'ImageNodeTree':      'ShaderNodeVectorMath',
                     },
         ##
-        'BOOLEAN': {'GeometryNodeTree':   'FunctionNodeBooleanMath'},
+        'BOOLEAN': {'GeometryNodeTree':   'FunctionNodeBooleanMath',
+                    'ImageNodeTree':      'FunctionNodeBooleanMath'},
         'INT':     {'GeometryNodeTree':   'FunctionNodeIntegerMath'},
         ##
         'RGBA':    {'ShaderNodeTree':     'ShaderNodeMix',
                     'GeometryNodeTree':   'ShaderNodeMix',
                     'CompositorNodeTree': 'ShaderNodeMix',
+                    'ImageNodeTree':      'ShaderNodeMix',
                     'TextureNodeTree':    'TextureNodeMixRGB'} }
 # 根据操作的套接字默认值
 dict_vqmtDefaultValueOperation = {
-        'VALUE': {'MULTIPLY':(1.0, 1.0, 1.0),
+        'VALUE': {'MULTIPLY':(0.5, 0.5, 1.0),
                   'DIVIDE':  (1.0, 1.0, 1.0),
                   'POWER':   (2.0, 1/3, 0.0),
                   'SQRT':    (2.0, 2.0, 2.0),
@@ -295,7 +370,7 @@ dict_vqmtDefaultValueOperation = {
                   'MODULO':   (0, 2, 0),
                   'MULTIPLY': (0, 2, 0),
                 },
-        'VECTOR': {'MULTIPLY':     ( (1,1,1), (1,1,1), (1,1,1), 1.0 ),
+        'VECTOR': {'MULTIPLY':     ( (0.5,0.5,0.5), (0.5,0.5,0.5), (1,1,1), 1.0 ),
                    'DIVIDE':       ( (1,1,1), (1,1,1), (1,1,1), 1.0 ),
                    'CROSS_PRODUCT':( (0,0,1), (0,0,1), (0,0,1), 1.0 ),
                    'SCALE':        ( (0,0,0), (0,0,0), (0,0,0), pi )},
@@ -348,6 +423,7 @@ AllQuickDimensions = {
                               'RGBA':     ('ShaderNodeSeparateColor',),
                               'VALUE':    ('ShaderNodeCombineXYZ', 'ShaderNodeCombineColor'),
                               'INT':      ('ShaderNodeCombineXYZ',),
+                              'ROTATION': ('FunctionNodeRotationToQuaternion',),
                               'BUNDLE':   ('NodeSeparateBundle', ),
                               'CLOSURE':  ('NodeEvaluateClosure', ),
                               },
@@ -360,20 +436,30 @@ AllQuickDimensions = {
                               'MATRIX':   ('FunctionNodeSeparateTransform',),
                               'ROTATION': ('FunctionNodeRotationToQuaternion',),
                               'GEOMETRY': ('GeometryNodeSeparateGeometry',), # GeometryNodeSeparateComponents更合适, 但SeparateGeometry更常用
-                              'BUNDLE':   ('NodeSeparateBundle', ),
-                              'CLOSURE':  ('NodeEvaluateClosure', ),
+                              'BUNDLE':   ('NodeSeparateBundle', 'NodeStoreBundleItem', 'NodeGetBundleItem', 'NodeGetNestedBundlePaths'),
+                              'CLOSURE':  ('NodeEvaluateClosure',),
                               },
 
         'CompositorNodeTree':{'VECTOR':   ('ShaderNodeSeparateXYZ',),
                               'RGBA':     ('CompositorNodeSeparateColor',),
                               'VALUE':    ('ShaderNodeCombineXYZ', 'CompositorNodeCombineColor'),
                               'INT':      ('ShaderNodeCombineXYZ',),
+                              'ROTATION': ('FunctionNodeRotationToQuaternion',),
+                              'BUNDLE':   ('NodeSeparateBundle', 'NodeStoreBundleItem', 'NodeGetBundleItem'),
                               },
         'TextureNodeTree':   {'VECTOR':   ('TextureNodeSeparateColor',),
                               'RGBA':     ('TextureNodeSeparateColor',),
                               'VALUE':    ('TextureNodeCombineColor', ''), # 无法处理缺少第二个的情况，因此留空；参见 |3|。
                               'INT':      ('TextureNodeCombineColor',),
-                              }
+                              },
+        'ImageNodeTree':     {'VECTOR':   ('ShaderNodeSeparateXYZ',),
+                              'RGBA':     ('CompositorNodeSeparateColor',),
+                              'VALUE':    ('ShaderNodeCombineXYZ', 'CompositorNodeCombineColor'),
+                              'INT':      ('ShaderNodeCombineXYZ',),
+                              'ROTATION': ('FunctionNodeRotationToQuaternion',),
+                              'BUNDLE':   ('NodeSeparateBundle', 'NodeStoreBundleItem', 'NodeGetBundleItem'),
+                              'CLOSURE':  ('NodeEvaluateClosure',),
+                              },
         }
 
 base_constant = {
@@ -407,10 +493,22 @@ cmp_constant = base_constant | {
     'RGBA': 'CompositorNodeRGB',
 }
 
+# GPU Texture Editor：颜色走合成器 Color 节点（会铺成纹理）；FunctionNodeInputColor 仅几何树可用
+img_constant = {
+    'BOOLEAN': 'FunctionNodeInputBool',
+    'VALUE':   'ShaderNodeValue',
+    'INT':     'FunctionNodeInputInt',
+    'VECTOR':  'ShaderNodeCombineXYZ',
+    'RGBA':    'CompositorNodeRGB',
+    'STRING':  'FunctionNodeInputString',
+    'MENU':    'GeometryNodeIndexSwitch',
+}
+
 
 AllQuickConstant: dict[str, dict[str, str | list]] = {
     'GeometryNodeTree': geo_constant,
     'ShaderNodeTree': shader_constant,
     'CompositorNodeTree': cmp_constant,
+    'ImageNodeTree': img_constant,
     'TextureNodeTree': {}
 }

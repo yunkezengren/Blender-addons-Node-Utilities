@@ -1,10 +1,13 @@
 import bpy
-from bpy.types import NodeSocket, NodeTree, UILayout, Node
+from bpy.types import NodeSocket, NodeTree, Node
 from ..base_tool import unhide_node_reassign, TripleSocketTool
 from ..globals import AllQuickConstant, Cursor_X_Offset
 from ..utils.drawing import draw_sockets_template
 from ..utils.node import opt_tar_socket
-from .quick__convert import Convert_Data, Convert, call_convert_pie
+from .quick__convert import (
+    call_convert_pie_for_socket, _add_closure_zone, _first_socket, _try_link,
+    _sync_selected_node, _start_transform, _SYNC_NODE_TYPES,
+)
 
 B = bpy.types
 
@@ -72,78 +75,88 @@ class NODE_OT_voronoi_quick_constant(TripleSocketTool):
         return not not self.target_sk0
     def run(self, event, prefs, tree):
         skIn0 = self.target_sk0.tar
-        if skIn0.type in ["ROTATION", "MATRIX"]:
-            Convert_Data.sk0 = skIn0
-            if self.target_sk1:
-                Convert_Data.sk1 = self.target_sk1.tar
-            if self.target_sk2:
-                Convert_Data.sk2 = self.target_sk2.tar
-            if skIn0.type == "ROTATION":
-                if hasattr(skIn0, "default_value"):
-                    call_convert_pie(Convert.to_rotation)
-                # return {'FINISHED'}       # 想松开按键确认
-                # new_node.width = 200   # md这里不行，运行ops后立马运行下面的了？放在Rotation_Convert里的invoke就行了？ (那里放好这里忘删了找了半天错误)
-            if skIn0.type == "MATRIX":
-                call_convert_pie(Convert.combine_matrix)
-        else:
-            node_type = get_const_node(tree, skIn0.type)
-            if node_type == "NodeClosureOutput":
-                bpy.ops.node.add_closure_zone('INVOKE_DEFAULT', use_transform=True)
-            else:
-                bpy.ops.node.add_node('INVOKE_DEFAULT', type=node_type, use_transform=not self.isPlaceImmediately)
-            new_node = tree.nodes.active
-            sk_out = new_node.outputs[0]
+        extra = []
+        if self.target_sk1:
+            extra.append(self.target_sk1.tar)
+        if self.target_sk2:
+            extra.append(self.target_sk2.tar)
+        # Closure Alt+C drops a Closure Zone directly; pie menus belong to Alt / Ctrl LMB.
+        if skIn0.type != 'CLOSURE' and call_convert_pie_for_socket(skIn0, *extra):
+            return
+        node_type = get_const_node(tree, skIn0.type)
+        if not node_type:
+            return {'CANCELLED'}
+        if isinstance(node_type, list):
+            node_type = node_type[0]
+        if node_type == "NodeClosureOutput":
+            _add_closure_zone(tree, skIn0, use_transform=not self.isPlaceImmediately)
+            return
 
-            tree.links.new(sk_out, skIn0)
-            if self.target_sk1:
-                tree.links.new(sk_out, self.target_sk1.tar)
-            if self.target_sk2:
-                tree.links.new(sk_out, self.target_sk2.tar)
+        needs_sync = node_type in _SYNC_NODE_TYPES
+        bpy.ops.node.add_node(
+            'EXEC_DEFAULT' if needs_sync else 'INVOKE_DEFAULT',
+            type=node_type,
+            use_transform=(not needs_sync) and (not self.isPlaceImmediately),
+        )
+        new_node = tree.nodes.active
+        if new_node is None:
+            return {'CANCELLED'}
+        sk_out = _first_socket(new_node.outputs, skIn0.type) or _first_socket(new_node.outputs)
+        _try_link(tree, sk_out, skIn0)
+        if self.target_sk1:
+            _try_link(tree, sk_out, self.target_sk1.tar)
+        if self.target_sk2:
+            _try_link(tree, sk_out, self.target_sk2.tar)
 
-            if isinstance(new_node, (B.NodeClosureOutput, B.NodeCombineBundle)):
-                bpy.ops.node.sockets_sync()
-                return
+        if needs_sync:
+            _sync_selected_node(tree, new_node)
+            new_node.select = True
+            tree.nodes.active = new_node
+            if not self.isPlaceImmediately:
+                _start_transform()
+            return
 
-            if not hasattr(skIn0, "default_value"): return
-            value = skIn0.default_value
+        if not hasattr(skIn0, "default_value"):
+            return
+        value = skIn0.default_value
 
-            if isinstance(new_node, B.ShaderNodeValue):
-                new_node.outputs[0].default_value = value
-            elif isinstance(new_node, (B.FunctionNodeInputColor, B.ShaderNodeRGB)):
-                new_node.value = value
-            elif isinstance(new_node, B.FunctionNodeInputInt):
-                new_node.integer = value
-            elif isinstance(new_node, B.FunctionNodeInputBool):
-                new_node.boolean = value
-            elif isinstance(new_node, B.FunctionNodeInputString):
-                new_node.string = value
-            elif isinstance(new_node, B.GeometryNodeInputImage):
-                new_node.image = value
-            elif isinstance(new_node, B.GeometryNodeInputMaterial):
-                new_node.material = value
-            elif isinstance(new_node, B.GeometryNodeInputObject):
-                new_node.object = value
-            elif isinstance(new_node, B.GeometryNodeInputCollection):
-                new_node.collection = value
-            elif isinstance(new_node, B.FunctionNodeEulerToRotation):
-                new_node.inputs[0].default_value = value
-            elif isinstance(new_node, B.ShaderNodeCombineXYZ):
-                dimension = len(value)
-                if dimension == 4:  # todo 暂时不实现
-                    pass
-                if dimension == 2:
-                    new_node.inputs[2].hide = True
-                for i in range(dimension):
-                    new_node.inputs[i].default_value = value[i]
-            elif isinstance(new_node, B.GeometryNodeIndexSwitch):
-                new_node.data_type = "MENU"
-                new_node.show_options = False
+        if isinstance(new_node, B.ShaderNodeValue):
+            new_node.outputs[0].default_value = value
+        elif isinstance(new_node, (B.FunctionNodeInputColor, B.ShaderNodeRGB)):
+            new_node.value = value
+        elif isinstance(new_node, B.FunctionNodeInputInt):
+            new_node.integer = value
+        elif isinstance(new_node, B.FunctionNodeInputBool):
+            new_node.boolean = value
+        elif isinstance(new_node, B.FunctionNodeInputString):
+            new_node.string = value
+        elif isinstance(new_node, B.GeometryNodeInputImage):
+            new_node.image = value
+        elif isinstance(new_node, B.GeometryNodeInputMaterial):
+            new_node.material = value
+        elif isinstance(new_node, B.GeometryNodeInputObject):
+            new_node.object = value
+        elif isinstance(new_node, B.GeometryNodeInputCollection):
+            new_node.collection = value
+        elif isinstance(new_node, B.FunctionNodeEulerToRotation):
+            new_node.inputs[0].default_value = value
+        elif isinstance(new_node, B.ShaderNodeCombineXYZ):
+            dimension = len(value)
+            if dimension == 4:  # todo 暂时不实现
+                pass
+            if dimension == 2:
+                new_node.inputs[2].hide = True
+            for i in range(dimension):
+                new_node.inputs[i].default_value = value[i]
+        elif isinstance(new_node, B.GeometryNodeIndexSwitch):
+            new_node.data_type = "MENU"
+            new_node.show_options = False
 
-                new_node.inputs[-1].hide = True
-                items = get_menu_socket_items(skIn0)
-                fill_index_switch_inputs(new_node, items)
-                if skIn0.default_value != '':
-                    new_node.inputs[0].default_value = items.index(skIn0.default_value)
+            new_node.inputs[-1].hide = True
+            items = get_menu_socket_items(skIn0)
+            fill_index_switch_inputs(new_node, items)
+            if skIn0.default_value != '':
+                new_node.inputs[0].default_value = items.index(skIn0.default_value)
 
 def get_menu_socket_items(socket: bpy.types.NodeSocket) -> list[str]:
     try:
