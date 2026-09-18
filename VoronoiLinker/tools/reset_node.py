@@ -21,8 +21,15 @@ class NODE_OT_voronoi_reset_node(SingleNodeTool):
         draw_node_template(drawer, self.target_nd, tool_name=mode)
         # self.template_draw_any(drawer, self.target_any, cond=self.toolMode=='NODE', tool_name=name)
     def VrntDoResetNode(self, ndTar, tree):
+        # location is parent-relative; location_absolute is the canvas
+        # position. Recreating the node without restoring parent would write
+        # the relative offset as a world position and jump the node to origin.
+        parent = ndTar.parent
+        loc_rel = ndTar.location.copy()
+        loc_abs = ndTar.location_absolute.copy() if hasattr(ndTar, "location_absolute") else None
+        width = ndTar.width
+        old_name = ndTar.name
         ndNew = tree.nodes.new(ndTar.bl_idname)
-        ndNew.location = ndTar.location
         with TryAndPass(): #SimRep的.
             for cyc, sk in enumerate(ndTar.outputs):
                 for lk in sk.vl_sold_links_final:
@@ -37,6 +44,15 @@ class NODE_OT_voronoi_reset_node(SingleNodeTool):
                 if (not li[1].is_readonly)and(getattr(li[1],'enum_items', None)):
                     setattr(ndNew, li[0], getattr(ndTar, li[0]))
         tree.nodes.remove(ndTar)
+        if parent is not None:
+            ndNew.parent = parent
+        if loc_abs is not None and hasattr(ndNew, "location_absolute"):
+            ndNew.location_absolute = loc_abs
+        else:
+            ndNew.location = loc_rel
+        ndNew.width = width
+        with TryAndPass():
+            ndNew.name = old_name
         tree.nodes.active = ndNew
         ndNew.select = self.isSelectResetedNode
         return ndNew

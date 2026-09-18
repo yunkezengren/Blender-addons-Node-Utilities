@@ -23,7 +23,14 @@ def sk_type_to_idname(sk: NodeSocket):
     return idname if idname else "NodeSocket" + sk.type.capitalize()
 
 def is_builtin_tree(bl_idname: str):
-    return bl_idname in  {'GeometryNodeTree', 'ShaderNodeTree', 'CompositorNodeTree', 'TextureNodeTree'}
+    return bl_idname in {
+        'GeometryNodeTree',
+        'ShaderNodeTree',
+        'CompositorNodeTree',
+        'TextureNodeTree',
+        *(['ImageNodeTree'] if hasattr(bpy.types, 'ImageNodeTree') else []),
+        *(['ObjectNodeTree'] if hasattr(bpy.types, 'ObjectNodeTree') else []),
+    }
 
 def add_item_for_index_switch(node: Node):
     nodes = node.id_data.nodes
@@ -42,13 +49,13 @@ def sk_loc(socket: NodeSocket):
         import platform
         from ctypes import c_float, c_void_p
         runtime_offset = 520  # DNA_node_types.h    - bNodeSocket        - runtime
-        location_offset = 24  # BKE_node_runtime.hh - bNodeSocketRuntime - location
+        location_offset = 16  # BKE_node_runtime.hh - bNodeSocketRuntime - location
         if bpy.app.version >= (5, 1, 0):
             runtime_offset = 456
         if bpy.app.version >= (5, 2, 0):
-            location_offset = 32
-        if platform.system() != 'Windows':  # Windows 额外加
-            location_offset -= 8
+            location_offset = 32 - 8
+        if platform.system() == 'Windows':  # Windows 额外加
+            location_offset += 8
         runtime = c_void_p.from_address(socket.as_pointer() + runtime_offset).value
         return Vec2((c_float * 2).from_address(runtime + location_offset))
     except:
@@ -63,9 +70,27 @@ def icon_visible(socket: NodeSocket):
 def is_socket_visible(socket: NodeSocket):
     return socket.enabled and (not socket.hide) and icon_visible(socket)
 
-# 提供对折叠节点的支持:
-# 终于等到了... 当然, 这不是"真正的支持". 我鄙视折叠起来的节点; 我也不想去处理圆角和随之改变的绘制逻辑.
-# 所以, 在官方提供获取插槽位置的API之前, 这就是最好的办法了. 我们翘首以盼. 🙏
+# 折叠节点按 Blender node_update_collapsed 的布局合成接口位置, 不再强制展开.
+# NODE_DY 在节点坐标系里是 20 (U.widget_unit / UI_SCALE).
+_NODE_DY = 20.0
+
+def collapsed_sk_pos(nd: Node, sk: NodeSocket) -> Vec2:
+    loc = node_abs_loc(nd)
+    socks = [s for s in (nd.outputs if sk.is_output else nd.inputs) if is_socket_visible(s)]
+    tot = len(socks)
+    idx = socks.index(sk) if sk in socks else 0
+    dy = _NODE_DY * 0.5
+    offset = _NODE_DY * -0.5
+    x = loc.x + nd.width if sk.is_output else loc.x
+    y = loc.y + dy * max(tot - 1, 0) * 0.5 + offset - dy * idx
+    return Vec2((x, y))
+
+def socket_pos_node_space(nd: Node, sk: NodeSocket, ui_scale: float) -> Vec2:
+    if nd.hide:
+        return collapsed_sk_pos(nd, sk)
+    return sk_loc(sk) / ui_scale
+
+# 工具过程中仍可能临时改 hide (例如预览); 结束时按这份记录还原.
 dict_collapsedNodes = {}
 
 def save_collapsed_nodes(nodes):
@@ -137,17 +162,17 @@ def gen_tars_from_puts(nd: Node, isSide, samplePos, ui_scale): # 为 vpt_rv_ee_s
     for sk in nd.outputs if isSide else reversed(nd.inputs):
         # 忽略禁用和隐藏的
         # todo 如果是被面板隐藏的话,动态开合最近的面板
-        # todo 折叠节点如果展开导致重叠,就不展开?
         if is_socket_visible(sk):
-            pos = sk_loc(sk)/ui_scale # 该死, 这太棒了. 告别了过去版本的自制垃圾.
+            pos = socket_pos_node_space(nd, sk, ui_scale)
             # 但插槽也没有布局高度的API, 所以只能点对点地打补丁; 直到想出其他办法.
             hei = 0
-            if (not isSide)and(sk.type=='VECTOR')and(sk_is_linked_visible(sk))and(not sk.hide_value):
+            if (not nd.hide)and(not isSide)and(sk.type=='VECTOR')and(sk_is_linked_visible(sk))and(not sk.hide_value):
                 if "VectorDirection" in str(sk.bl_rna):
                     hei = 2
                 elif not( (nd.type in ('BSDF_PRINCIPLED','SUBSURFACE_SCATTERING'))and(not is_bl4_plus) )or( not(sk.name in ("Subsurface Radius","Radius"))):
                     hei = 3
-            height_box = (pos.y-11-hei*20,  pos.y+11+max(sk.vl_sold_is_final_linked_cou-2,0)*5*(not isSide))
+            half = 5 if nd.hide else 11
+            height_box = (pos.y-half-hei*20,  pos.y+half+max(sk.vl_sold_is_final_linked_cou-2,0)*5*(not isSide))
             txt = _iface(socket_label(sk)) if sk.bl_idname!='NodeSocketVirtual' else _iface("Virtual" if not sk.name else socket_label(sk))
             results.append(Target(sk, distance=(samplePos-pos).length, pos=pos, side= 1 if sk.is_output else -1 , bottom_top=height_box, text=txt))
     return results

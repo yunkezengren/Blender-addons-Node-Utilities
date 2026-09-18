@@ -5,9 +5,147 @@ from ..base_tool import BaseOperator
 from ..common_class import VmtData
 from ..globals import Color_Bar_Width, SEPARATE, dict_vmtMixerNodesDefs, mixer_default, mixer_tree_sk_nodes, node_support_all_gn_sk
 from ..utils.color import get_sk_color
-from ..utils.node import link_new_pro, remember_add_link
+from ..utils.node import link_new_pro, remember_add_link, vlrt_remember_last_sockets
+
+def _set_mix_factor(node, fac=0.5):
+    # ShaderNodeMix 的 Factor_Float 在 Blender 5.x 默认是 1, Mixer 要 0.5.
+    for sk in node.inputs:
+        ident = getattr(sk, 'identifier', '') or ''
+        name = sk.name or ''
+        if ident in {'Factor_Float', 'Fac'} or (sk.type == 'VALUE' and name in {'Factor', 'Fac'}):
+            try:
+                sk.default_value = fac
+            except Exception:
+                pass
+        elif ident == 'Factor_Vector' or (sk.type == 'VECTOR' and name == 'Factor'):
+            try:
+                sk.default_value = (fac, fac, fac)
+            except Exception:
+                pass
+
+def _already_linked(sk_from, sk_to) -> bool:
+    if not (sk_from and sk_to):
+        return False
+    try:
+        return any(lk.to_socket == sk_to for lk in sk_from.links)
+    except ReferenceError:
+        return False
+
+def _snapshot_outgoing_dests(*socks) -> list[tuple[str, str]]:
+    dests: list[tuple[str, str]] = []
+    seen: set[tuple[str, str]] = set()
+    for sk in socks:
+        if not sk:
+            continue
+        try:
+            for lk in sk.links:
+                key = (lk.to_node.name, lk.to_socket.identifier)
+                if key in seen:
+                    continue
+                seen.add(key)
+                dests.append(key)
+        except (ReferenceError, AttributeError):
+            continue
+    return dests
+
+def _find_socket_by_identifier(node, identifier: str):
+    for sk in node.inputs:
+        if sk.identifier == identifier:
+            return sk
+    return None
+
+def _transform_running() -> bool:
+    try:
+        win = bpy.context.window
+        if not win:
+            return False
+        for op in win.modal_operators:
+            name = (getattr(op, 'bl_idname', '') or '').lower()
+            if any(tok in name for tok in ('translate', 'transform', 'attach')):
+                return True
+        return False
+    except Exception:
+        return False
+
+def _apply_multi_input_mixer_links(tree: NodeTree, a_node, isShift: bool, isAlt: bool, dests: list[tuple[str, str]], sk0=None, sk1=None, sk2=None):
+    Mix_item = dict_vmtMixerNodesDefs[a_node.bl_idname]
+    swap_link = 0
+    if sk1 and sk1.type == "MATRIX" and sk0 and sk0.type != "MATRIX":
+        swap_link = 1
+    soc_in = a_node.inputs[Mix_item[1^isShift^swap_link]]
+    is_multi_in = a_node.inputs[Mix_item[0]].is_multi_input
+    sk0_in = a_node.inputs[Mix_item[0^isShift]^swap_link]
+    if sk1 and is_multi_in and not _already_linked(sk1, soc_in):
+        remember_add_link(sk1, soc_in)
+    if sk0:
+        if not _already_linked(sk0, sk0_in):
+            link_new_pro(sk0, sk0_in)
+        else:
+            vlrt_remember_last_sockets(sk0, sk0_in)
+    if sk1 and not is_multi_in and not _already_linked(sk1, soc_in):
+        remember_add_link(sk1, soc_in)
+
+    out_sk = next((sk for sk in a_node.outputs if sk.enabled), None)
+    sources = [sk for sk in (sk0, sk1, sk2) if sk]
+    if out_sk:
+        for node_name, sock_id in dests:
+            dest_node = tree.nodes.get(node_name)
+            if not dest_node or dest_node == a_node:
+                continue
+            dest = _find_socket_by_identifier(dest_node, sock_id)
+            if not dest:
+                continue
+            if _already_linked(out_sk, dest):
+                continue
+            if any(_already_linked(src, dest) for src in sources):
+                continue
+            try:
+                link_new_pro(out_sk, dest)
+            except Exception:
+                pass
+    if isAlt:
+        for sk in a_node.inputs:
+            sk.hide = True
+
+def _schedule_multi_input_mixer_finish(tree: NodeTree, node_name: str, isShift: bool, isAlt: bool, dests: list[tuple[str, str]], sk0=None, sk1=None, sk2=None):
+    state = {
+        'tree': tree,
+        'node_name': node_name,
+        'isShift': isShift,
+        'isAlt': isAlt,
+        'dests': dests,
+        'sk0': sk0,
+        'sk1': sk1,
+        'sk2': sk2,
+        'saw': False,
+        'idle': 0,
+    }
+
+    def poll():
+        try:
+            node = state['tree'].nodes.get(state['node_name'])
+        except ReferenceError:
+            return None
+        if not node:
+            return None
+        if _transform_running():
+            state['saw'] = True
+            return 0.04
+        if not state['saw']:
+            state['idle'] += 1
+            # transform 有时会晚几帧才进 modal_operators; 连线已在拖动前接上.
+            if state['idle'] < 25:
+                return 0.04
+            return None
+        _apply_multi_input_mixer_links(
+            state['tree'], node, state['isShift'], state['isAlt'], state['dests'],
+            state['sk0'], state['sk1'], state['sk2'])
+        return None
+
+    bpy.app.timers.register(poll, first_interval=0.02)
 
 def DoMix(tree: NodeTree, isShift: bool, isAlt: bool, type: str):
+    dests = _snapshot_outgoing_dests(VmtData.sk0, VmtData.sk1, VmtData.sk2)
     bpy.ops.node.add_node('INVOKE_DEFAULT', type=type, use_transform=not VmtData.isPlaceImmediately)
     a_node = tree.nodes.active
     # a_node: Node | GeometryNodeMenuSwitch = tree.nodes.active
@@ -32,6 +170,8 @@ def DoMix(tree: NodeTree, isShift: bool, isAlt: bool, type: str):
             a_node.operation = 'EQUAL'
         case 'ShaderNodeMix':
             a_node.data_type = {'INT':'FLOAT', 'BOOLEAN':'FLOAT'}.get(fix_type, fix_type)
+            _set_mix_factor(a_node, 0.5)
+    delay_multi = False
     match a_node.bl_idname:
         case 'GeometryNodeIndexSwitch'|'GeometryNodeMenuSwitch'|"ShaderNodeCombineXYZ":
             sks = [sk for sk in (VmtData.sk0, VmtData.sk1, VmtData.sk2) if sk]
@@ -57,17 +197,20 @@ def DoMix(tree: NodeTree, isShift: bool, isAlt: bool, type: str):
         case _:
             # 这种密集的处理是为了多输入 -- 需要改变连接顺序.
             Mix_item = dict_vmtMixerNodesDefs[a_node.bl_idname]
-            swap_link = 0       # sk0是矩阵,sk1是矢量,不交换(这是默认情况)
-            if VmtData.sk1 and VmtData.sk1.type == "MATRIX" and VmtData.sk0.type != "MATRIX":
-                swap_link = 1
-            soc_in = a_node.inputs[Mix_item[1^isShift^swap_link]]
             is_multi_in = a_node.inputs[Mix_item[0]].is_multi_input
-            if (VmtData.sk1)and(is_multi_in): # `0` 在这里主要是因为 dict_vmtMixerNodesDefs 中的“多输入节点”都是零.
-                remember_add_link( VmtData.sk1, soc_in)
-            link_new_pro( VmtData.sk0, a_node.inputs[Mix_item[0^isShift]^swap_link] ) # 注意: 这不是 remember_add_link(), 以便多输入的第二个视觉上是 VlrtData 中的最后一个.
-            if (VmtData.sk1)and(not is_multi_in):
-                remember_add_link( VmtData.sk1, soc_in)
+            # Join Geometry / String Join 等多输入: 拖动时先连上, 这样能看到 noodles.
+            # insert-on-link 放下时会清掉多输入上已有的外部连线, 只留被插入的那根;
+            # 所以 transform 结束后再补一次 Mixer 输入和下游.
+            _apply_multi_input_mixer_links(tree, a_node, isShift, isAlt, dests, VmtData.sk0, VmtData.sk1, VmtData.sk2)
+            if is_multi_in and not VmtData.isPlaceImmediately:
+                delay_multi = True
+    if a_node.bl_idname in {'ShaderNodeMix', 'ShaderNodeMixRGB', 'TextureNodeMixRGB', 'ShaderNodeMixShader'}:
+        _set_mix_factor(a_node, 0.5)
     a_node.show_options = not VmtData.isHideOptions
+    if delay_multi:
+        _schedule_multi_input_mixer_finish(
+            tree, a_node.name, isShift, isAlt, dests, VmtData.sk0, VmtData.sk1, VmtData.sk2)
+        return
     # 接下来和 vqmt 中一样. 它的是主要的; 这里为了直观对应而复制.
     if isAlt:
         for sk in a_node.inputs:
