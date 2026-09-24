@@ -26,6 +26,7 @@ from .tools.swapper import SwapperMode, NODE_OT_voronoi_swapper
 from .tools.warper import NODE_OT_voronoi_warper
 from .utils.translations import translations_dict
 from .utils.solder import register_socket_properties, assign_tool_class_names, unregister_socket_properties
+from .utils.keymap_state import capture_keymaps, restore_keymaps
 from .preference import DrawPrefs, VoronoiAddonPrefs, VoronoiOpAddonTabs, pref, add_dynamic_properties
 
 try:
@@ -242,10 +243,12 @@ def register():
                 setattr(kmi.properties, key, value)
         addon_keymaps.append(kmi)
 
+    restore_keymaps(addon_keymaps)
     register_socket_properties()
 
 def unregister():
     unregister_socket_properties()
+    capture_keymaps(addon_keymaps)
 
     km = bpy.context.window_manager.keyconfigs.addon.keymaps["Node Editor"]
     for kmi in addon_keymaps:
